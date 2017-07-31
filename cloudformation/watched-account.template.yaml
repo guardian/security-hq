@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sets up an AWS account for monitoring via Security HQ
+
+Parameters:
+  SecurityHQAccount:
+    Type: String
+    Description: The ID of the AWS Account the Security HQ application runs in
+    AllowedPattern: "[0-9]{12}"
+    ConstraintDescription: AWS Account IDs are 12-digit numbers
+
+Resources:
+  # role that security HQ can assume
+  # used to get relevant information for the account
+  SecurityHQRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            AWS: !Sub arn:aws:iam::${SecurityHQAccount}:root
+      Policies:
+      - PolicyName: security-hq-watched-account-access-policy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Resource: "*"
+            Action:
+            - iam:GenerateCredentialReport
+            - iam:GetCredentialReport
+
+Outputs:
+  SecurityHQRole:
+    Description: The ARN of a role that Security HQ can assume to lookup details on this account
+    Value: !GetAtt SecurityHQRole.Arn
