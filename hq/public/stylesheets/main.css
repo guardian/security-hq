@@ -1,0 +1,70 @@
+html {
+    /*background-color: #009688;*/
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    box-shadow: 0 0 10px 0 #212121;
+}
+
+nav {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.main-icon {
+
+}
+
+.main-icon__image {
+    width: 100px;
+}
+
+/* homepage */
+
+.accounts-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: stretch;
+}
+
+.grid:after {
+    content: "";
+    flex: auto;
+}
+
+.accounts-container__account {
+    flex-grow: 1;
+    margin: 10px;
+    min-height: 100px;
+    min-width: 200px;
+}
+
+.accounts-container__account--padding {
+    flex-grow: 1;
+    margin: 10px;
+    min-width: 200px;
+}
+
+.accounts-container__account-heading {
+    padding: 10px;
+    border-bottom: solid 1px rgba(255, 255, 255, 0.3);
+    font-size: 2rem;
+    line-height: 110%;
+}
+
+.accounts-container__account-actions {
+    padding: 10px;
+}

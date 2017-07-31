@@ -1,0 +1,36 @@
+@import model.AwsAccount
+
+@(awsAccounts: List[AwsAccount])
+
+
+@main(None, "teal") { @* Header for homepage *@
+    <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
+    <div class="row">
+        <div class="col s12 m9">
+            <h4 class="grey-text text-darken-4 center-on-small-only">Centralised AWS Account security management.</h4>
+        </div>
+    </div>
+
+} { @* Main content *@
+
+    <div class="accounts-container">
+        @for(awsAccount <- awsAccounts) {
+            <div class="accounts-container__account cyan z-depth-2">
+                <div class="accounts-container__account-heading grey-text text-lighten-5">
+                    <a href="/@awsAccount.id">@awsAccount.name</a>
+                </div>
+                <div class="accounts-container__account-actions">
+                    <a href="/@awsAccount.id/iam">IAM</a>
+                </div>
+            </div>
+        }
+        <!-- flexbox hack -->
+        <div class="accounts-container__account--padding"></div>
+        <div class="accounts-container__account--padding"></div>
+        <div class="accounts-container__account--padding"></div>
+        <div class="accounts-container__account--padding"></div>
+        <div class="accounts-container__account--padding"></div>
+        <div class="accounts-container__account--padding"></div>
+        <div class="accounts-container__account--padding"></div>
+    </div>
+}

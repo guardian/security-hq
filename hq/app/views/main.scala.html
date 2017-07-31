@@ -1,0 +1,65 @@
+@(title: Option[String], colour: String)(header: Html)(content: Html)
+
+<!DOCTYPE html>
+<html lang="en" class="@colour">
+    <head>
+        <title>@title.map(t => s"$t | ")Security HQ</title>
+        <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("materialize/css/materialize.min.css")'>
+        <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/main.css")'>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <link rel="shortcut icon" href='@routes.Assets.versioned("images/favicon.ico")'>
+        <link rel="icon" type="image/png" href='@routes.Assets.versioned("images/favicon-32x32.png")' sizes="32x32">
+        <link rel="icon" type="image/png" href='@routes.Assets.versioned("images/favicon-16x16.png")' sizes="16x16">
+        <link rel="apple-touch-icon" sizes="120x120" href='@routes.Assets.versioned("images/apple-touch-icon.png")'>
+    </head>
+    <body>
+        <header class="section" id="index-banner">
+            <div class="container">
+                <div class="main-icon right">
+                    <img src="@routes.Assets.versioned("images/hq.png")" alt="Security HQ" class="main-icon__image" />
+                </div>
+                @header
+            </div>
+        </header>
+        <div class="nav-container">
+            <nav class="">
+                <div class="container">
+                    <div class="nav-wrapper">
+                        <ul class="main-nav left">
+                            <li class="main-nav--home">
+                                <a href="/"><i class="material-icons">home</i></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <main>
+        @content
+        </main>
+
+        <footer class="page-footer grey darken-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col l8 s12">
+                        <h5 class="white-text">Security HQ</h5>
+                        <p class="grey-text text-lighten-4">
+                            A tool for monitoring the security status of AWS accounts, developed by the Guardian's security team.
+                        </p>
+                    </div>
+                    <div class="col l3 offset-l1 s12">
+                        <ul>
+                            <li><a class="grey-text text-lighten-3" href="https://github.com/guardian/security-hq">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script src='@routes.Assets.versioned("javascripts/jquery-3.1.1.min.js")'></script>
+        <script src='@routes.Assets.versioned("materialize/js/materialize.min.js")'></script>
+        <script src='@routes.Assets.versioned("javascripts/app.js")'></script>
+    </body>
+</html>
