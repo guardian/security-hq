@@ -9,8 +9,8 @@ libraryDependencies in ThisBuild ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
-val awsSdkVersion = "1.11.77"
-val playVersion = "2.5.12"
+val awsSdkVersion = "1.11.185"
+val playVersion = "2.5.16"
 
 lazy val hq = (project in file("hq")).
   enablePlugins(PlayScala).
@@ -19,7 +19,8 @@ lazy val hq = (project in file("hq")).
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+      "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % Test
     ),
     // exclude docs
     sources in (Compile,doc) := Seq.empty,
