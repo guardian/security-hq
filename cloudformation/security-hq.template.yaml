@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+Description: Centralised security reporting for AWS
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -9,15 +10,17 @@ Metadata:
       - SecurityHQConfigBucket
       - SecurityHQSourceBundleBucket
     - Label:
+        default: Security
+      Parameters:
+      - AccessRestrictionCidr
+      - SSHAccessCidr
+      - KeyName
+    - Label:
         default: Networking
       Parameters:
       - VpcId
       - Subnets
       - TLSCertArn
-    - Label:
-        default: Security
-      Parameters:
-      - AccessRestrictionCidr
 
 Parameters:
   SecurityHQSourceBundleBucket:
@@ -38,6 +41,14 @@ Parameters:
   AccessRestrictionCidr:
     Description: CIDR block from which access to Security HQ should be allowed
     Type: String
+  SSHAccessCidr:
+    Description: A CIDR from which SSH access to the OWASP SKF instance is allowed
+    Type: String
+    AllowedPattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}$
+    ConstraintDescription: Parameter should be a CIDR block e.g. "1.2.3.4/32"
+  KeyName:
+    Description: An ssh keypair to put on the instance
+    Type: AWS::EC2::KeyPair::KeyName
   Stage:
     Description: Application stage (e.g. PROD, CODE)
     Type: String
@@ -48,10 +59,6 @@ Parameters:
 
 Mappings:
   Constants:
-    BucketJarPath:
-      Value: security/PROD/security-hq/security-hq.zip
-    BucketConfigPath:
-      Value: security/PROD/security-hq/security-hq.conf
     Stack:
       Value: security
     App:
@@ -73,7 +80,7 @@ Resources:
       ApplicationName: !Sub security-hq-${Stage}
       SourceBundle:
         S3Bucket: !Ref SecurityHQSourceBundleBucket
-        S3Key: !FindInMap [ Constants, BucketJarPath, Value ]
+        S3Key: !Sub security/${Stage}/security-hq/security-hq.zip
 
   SecurityHQConfigurationTemplate:
     Type: AWS::ElasticBeanstalk::ConfigurationTemplate
@@ -82,7 +89,7 @@ Resources:
     Properties:
       ApplicationName: !Sub security-hq-${Stage}
       Description: AWS ElasticBeanstalk Security HQ Configuration Template
-      SolutionStackName: 64bit Amazon Linux 2017.03 v2.5.0 running Java 8
+      SolutionStackName: 64bit Amazon Linux 2017.03 v2.5.3 running Java 8
       OptionSettings:
       # configure VPC
       - Namespace: aws:ec2:vpc
@@ -90,13 +97,13 @@ Resources:
         Value: !Ref VpcId
       - Namespace: aws:ec2:vpc
         OptionName: Subnets
-        Value: !Ref Subnets
+        Value: !Join [",", {Ref: Subnets}]
       - Namespace: aws:ec2:vpc
         OptionName: ELBSubnets
-        Value: !Ref Subnets
+        Value: !Join [",", {Ref: Subnets}]
       - Namespace: aws:ec2:vpc
         OptionName: AssociatePublicIpAddress
-        Value: false
+        Value: true
 
       # load balancing
       - Namespace: aws:elasticbeanstalk:environment
@@ -106,9 +113,6 @@ Resources:
         OptionName: LoadBalancerType
         Value: application
 
-      - Namespace: aws:elbv2:loadbalancer
-        OptionName: CrossZone
-        Value: true
       - Namespace: aws:elbv2:loadbalancer
         OptionName: SecurityGroups
         Value: !GetAtt LoadBalancerSecurityGroup.GroupId
@@ -161,10 +165,14 @@ Resources:
         Value: t2.micro
       - Namespace: aws:autoscaling:asg
         OptionName: MinSize
-        Value: 2
+        Value: 1
       - Namespace: aws:autoscaling:asg
         OptionName: MaxSize
         Value: 6
+      # during dev
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: EC2KeyName
+        Value: !Ref KeyName
 
       # config
       - Namespace: aws:elasticbeanstalk:application:environment
@@ -172,9 +180,12 @@ Resources:
         Value: !Ref SecurityHQConfigBucket
       - Namespace: aws:elasticbeanstalk:application:environment
         OptionName: HQ_CONFIG_PATH
-        Value: !FindInMap [ Constants, BucketConfigPath, Value ]
+        Value: !Sub security/${Stage}/security-hq/security-hq.conf
 
       # running
+      - Namespace: aws:elasticbeanstalk:environment
+        OptionName: ServiceRole
+        Value: !Ref SecurityHQServiceRole
       - Namespace: aws:elasticbeanstalk:healthreporting:system
         OptionName: SystemType
         Value: enhanced
@@ -212,7 +223,7 @@ Resources:
       - Key: App
         Value: !FindInMap [ Constants, App, Value ]
       - Key: Stage
-        Value: PROD
+        Value: !Ref Stage
     DependsOn:
     - SecurityHQApplication
     - SecurityHQVersion
@@ -223,7 +234,7 @@ Resources:
     Properties:
       Path: /
       Roles:
-      - Ref: SecurityHQInstanceRole
+      - !Ref SecurityHQInstanceRole
 
   SecurityHQInstanceRole:
     Type: AWS::IAM::Role
@@ -237,9 +248,6 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
-      ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
-      - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
       Policies:
       - PolicyName: security-hq-instance-policy
         PolicyDocument:
@@ -255,7 +263,7 @@ Resources:
               - - "arn:aws:s3:::"
                 - !Ref SecurityHQConfigBucket
                 - "/"
-                - !FindInMap [ Constants, BucketConfigPath, Value ]
+                - !Sub security/${Stage}/security-hq/security-hq.conf
             Action:
             - s3:ListBucketVersions
             - s3:ListBucket
@@ -267,37 +275,61 @@ Resources:
             Action:
             - sts:AssumeRole
 
+  SecurityHQServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - elasticbeanstalk.amazonaws.com
+          Action:
+          - sts:AssumeRole
+          Condition:
+            StringEquals:
+              sts:ExternalId: elasticbeanstalk
+      Path: /
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
+      - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security HQ instance
-      VpcId:
-        Ref: VpcId
+      VpcId: !Ref VpcId
       SecurityGroupIngress:
       # allow ELB to talk to instance
       - IpProtocol: tcp
         FromPort: 9000
         ToPort: 9000
-        SourceSecurityGroupId:
-          Ref: LoadBalancerSecurityGroup
+        SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref SSHAccessCidr
       Tags:
       - Key: Stack
         Value: !FindInMap [ Constants, Stack, Value ]
       - Key: App
         Value: !FindInMap [ Constants, App, Value ]
       - Key: Stage
-        Value: PROD
+        Value: !Ref Stage
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: HTTP access to the load balancer from within the Guardian (for now)
-      VpcId:
-        Ref: VpcId
+      VpcId: !Ref VpcId
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 443
         ToPort: 443
+        CidrIp: !Ref AccessRestrictionCidr
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
         CidrIp: !Ref AccessRestrictionCidr
       Tags:
       - Key: Stack
@@ -305,7 +337,7 @@ Resources:
       - Key: App
         Value: !FindInMap [ Constants, App, Value ]
       - Key: Stage
-        Value: PROD
+        Value: !Ref Stage
 
 
 Outputs:

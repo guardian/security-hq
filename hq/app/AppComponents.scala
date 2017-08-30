@@ -23,6 +23,7 @@ class AppComponents(context: Context)
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration),
+    new UtilityController(),
     new Assets(httpErrorHandler)
   )
 }

@@ -17,10 +17,10 @@
         @for(awsAccount <- awsAccounts) {
             <div class="accounts-container__account cyan z-depth-2">
                 <div class="accounts-container__account-heading grey-text text-lighten-5">
-                    <a href="/@awsAccount.id">@awsAccount.name</a>
+                    <a href="/account/@awsAccount.id">@awsAccount.name</a>
                 </div>
                 <div class="accounts-container__account-actions">
-                    <a href="/@awsAccount.id/iam">IAM</a>
+                    <a href="/account/iam/@awsAccount.id">IAM</a>
                 </div>
             </div>
         }

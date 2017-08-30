@@ -1,1 +1,1 @@
-web: bash security-hq-0.0.1/bin/security-hq -Dplay.crypto.secret=abcdefghijk -Dhttp.port=9000
+web: bash security-hq/bin/security-hq -Dconfig.file=./security-hq.conf -Dhttp.port=9000

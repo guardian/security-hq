@@ -14,6 +14,7 @@ class HQController(val config: Configuration) extends Controller {
    * a path of `/`.
    */
   private val accounts = Config.getAwsAccounts(config)
+  Logger.info("AWS accounts: " + accounts.map(_.name).mkString(", "))
 
   def index = Action {
     Ok(views.html.index(accounts))
