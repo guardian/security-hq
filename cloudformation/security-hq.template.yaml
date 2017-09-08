@@ -158,8 +158,8 @@ Resources:
         OptionName: IamInstanceProfile
         Value: !GetAtt SecurityHQInstanceProfile.Arn
       - Namespace: aws:autoscaling:launchconfiguration
-        OptionName: SecurityGroups
-        Value: !GetAtt InstanceSecurityGroup.GroupId
+        OptionName: SSHSourceRestriction
+        Value: !Sub tcp, 22, 22, ${SSHAccessCidr}
       - Namespace: aws:autoscaling:launchconfiguration
         OptionName: InstanceType
         Value: t2.micro
@@ -293,29 +293,6 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
       - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
-
-  InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security HQ instance
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-      # allow ELB to talk to instance
-      - IpProtocol: tcp
-        FromPort: 9000
-        ToPort: 9000
-        SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp: !Ref SSHAccessCidr
-      Tags:
-      - Key: Stack
-        Value: !FindInMap [ Constants, Stack, Value ]
-      - Key: App
-        Value: !FindInMap [ Constants, App, Value ]
-      - Key: Stage
-        Value: !Ref Stage
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
