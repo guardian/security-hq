@@ -1,0 +1,18 @@
+@import model.AwsAccount
+
+@(awsAccount: AwsAccount)
+
+@main(None) { @* Header for IAM report *@
+    <h1 class="header center-on-small-only grey-text text-lighten-5">Security Groups</h1>
+    <div class="row">
+        <div class="col s12 m9">
+            <h4 class="grey-text text-darken-4 center-on-small-only">For @awsAccount.name</h4>
+        </div>
+    </div>
+
+} { @* Main content *@
+
+    <div class="container">
+        <p>Details about the IAM report would go here.</p>
+    </div>
+}

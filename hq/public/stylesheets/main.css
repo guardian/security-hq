@@ -1,3 +1,13 @@
+/* COLOUR SCHEME
+DARK GREY:  #212121
+TEAL:       #009688
+NOT-WHITE:  #F7F0F0
+HIGHLIGHT:  #8AF3FF
+
+DARK-TEAL:  #0B5351
+COMPLEMENT: #4E8098
+ */
+
 html {
     /*background-color: #009688;*/
 }
@@ -6,14 +16,20 @@ body {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
+    background-image: url("/assets/images/bg-texture.png");
+    background-repeat: repeat;
 }
 
 main {
     flex: 1 0 auto;
 }
 
+.main-header {
+    background-color: #009688;
+    border-bottom: solid 1px #0B5351;
+}
+
 footer {
-    box-shadow: 0 0 10px 0 #212121;
 }
 
 nav {
@@ -31,7 +47,17 @@ nav {
 
 /* homepage */
 
-.accounts-container {
+.accounts__container {
+    background-color: #4E8098;
+    margin-top: 10px;
+    border-top: solid 1px #0B5351;
+}
+
+.accounts__header {
+    padding: 5px 0;
+}
+
+.accounts__list {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -45,26 +71,32 @@ nav {
     flex: auto;
 }
 
-.accounts-container__account {
+.accounts__account {
     flex-grow: 1;
     margin: 10px;
     min-height: 100px;
     min-width: 200px;
+    background-color: #F7F0F0;
 }
 
-.accounts-container__account--padding {
+.accounts__account--padding {
     flex-grow: 1;
     margin: 10px;
     min-width: 200px;
 }
 
-.accounts-container__account-heading {
+.accounts__account-heading {
     padding: 10px;
-    border-bottom: solid 1px rgba(255, 255, 255, 0.3);
-    font-size: 2rem;
+    font-size: 24px;
+    font-weight: 300;
     line-height: 110%;
 }
 
-.accounts-container__account-actions {
+.accounts__link {
+    padding: 0 0.5rem;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+.accounts__account-actions {
     padding: 10px;
 }

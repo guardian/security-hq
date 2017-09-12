@@ -26,9 +26,33 @@ class HQController(val config: Configuration) extends Controller {
     }
   }
 
-  def iam(accountId: String) = Action {
+  def iam = Action {
+    Ok(views.html.iam.iam())
+  }
+
+  def iamAccount(accountId: String) = Action {
     accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
-      Ok(views.html.iam(account))
+      Ok(views.html.iam.iamAccount(account))
+    }
+  }
+
+  def securityGroups = Action {
+    Ok(views.html.sgs.sgs())
+  }
+
+  def securityGroupsAccount(accountId: String) = Action {
+    accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
+      Ok(views.html.sgs.sgsAccount(account))
+    }
+  }
+
+  def dependencies = Action {
+    Ok(views.html.dependencies.dependencies())
+  }
+
+  def dependenciesAccount(accountId: String) = Action {
+    accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
+      Ok(views.html.dependencies.dependenciesAccount(account))
     }
   }
 }

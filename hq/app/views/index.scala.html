@@ -3,7 +3,7 @@
 @(awsAccounts: List[AwsAccount])
 
 
-@main(None, "teal") { @* Header for homepage *@
+@main(None) { @* Header for homepage *@
     <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
     <div class="row">
         <div class="col s12 m9">
@@ -12,25 +12,85 @@
     </div>
 
 } { @* Main content *@
+    <div class="container">
+        <div class="row">
+            <h2>Dashboard</h2>
+            <p>Main incidents here</p>
+        </div>
 
-    <div class="accounts-container">
-        @for(awsAccount <- awsAccounts) {
-            <div class="accounts-container__account cyan z-depth-2">
-                <div class="accounts-container__account-heading grey-text text-lighten-5">
-                    <a href="/account/@awsAccount.id">@awsAccount.name</a>
-                </div>
-                <div class="accounts-container__account-actions">
-                    <a href="/account/iam/@awsAccount.id">IAM</a>
+        <div class="row">
+            <div class="col s12 m6">
+                <div class="card">
+                    <div class="card-content">
+                        <i class="right material-icons">vpn_lock</i>
+                        <span class="card-title">Security Groups</span>
+                        <p>
+                            Analysis of Security Group configuration.
+                        </p>
+                    </div>
                 </div>
             </div>
-        }
-        <!-- flexbox hack -->
-        <div class="accounts-container__account--padding"></div>
-        <div class="accounts-container__account--padding"></div>
-        <div class="accounts-container__account--padding"></div>
-        <div class="accounts-container__account--padding"></div>
-        <div class="accounts-container__account--padding"></div>
-        <div class="accounts-container__account--padding"></div>
-        <div class="accounts-container__account--padding"></div>
+            <div class="col s12 m6">
+                <div class="card">
+                    <div class="card-content">
+                        <i class="right material-icons">layers</i>
+                        <span class="card-title">Software dependencies</span>
+                        <p>
+                            OWASP dependency check status checks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col s12 m6">
+                <div class="card">
+                    <div class="card-content">
+                        <i class="right material-icons">vpn_key</i>
+                        <span class="card-title">
+                            Credentials audits
+                        </span>
+                        <p>
+                            IAM credentials reports.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="accounts__container">
+        <div class="container">
+            <div class="row">
+                <div class="accounts__header">
+                    <h2 class="white-text">All accounts</h2>
+                </div>
+                <div class="accounts__list">
+                    @for(awsAccount <- awsAccounts) {
+                        <div class="accounts__account z-depth-2">
+                            <div class="accounts__account-heading">
+                                <a class="accounts__link" href="/account/@awsAccount.id">@awsAccount.name</a>
+                            </div>
+                            <div class="accounts__account-actions">
+                                <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">
+                                    <i class="material-icons">vpn_lock</i>
+                                </a>
+                                <a href="/dependencies/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Software dependenciesAccount">
+                                    <i class="material-icons">layers</i>
+                                </a>
+                                <a href="/iam/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Credentials audits">
+                                    <i class="material-icons">vpn_key</i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                        <!-- flexbox hack -->
+                    <div class="accounts__account--padding"></div>
+                    <div class="accounts__account--padding"></div>
+                    <div class="accounts__account--padding"></div>
+                    <div class="accounts__account--padding"></div>
+                    <div class="accounts__account--padding"></div>
+                    <div class="accounts__account--padding"></div>
+                    <div class="accounts__account--padding"></div>
+                </div>
+            </div>
+        </div>
     </div>
 }

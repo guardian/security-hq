@@ -1,7 +1,7 @@
-@(title: Option[String], colour: String)(header: Html)(content: Html)
+@(title: Option[String])(header: Html)(content: Html)
 
 <!DOCTYPE html>
-<html lang="en" class="@colour">
+<html lang="en">
     <head>
         <title>@title.map(t => s"$t | ")Security HQ</title>
         <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("materialize/css/materialize.min.css")'>
@@ -14,15 +14,15 @@
         <link rel="apple-touch-icon" sizes="120x120" href='@routes.Assets.versioned("images/apple-touch-icon.png")'>
     </head>
     <body>
-        <header class="section" id="index-banner">
+        <header class="main-header section" id="index-banner">
             <div class="container">
                 <div class="main-icon right">
-                    <img src="@routes.Assets.versioned("images/hq.png")" alt="Security HQ" class="main-icon__image" />
+                    <a href="/">
+                        <img src="@routes.Assets.versioned("images/hq.png")" alt="Security HQ" class="main-icon__image" />
+                    </a>
                 </div>
                 @header
             </div>
-        </header>
-        <div class="nav-container">
             <nav class="">
                 <div class="container">
                     <div class="nav-wrapper">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
             </nav>
-        </div>
+        </header>
 
         <main>
         @content
