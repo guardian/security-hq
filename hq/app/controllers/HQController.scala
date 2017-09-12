@@ -1,8 +1,10 @@
 package controllers
 
+import aws.iam.IAMClient
 import config.Config
 import play.api._
 import play.api.mvc._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class HQController(val config: Configuration) extends Controller {
@@ -26,8 +28,12 @@ class HQController(val config: Configuration) extends Controller {
     }
   }
 
-  def iam(accountId: String) = Action {
-    accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
+  def iam(accountId: String) = Action.async { request =>
+    // tmp
+    val account = accounts.find(_.id == "security-hq-dev").get
+    val client = IAMClient.client(account.id)
+    IAMClient.getCredentialsReport(client).map { credentialsReport =>
+      println(credentialsReport)
       Ok(views.html.iam(account))
     }
   }
