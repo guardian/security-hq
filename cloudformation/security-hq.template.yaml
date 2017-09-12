@@ -292,6 +292,7 @@ Resources:
       Path: /
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
+      - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkService
       - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
 
   LoadBalancerSecurityGroup:

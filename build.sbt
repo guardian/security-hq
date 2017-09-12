@@ -19,6 +19,8 @@ lazy val hq = (project in file("hq")).
     libraryDependencies ++= Seq(
       ws,
       filters,
+      "joda-time" % "joda-time" % "2.9.9",
+      "com.github.tototoshi" %% "scala-csv" % "1.3.5",
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % Test
     ),
