@@ -1,11 +1,15 @@
 package controllers
 
+import aws.support.{TrustedAdvisor, TrustedAdvisorSGOpenPorts}
 import config.Config
 import play.api._
 import play.api.mvc._
+import aws.Auth
+
+import scala.concurrent.{ExecutionContext, Future}
 
 
-class HQController(val config: Configuration) extends Controller {
+class HQController(val config: Configuration)(implicit val ec: ExecutionContext) extends Controller {
 
   /**
    * Create an Action to render an HTML page with a welcome message.
@@ -20,9 +24,12 @@ class HQController(val config: Configuration) extends Controller {
     Ok(views.html.index(accounts))
   }
 
-  def account(accountId: String) = Action {
-    accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
-      Ok(views.html.account(account))
+  def account(accountId: String) = Action.async {
+    accounts.find(_.id == accountId).fold(Future.successful(NotFound: Result)) { account =>
+      val client = TrustedAdvisor.client(account)
+      for {
+        trustedAdvisorDescs <- TrustedAdvisor.getTrustedAdvisorChecks(client)
+      } yield Ok(views.html.account(account, trustedAdvisorDescs))
     }
   }
 
@@ -40,19 +47,16 @@ class HQController(val config: Configuration) extends Controller {
     Ok(views.html.sgs.sgs())
   }
 
-  def securityGroupsAccount(accountId: String) = Action {
-    accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
-      Ok(views.html.sgs.sgsAccount(account))
+  def securityGroupsAccount(accountId: String) = Action.async {
+    accounts.find(_.id == accountId).fold(Future.successful(NotFound: Result)) { account =>
+      val client = TrustedAdvisor.client(account)
+      for {
+        sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(client)
+      } yield Ok(views.html.sgs.sgsAccount(account, sgResult))
     }
   }
 
   def dependencies = Action {
     Ok(views.html.dependencies.dependencies())
-  }
-
-  def dependenciesAccount(accountId: String) = Action {
-    accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
-      Ok(views.html.dependencies.dependenciesAccount(account))
-    }
   }
 }

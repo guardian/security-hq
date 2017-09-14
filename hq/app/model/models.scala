@@ -1,5 +1,7 @@
 package model
 
+import org.joda.time.DateTime
+
 case class AwsAccount(
   id: String,
   name: String,
@@ -30,3 +32,57 @@ case class IAMCredential(
   cert_2_active: String,
   cert_2_last_rotated: String
 )
+
+case class TrustedAdvisorCheck(
+  id: String,
+  name: String,
+  description: String,
+  category: String
+)
+
+case class TrustedAdvisorDetailsResult[A <: TrustedAdvisorCheckDetails](
+  checkId: String,
+  status: String,
+  timestamp: DateTime,
+  flaggedResources: List[A],
+  resourcesIgnored: Long,
+  resourcesFlagged: Long,
+  resourcesSuppressed: Long
+)
+
+sealed trait TrustedAdvisorCheckDetails
+case class SGOpenPortsDetail(
+  status: String,
+  region: String,
+  name: String,
+  id: String,
+  vpcId: String,
+  protocol: String,
+  port: String,
+  alertLevel: String,
+  isSuppressed: Boolean
+) extends TrustedAdvisorCheckDetails
+case class RDSSGsDetail(
+  region: String,
+  rdsSgId: String,
+  ec2SGId: String,
+  alertLevel: String,
+  isSuppressed: Boolean
+) extends TrustedAdvisorCheckDetails
+case class ExposedIAMKeyDetail(
+  keyId: String,
+  username: String,
+  fraudType: String,
+  caseId: String,
+  updated: String,
+  location: String,
+  deadline: String,
+  usage: String
+) extends TrustedAdvisorCheckDetails
+
+
+sealed trait Stage
+
+case object DEV extends Stage
+
+case object PROD extends Stage

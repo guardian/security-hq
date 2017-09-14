@@ -1,9 +1,9 @@
-@(title: Option[String])(header: Html)(content: Html)
+@(title: List[String])(header: Html)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>@title.map(t => s"$t | ")Security HQ</title>
+        <title>@{(title ++ List("Security HQ")).mkString(" | ")}</title>
         <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("materialize/css/materialize.min.css")'>
         <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/main.css")'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

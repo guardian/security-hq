@@ -1,8 +1,8 @@
-@import model.AwsAccount
+@import model.{AwsAccount, TrustedAdvisorCheck}
 
-@(awsAccount: AwsAccount)
+@(awsAccount: AwsAccount, trustedAdvisorChecks: List[TrustedAdvisorCheck])
 
-@main(None) { @* Header for account overview *@
+@main(List(awsAccount.name)) { @* Header *@
     <h1 class="header center-on-small-only grey-text text-lighten-5">Account overview</h1>
     <div class="row">
         <div class="col s12 m9">
@@ -13,6 +13,22 @@
 } { @* Main content *@
 
     <div class="container">
-        <p>Overview of the AWS account goes here.</p>
+        <div class="row">
+            <h2>Trusted advisor results</h2>
+        @for(trustedAdvisorCheck <- trustedAdvisorChecks){
+            <div class="col s12 m6">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">
+                            @trustedAdvisorCheck.name
+                        </span>
+                        <p data-id="@trustedAdvisorCheck.id">
+                            @Html(trustedAdvisorCheck.description)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
     </div>
 }

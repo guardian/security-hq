@@ -3,7 +3,7 @@
 @(awsAccounts: List[AwsAccount])
 
 
-@main(None) { @* Header for homepage *@
+@main(Nil) { @* Header *@
     <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
     <div class="row">
         <div class="col s12 m9">
@@ -33,7 +33,9 @@
             <div class="col s12 m6">
                 <div class="card">
                     <div class="card-content">
-                        <i class="right material-icons">layers</i>
+                        <a href="/dependencies" class="btn-flat accounts__link right">
+                            <i class="right material-icons">layers</i>
+                        </a>
                         <span class="card-title">Software dependencies</span>
                         <p>
                             OWASP dependency check status checks.
@@ -71,9 +73,6 @@
                             <div class="accounts__account-actions">
                                 <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">
                                     <i class="material-icons">vpn_lock</i>
-                                </a>
-                                <a href="/dependencies/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Software dependenciesAccount">
-                                    <i class="material-icons">layers</i>
                                 </a>
                                 <a href="/iam/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Credentials audits">
                                     <i class="material-icons">vpn_key</i>

@@ -2,7 +2,7 @@
 
 @(awsAccount: AwsAccount)
 
-@main(None) { @* Header for IAM report *@
+@main(List(awsAccount.name, "Software dependencies")) { @* Header *@
     <h1 class="header center-on-small-only grey-text text-lighten-5">Software dependencies</h1>
     <div class="row">
         <div class="col s12 m9">
