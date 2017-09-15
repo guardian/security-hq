@@ -100,3 +100,20 @@ nav {
 .accounts__account-actions {
     padding: 10px;
 }
+
+.card .card-content--title {
+    padding-bottom: 10px;
+}
+
+.card .card-content--body {
+    padding-top: 10px;
+}
+
+.card-content--border {
+    height: 3px;
+}
+
+.sg-details__table td, .sg-details__table th {
+    padding: 5px;
+    word-wrap: break-word;
+}

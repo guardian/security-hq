@@ -14,28 +14,39 @@
     <div class="container">
         <div class="row">
             <h2>Open Security Groups</h2>
-            <p>The following Security Groups have ports open to the world.</p>
+            <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
             @for(resource <- sgsResult.flaggedResources.filter(_.status != "ok")) {
-                <div class="col s12 m4">
+                <div class="col s12 m6 l4">
                     <div class="card">
-                        <div class="card-content">
+                        <div class="card-content card-content--title">
                             <span class="card-title">@resource.name</span>
-                            <dl>
-                                <dt>Alert level</dt>
-                                <dd>@resource.alertLevel</dd>
-                                <dt>Name</dt>
-                                <dd>@resource.name</dd>
-                                <dt>ID</dt>
-                                <dd>@resource.id</dd>
-                                <dt>VPC</dt>
-                                <dd>@resource.vpcId</dd>
-                                <dt>Region</dt>
-                                <dd>@resource.region</dd>
-                                <dt>Protocol</dt>
-                                <dd>@resource.protocol</dd>
-                                <dt>Port</dt>
-                                <dd>@resource.port</dd>
-                            </dl>
+                        </div>
+                        <div class="card-content--border @{resource.alertLevel.toLowerCase} darken-1"></div>
+                        <div class="card-content card-content--body">
+                            <table class="sg-details__table">
+                                <tbody>
+                                    <tr>
+                                        <th>Port</th>
+                                        <td>@resource.port</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Protocol</th>
+                                        <td>@resource.protocol</td>
+                                    </tr>
+                                    <tr>
+                                        <th>ID</th>
+                                        <td>@resource.id</td>
+                                    </tr>
+                                    <tr>
+                                        <th>VPC</th>
+                                        <td>@resource.vpcId</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Region</th>
+                                        <td>@resource.region</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
