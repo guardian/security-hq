@@ -30,6 +30,10 @@ Resources:
           - Effect: Allow
             Resource: "*"
             Action:
+            # Analyse security groups
+            - trustedadvisor:Describe*
+            - ec2:DescribeNetworkInterfaces
+            # IAM credentials overview
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport
 

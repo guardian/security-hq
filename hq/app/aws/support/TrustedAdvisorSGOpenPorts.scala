@@ -36,4 +36,8 @@ object TrustedAdvisorSGOpenPorts {
         throw new RuntimeException(s"Could not parse SGOpenPorts from TrustedAdvisorResourceDetail with metadata $metadata")
     }
   }
+
+  def sgIds(result: TrustedAdvisorDetailsResult[SGOpenPortsDetail]): List[String] = {
+    result.flaggedResources.map(_.id)
+  }
 }

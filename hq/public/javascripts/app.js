@@ -4,4 +4,6 @@ jQuery(function($){
         console.log("insecure");
         // window.location.replace(location.href.replace(/^http:/, "https:"))
     }
+
+    $('.modal').modal();
 });

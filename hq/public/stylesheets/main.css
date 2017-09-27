@@ -117,3 +117,8 @@ nav {
     padding: 5px;
     word-wrap: break-word;
 }
+
+.item-cta {
+    display: block;
+    background-color: #4E8098;
+}

@@ -18,7 +18,6 @@ class HQController(val config: Configuration)(implicit val ec: ExecutionContext)
    * a path of `/`.
    */
   private val accounts = Config.getAwsAccounts(config)
-  Logger.info("AWS accounts: " + accounts.map(_.name).mkString(", "))
 
   def index = Action {
     Ok(views.html.index(accounts))
@@ -40,19 +39,6 @@ class HQController(val config: Configuration)(implicit val ec: ExecutionContext)
   def iamAccount(accountId: String) = Action {
     accounts.find(_.id == accountId).fold(NotFound: Result) { account =>
       Ok(views.html.iam.iamAccount(account))
-    }
-  }
-
-  def securityGroups = Action {
-    Ok(views.html.sgs.sgs())
-  }
-
-  def securityGroupsAccount(accountId: String) = Action.async {
-    accounts.find(_.id == accountId).fold(Future.successful(NotFound: Result)) { account =>
-      val client = TrustedAdvisor.client(account)
-      for {
-        sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(client)
-      } yield Ok(views.html.sgs.sgsAccount(account, sgResult))
     }
   }
 

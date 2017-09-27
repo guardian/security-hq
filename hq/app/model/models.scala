@@ -80,9 +80,14 @@ case class ExposedIAMKeyDetail(
   usage: String
 ) extends TrustedAdvisorCheckDetails
 
+sealed trait SGInUse
+case class Instance(instanceId: String) extends SGInUse
+case class ELB(description: String) extends SGInUse
+case class UnknownUsage(
+  description: String,
+  networkInterfaceId: String
+) extends SGInUse
 
 sealed trait Stage
-
 case object DEV extends Stage
-
 case object PROD extends Stage
