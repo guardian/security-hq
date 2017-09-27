@@ -4,20 +4,22 @@ import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAd
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{ExposedIAMKeyDetail, TrustedAdvisorDetailsResult}
+import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisorExposedIAMKeys {
   val exposedIAMKeys = "12Fnkpl8Y5"
 
-  def getExposedIAMKeys(client: AWSSupportAsync)(implicit ec: ExecutionContext): Future[TrustedAdvisorDetailsResult[ExposedIAMKeyDetail]] = {
+  def getExposedIAMKeys(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[ExposedIAMKeyDetail]] = {
     getTrustedAdvisorCheckDetails(client, exposedIAMKeys)
       .map(parseTrustedAdvisorCheckResult(parseExposedIamKeyDetail))
   }
 
-  def parseExposedIamKeyDetail(detail: TrustedAdvisorResourceDetail): ExposedIAMKeyDetail = {
+
+  private[support] def parseExposedIamKeyDetail(detail: TrustedAdvisorResourceDetail): ExposedIAMKeyDetail = {
     detail.getMetadata.asScala.toList match {
       case keyId :: username :: fraudType :: caseId :: updated :: location :: deadline :: usage :: _ =>
         ExposedIAMKeyDetail(keyId, username, fraudType, caseId, updated, location, deadline, usage)

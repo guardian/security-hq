@@ -4,20 +4,22 @@ import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAd
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{RDSSGsDetail, TrustedAdvisorDetailsResult}
+import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisorRDSSGs {
   val rdsSGs = "nNauJisYIT"
 
-  def getRDSSecurityGroupDetail(client: AWSSupportAsync)(implicit ec: ExecutionContext): Future[TrustedAdvisorDetailsResult[RDSSGsDetail]] = {
+  def getRDSSecurityGroupDetail(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[RDSSGsDetail]] = {
     getTrustedAdvisorCheckDetails(client, rdsSGs)
       .map(parseTrustedAdvisorCheckResult(parseRDSSGDetail))
   }
 
-  def parseRDSSGDetail(detail: TrustedAdvisorResourceDetail): RDSSGsDetail = {
+
+  private[support] def parseRDSSGDetail(detail: TrustedAdvisorResourceDetail): RDSSGsDetail = {
     detail.getMetadata.asScala.toList match {
       case region :: rdsSgId :: ec2SGId :: alertLevel :: _ =>
         RDSSGsDetail(

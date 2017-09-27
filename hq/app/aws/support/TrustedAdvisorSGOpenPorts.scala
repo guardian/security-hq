@@ -4,21 +4,27 @@ import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAd
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{SGOpenPortsDetail, TrustedAdvisorDetailsResult}
+import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisorSGOpenPorts {
   val sgOpenPorts = "HCP4007jGY"
   val SGIds = "^(sg-[\\w]+) \\((vpc-[\\w]+)\\)$".r
 
-  def getSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Future[TrustedAdvisorDetailsResult[SGOpenPortsDetail]] = {
+  def getSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[SGOpenPortsDetail]] = {
     getTrustedAdvisorCheckDetails(client, sgOpenPorts)
       .map(parseTrustedAdvisorCheckResult(parseSGOpenPortsDetail))
   }
 
-  def parseSGOpenPortsDetail(detail: TrustedAdvisorResourceDetail): SGOpenPortsDetail = {
+  def sgIds(result: TrustedAdvisorDetailsResult[SGOpenPortsDetail]): List[String] = {
+    result.flaggedResources.map(_.id)
+  }
+
+
+  private[support] def parseSGOpenPortsDetail(detail: TrustedAdvisorResourceDetail): SGOpenPortsDetail = {
     detail.getMetadata.asScala.toList match {
       case region :: name :: SGIds(sgId, vpcId) :: protocol :: alertLevel :: port :: _ =>
         SGOpenPortsDetail(
@@ -35,9 +41,5 @@ object TrustedAdvisorSGOpenPorts {
       case metadata =>
         throw new RuntimeException(s"Could not parse SGOpenPorts from TrustedAdvisorResourceDetail with metadata $metadata")
     }
-  }
-
-  def sgIds(result: TrustedAdvisorDetailsResult[SGOpenPortsDetail]): List[String] = {
-    result.flaggedResources.map(_.id)
   }
 }

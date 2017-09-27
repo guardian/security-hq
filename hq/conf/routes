@@ -11,7 +11,6 @@ GET        /iam                                       controllers.HQController.i
 GET        /iam/:accountId                            controllers.HQController.iamAccount(accountId)
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
-GET        /security-group/:accountId/:sgId           controllers.SecurityGroupsController.securityGroupInfo(accountId, sgId)
 GET        /dependencies                              controllers.HQController.dependencies
 
 GET        /healthcheck                               controllers.UtilityController.healthcheck

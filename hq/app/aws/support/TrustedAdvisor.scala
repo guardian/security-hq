@@ -1,13 +1,14 @@
 package aws.support
 
-import aws.Auth
-import aws.AwsAsyncHandler.awsToScala
+import aws.AWS
+import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.support.model._
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import model._
 import logic.DateUtils.fromISOString
+import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,15 +23,15 @@ object TrustedAdvisor {
   }
 
   def client(awsAccount: AwsAccount): AWSSupportAsync = {
-    val auth = Auth.credentialsProvider(awsAccount)
+    val auth = AWS.credentialsProvider(awsAccount)
     client(auth)
   }
 
   // SHOW ALL TRUSTED ADVISOR CHECKS
 
-  def getTrustedAdvisorChecks(client: AWSSupportAsync)(implicit ec: ExecutionContext): Future[List[TrustedAdvisorCheck]] = {
+  def getTrustedAdvisorChecks(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[List[TrustedAdvisorCheck]] = {
     val request = new DescribeTrustedAdvisorChecksRequest().withLanguage("en")
-    awsToScala(client.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult)
+    handleAWSErrs(awsToScala(client.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult))
   }
 
   def parseTrustedAdvisorChecksResult(result: DescribeTrustedAdvisorChecksResult): List[TrustedAdvisorCheck] = {
@@ -46,11 +47,11 @@ object TrustedAdvisor {
 
   // GENERIC FUNCTIONALITY FOR DETAILED CHECK RESULTS
 
-  def getTrustedAdvisorCheckDetails(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Future[DescribeTrustedAdvisorCheckResultResult] = {
+  def getTrustedAdvisorCheckDetails(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Attempt[DescribeTrustedAdvisorCheckResultResult] = {
     val request = new DescribeTrustedAdvisorCheckResultRequest()
       .withLanguage("en")
       .withCheckId(checkId)
-    awsToScala(client.describeTrustedAdvisorCheckResultAsync)(request)
+    handleAWSErrs(awsToScala(client.describeTrustedAdvisorCheckResultAsync)(request))
   }
 
   def parseTrustedAdvisorCheckResult[A <: TrustedAdvisorCheckDetails](parseDetails: TrustedAdvisorResourceDetail => A)(result: DescribeTrustedAdvisorCheckResultResult): TrustedAdvisorDetailsResult[A] = {
