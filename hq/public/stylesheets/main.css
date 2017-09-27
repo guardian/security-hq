@@ -118,7 +118,8 @@ nav {
     word-wrap: break-word;
 }
 
-.item-cta {
+.usage-cta {
     display: block;
     background-color: #4E8098;
+    padding: 0 0.6rem;
 }

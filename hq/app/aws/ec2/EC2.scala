@@ -72,7 +72,7 @@ object EC2 {
 
   private[ec2] def parseNetworkInterface(ni: NetworkInterface): SGInUse = {
     val elb = Option(ni.getAttachment.getInstanceOwnerId).find(_ == "amazon-elb")
-      .map(_ => ELB(ni.getDescription))
+      .map(_ => ELB(ni.getDescription.stripPrefix("ELB ")))
     val instance = Option(ni.getAttachment.getInstanceId).map(Instance)
 
     elb

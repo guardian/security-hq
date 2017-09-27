@@ -51,39 +51,37 @@
                             </table>
                         </div>
                         <div class="card-action">
-                            @if(sgUsage.get(resource.id).isDefined) {
-                                <a class="btn item-cta" href="#usage-modal-@resource.id">Usage</a>
-                            } else {
-                                <a class="btn item-cta" href="#" disabled>Not in use</a>
-                            }
-                        </div>
-                    </div>
-                    @sgUsage.get(resource.id).map { usages =>
-                        <div id="usage-modal-@resource.id" class="modal">
-                            <div class="modal-content">
-                                <h4>Usage</h4>
-                                @for(usage <- usages) {
-                                    @usage match {
-                                        case Instance(id) => {
-                                            <h3>Instance</h3>
-                                            <p>@id</p>
-                                        }
-                                        case ELB(description) => {
-                                            <h3>Load Balancer</h3>
-                                            <p>@description</p>
-                                        }
-                                        case UnknownUsage(description: String, networkInterfaceId: String) => {
-                                            <h3>Unknown usage</h3>
-                                            <p>@networkInterfaceId @description</p>
+                            @sgUsage.get(resource.id) match {
+                                case None => {
+                                    <a class="btn usage-cta" href="#" disabled>Not in use</a>
+                                }
+                                case Some(usages) => {
+                                    @for(usage <- usages) {
+                                        @usage match {
+                                            case Instance(id) => {
+                                                <a class="btn usage-cta" href="https://@{resource.region}.console.aws.amazon.com/ec2/v2/home?region=@resource.region#Instances:search=@id">
+                                                    <i class="material-icons right">computer</i>
+                                                    @id
+                                                </a>
+                                            }
+                                            case ELB(description) => {
+                                                <a class="btn usage-cta" href="https://@{resource.region}.console.aws.amazon.com/ec2/v2/home?region=@resource.region#LoadBalancers:search=@description">
+                                                    <i class="material-icons right">device_hub</i>
+                                                    @description
+                                                </a>
+                                            }
+                                            case UnknownUsage(description: String, networkInterfaceId: String) => {
+                                                <a class="btn usage-cta">
+                                                    <i class="material-icons right">report_problem</i>
+                                                    Unknown usage: @description @networkInterfaceId
+                                                </a>
+                                            }
                                         }
                                     }
                                 }
-                            </div>
-                            <div class="modal-footer">
-                                <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">X</a>
-                            </div>
+                            }
                         </div>
-                    }
+                    </div>
                 </div>
             }
         </div>
