@@ -1,6 +1,6 @@
-@import model.{AwsAccount, TrustedAdvisorDetailsResult, SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
+@import model.{AwsAccount, SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
 
-@(awsAccount: AwsAccount, sgUsage: Map[String, Set[SGInUse]], sgsResult: TrustedAdvisorDetailsResult[SGOpenPortsDetail])
+@(awsAccount: AwsAccount, flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
     <div class="container">
@@ -17,73 +17,8 @@
         <div class="row">
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
-            @for(resource <- sgsResult.flaggedResources.filter(_.status != "ok")) {
-                <div class="col s12 m6 l4">
-                    <div class="card">
-                        <div class="card-content card-content--title">
-                            <span class="card-title">@resource.name</span>
-                        </div>
-                        <div class="card-content--border @{resource.alertLevel.toLowerCase} darken-1"></div>
-                        <div class="card-content card-content--body">
-                            <table class="sg-details__table">
-                                <tbody>
-                                    <tr>
-                                        <th>Port</th>
-                                        <td>@resource.port</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Protocol</th>
-                                        <td>@resource.protocol</td>
-                                    </tr>
-                                    <tr>
-                                        <th>ID</th>
-                                        <td>@resource.id</td>
-                                    </tr>
-                                    <tr>
-                                        <th>VPC</th>
-                                        <td>@resource.vpcId</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Region</th>
-                                        <td>@resource.region</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="card-action">
-                            @sgUsage.get(resource.id) match {
-                                case None => {
-                                    <a class="btn usage-cta" href="#" disabled>Not in use</a>
-                                }
-                                case Some(usages) => {
-                                    @for(usage <- usages) {
-                                        @usage match {
-                                            case Instance(id) => {
-                                                <a class="btn usage-cta" href="https://@{resource.region}.console.aws.amazon.com/ec2/v2/home?region=@resource.region#Instances:search=@id">
-                                                    <i class="material-icons right">computer</i>
-                                                    @id
-                                                </a>
-                                            }
-                                            case ELB(description) => {
-                                                <a class="btn usage-cta" href="https://@{resource.region}.console.aws.amazon.com/ec2/v2/home?region=@resource.region#LoadBalancers:search=@description">
-                                                    <i class="material-icons right">device_hub</i>
-                                                    @description
-                                                </a>
-                                            }
-                                            case UnknownUsage(description: String, networkInterfaceId: String) => {
-                                                <a class="btn usage-cta">
-                                                    <i class="material-icons right">report_problem</i>
-                                                    Unknown usage: @description @networkInterfaceId
-                                                </a>
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
+
+            @views.html.fragments.openSecurityGroups(flaggedSgs)
         </div>
     </div>
 }

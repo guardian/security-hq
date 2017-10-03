@@ -45,6 +45,16 @@ object Failure {
     Failure(details, friendlyMessage, 401)
   }
 
+  def noCredentials(serviceNameOpt: Option[String]): Failure = {
+    val details = serviceNameOpt.fold("no AWS credentials available, unknown service") { serviceName =>
+      s"no credentials exist for, service: $serviceName"
+    }
+    val friendlyMessage = serviceNameOpt.fold("Failed to talk to AWS, no credentials exist for the account.") { serviceName =>
+      s"Failed to talk to AWS, no credentials exist for $serviceName."
+    }
+    Failure(details, friendlyMessage, 401)
+  }
+
   def awsAccountNotFound(accountId: String): Failure = {
     Failure(
       s"Unknown account $accountId",

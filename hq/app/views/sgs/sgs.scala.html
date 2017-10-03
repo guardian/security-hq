@@ -1,6 +1,7 @@
-@import model.AwsAccount
+@import model.{AwsAccount, SGOpenPortsDetail, SGInUse}
 
-@()
+@(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])
+
 
 @main(List("Security Groups")) { @* Header *@
     <div class="container">
@@ -14,6 +15,28 @@
 
 } { @* Main content *@
     <div class="container">
-        <p>Fetch details about SGs across all our accounts.</p>
+        <div class="row">
+            <h2>Open Security Groups</h2>
+            <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
+        </div>
+
+        @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
+            <div class="row">
+                <h3>@account.name</h3>
+
+                @if(flaggedSgsAttempt.isLeft) {
+                    <div class="card-panel yellow">
+                        <p class="warning">
+                            <i class="material-icons right">warning</i>
+                            @for(err <- flaggedSgsAttempt.left.get.failures) {
+                                @err.friendlyMessage
+                            }
+                        </p>
+                    </div>
+                } else {
+                    @views.html.fragments.openSecurityGroups(flaggedSgsAttempt.right.get)
+                }
+            </div>
+        }
     </div>
 }

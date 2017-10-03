@@ -23,7 +23,7 @@ lazy val hq = (project in file("hq")).
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
       "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.5" % Test
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
     ),
     // exclude docs
     sources in (Compile,doc) := Seq.empty,
