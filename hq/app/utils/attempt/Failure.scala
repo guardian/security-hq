@@ -39,20 +39,14 @@ object Failure {
     val details = serviceNameOpt.fold("expired AWS credentials, unknown service") { serviceName =>
       s"expired AWS credentials, service: $serviceName"
     }
-    val friendlyMessage = serviceNameOpt.fold("Failed to talk to AWS, the temporary credentials have expired.") { serviceName =>
-      s"Failed to talk to $serviceName, the temporary credentials have expired."
-    }
-    Failure(details, friendlyMessage, 401)
+    Failure(details, "Failed to request data from AWS, the temporary credentials have expired.", 401)
   }
 
   def noCredentials(serviceNameOpt: Option[String]): Failure = {
     val details = serviceNameOpt.fold("no AWS credentials available, unknown service") { serviceName =>
-      s"no credentials exist for, service: $serviceName"
+      s"no credentials found, service: $serviceName"
     }
-    val friendlyMessage = serviceNameOpt.fold("Failed to talk to AWS, no credentials exist for the account.") { serviceName =>
-      s"Failed to talk to AWS, no credentials exist for $serviceName."
-    }
-    Failure(details, friendlyMessage, 401)
+    Failure(details, "Failed to request data from AWS, no credentials found.", 401)
   }
 
   def awsAccountNotFound(accountId: String): Failure = {

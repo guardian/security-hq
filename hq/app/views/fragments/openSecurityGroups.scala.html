@@ -1,15 +1,18 @@
 @import model.{SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
 
-@(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])
+@(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])], shadow: Boolean)
 
 
+<div class="row">
 @for((flaggedSg, usages) <- flaggedSgs) {
     <div class="col s12 m6 l4">
-        <div class="card">
+        <div class="card @if(!shadow){z-depth-0}">
             <div class="card-content card-content--title">
                 <span class="card-title">@flaggedSg.name</span>
             </div>
-            <div class="card-content--border @{flaggedSg.alertLevel.toLowerCase} darken-1"></div>
+            <div class="card-content--border @{
+                flaggedSg.alertLevel.toLowerCase
+            } darken-1"></div>
             <div class="card-content card-content--body">
                 <table class="sg-details__table">
                     <tbody>
@@ -65,3 +68,4 @@
         </div>
     </div>
 }
+</div>

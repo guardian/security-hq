@@ -18,7 +18,7 @@
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
 
-            @views.html.fragments.openSecurityGroups(flaggedSgs)
+            @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
         </div>
     </div>
 }

@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.concurrent.Executors
+
 import aws.AWS
 import aws.ec2.EC2
 import config.Config
@@ -13,10 +15,13 @@ import scala.concurrent.ExecutionContext
 class SecurityGroupsController(val config: Configuration)(implicit val ec: ExecutionContext) extends Controller {
   private val accounts = Config.getAwsAccounts(config)
 
+  // highly parallel for making simultaneous requests across all AWS accounts
+  val highlyAsyncExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+
   def securityGroups = Action.async {
     attempt {
       for {
-        allFlaggedSgs <- EC2.allFlaggedSgs(accounts)
+        allFlaggedSgs <- EC2.allFlaggedSgs(accounts)(highlyAsyncExecutionContext)
         sortedFlaggedSgs = EC2.sortAccountByFlaggedSgs(allFlaggedSgs)
       } yield Ok(views.html.sgs.sgs(sortedFlaggedSgs))
     }
