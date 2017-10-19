@@ -1,0 +1,6 @@
+
+name: security
+mappings:
+  - prefix: security
+    port: 9090
+    path: /
