@@ -2,9 +2,8 @@ package utils
 
 import org.scalatest.{FreeSpec, Matchers}
 import org.scalatest.prop.Checkers
-import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
-import org.scalacheck.Shapeless._
+import org.scalacheck.ScalacheckShapeless._
 import RichList._
 
 

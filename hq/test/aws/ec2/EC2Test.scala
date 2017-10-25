@@ -1,18 +1,13 @@
 package aws.ec2
 
-import java.util
-
 import com.amazonaws.services.ec2.model.{DescribeNetworkInterfacesResult, GroupIdentifier, NetworkInterface, NetworkInterfaceAttachment}
 import model._
-import org.scalatest.{FreeSpec, Matchers}
-import org.scalatest.prop.Checkers
-import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
-import org.scalacheck.Shapeless._
-import utils.attempt.FailedAttempt
+import org.scalacheck.ScalacheckShapeless._
+import org.scalatest.prop.Checkers
+import org.scalatest.{FreeSpec, Matchers}
 
 import scala.collection.JavaConverters._
-import scala.util.Random.shuffle
 
 
 class EC2Test extends FreeSpec with Matchers with Checkers {
@@ -60,49 +55,49 @@ class EC2Test extends FreeSpec with Matchers with Checkers {
 
   "sortAccountByFlaggedSgs" - {
     "puts accounts with nonempty flagged results above errors and empty results" in {
-//      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
-//        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
-//          case (_, Right(sgs)) => sgs.nonEmpty
-//          case _ => false
-//        }
-//        // should be no nonEmpty flagged results in the rest of the list
-//        resultsWithoutNonEmptyPrefix.forall {
-//          case (_, Right(sgs)) if sgs.nonEmpty => false
-//          case _ => true
-//        }
-//      }
+      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
+        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
+          case (_, Right(sgs)) => sgs.nonEmpty
+          case _ => false
+        }
+        // should be no nonEmpty flagged results in the rest of the list
+        resultsWithoutNonEmptyPrefix.forall {
+          case (_, Right(sgs)) if sgs.nonEmpty => false
+          case _ => true
+        }
+      }
     }
 
     "puts errors below nonEmpty results and above empty" in {
-//      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
-//        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
-//          case (_, Right(sgs)) => sgs.nonEmpty
-//          case _ => false
-//        }
-//        val resultsWithoutEmptyTail = resultsWithoutNonEmptyPrefix.reverse.dropWhile {
-//          case (_, Right(sgs)) => sgs.isEmpty
-//          case _ => false
-//        }
-//        // should be left with only the errors
-//        resultsWithoutEmptyTail.forall { case (_, result) => result.isLeft }
-//      }
+      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
+        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
+          case (_, Right(sgs)) => sgs.nonEmpty
+          case _ => false
+        }
+        val resultsWithoutEmptyTail = resultsWithoutNonEmptyPrefix.reverse.dropWhile {
+          case (_, Right(sgs)) => sgs.isEmpty
+          case _ => false
+        }
+        // should be left with only the errors
+        resultsWithoutEmptyTail.forall { case (_, result) => result.isLeft }
+      }
     }
 
     "puts error empty flagged results below errors and non-empty results" in {
-//      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
-//        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
-//          case (_, Right(sgs)) => sgs.nonEmpty
-//          case _ => false
-//        }
-//        val resultsWithoutNonEmptyPrefixOrErrorsMiddle = resultsWithoutNonEmptyPrefix.dropWhile {
-//          case (_, Left(_)) => true
-//          case _ => false
-//        }
-//        resultsWithoutNonEmptyPrefixOrErrorsMiddle.forall {
-//          case (_, Right(Nil)) => true
-//          case _ => false
-//        }
-//      }
+      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
+        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
+          case (_, Right(sgs)) => sgs.nonEmpty
+          case _ => false
+        }
+        val resultsWithoutNonEmptyPrefixOrErrorsMiddle = resultsWithoutNonEmptyPrefix.dropWhile {
+          case (_, Left(_)) => true
+          case _ => false
+        }
+        resultsWithoutNonEmptyPrefixOrErrorsMiddle.forall {
+          case (_, Right(Nil)) => true
+          case _ => false
+        }
+      }
     }
   }
 
