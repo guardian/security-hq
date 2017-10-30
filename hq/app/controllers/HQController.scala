@@ -1,8 +1,9 @@
 package controllers
 
 import aws.AWS
-import aws.support.TrustedAdvisor
+import aws.support.{TrustedAdvisor, TrustedAdvisorExposedIAMKeys}
 import config.Config
+import model.ExposedIAMKeyDetail
 import play.api._
 import play.api.mvc._
 import utils.attempt.PlayIntegration.attempt
@@ -35,7 +36,13 @@ class HQController(val config: Configuration)(implicit val ec: ExecutionContext)
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-      } yield Ok(views.html.iam.iamAccount(account))
+        client = TrustedAdvisor.client(account)
+        exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(client)
+        //exposedIamKeys = exposedIamKeysResult.flaggedResources
+        exposedIamKeys = List(
+          ExposedIAMKeyDetail("key-id", "afisher", "Bad fraud", "2136357781", "2017-29-09T11:32:04Z", "The internet", "Soon", "EC2")
+        )
+      } yield Ok(views.html.iam.iamAccount(account, exposedIamKeys))
     }
   }
 

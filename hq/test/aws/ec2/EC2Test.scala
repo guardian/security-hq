@@ -1,15 +1,16 @@
 package aws.ec2
 
-import java.util
-
 import com.amazonaws.services.ec2.model.{DescribeNetworkInterfacesResult, GroupIdentifier, NetworkInterface, NetworkInterfaceAttachment}
-import model.{ELB, Instance, UnknownUsage}
+import model._
+import org.scalacheck.Prop._
+import org.scalacheck.ScalacheckShapeless._
+import org.scalatest.prop.Checkers
 import org.scalatest.{FreeSpec, Matchers}
 
 import scala.collection.JavaConverters._
 
 
-class EC2Test extends FreeSpec with Matchers {
+class EC2Test extends FreeSpec with Matchers with Checkers {
   "parseNetworkInterface" - {
     "parses an ELB" in {
       EC2.parseNetworkInterface(elb("test-elb")) shouldEqual ELB("test-elb")
@@ -49,6 +50,54 @@ class EC2Test extends FreeSpec with Matchers {
     "keys should be only matching SG IDs" in {
       val result = EC2.parseDescribeNetworkInterfacesResults(niResult, List("sg-1", "sg-3", "sg-not-used"))
       result.keys should contain only ("sg-1", "sg-3")
+    }
+  }
+
+  "sortAccountByFlaggedSgs" - {
+    "puts accounts with nonempty flagged results above errors and empty results" in {
+      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
+        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
+          case (_, Right(sgs)) => sgs.nonEmpty
+          case _ => false
+        }
+        // should be no nonEmpty flagged results in the rest of the list
+        resultsWithoutNonEmptyPrefix.forall {
+          case (_, Right(sgs)) if sgs.nonEmpty => false
+          case _ => true
+        }
+      }
+    }
+
+    "puts errors below nonEmpty results and above empty" in {
+      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
+        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
+          case (_, Right(sgs)) => sgs.nonEmpty
+          case _ => false
+        }
+        val resultsWithoutEmptyTail = resultsWithoutNonEmptyPrefix.reverse.dropWhile {
+          case (_, Right(sgs)) => sgs.isEmpty
+          case _ => false
+        }
+        // should be left with only the errors
+        resultsWithoutEmptyTail.forall { case (_, result) => result.isLeft }
+      }
+    }
+
+    "puts error empty flagged results below errors and non-empty results" in {
+      check { (results: List[(AwsAccount, Either[Int, List[Int]])]) =>
+        val resultsWithoutNonEmptyPrefix = EC2.sortAccountByFlaggedSgs(results).dropWhile {
+          case (_, Right(sgs)) => sgs.nonEmpty
+          case _ => false
+        }
+        val resultsWithoutNonEmptyPrefixOrErrorsMiddle = resultsWithoutNonEmptyPrefix.dropWhile {
+          case (_, Left(_)) => true
+          case _ => false
+        }
+        resultsWithoutNonEmptyPrefixOrErrorsMiddle.forall {
+          case (_, Right(Nil)) => true
+          case _ => false
+        }
+      }
     }
   }
 

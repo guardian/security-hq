@@ -1,6 +1,7 @@
-@import model.AwsAccount
+@import model.{AwsAccount, SGOpenPortsDetail, SGInUse}
 
-@()
+@(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])
+
 
 @main(List("Security Groups")) { @* Header *@
     <div class="container">
@@ -14,6 +15,49 @@
 
 } { @* Main content *@
     <div class="container">
-        <p>Fetch details about SGs across all our accounts.</p>
+        <div class="row">
+            <h2>Open Security Groups</h2>
+            <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
+
+            <ul class="collapsible" data-collapsible="accordion">
+            @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
+                <li>
+                    <div class="collapsible-header">
+                        @flaggedSgsAttempt match {
+                            case Left(_) => {
+                                <i class="material-icons right">warning</i>
+                            }
+                            case Right(Nil) => {
+                                <i class="material-icons right">done</i>
+                            }
+                            case Right(flaggedSgs) => {
+                                <span class="new badge" data-badge-caption="flagged resources">@flaggedSgs.length</span>
+                            }
+                        }
+                        @account.name
+                    </div>
+                    <div class="collapsible-body">
+                    @flaggedSgsAttempt match {
+                        case Left(errs) => {
+                            <p class="p--warning">
+                                @for(err <- errs.failures) {
+                                    @err.friendlyMessage
+                                }
+                            </p>
+                        }
+                        case Right(Nil) => {
+                            <p>No flagged Security Groups</p>
+                        }
+                        case Right(flaggedSgs) => {
+                            @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=false)
+                        }
+                    }
+                    </div>
+                </li>
+
+
+            }
+            </ul>
+        </div>
     </div>
 }
