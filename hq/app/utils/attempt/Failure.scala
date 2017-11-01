@@ -49,6 +49,16 @@ object Failure {
     Failure(details, "Failed to request data from AWS, no credentials found.", 401)
   }
 
+  def insufficientPermissions(serviceNameOpt: Option[String]): Failure = {
+    val details = serviceNameOpt.fold("application is not authorized to perform actions for a service") { serviceName =>
+      s"application is not authorized to perform actions for service: $serviceName"
+    }
+    val friendlyMessage = serviceNameOpt.fold("Application is not authorized to perform actions for a service") { serviceName =>
+      s"Application is not authorized to perform actions for service: $serviceName by the current access policies"
+    }
+    Failure(details, friendlyMessage, 403)
+  }
+
   def awsAccountNotFound(accountId: String): Failure = {
     Failure(
       s"Unknown account $accountId",

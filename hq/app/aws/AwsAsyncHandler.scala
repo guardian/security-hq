@@ -37,7 +37,9 @@ object AwsAsyncHandler {
         Failure.expiredCredentials(serviceNameOpt).attempt
       } else if (e.getMessage.contains("Unable to load AWS credentials from any provider in the chain")) {
         Failure.noCredentials(serviceNameOpt).attempt
-      }else {
+      } else if (e.getMessage.contains("is not authorized to perform")) {
+        Failure.insufficientPermissions(serviceNameOpt).attempt
+      } else {
         Failure.awsError(serviceNameOpt).attempt
       }
     }
