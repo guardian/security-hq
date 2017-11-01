@@ -30,7 +30,7 @@ object Failure {
       s"AWS unknown error, service: $serviceName (check logs for stacktrace)"
     }
     val friendlyMessage = serviceNameOpt.fold("Unknown error while making API calls to AWS.") { serviceName =>
-      s"Unknown error while making an API to AWS' $serviceName service"
+      s"Unknown error while making an API call to AWS' $serviceName service"
     }
     Failure(details, friendlyMessage, 500)
   }

@@ -32,6 +32,7 @@ Resources:
             Action:
             # Analyse security groups
             - trustedadvisor:Describe*
+            - support:*
             - ec2:DescribeNetworkInterfaces
             # IAM credentials overview
             - iam:GenerateCredentialReport
