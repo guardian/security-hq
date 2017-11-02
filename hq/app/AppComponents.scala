@@ -24,6 +24,7 @@ class AppComponents(context: Context)
     httpErrorHandler,
     new HQController(configuration)(ec),
     new SecurityGroupsController(configuration)(ec),
+    new AuthController(environment)(wsClient, configuration),
     new UtilityController(),
     new Assets(httpErrorHandler)
   )
