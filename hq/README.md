@@ -41,7 +41,7 @@ Once the sever has started, the webapp should be accessible at http://localhost:
 
 #### Using nginx as a proxy
 
-It is possible to run the application and setup nginx as a proxy; this will make the application accessible via the url `https://security.local.dev-gutools.co.uk/` (you may be familiar with this process if you have worked on Identity or Composer):
+It is possible to run the application and setup nginx as a proxy; this will make the application accessible via the url `https://security-hq.local.dev-gutools.co.uk/` (you may be familiar with this process if you have worked on Identity or Composer):
 
 1. Install nginx:
   > *Linux:*   ```sudo apt-get install nginx```
@@ -71,7 +71,7 @@ It is possible to run the application and setup nginx as a proxy; this will make
     sudo ./setup-app.rb <path_of_security-hq>/nginx/nginx-mapping.yml
   ```
 
-6. Now if you run the project on port 9090, it will also be accessible via https://security.local.dev-gutools.co.uk/
+6. Now if you run the project on port 9090, it will also be accessible via https://security-hq.local.dev-gutools.co.uk/
 
   To change the default port, pass the port number to the `run` command:
 
