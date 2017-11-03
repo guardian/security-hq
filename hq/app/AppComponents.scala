@@ -22,8 +22,8 @@ class AppComponents(context: Context)
 
   override def router: Router = new Routes(
     httpErrorHandler,
-    new HQController(configuration)(ec),
-    new SecurityGroupsController(configuration)(ec),
+    new HQController(configuration)(ec, wsClient),
+    new SecurityGroupsController(configuration)(ec, wsClient),
     new AuthController(environment)(wsClient, configuration),
     new UtilityController(),
     new Assets(httpErrorHandler)

@@ -7,7 +7,7 @@ import play.api.mvc.{Action, Controller}
 
 
 class AuthController(environment: Environment)
-  (implicit val wsClient: WSClient, val config: Configuration)
+                    (implicit val wsClient: WSClient, val config: Configuration)
   extends Controller with SecurityHQAuthActions {
 
   implicit val mode = environment.mode
@@ -18,7 +18,7 @@ class AuthController(environment: Environment)
 
   def loginError = Action { implicit request =>
     val error = request.flash.get("error").getOrElse("There was an error logging in")
-    ???
+    Ok(views.html.loginError(error, None))
   }
 
   def logout = Action { implicit request =>

@@ -12,6 +12,15 @@ import scala.util.Try
 
 
 object Config {
+  def getStage(config: Configuration): Stage = {
+    config.getString("stage") match {
+      case Some("DEV") => DEV
+      case Some("PROD") => PROD
+      case Some(stage) => throw config.reportError("stage", s"$stage is not a valid stage, expected one of DEV, PROD")
+      case None => throw config.reportError("stage", s"Missing application stage, expected one of DEV, PROD")
+    }
+  }
+
   def googleSettings(implicit config: Configuration): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
@@ -61,15 +70,6 @@ object Config {
       awsAccount <- getAwsAccount(accountConfig)
     } yield awsAccount
     accounts.sortBy(_.name)
-  }
-
-  def getStage(config: Configuration): Stage = {
-    config.getString("stage") match {
-      case Some("DEV") => DEV
-      case Some("PROD") => PROD
-      case Some(stage) => throw config.reportError("stage", s"$stage is not a valid stage, expected one of DEV, PROD")
-      case None => throw config.reportError("stage", s"Missing application stage, expected one of DEV, PROD")
-    }
   }
 
   private[config] def getAwsAccount(config: Configuration): Option[AwsAccount] = {
