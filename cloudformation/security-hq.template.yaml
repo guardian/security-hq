@@ -181,6 +181,9 @@ Resources:
       - Namespace: aws:elasticbeanstalk:application:environment
         OptionName: HQ_CONFIG_PATH
         Value: !Sub security/${Stage}/security-hq/security-hq.conf
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: HQ_CERT_PATH
+        Value: !Sub security/${Stage}/security-hq/security-hq-service-account-cert.json
 
       # running
       - Namespace: aws:elasticbeanstalk:environment
