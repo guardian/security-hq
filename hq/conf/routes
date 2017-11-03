@@ -13,6 +13,11 @@ GET        /security-groups                           controllers.SecurityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
 GET        /dependencies                              controllers.HQController.dependencies
 
+GET        /login                                     controllers.AuthController.login
+GET        /loginError                                controllers.AuthController.loginError
+GET        /oauthCallback                             controllers.AuthController.oauthCallback
+GET        /logout                                    controllers.AuthController.logout
+
 GET        /healthcheck                               controllers.UtilityController.healthcheck
 
 # Map static resources from the /public folder to the /assets URL path

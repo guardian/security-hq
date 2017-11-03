@@ -10,6 +10,7 @@ presents the data collected by those processes.
 It also provides an interface on some markers of a watched AWS
 account's health from a security point of view.
 
+
 ## Deployment
 
 The `bundle-hq.sh` script in this repository's TLD will generate an EBS
@@ -21,6 +22,7 @@ N.B. If you are using macOS you may need to install `coreutils` before you can r
 1) get [Homebrew](https://brew.sh/) if you have not done so already
 
 2) install coreutils using Homebrew `$ brew install coreutils`
+
 
 ## Development
 

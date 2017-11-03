@@ -17,8 +17,9 @@ lazy val hq = (project in file("hq")).
     libraryDependencies ++= Seq(
       ws,
       filters,
+      "com.gu" %% "play-googleauth" % "0.6.0",
       "joda-time" % "joda-time" % "2.9.9",
-      "org.typelevel" %% "cats-core" % "1.0.0-MF",
+      "org.typelevel" %% "cats" % "0.8.1",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
@@ -26,7 +27,7 @@ lazy val hq = (project in file("hq")).
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
       "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.5" % Test
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
     ),
     // exclude docs
     sources in (Compile,doc) := Seq.empty,

@@ -3,7 +3,7 @@ package aws
 import com.amazonaws.AmazonWebServiceRequest
 import com.amazonaws.handlers.AsyncHandler
 import play.api.Logger
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.{Attempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -35,6 +35,10 @@ object AwsAsyncHandler {
       }
       if (e.getMessage.contains("The security token included in the request is expired")) {
         Failure.expiredCredentials(serviceNameOpt).attempt
+      } else if (e.getMessage.contains("Unable to load AWS credentials from any provider in the chain")) {
+        Failure.noCredentials(serviceNameOpt).attempt
+      } else if (e.getMessage.contains("is not authorized to perform")) {
+        Failure.insufficientPermissions(serviceNameOpt).attempt
       } else {
         Failure.awsError(serviceNameOpt).attempt
       }

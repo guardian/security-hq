@@ -51,6 +51,27 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) {
 
 object Attempt {
   /**
+    * Changes generated `List[Attempt[A]]` to `Attempt[List[A]]` via provided
+    * traversal function (like `Future.traverse`).
+    *
+    * This implementation returns the first failure in the resulting list,
+    * or the successful result.
+    */
+  def traverse[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[B]] = {
+    as.foldRight[Attempt[List[B]]](Right(Nil))(f(_).map2(_)(_ :: _))
+  }
+
+  /**
+    * Using the provided traversal function, sequence the resulting attempts
+    * into a list that preserves failures.
+    *
+    * This is useful if failure is acceptable in part of the application.
+    */
+  def traverseWithFailures[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, B]]] = {
+    sequenceWithFailures(as.map(f))
+  }
+
+  /**
     * As with `Future.sequence`, changes `List[Attempt[A]]` to `Attempt[List[A]]`.
     *
     * This implementation returns the first failure in the list, or the successful result.
@@ -60,20 +81,12 @@ object Attempt {
   }
 
   /**
-    * Changes generated `List[Attempt[A]]` to `Attempt[List[A]]` via provided function (like `Future.traverse`).
+    * Sequence these attempts into a list that preserves failures.
     *
-    * This implementation returns the first failure in the list, or the successful result.
+    * This is useful if failure is acceptable in part of the application.
     */
-  def traverse[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[B]] = {
-    as.foldRight[Attempt[List[B]]](Right(Nil))(f(_).map2(_)(_ :: _))
-  }
-
-  /**
-    * Sequence this attempt as a successful attempt that contains a list of potential
-    * failures. This is useful if failure is acceptable in part of the application.
-    */
-  def sequenceFutures[A](response: List[Attempt[A]])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, A]]] = {
-    Async.Right(Future.traverse(response)(_.asFuture))
+  def sequenceWithFailures[A](attempts: List[Attempt[A]])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, A]]] = {
+    Async.Right(Future.traverse(attempts)(_.asFuture))
   }
 
   def fromEither[A](e: Either[FailedAttempt, A]): Attempt[A] =

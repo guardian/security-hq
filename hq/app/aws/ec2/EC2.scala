@@ -2,7 +2,7 @@ package aws.ec2
 
 import aws.AWS
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import aws.support.TrustedAdvisorSGOpenPorts
+import aws.support.{TrustedAdvisor, TrustedAdvisorSGOpenPorts}
 import cats.instances.map._
 import cats.instances.set._
 import cats.syntax.semigroup._
@@ -11,10 +11,10 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.model.{DescribeNetworkInterfacesRequest, DescribeNetworkInterfacesResult, Filter, NetworkInterface}
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import model._
-import utils.attempt.Attempt
+import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 
 object EC2 {
@@ -50,6 +50,39 @@ object EC2 {
     }
   }
 
+  def flaggedSgsForAccount(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
+    val supportClient = TrustedAdvisor.client(account)
+    for {
+      sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
+      sgUsage <- getSgsUsage(sgResult, account)
+      flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
+    } yield flaggedSgs.map(sgOpenPortsDetail => sgOpenPortsDetail -> sgUsage.getOrElse(sgOpenPortsDetail.id, Set.empty))
+  }
+
+  def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
+    Attempt.Async.Right {
+      Future.traverse(accounts) { account =>
+        flaggedSgsForAccount(account).asFuture.map(account -> _)
+      }
+    }
+  }
+
+  def sortAccountByFlaggedSgs[L, R](accountsWithFlaggedSgs: List[(AwsAccount, Either[L, List[R]])]): List[(AwsAccount, Either[L, List[R]])] = {
+    accountsWithFlaggedSgs.sortBy {
+      // first, non-empty flagged results list
+      // sort internally by number of flagged results
+      case (_, Right(flaggedSgs)) if flaggedSgs.nonEmpty =>
+        (0, 0, flaggedSgs.length, "")
+      // second, failed to get results
+      // sort internally by name of account
+      case (account, Left(_)) =>
+        (0, 1, 0, account.name)
+      // finally, empty flagged results
+      // sort internally by name of account
+      case (account, Right(flaggedSgs)) =>
+        (1, 0, 0, account.name)
+    }
+  }
 
   private[ec2] def getSgsUsageForRegion(sgIds: List[String], client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[DescribeNetworkInterfacesResult] = {
     val request = new DescribeNetworkInterfacesRequest()

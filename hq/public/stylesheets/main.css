@@ -123,3 +123,7 @@ nav {
     background-color: #4E8098;
     padding: 0 0.6rem;
 }
+
+.collapsible-body {
+    background-color: #fff;
+}

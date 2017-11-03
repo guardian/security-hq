@@ -30,7 +30,7 @@ object Failure {
       s"AWS unknown error, service: $serviceName (check logs for stacktrace)"
     }
     val friendlyMessage = serviceNameOpt.fold("Unknown error while making API calls to AWS.") { serviceName =>
-      s"Unknown error while making an API to AWS' $serviceName service"
+      s"Unknown error while making an API call to AWS' $serviceName service"
     }
     Failure(details, friendlyMessage, 500)
   }
@@ -39,10 +39,24 @@ object Failure {
     val details = serviceNameOpt.fold("expired AWS credentials, unknown service") { serviceName =>
       s"expired AWS credentials, service: $serviceName"
     }
-    val friendlyMessage = serviceNameOpt.fold("Failed to talk to AWS, the temporary credentials have expired.") { serviceName =>
-      s"Failed to talk to $serviceName, the temporary credentials have expired."
+    Failure(details, "Failed to request data from AWS, the temporary credentials have expired.", 401)
+  }
+
+  def noCredentials(serviceNameOpt: Option[String]): Failure = {
+    val details = serviceNameOpt.fold("no AWS credentials available, unknown service") { serviceName =>
+      s"no credentials found, service: $serviceName"
     }
-    Failure(details, friendlyMessage, 401)
+    Failure(details, "Failed to request data from AWS, no credentials found.", 401)
+  }
+
+  def insufficientPermissions(serviceNameOpt: Option[String]): Failure = {
+    val details = serviceNameOpt.fold("application is not authorized to perform actions for a service") { serviceName =>
+      s"application is not authorized to perform actions for service: $serviceName"
+    }
+    val friendlyMessage = serviceNameOpt.fold("Application is not authorized to perform actions for a service") { serviceName =>
+      s"Application is not authorized to perform actions for service: $serviceName by the current access policies"
+    }
+    Failure(details, friendlyMessage, 403)
   }
 
   def awsAccountNotFound(accountId: String): Failure = {
