@@ -2,11 +2,12 @@ package aws.support
 
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import org.scalatest.{FreeSpec, Matchers}
+import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
 
 
-class TrustedAdvisorExposedIAMKeysTest extends FreeSpec with Matchers {
+class TrustedAdvisorExposedIAMKeysTest extends FreeSpec with Matchers with AttemptValues {
   "parseRDSSGDetail" - {
     val metadata = List("key-id", "username", "fraud-type", "case-id", "last-updated", "location", "deadline", "usage")
     val detail = new TrustedAdvisorResourceDetail()
@@ -17,7 +18,7 @@ class TrustedAdvisorExposedIAMKeysTest extends FreeSpec with Matchers {
       .withResourceId("abcdefz")
 
     "works on example data" in {
-      TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(detail) should have(
+      TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(detail).value() should have(
         'keyId ("key-id"),
         'username ("username"),
         'fraudType ("fraud-type"),
@@ -27,6 +28,17 @@ class TrustedAdvisorExposedIAMKeysTest extends FreeSpec with Matchers {
         'deadline ("deadline"),
         'usage ("usage")
       )
+    }
+
+    "returns a failure if it cannot parse the result" in {
+      val badMetadata: List[String] = Nil
+      val badDetail = new TrustedAdvisorResourceDetail()
+        .withIsSuppressed(false)
+        .withMetadata(badMetadata.asJava)
+        .withRegion("eu-west-1")
+        .withStatus("ok")
+        .withResourceId("abcdefz")
+      TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(detail).isFailedAttempt shouldEqual true
     }
   }
 }

@@ -4,7 +4,7 @@ import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAd
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{SGOpenPortsDetail, TrustedAdvisorDetailsResult}
-import utils.attempt.Attempt
+import utils.attempt.{Attempt, Failure}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -16,7 +16,7 @@ object TrustedAdvisorSGOpenPorts {
 
   def getSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[SGOpenPortsDetail]] = {
     getTrustedAdvisorCheckDetails(client, sgOpenPorts)
-      .map(parseTrustedAdvisorCheckResult(parseSGOpenPortsDetail))
+      .flatMap(parseTrustedAdvisorCheckResult(parseSGOpenPortsDetail, ec))
   }
 
   def sgIds(result: TrustedAdvisorDetailsResult[SGOpenPortsDetail]): List[String] = {
@@ -24,34 +24,40 @@ object TrustedAdvisorSGOpenPorts {
   }
 
 
-  private[support] def parseSGOpenPortsDetail(detail: TrustedAdvisorResourceDetail): SGOpenPortsDetail = {
+  private[support] def parseSGOpenPortsDetail(detail: TrustedAdvisorResourceDetail): Attempt[SGOpenPortsDetail] = {
     detail.getMetadata.asScala.toList match {
       case region :: name :: SGIds(sgId, vpcId) :: protocol :: alertLevel :: port :: _ =>
-        SGOpenPortsDetail(
-          status = detail.getStatus,
-          region = detail.getRegion,
-          name = name,
-          id = sgId,
-          vpcId = vpcId,
-          protocol = protocol,
-          port = port,
-          alertLevel = alertLevel,
-          isSuppressed = detail.getIsSuppressed
-        )
+        Attempt.Right {
+          SGOpenPortsDetail(
+            status = detail.getStatus,
+            region = detail.getRegion,
+            name = name,
+            id = sgId,
+            vpcId = vpcId,
+            protocol = protocol,
+            port = port,
+            alertLevel = alertLevel,
+            isSuppressed = detail.getIsSuppressed
+          )
+        }
       case region :: name :: sgId :: protocol :: alertLevel :: port :: _ =>
-        SGOpenPortsDetail(
-          status = detail.getStatus,
-          region = detail.getRegion,
-          name = name,
-          id = sgId,
-          vpcId = "EC2 classic",
-          protocol = protocol,
-          port = port,
-          alertLevel = alertLevel,
-          isSuppressed = detail.getIsSuppressed
-        )
+        Attempt.Right {
+          SGOpenPortsDetail(
+            status = detail.getStatus,
+            region = detail.getRegion,
+            name = name,
+            id = sgId,
+            vpcId = "EC2 classic",
+            protocol = protocol,
+            port = port,
+            alertLevel = alertLevel,
+            isSuppressed = detail.getIsSuppressed
+          )
+        }
       case metadata =>
-        throw new RuntimeException(s"Could not parse SGOpenPorts from TrustedAdvisorResourceDetail with metadata $metadata")
+        Attempt.Left {
+          Failure(s"Could not parse SGOpenPorts from TrustedAdvisorResourceDetail with metadata $metadata", "Could not parse SGOpenPorts result", 500).attempt
+        }
     }
   }
 }

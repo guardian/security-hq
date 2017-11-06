@@ -2,11 +2,12 @@ package aws.support
 
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import org.scalatest.{FreeSpec, Matchers}
+import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
 
 
-class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers {
+class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues {
   "parsing details" - {
     val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
     val detail = new TrustedAdvisorResourceDetail()
@@ -17,7 +18,7 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers {
       .withResourceId("abcdefz")
 
     "works on example data" in {
-      TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail) should have(
+      TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail).value() should have(
         'region ("eu-west-1"),
         'name ("launch-wizard-1"),
         'id ("sg-12345a"),
