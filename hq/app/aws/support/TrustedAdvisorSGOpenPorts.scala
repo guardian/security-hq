@@ -38,6 +38,18 @@ object TrustedAdvisorSGOpenPorts {
           alertLevel = alertLevel,
           isSuppressed = detail.getIsSuppressed
         )
+      case region :: name :: sgId :: protocol :: alertLevel :: port :: _ =>
+        SGOpenPortsDetail(
+          status = detail.getStatus,
+          region = detail.getRegion,
+          name = name,
+          id = sgId,
+          vpcId = "EC2 classic",
+          protocol = protocol,
+          port = port,
+          alertLevel = alertLevel,
+          isSuppressed = detail.getIsSuppressed
+        )
       case metadata =>
         throw new RuntimeException(s"Could not parse SGOpenPorts from TrustedAdvisorResourceDetail with metadata $metadata")
     }
