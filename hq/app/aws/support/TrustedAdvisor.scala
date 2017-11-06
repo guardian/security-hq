@@ -56,14 +56,13 @@ object TrustedAdvisor {
 
   def parseTrustedAdvisorCheckResult[A <: TrustedAdvisorCheckDetails](parseDetails: TrustedAdvisorResourceDetail => Attempt[A], ec: ExecutionContext)(result: DescribeTrustedAdvisorCheckResultResult): Attempt[TrustedAdvisorDetailsResult[A]] = {
     implicit val executionContext: ExecutionContext = ec
-    val details = result.getResult.getFlaggedResources.asScala.toList
     for {
-      as <- Attempt.traverse(details)(parseDetails)
+      resources <- Attempt.traverse(result.getResult.getFlaggedResources.asScala.toList)(parseDetails)
     } yield TrustedAdvisorDetailsResult(
       checkId = result.getResult.getCheckId,
       status = result.getResult.getStatus,
       timestamp = fromISOString(result.getResult.getTimestamp),
-      flaggedResources = as,
+      flaggedResources = resources,
       resourcesIgnored = result.getResult.getResourcesSummary.getResourcesIgnored,
       resourcesFlagged = result.getResult.getResourcesSummary.getResourcesFlagged,
       resourcesSuppressed = result.getResult.getResourcesSummary.getResourcesSuppressed

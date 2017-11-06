@@ -10,15 +10,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues {
   "parsing details" - {
-    val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
-    val detail = new TrustedAdvisorResourceDetail()
-      .withIsSuppressed(false)
-      .withMetadata(metadata.asJava)
-      .withRegion("eu-west-1")
-      .withStatus("ok")
-      .withResourceId("abcdefz")
-
     "works on example data" in {
+      val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
+      val detail = new TrustedAdvisorResourceDetail()
+        .withIsSuppressed(false)
+        .withMetadata(metadata.asJava)
+        .withRegion("eu-west-1")
+        .withStatus("ok")
+        .withResourceId("abcdefz")
       TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail).value() should have(
         'region ("eu-west-1"),
         'name ("launch-wizard-1"),
@@ -39,9 +38,8 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
         .withRegion("eu-west-1")
         .withStatus("ok")
         .withResourceId("abcdefz")
-      TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detailWithoutVpc).value().vpcId should be(
-        "EC2 classic"
-      )
+      val vpcId = TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detailWithoutVpc).value().vpcId
+      vpcId shouldEqual "EC2 classic"
     }
 
     "returns a failure if it cannot parse the result" in {
