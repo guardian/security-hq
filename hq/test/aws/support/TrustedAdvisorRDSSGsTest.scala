@@ -1,10 +1,11 @@
 package aws.support
 
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class TrustedAdvisorRDSSGsTest extends FreeSpec with Matchers with AttemptValues {
@@ -25,6 +26,17 @@ class TrustedAdvisorRDSSGsTest extends FreeSpec with Matchers with AttemptValues
         'alertLevel ("Yellow"),
         'isSuppressed (false)
       )
+    }
+
+    "returns a failure if it cannot parse the result" in {
+      val badMetadata: List[String] = Nil
+      val badDetail = new TrustedAdvisorResourceDetail()
+        .withIsSuppressed(false)
+        .withMetadata(badMetadata.asJava)
+        .withRegion("eu-west-1")
+        .withStatus("ok")
+        .withResourceId("abcdefz")
+      TrustedAdvisorRDSSGs.parseRDSSGDetail(badDetail).isFailedAttempt() shouldEqual true
     }
   }
 }
