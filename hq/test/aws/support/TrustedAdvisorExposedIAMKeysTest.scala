@@ -5,6 +5,7 @@ import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class TrustedAdvisorExposedIAMKeysTest extends FreeSpec with Matchers with AttemptValues {
@@ -38,7 +39,7 @@ class TrustedAdvisorExposedIAMKeysTest extends FreeSpec with Matchers with Attem
         .withRegion("eu-west-1")
         .withStatus("ok")
         .withResourceId("abcdefz")
-      TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(detail).isFailedAttempt shouldEqual true
+      TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(badDetail).isFailedAttempt() shouldEqual true
     }
   }
 }

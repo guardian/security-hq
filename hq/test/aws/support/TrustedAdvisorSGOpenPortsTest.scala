@@ -5,6 +5,7 @@ import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues {
@@ -28,6 +29,30 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
         'alertLevel ("Yellow"),
         'isSuppressed (false)
       )
+    }
+
+    "works on example data if there is no vpc" in {
+      val metadataWithoutVpc = List("eu-west-1", "launch-wizard-1", "sg-12345a", "tcp", "Yellow", "22")
+      val detailWithoutVpc = new TrustedAdvisorResourceDetail()
+        .withIsSuppressed(false)
+        .withMetadata(metadataWithoutVpc.asJava)
+        .withRegion("eu-west-1")
+        .withStatus("ok")
+        .withResourceId("abcdefz")
+      TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detailWithoutVpc).value().vpcId should be(
+        "EC2 classic"
+      )
+    }
+
+    "returns a failure if it cannot parse the result" in {
+      val badMetadata: List[String] = Nil
+      val badDetail = new TrustedAdvisorResourceDetail()
+        .withIsSuppressed(false)
+        .withMetadata(badMetadata.asJava)
+        .withRegion("eu-west-1")
+        .withStatus("ok")
+        .withResourceId("abcdefz")
+      TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(badDetail).isFailedAttempt() shouldEqual true
     }
   }
 
