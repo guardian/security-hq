@@ -4,6 +4,7 @@ import com.amazonaws.services.ec2.model.{DescribeNetworkInterfacesResult, GroupI
 import model._
 import org.scalacheck.Prop._
 import org.scalacheck.ScalacheckShapeless._
+import org.scalatest.exceptions.TestFailedException
 import org.scalatest.prop.Checkers
 import org.scalatest.{FreeSpec, Matchers}
 
@@ -96,6 +97,19 @@ class EC2Test extends FreeSpec with Matchers with Checkers {
         resultsWithoutNonEmptyPrefixOrErrorsMiddle.forall {
           case (_, Right(Nil)) => true
           case _ => false
+        }
+      }
+    }
+
+    "sorts accounts by the number of flagged resources, *decreasing*" in {
+      check { (results: List[(AwsAccount, List[Int])]) =>
+        val successfulResults = results.map { case (account, flagged) => account -> Right(flagged)}
+        val sortedResults = EC2.sortAccountByFlaggedSgs(successfulResults)
+        sortedResults == sortedResults.sortBy {
+          case (account, Right(items)) =>
+            items.length * -1 // decreasing
+          case _ =>
+            throw new TestFailedException("Generated invalid test case - should only have successful results with different numbers of items in the Right", 10)
         }
       }
     }
