@@ -1,3 +1,5 @@
+import play.sbt.PlayImport.PlayKeys._
+
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.0.1"
@@ -11,6 +13,7 @@ lazy val hq = (project in file("hq")).
   enablePlugins(PlayScala).
   settings(
     name := """security-hq""",
+    playDefaultPort := 9090,
     libraryDependencies ++= Seq(
       ws,
       filters,

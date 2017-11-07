@@ -3,12 +3,13 @@ Security HQ webapp
 
 This webapp presents the primary interface for Security HQ.
 
-The `watched-account` ClouFormation template will create ConfigRules
+The `watched-account` CloudFormation template will create ConfigRules
 that monitor the status of other AWS accounts. This application
 presents the data collected by those processes.
 
 It also provides an interface on some markers of a watched AWS
 account's health from a security point of view.
+
 
 ## Deployment
 
@@ -21,3 +22,61 @@ N.B. If you are using macOS you may need to install `coreutils` before you can r
 1) get [Homebrew](https://brew.sh/) if you have not done so already
 
 2) install coreutils using Homebrew `$ brew install coreutils`
+
+
+## Development
+
+#### Getting started
+
+Ensure that a file named `security-hq.local.conf` exists in your .gu directory, and that it contains the required information, otherwise the project may not run.
+
+From the root of the project:
+
+1. Run sbt and ensure that it will have access to the application configuration:
+
+`$ ./sbt`
+
+2. Select the project that you want to run, for example:
+
+`$ project hq`
+
+3. Start the application:
+
+`$ run`
+
+Once the sever has started, the webapp should be accessible at http://localhost:9000/
+
+#### Using nginx as a proxy
+
+It is possible to run the application and setup nginx as a proxy; this will make the application accessible via the url `https://security-hq.local.dev-gutools.co.uk/` (you may be familiar with this process if you have worked on Identity or Composer):
+
+1. Install nginx:
+  > *Linux:*   ```sudo apt-get install nginx```
+  >
+  > *Mac OSX:* ```brew install nginx```
+
+2. Make sure you have a sites-enabled folder under your nginx home. This should be:
+  > *Linux:* ```/etc/nginx/sites-enabled```
+  >
+  > *Mac OSX:* ```/usr/local/etc/nginx/sites-enabled```
+
+3. Ensure that your nginx.conf (found in the same location as the sites-enabled folder) contains the line `include sites-enabled/*` within the http block, for example:
+
+  ```
+  http {
+      include sites-enabled/*;
+      ...
+  }
+  ```
+
+4. Checkout the [dev-nginx](https://github.com/guardian/dev-nginx) repo onto your machine and follow the directions regarding installing and trusting the certificates (see [dev-nginx readme](https://github.com/guardian/dev-nginx)).
+
+5. Install the nginx config for the security-hq application:
+
+  ```
+    cd <path_of_dev-nginx>
+    sudo ./setup-app.rb <path_of_security-hq>/nginx/nginx-mapping.yml
+  ```
+
+6. Now when you run the project, it will also be accessible via https://security-hq.local.dev-gutools.co.uk/
+

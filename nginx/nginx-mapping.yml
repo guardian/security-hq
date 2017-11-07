@@ -1,0 +1,6 @@
+
+name: security-hq
+mappings:
+  - prefix: security-hq
+    port: 9090
+    path: /
