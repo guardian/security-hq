@@ -70,9 +70,9 @@ object EC2 {
   def sortAccountByFlaggedSgs[L, R](accountsWithFlaggedSgs: List[(AwsAccount, Either[L, List[R]])]): List[(AwsAccount, Either[L, List[R]])] = {
     accountsWithFlaggedSgs.sortBy {
       // first, non-empty flagged results list
-      // sort internally by number of flagged results
+      // sort internally by number of flagged results, decreasing (largest number of flagged results first)
       case (_, Right(flaggedSgs)) if flaggedSgs.nonEmpty =>
-        (0, 0, flaggedSgs.length, "")
+        (0, 0, flaggedSgs.length * -1, "")
       // second, failed to get results
       // sort internally by name of account
       case (account, Left(_)) =>
