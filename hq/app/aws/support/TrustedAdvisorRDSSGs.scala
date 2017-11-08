@@ -11,10 +11,10 @@ import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisorRDSSGs {
-  val rdsSGs = "nNauJisYIT"
+  val AWS_RDS_SECURITY_GROUP_ACCESS_RISK_IDENTIFIER = "nNauJisYIT"
 
   def getRDSSecurityGroupDetail(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[RDSSGsDetail]] = {
-    getTrustedAdvisorCheckDetails(client, rdsSGs)
+    getTrustedAdvisorCheckDetails(client, AWS_RDS_SECURITY_GROUP_ACCESS_RISK_IDENTIFIER)
       .flatMap(parseTrustedAdvisorCheckResult(parseRDSSGDetail, ec))
   }
 

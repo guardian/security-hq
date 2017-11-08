@@ -19,37 +19,26 @@
             <div class="col s12 m6">
                 <div class="card">
                     <div class="card-content">
-                        <i class="right material-icons">vpn_lock</i>
-                        <span class="card-title">Security Groups</span>
-                        <p>
-                            Analysis of Security Group configuration.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col s12 m6">
-                <div class="card">
-                    <div class="card-content">
-                        <a href="/dependencies" class="btn-flat accounts__link right">
-                            <i class="right material-icons">layers</i>
+                        <a href="/security-groups">
+                            <i class="right material-icons">vpn_lock</i>
+                            <span class="card-title">Security Groups</span>
+                            <p>
+                                Analysis of Security Group configuration.
+                            </p>
                         </a>
-                        <span class="card-title">Software dependencies</span>
-                        <p>
-                            OWASP dependency check status checks.
-                        </p>
                     </div>
                 </div>
             </div>
             <div class="col s12 m6">
                 <div class="card">
                     <div class="card-content">
-                        <i class="right material-icons">vpn_key</i>
-                        <span class="card-title">
-                            Credentials audits
-                        </span>
-                        <p>
-                            IAM credentials reports.
-                        </p>
+                        <a href="/iam">
+                            <i class="right material-icons">vpn_key</i>
+                            <span class="card-title">Credentials audits</span>
+                            <p>
+                                IAM credentials reports.
+                            </p>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -65,7 +54,7 @@
                     @for(awsAccount <- awsAccounts) {
                         <div class="accounts__account z-depth-2">
                             <div class="accounts__account-heading">
-                                <a class="accounts__link" href="/account/@awsAccount.id">@awsAccount.name</a>
+                                <span>@awsAccount.name</span>
                             </div>
                             <div class="accounts__account-actions">
                                 <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">
@@ -89,4 +78,4 @@
             </div>
         </div>
     </div>
-}
+}§

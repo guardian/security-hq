@@ -11,10 +11,10 @@ import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisorExposedIAMKeys {
-  val exposedIAMKeys = "12Fnkpl8Y5"
+  val AWS_EXPOSED_ACCESS_KEYS_IDENTIFIER = "12Fnkpl8Y5"
 
   def getExposedIAMKeys(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[ExposedIAMKeyDetail]] = {
-    getTrustedAdvisorCheckDetails(client, exposedIAMKeys)
+    getTrustedAdvisorCheckDetails(client, AWS_EXPOSED_ACCESS_KEYS_IDENTIFIER)
       .flatMap(parseTrustedAdvisorCheckResult(parseExposedIamKeyDetail, ec))
   }
 

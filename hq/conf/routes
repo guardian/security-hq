@@ -5,14 +5,10 @@
 # An example controller showing a sample home page
 GET        /                                          controllers.HQController.index
 
-GET        /account/:accountId                        controllers.HQController.account(accountId)
-
 GET        /iam                                       controllers.HQController.iam
 GET        /iam/:accountId                            controllers.HQController.iamAccount(accountId)
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
-GET        /dependencies                              controllers.HQController.dependencies
-
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback
