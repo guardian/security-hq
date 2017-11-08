@@ -11,11 +11,11 @@ import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisorSGOpenPorts {
-  val sgOpenPorts = "HCP4007jGY"
+  val AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER = "HCP4007jGY"
   val SGIds = "^(sg-[\\w]+) \\((vpc-[\\w]+)\\)$".r
 
   def getSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[SGOpenPortsDetail]] = {
-    getTrustedAdvisorCheckDetails(client, sgOpenPorts)
+    getTrustedAdvisorCheckDetails(client, AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER)
       .flatMap(parseTrustedAdvisorCheckResult(parseSGOpenPortsDetail, ec))
   }
 

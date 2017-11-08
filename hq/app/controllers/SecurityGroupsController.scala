@@ -41,7 +41,5 @@ class SecurityGroupsController(val config: Configuration)
     }
   }
 
-  def dependencies = AuthAction {
-    Ok(views.html.dependencies.dependencies())
-  }
+
 }
