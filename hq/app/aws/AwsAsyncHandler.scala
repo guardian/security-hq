@@ -20,8 +20,7 @@ class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T
 
 object AwsAsyncHandler {
   private val ServiceName = ".*Service: ([^;]+);.*".r
-
-  def awsToScala[R <: AmazonWebServiceRequest, T](sdkMethod: Function2[R, AsyncHandler[R, T], java.util.concurrent.Future[T]]): Function1[R, Future[T]] = { req =>
+  def awsToScala[R <: AmazonWebServiceRequest, T](sdkMethod: ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
     val p = Promise[T]
     sdkMethod(req, new AwsAsyncPromiseHandler(p))
     p.future
