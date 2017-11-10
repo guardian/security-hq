@@ -9,7 +9,7 @@ object Retry {
 
     def loop(numberOfTries: Int): Attempt[A] = {
       if (numberOfTries >= maxAttempt ) {
-        Attempt.Left[A](Failure("MAX_ATTEMPT_LIMIT", failureMessage, 500))
+        Attempt.Left[A](Failure(s"MAX_ATTEMPT_LIMIT_REACHED: $failureMessage", failureMessage, 500))
       } else {
         for {
           result <- body

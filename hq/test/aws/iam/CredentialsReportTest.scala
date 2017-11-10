@@ -3,9 +3,10 @@ package aws.iam
 import com.amazonaws.regions.{Region, Regions}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import utils.attempt.AttemptValues
+import scala.concurrent.ExecutionContext.Implicits.global
 
-
-class CredentialsReportTest extends FreeSpec with Matchers with OptionValues {
+class CredentialsReportTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
   "credentials report" - {
     val testReport = """user,arn,user_creation_time,password_enabled,password_last_used,password_last_changed,password_next_rotation,mfa_active,access_key_1_active,access_key_1_last_rotated,access_key_1_last_used_date,access_key_1_last_used_region,access_key_1_last_used_service,access_key_2_active,access_key_2_last_rotated,access_key_2_last_used_date,access_key_2_last_used_region,access_key_2_last_used_service,cert_1_active,cert_1_last_rotated,cert_2_active,cert_2_last_rotated
                        |<root_account>,arn:aws:iam::0123456789:root,2015-06-24T12:45:00+00:00,not_supported,2016-10-07T14:30:00+00:00,not_supported,not_supported,true,false,N/A,N/A,N/A,N/A,false,N/A,N/A,N/A,N/A,false,N/A,false,N/A
@@ -84,6 +85,18 @@ class CredentialsReportTest extends FreeSpec with Matchers with OptionValues {
           'accessKey1LastUsedRegion (Some(Region.getRegion(Regions.EU_WEST_1))),
           'accessKey1LastUsedService (Some("ec2"))
         )
+      }
+
+
+      "fails when parsing empty CSV" in {
+        val testReport = ""
+        CredentialsReport.tryParsingReport(testReport).isFailedAttempt() shouldBe true
+      }
+
+      "fails when parsing invalid CSV" in {
+        val testReport = """user,arn,user_creation_time,password_enabled,password_last_used
+                           |<root_account>,arn:aws:iam::0123456789:root,2015-06-24T12:45:00+00:00,not_supported,2016-10-07T14:30:00+00:00"""
+        CredentialsReport.tryParsingReport(testReport).isFailedAttempt() shouldBe true
       }
 
     }

@@ -30,7 +30,7 @@ object IAMClient {
 
   def getCredentialsReport(client: AmazonIdentityManagementAsync)(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
     val request = new GetCredentialReportRequest()
-    handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request).map(CredentialsReport.extractReport))
+    handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
 }
