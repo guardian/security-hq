@@ -2,8 +2,10 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
+import aws.iam.{CredentialsReport, IAMClient}
 import aws.support.{TrustedAdvisor, TrustedAdvisorExposedIAMKeys}
 import config.Config
+import logic.Retry
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -37,5 +39,17 @@ class HQController(val config: Configuration)
     }
   }
 
+  def generateCredentialsReport(accountId: String) = AuthAction.async {
+    attempt {
+      for {
+        account <- AWS.lookupAccount(accountId, accounts)
+        client = IAMClient.client(account)
+         _ <- Retry.until(IAMClient.generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report")
+        report <- IAMClient.getCredentialsReport(client)
+      } yield Ok(views.html.iam.iamCredReport(report))
+    }
+  }
+
 
 }
+

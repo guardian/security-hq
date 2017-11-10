@@ -1,0 +1,40 @@
+@import model.IAMCredentialsReport
+@(report: IAMCredentialsReport)
+
+@main(List("IAM report")) { @* Header *@
+    <div class="container">
+        <div class="row">
+            <h1 class="header center-on-small-only grey-text text-lighten-5">IAM Credentials Report</h1>
+        </div>
+    </div>
+
+} { @* Main content *@
+    <div class="container">
+        <p>Report generated at : @{report.generatedAt.toString()} with @{report.entries.size} entries</p>
+        <table class="sg-details__table">
+            <tbody>
+                <tr>
+                    <th>User</th>
+                    <th>AccessKey1Active</th>
+                    <th>AccessKey1LastRotated</th>
+                    <th>MFA Active</th>
+                </tr>
+                @for(entry <- report.entries) {
+                        <tr>
+                        <td>@{entry.user}</td>
+
+                        <td>@{entry.accessKey1Active}</td>
+
+                        <td>@{entry.accessKey1LastRotated}</td>
+
+                        <td>@{entry.mfaActive}</td>
+                        </tr>
+                }
+
+            </tbody>
+        </table>
+
+    </div>
+
+
+}
