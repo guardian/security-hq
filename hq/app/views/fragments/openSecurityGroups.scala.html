@@ -2,8 +2,16 @@
 
 @(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])], shadow: Boolean)
 
+@resourceIcons(usages: Set[SGInUse]) = {
+    @usages.map {
+      case Instance(id) => { <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="EC2 instance">computer</i> }
+      case ELB(description) => { <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i> }
+      case _ => { <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Unknown">report_problem</i> }
+    }
+}
 
-@usagesList(flaggedSg: SGOpenPortsDetail, usages: Set[SGInUse]) = {
+
+@resourceList(flaggedSg: SGOpenPortsDetail, usages: Set[SGInUse]) = {
     @usages.map {
         case Instance(id) => {
               <a class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#Instances:search=@id">
@@ -69,14 +77,14 @@
             } else {
                 @if(usages.size == 1) {
 
-                    @usagesList(flaggedSg, usages)
+                    @resourceList(flaggedSg, usages)
 
                 } else {
-                    <ul class="collapsible sg-details" data-collapsible="expandable">
+                    <ul class="collapsible sg-details js-sg-details" data-collapsible="expandable">
                       <li class="sg-details__list">
-                        <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>Show all...</div>
+                          <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>@usages.size @resourceIcons(usages)</div>
                         <div class="collapsible-body">
-                            @usagesList(flaggedSg, usages)
+                            @resourceList(flaggedSg, usages)
                         </div>
                       </li>
                     </ul>

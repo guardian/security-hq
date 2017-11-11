@@ -16,7 +16,7 @@ body {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
-    background-image: url("/assets/images/bg-texture.png");
+    background-image: url('/assets/images/bg-texture.png');
     background-repeat: repeat;
 }
 
@@ -76,7 +76,7 @@ nav {
 }
 
 .grid:after {
-    content: "";
+    content: '';
     flex: auto;
 }
 
@@ -102,8 +102,8 @@ nav {
 }
 
 .accounts__link {
-    padding: 0 0.5rem;
-    color: rgba(0, 0, 0, 0.87);
+    padding: 0 .5rem;
+    color: rgba(0, 0, 0, .87);
 }
 
 .accounts__account-actions {
@@ -112,6 +112,7 @@ nav {
 
 .card .card-content--title {
     padding-bottom: 10px;
+    word-wrap: break-word;
 }
 
 .card .card-content--body {
@@ -124,10 +125,10 @@ nav {
 
 .sg-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: 1fr;
     grid-column-gap: 10px;
     grid-row-gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: max-content;
     margin: 0 auto;
 }
 
@@ -154,31 +155,15 @@ nav {
 
 .sg-details__header {
     background-color: #009688;
-    color: #fff;
-}
-
-.sg-modal {
-    padding: 0 100px;
-}
-
-.sg-modal__trigger {
-    width: 100%;
-}
-
-.sg-modal__footer {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-gap: 20px;
-    grid-auto-rows: minmax(100px, auto);
-    margin-bottom: 20px;
+    color: #ffffff;
 }
 
 .usage-cta {
     display: block;
     background-color: #4E8098;
-    padding: 0 0.6rem;
+    padding: 0 .6rem;
 }
 
 .collapsible-body {
-    background-color: #fff;
+    background-color: #ffffff;
 }
