@@ -42,8 +42,12 @@ nav {
     display: none !important;
 }
 
-.greedy-width {
-    width: 90%;
+
+@media (min-width: 1140px) {
+    /* useful for when there are a lot of flagged resources */
+    .greedy-width {
+        width: 90%;
+    }
 }
 
 .main-icon {
@@ -127,9 +131,20 @@ nav {
     display: grid;
     grid-column-gap: 10px;
     grid-row-gap: 10px;
-    grid-template-columns: repeat(3, 1fr);
     grid-template-rows: max-content;
     margin: 0 auto;
+}
+
+@media (min-width: 740px) {
+    .sg-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1140px) {
+    .sg-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .sg-container__card {
@@ -145,11 +160,13 @@ nav {
 
 .sg-details {
     margin-top: 0;
+    position: relative;
+    width: 100%;
 }
 
 .sg-details__list {
     position: absolute;
-    width: 90%;
+    width: 100%;
     z-index: 999;
 }
 
