@@ -1,8 +1,7 @@
 package aws.iam
 
+import aws.AWS
 import aws.AwsAsyncHandler._
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.auth.{AWSCredentialsProviderChain, InstanceProfileCredentialsProvider}
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
@@ -14,12 +13,9 @@ import scala.concurrent.ExecutionContext
 
 object IAMClient {
   def client(account: AwsAccount, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonIdentityManagementAsync = {
-    val credentialsProvider = new AWSCredentialsProviderChain(
-      InstanceProfileCredentialsProvider.getInstance(),
-      new ProfileCredentialsProvider(account.id)
-    )
+    val auth = AWS.credentialsProvider(account)
     AmazonIdentityManagementAsyncClientBuilder.standard()
-      .withCredentials(credentialsProvider)
+      .withCredentials(auth)
       .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName).build()
   }
 
