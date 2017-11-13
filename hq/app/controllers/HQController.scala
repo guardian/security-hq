@@ -10,7 +10,7 @@ import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import utils.attempt.PlayIntegration.attempt
-
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 
@@ -40,11 +40,12 @@ class HQController(val config: Configuration)
   }
 
   def generateCredentialsReport(accountId: String) = AuthAction.async {
+    val delay = 3.seconds
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
         client = IAMClient.client(account)
-         _ <- Retry.until(IAMClient.generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report")
+         _ <- Retry.until(IAMClient.generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
         report <- IAMClient.getCredentialsReport(client)
       } yield Ok(views.html.iam.iamCredReport(report))
     }

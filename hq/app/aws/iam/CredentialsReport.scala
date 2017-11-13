@@ -24,7 +24,7 @@ object CredentialsReport {
     } match {
       case Success(x)  if x.nonEmpty => Attempt.Right(x)
       case Success(x)  if x.isEmpty  =>
-        Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR", "Cannot parse AWS credentials audit report", 500))
+        Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR", "Credentials report is empty", 500))
       case Failure(th) =>
         Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR: ${th.getMessage}", "Cannot parse AWS credentials audit report", 500))
     }
@@ -45,8 +45,10 @@ object CredentialsReport {
   }
 
   def parseDateTimeOpt(cell: String): Option[DateTime] = {
-    if (cell == "N/A" || cell == "not_supported") None
-    else Some(DateUtils.isoDateTimeParser.parseDateTime(cell))
+    cell match {
+      case "no_information" | "N/A" | "not_supported" => None
+      case _ => Some(DateUtils.isoDateTimeParser.parseDateTime(cell))
+    }
   }
 
   def parseRegionOpt(cell: String): Option[Region] = {
