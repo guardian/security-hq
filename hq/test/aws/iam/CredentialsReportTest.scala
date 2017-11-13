@@ -8,6 +8,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class CredentialsReportTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
   "credentials report" - {
+    val testReportNoPasswordLastUsed = """user,arn,user_creation_time,password_enabled,password_last_used,password_last_changed,password_next_rotation,mfa_active,access_key_1_active,access_key_1_last_rotated,access_key_1_last_used_date,access_key_1_last_used_region,access_key_1_last_used_service,access_key_2_active,access_key_2_last_rotated,access_key_2_last_used_date,access_key_2_last_used_region,access_key_2_last_used_service,cert_1_active,cert_1_last_rotated,cert_2_active,cert_2_last_rotated
+                       |credential-user,arn:aws:iam::0123456789:user/credential-user,2015-10-22T16:40:00+00:00,false,no_information,N/A,N/A,false,true,2015-10-22T14:45:00+00:00,2017-08-30T13:32:00+00:00,eu-west-1,ec2,false,N/A,N/A,N/A,N/A,false,N/A,false,N/A""".stripMargin
+
+
     val testReport = """user,arn,user_creation_time,password_enabled,password_last_used,password_last_changed,password_next_rotation,mfa_active,access_key_1_active,access_key_1_last_rotated,access_key_1_last_used_date,access_key_1_last_used_region,access_key_1_last_used_service,access_key_2_active,access_key_2_last_rotated,access_key_2_last_used_date,access_key_2_last_used_region,access_key_2_last_used_service,cert_1_active,cert_1_last_rotated,cert_2_active,cert_2_last_rotated
                        |<root_account>,arn:aws:iam::0123456789:root,2015-06-24T12:45:00+00:00,not_supported,2016-10-07T14:30:00+00:00,not_supported,not_supported,true,false,N/A,N/A,N/A,N/A,false,N/A,N/A,N/A,N/A,false,N/A,false,N/A
                        |IAM-user,arn:aws:iam::0123456789:user/IAM-user,2015-06-24T15:45:00+00:00,true,2017-03-08T19:35:01+00:00,2016-04-29T16:20:00+00:00,N/A,true,false,N/A,N/A,N/A,N/A,false,N/A,N/A,N/A,N/A,false,N/A,false,N/A
@@ -97,6 +101,14 @@ class CredentialsReportTest extends FreeSpec with Matchers with OptionValues wit
         val testReport = """user,arn,user_creation_time,password_enabled,password_last_used
                            |<root_account>,arn:aws:iam::0123456789:root,2015-06-24T12:45:00+00:00,not_supported,2016-10-07T14:30:00+00:00"""
         CredentialsReport.tryParsingReport(testReport).isFailedAttempt() shouldBe true
+      }
+
+      "handles - 'no_information' data for password_last_used field" in {
+        val userWithCreds = CredentialsReport.parseCredentialsReport(testReportNoPasswordLastUsed).find(_.user == "credential-user").value
+        userWithCreds should have (
+          'passwordLastUsed (None)
+        )
+
       }
 
     }

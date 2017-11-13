@@ -43,12 +43,11 @@ class HQController(val config: Configuration)
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        client = IAMClient.client(account)
-         _ <- Retry.until(IAMClient.generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report")
-        report <- IAMClient.getCredentialsReport(client)
+        report <- IAMClient.getCredentialsReport(account)
       } yield Ok(views.html.iam.iamCredReport(report))
     }
   }
+
 
 
 }

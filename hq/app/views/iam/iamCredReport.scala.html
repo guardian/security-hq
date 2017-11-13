@@ -10,6 +10,33 @@
 
 } { @* Main content *@
     <div class="container">
+
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-content">
+                        <span class="card-title">Users with MFA not activated</span>
+                    <table class="striped">
+                        <tr></tr>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-content">
+                    <a href="/iam">
+                        <i class="right material-icons">vpn_key</i>
+                        <span class="card-title">Credentials audits</span>
+                        <p>
+                            IAM credentials reports.
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
         <p>Report generated at : @{report.generatedAt.toString()} with @{report.entries.size} entries</p>
         <table class="sg-details__table">
             <tbody>
