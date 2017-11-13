@@ -14,7 +14,7 @@ class RetryTest extends WordSpec with Matchers with AttemptValues {
     val Started = "STARTED"
     val maxAttempt = 10
     val predicateF = { status: String => status == Complete }
-    val testDelay = 100.millisecond
+    val testDelay = 10.millisecond
 
     "retry with inprogress result and check max attempt" in {
       var attempts = 0
@@ -25,14 +25,14 @@ class RetryTest extends WordSpec with Matchers with AttemptValues {
         body
       }
 
-      Retry.until(testBody, predicateF, failMessage, testDelay).isFailedAttempt shouldBe true
+      Retry.until(testBody, predicateF, failMessage, Duration.Zero).isFailedAttempt shouldBe true
       attempts shouldBe maxAttempt
     }
 
     "retry with complete result" in {
       val reportStatus = Complete
       val body = Attempt.Right(reportStatus)
-      Retry.until(body, predicateF, failMessage, testDelay).value shouldBe Complete
+      Retry.until(body, predicateF, failMessage, Duration.Zero).value shouldBe Complete
     }
 
     "retry first with started then inprogress then complete" in {
@@ -45,7 +45,7 @@ class RetryTest extends WordSpec with Matchers with AttemptValues {
         body
       }
 
-      Retry.until(testBody, predicateF, failMessage, testDelay).value shouldBe Complete
+      Retry.until(testBody, predicateF, failMessage, Duration.Zero).value shouldBe Complete
       attempts shouldBe 5
     }
 
@@ -63,7 +63,7 @@ class RetryTest extends WordSpec with Matchers with AttemptValues {
       attempts shouldBe 5
       val end = System.currentTimeMillis()
       val diff = end - begin
-      diff should (be > 400L and be < 500L)
+      diff should (be >= 40L and be <= 1000L)
     }
 
     "retry with delay and fail" in {
@@ -78,7 +78,7 @@ class RetryTest extends WordSpec with Matchers with AttemptValues {
       attempts shouldBe 10
       val end = System.currentTimeMillis()
       val diff = end - begin
-      diff should (be > 900L and be < 1000L)
+      diff should (be >= 90L and be <= 1000L)
     }
   }
 }
