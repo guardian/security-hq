@@ -58,13 +58,27 @@ class RetryTest extends WordSpec with Matchers with AttemptValues {
         attempts = attempts + 1
         body
       }
-
       val begin = System.currentTimeMillis()
       Retry.until(testBody, predicateF, failMessage, testDelay).value shouldBe Complete
       attempts shouldBe 5
       val end = System.currentTimeMillis()
       val diff = end - begin
       diff should (be > 400L and be < 500L)
+    }
+
+    "retry with delay and fail" in {
+      var attempts = 0
+      def testBody = {
+        val body = Attempt.Right(InProgress)
+        attempts = attempts + 1
+        body
+      }
+      val begin = System.currentTimeMillis()
+      Retry.until(testBody, predicateF, failMessage, testDelay).isFailedAttempt() shouldBe true
+      attempts shouldBe 10
+      val end = System.currentTimeMillis()
+      val diff = end - begin
+      diff should (be > 900L and be < 1000L)
     }
   }
 }

@@ -3,6 +3,7 @@ package utils.attempt
 import play.api.Logger
 import play.api.mvc.{Result, Results}
 
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -46,6 +47,10 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) {
       val apiErrors = FailedAttempt(Failure(err.getMessage, "Unexpected error", 500))
       scala.Left(apiErrors)
     }
+  }
+
+  def delay(delay: FiniteDuration )(implicit ec: ExecutionContext): Attempt[A] = {
+    flatMap( Attempt.Delayed(delay)(_) )
   }
 }
 
@@ -155,4 +160,47 @@ object Attempt {
     def Left[A](ferr: Future[FailedAttempt])(implicit ec: ExecutionContext): Attempt[A] =
       Attempt(ferr.map(scala.Left(_)))
   }
+
+
+
+
+  /**
+    * @see https://stackoverflow.com/questions/16359849/scala-scheduledfuture
+    * */
+  object Delayed {
+    import java.util.{Timer, TimerTask}
+
+    import scala.concurrent._
+    import scala.concurrent.duration.FiniteDuration
+    import scala.util.Try
+    private val timer = new Timer(true)
+
+    private def makeTask[A]( body: => A )( schedule: TimerTask => Unit )(implicit ctx: ExecutionContext): Future[A] = {
+      val prom = Promise[A]()
+      schedule(
+        new TimerTask{
+          def run() {
+            // IMPORTANT: The timer task just starts the execution on the passed
+            // ExecutionContext and is thus almost instantaneous (making it
+            // practical to use a single  Timer - hence a single background thread).
+            ctx.execute(
+              new Runnable {
+                def run() {
+                  prom.complete(Try(body))
+                }
+              }
+            )
+          }
+        }
+      )
+      prom.future
+    }
+    
+    def apply[A]( delay: FiniteDuration )( body: => A )(implicit ctx: ExecutionContext): Attempt[A] = {
+      Attempt.fromFuture( makeTask( body )( timer.schedule( _, delay.toMillis ) )) {
+        case th => FailedAttempt(Failure(th.getMessage, "Cannot execute the delayed task", 500))
+      }
+    }
+  }
+
 }
