@@ -16,7 +16,7 @@ body {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
-    background-image: url("/assets/images/bg-texture.png");
+    background-image: url('/assets/images/bg-texture.png');
     background-repeat: repeat;
 }
 
@@ -35,6 +35,19 @@ footer {
 nav {
     background-color: transparent;
     box-shadow: none;
+}
+
+.is-hidden,
+[hidden] {
+    display: none !important;
+}
+
+
+@media (min-width: 1140px) {
+    /* useful for when there are a lot of flagged resources */
+    .greedy-width {
+        width: 90%;
+    }
 }
 
 .main-icon {
@@ -67,7 +80,7 @@ nav {
 }
 
 .grid:after {
-    content: "";
+    content: '';
     flex: auto;
 }
 
@@ -93,8 +106,8 @@ nav {
 }
 
 .accounts__link {
-    padding: 0 0.5rem;
-    color: rgba(0, 0, 0, 0.87);
+    padding: 0 .5rem;
+    color: rgba(0, 0, 0, .87);
 }
 
 .accounts__account-actions {
@@ -103,6 +116,7 @@ nav {
 
 .card .card-content--title {
     padding-bottom: 10px;
+    word-wrap: break-word;
 }
 
 .card .card-content--body {
@@ -113,17 +127,60 @@ nav {
     height: 3px;
 }
 
-.sg-details__table td, .sg-details__table th {
+.sg-container {
+    display: grid;
+    grid-column-gap: 10px;
+    grid-row-gap: 10px;
+    grid-template-rows: max-content;
+    margin: 0 auto;
+}
+
+@media (min-width: 740px) {
+    .sg-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1140px) {
+    .sg-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.sg-container__card {
+    min-width: 33%;
+    padding: 0 10px;
+}
+
+.sg-details__table td,
+.sg-details__table th {
     padding: 5px;
     word-wrap: break-word;
+}
+
+.sg-details {
+    margin-top: 0;
+    position: relative;
+    width: 100%;
+}
+
+.sg-details__list {
+    position: absolute;
+    width: 100%;
+    z-index: 999;
+}
+
+.sg-details__header {
+    background-color: #009688;
+    color: #ffffff;
 }
 
 .usage-cta {
     display: block;
     background-color: #4E8098;
-    padding: 0 0.6rem;
+    padding: 0 .6rem;
 }
 
 .collapsible-body {
-    background-color: #fff;
+    background-color: #ffffff;
 }
