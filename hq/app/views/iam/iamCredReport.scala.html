@@ -1,5 +1,93 @@
-@import model.IAMCredentialsReport
-@(report: IAMCredentialsReport)
+@import model.CredentialReportDisplay
+@import model.AccessKeyDisabled
+@import model.AccessKeyEnabled
+@import logic.DateUtils
+@import model.KeyStatus
+@import model.ReportStatus
+@(report: CredentialReportDisplay)
+
+
+
+@keyStatus(keyStatus: KeyStatus)  = {
+    @{
+        if(keyStatus == AccessKeyDisabled) {
+            <span><i class="material-icons left tooltipped key-disabled"  data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i></span>
+        } else if(keyStatus == AccessKeyEnabled) {
+            <span><i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="Has active Access Key">vpn_key</i></span>
+        }
+    }
+}
+
+@allKeyStatus(key1Status: KeyStatus, key2Status: KeyStatus) = {
+    @{
+        val k1 = keyStatus(key1Status)
+        val k2 = keyStatus(key2Status)
+
+        if (k1.body.trim.isEmpty && k2.body.trim.isEmpty) {
+            <span>-</span>
+        } else {
+            val fragments = scala.collection.immutable.Seq(k1, k2)
+            new Html(fragments)
+        }
+    }
+}
+
+@machineReportStatus(status: ReportStatus) = {
+    @{
+        if(status == model.Amber) {
+            <i class="material-icons left amber-text" data-position="bottom" data-delay="50" >warning</i>
+            <span>Doesnt have active access keys</span  >
+        } else if(status == model.Green) {
+            <i class="material-icons left green-text" data-position="bottom" data-delay="50" >check</i>
+        }
+    }
+
+}
+
+@humanReportStatus(status: ReportStatus) = {
+    @{
+        if(status == model.Red) {
+            <i class="material-icons left red-text" data-position="bottom" data-delay="50" >error</i>
+            <span>MFA not enabled</span>
+        } else if(status == model.Amber) {
+            <i class="material-icons left amber-text" data-position="bottom" data-delay="50" >warning</i>
+            <span>Has active access keys</span>
+        } else if(status == model.Green) {
+            <i class="material-icons left green-text" data-position="bottom" data-delay="50">check</i>
+        }
+    }
+}
+
+@lastActivityDay(lastActivityDay: Option[Long]) = {
+    @{
+        lastActivityDay match {
+            case Some(0)  => "Today"
+            case Some(1)  => "Yesterday"
+            case Some(d) => s"${d.toString} days ago"
+            case _ => <span>-</span>
+        }
+    }
+}
+
+@username(name: String) = {
+    @{
+        if (name.length >30 ) {
+            <span class="tooltipped" data-tooltip={s"$name"} >{name.slice(0, 30)}</span>
+        } else {
+            <span>{name}</span>
+        }
+    }
+}
+
+@mfa(hasMFA: Boolean) = {
+    <i class="material-icons left tooltipped" data-tooltip="Password enabled">lock_outline</i>
+    @{
+
+        if(hasMFA) {
+            <i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="MFA enabled">important_devices</i>
+        }
+    }
+}
 
 @main(List("IAM report")) { @* Header *@
     <div class="container">
@@ -10,58 +98,74 @@
 
 } { @* Main content *@
     <div class="container">
-
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-content">
-                        <span class="card-title">Users with MFA not activated</span>
-                    <table class="striped">
-                        <tr></tr>
-                    </table>
-
-                </div>
+        <div class="row">
+            <div class="card-panel">
+                    <span class="text text-darken-2">Report generated at @{DateUtils.printTime(report.reportDate)} (refreshed every four hours)</span>
             </div>
-        </div>
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-content">
-                    <a href="/iam">
-                        <i class="right material-icons">vpn_key</i>
-                        <span class="card-title">Credentials audits</span>
-                        <p>
-                            IAM credentials reports.
-                        </p>
-                    </a>
-                </div>
-            </div>
-        </div>
 
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <table class="striped responsive-table iam-report__table" >
+                    <tr>
+                        <th>User name</th>
+                        <th>Access Keys</th>
+                        <th>Password/MFA</th>
+                        <th>Last Activity</th>
+                        <th>Status</th>
 
-        <p>Report generated at : @{report.generatedAt.toString()} with @{report.entries.size} entries</p>
-        <table class="sg-details__table">
-            <tbody>
-                <tr>
-                    <th>User</th>
-                    <th>AccessKey1Active</th>
-                    <th>AccessKey1LastRotated</th>
-                    <th>MFA Active</th>
-                </tr>
-                @for(entry <- report.entries) {
+                    </tr>
+                    @for(cred <- report.humanUsers) {
                         <tr>
-                        <td>@{entry.user}</td>
+                            <td>
+                                <span>@username(cred.username)</span>
+                            </td>
+                            <td>
+                                @allKeyStatus(cred.key1Status, cred.key2Status)
 
-                        <td>@{entry.accessKey1Active}</td>
+                            </td>
+                            <td>
+                                @mfa(cred.hasMFA)
+                            </td>
+                            <td>
 
-                        <td>@{entry.accessKey1LastRotated}</td>
-
-                        <td>@{entry.mfaActive}</td>
+                                <span data-position="bottom">
+                                    @lastActivityDay(cred.lastActivityDay)
+                                </span>
+                            </td>
+                            <td>
+                                @humanReportStatus(cred.reportStatus)
+                            </td>
                         </tr>
-                }
+                    }
+                    @for(cred <- report.machineUsers) {
+                        <tr>
+                            <td>
+                                @username(cred.username)
+                            </td>
+                            <td>
+                                @allKeyStatus(cred.key1Status, cred.key2Status)
+                            </td>
 
-            </tbody>
-        </table>
+                            <td>
+                                <span>-</span>
+                            </td>
+                            <td>
+                                <span>
+                                    @lastActivityDay(cred.lastActivityDay)
+                                </span>
+                            </td>
+                            <td>
+                                @machineReportStatus(cred.reportStatus)
+                            </td>
 
+                        </tr>
+                    }
+
+                </table>
+            </div>
+
+        </div>
     </div>
-
 
 }

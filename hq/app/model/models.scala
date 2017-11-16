@@ -99,3 +99,36 @@ case class UnknownUsage(
 sealed trait Stage
 case object DEV extends Stage
 case object PROD extends Stage
+
+case class CredentialReportDisplay(
+  reportDate : DateTime,
+  machineUsers: Seq[MachineUser] = Seq.empty,
+  humanUsers: Seq[HumanUser] = Seq.empty
+)
+
+sealed trait KeyStatus
+object AccessKeyEnabled extends KeyStatus
+object AccessKeyDisabled extends KeyStatus
+object NoKey extends KeyStatus
+
+
+sealed trait ReportStatus
+object Red extends ReportStatus
+object Green extends ReportStatus
+object Amber extends ReportStatus
+
+case class HumanUser(
+  username: String,
+  hasMFA : Boolean,
+  key1Status: KeyStatus,
+  key2Status: KeyStatus,
+  reportStatus: ReportStatus,
+  lastActivityDay : Option[Long]
+)
+case class MachineUser  (
+  username: String,
+  key1Status: KeyStatus,
+  key2Status: KeyStatus,
+  reportStatus: ReportStatus,
+  lastActivityDay : Option[Long]
+)

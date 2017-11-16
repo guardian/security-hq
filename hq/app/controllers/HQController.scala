@@ -2,17 +2,16 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
-import aws.iam.{CredentialsReport, IAMClient}
+import aws.iam.IAMClient
 import aws.support.{TrustedAdvisor, TrustedAdvisorExposedIAMKeys}
 import config.Config
-import logic.Retry
+import logic.ReportDisplay
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
-
 
 class HQController(val config: Configuration)
                   (implicit val ec: ExecutionContext, val wsClient: WSClient)
@@ -44,7 +43,7 @@ class HQController(val config: Configuration)
       for {
         account <- AWS.lookupAccount(accountId, accounts)
         report <- IAMClient.getCredentialsReport(account)
-      } yield Ok(views.html.iam.iamCredReport(report))
+      } yield Ok(views.html.iam.iamCredReport(ReportDisplay.toCredentialReportDisplay(report)))
     }
   }
 
