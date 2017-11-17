@@ -1,0 +1,11 @@
+@(lastActivityDay: Option[Long])
+
+@{
+    lastActivityDay match {
+        case Some(0) => "Today"
+        case Some(1) => "Yesterday"
+        case Some(d) => s"${d.toString} days ago"
+        case _ => "-"
+    }
+}
+

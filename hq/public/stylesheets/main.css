@@ -185,14 +185,11 @@ nav {
     background-color: #ffffff;
 }
 
-i.key-disabled {
-    opacity:0.3
+.iam-key-disabled {
+    opacity: 0.3;
 }
 
 table.iam-report__table td, table.iam-report__table th {
     min-height: 21px;
-}
-
-table.responsive-table {
     box-sizing: initial;
 }

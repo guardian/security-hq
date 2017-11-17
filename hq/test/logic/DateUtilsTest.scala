@@ -9,7 +9,7 @@ class DateUtilsTest extends FreeSpec with Matchers {
 
     "calculate day difference" in {
       val date = DateTime.now(DateTimeZone.UTC).minusDays(3)
-      DateUtils.dayDifference(Some(date)) shouldBe Some(3)
+      DateUtils.dayDiff(Some(date)) shouldBe Some(3)
     }
 
     "print date in yyyy-MM-dd HH:mm:ss format" in {

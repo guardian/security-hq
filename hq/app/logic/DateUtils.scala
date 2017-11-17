@@ -11,7 +11,7 @@ object DateUtils {
     formatter.parseDateTime(dateTime)
   }
 
-  def dayDifference(date: Option[DateTime]): Option[Long] =  date.map(new Duration(_, DateTime.now(DateTimeZone.UTC)).getStandardDays)
+  def dayDiff(date: Option[DateTime]): Option[Long] =  date.map(new Duration(_, DateTime.now(DateTimeZone.UTC)).getStandardDays)
 
   def printTime(date: DateTime): String = date.toString("HH:mm")
 }

@@ -87,6 +87,11 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       ReportDisplay.humanReportStatus(humanCred) shouldBe Green
     }
 
+    "check human report status green when mfa active and access key disabled" in {
+      val humanCred = cred.copy(accessKey1Active = false, accessKey2Active = false, mfaActive = true, accessKey1LastUsedDate = Some(now))
+      ReportDisplay.humanReportStatus(humanCred) shouldBe Green
+    }
+
     "check human report status amber when key1 enabled" in {
       val humanCred = cred.copy(accessKey1Active = true, accessKey2Active = false, mfaActive = true)
       ReportDisplay.humanReportStatus(humanCred) shouldBe Amber
