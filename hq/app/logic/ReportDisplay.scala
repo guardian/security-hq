@@ -1,6 +1,7 @@
 package logic
 
 import model._
+import DateUtils.dayDiff
 import org.joda.time.{DateTime, DateTimeZone}
 
 
@@ -44,7 +45,6 @@ object ReportDisplay {
   }
 
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
-    import DateUtils._
     report.entries.filterNot(_.rootUser).foldLeft(CredentialReportDisplay(report.generatedAt)) { (report, cred) =>
       val machineUser =
         if (!cred.passwordEnabled.getOrElse(false)) {
@@ -63,5 +63,12 @@ object ReportDisplay {
 
   def checkNoKeyExists(keyStatuses: KeyStatus* ): Boolean = {
     keyStatuses.forall(_ == NoKey)
+  }
+
+  def toDayString(day: Option[Long]): String = day match {
+    case Some(0) => "Today"
+    case Some(1) => "Yesterday"
+    case Some(d) => s"${d.toString} days ago"
+    case _ => ""
   }
 }
