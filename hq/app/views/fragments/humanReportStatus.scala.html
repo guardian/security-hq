@@ -1,0 +1,14 @@
+@import model.ReportStatus
+@(status: ReportStatus)
+
+@if(status == model.Red) {
+    <i class="material-icons left red-text" data-position="bottom" data-delay="50" >error</i>
+    <span>MFA not enabled</span>
+}
+@if(status == model.Amber) {
+    <i class="material-icons left amber-text" data-position="bottom" data-delay="50" >warning</i>
+    <span>Has active access keys</span>
+}
+@if(status == model.Green) {
+    <i class="material-icons left green-text" data-position="bottom" data-delay="50">check</i>
+}

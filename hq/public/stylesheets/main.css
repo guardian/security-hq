@@ -184,3 +184,12 @@ nav {
 .collapsible-body {
     background-color: #ffffff;
 }
+
+.iam-key-disabled {
+    opacity: 0.3;
+}
+
+table.iam-report__table td, table.iam-report__table th {
+    min-height: 21px;
+    box-sizing: initial;
+}

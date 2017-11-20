@@ -1,0 +1,23 @@
+@import model.KeyStatus
+@import model.AccessKeyDisabled
+@import model.AccessKeyEnabled
+@import logic.ReportDisplay
+@(key1Status: KeyStatus, key2Status: KeyStatus)
+
+
+@keyStatus(keyStatus: KeyStatus)  = {
+    @if(keyStatus == AccessKeyDisabled) {
+        <span><i class="material-icons left tooltipped iam-key-disabled"  data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i></span>
+    }
+    @if(keyStatus == AccessKeyEnabled) {
+        <span><i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="Has active Access Key">vpn_key</i></span>
+    }
+}
+
+@if(ReportDisplay.checkNoKeyExists(key1Status, key2Status)) {
+  <span>-</span>
+} else {
+    @keyStatus(key1Status)
+    @keyStatus(key2Status)
+}
+

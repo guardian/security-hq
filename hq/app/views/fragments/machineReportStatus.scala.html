@@ -1,0 +1,11 @@
+@import model.ReportStatus
+@(status: ReportStatus)
+
+@if(status == model.Amber) {
+    <i class="material-icons left amber-text" data-position="bottom" data-delay="50" >warning</i>
+    <span>Doesn't have active access keys</span  >
+}
+@if(status == model.Green) {
+    <i class="material-icons left green-text" data-position="bottom" data-delay="50" >check</i>
+}
+

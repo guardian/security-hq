@@ -1,0 +1,7 @@
+@(name: String)
+
+@if(name.length > 30) {
+    <span class="tooltipped" data-tooltip="@name" >@name.slice(0, 30)&hellip;</span>
+} else {
+    <span>@name</span>
+}

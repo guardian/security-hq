@@ -1,5 +1,7 @@
-@import model.IAMCredentialsReport
-@(report: IAMCredentialsReport)
+@import model.CredentialReportDisplay
+@import logic.DateUtils
+@import logic.ReportDisplay
+@(report: CredentialReportDisplay)
 
 @main(List("IAM report")) { @* Header *@
     <div class="container">
@@ -10,58 +12,48 @@
 
 } { @* Main content *@
     <div class="container">
-
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-content">
-                        <span class="card-title">Users with MFA not activated</span>
-                    <table class="striped">
-                        <tr></tr>
-                    </table>
-
-                </div>
+        <div class="row">
+            <div class="card-panel">
+                    <span>Report generated at @{DateUtils.printTime(report.reportDate)} (refreshed every four hours)</span>
             </div>
         </div>
-        <div class="col s12 m6">
-            <div class="card">
-                <div class="card-content">
-                    <a href="/iam">
-                        <i class="right material-icons">vpn_key</i>
-                        <span class="card-title">Credentials audits</span>
-                        <p>
-                            IAM credentials reports.
-                        </p>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-
-        <p>Report generated at : @{report.generatedAt.toString()} with @{report.entries.size} entries</p>
-        <table class="sg-details__table">
-            <tbody>
-                <tr>
-                    <th>User</th>
-                    <th>AccessKey1Active</th>
-                    <th>AccessKey1LastRotated</th>
-                    <th>MFA Active</th>
-                </tr>
-                @for(entry <- report.entries) {
+        <div class="row">
+            <div class="col s12">
+                <table class="striped responsive-table iam-report__table" >
+                    <tr>
+                        <th>User name</th>
+                        <th>Access Keys</th>
+                        <th>Password/MFA</th>
+                        <th>Last Activity</th>
+                        <th>Status</th>
+                    </tr>
+                    @for(cred <- report.humanUsers) {
                         <tr>
-                        <td>@{entry.user}</td>
-
-                        <td>@{entry.accessKey1Active}</td>
-
-                        <td>@{entry.accessKey1LastRotated}</td>
-
-                        <td>@{entry.mfaActive}</td>
+                            <td><span>@views.html.fragments.username(cred.username)</span></td>
+                            <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
+                            <td>@views.html.fragments.mfa(cred.hasMFA)</td>
+                            <td>
+                                <span>
+                                    @ReportDisplay.toDayString(cred.lastActivityDay)
+                                </span>
+                            </td>
+                            <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
                         </tr>
-                }
-
-            </tbody>
-        </table>
-
+                    }
+                    @for(cred <- report.machineUsers) {
+                        <tr>
+                            <td>@views.html.fragments.username(cred.username)</td>
+                            <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
+                            <td><span>-</span></td>
+                            <td>
+                                <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
+                            </td>
+                            <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
     </div>
-
 
 }
