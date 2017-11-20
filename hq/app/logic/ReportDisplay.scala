@@ -10,7 +10,7 @@ object ReportDisplay {
 
   private[logic] def lastActivityDate(cred: IAMCredential): Option[DateTime] = {
     val allDates =
-      cred.passwordLastUsed.toSeq ++ cred.accessKey1LastUsedDate.toSeq  ++ cred.accessKey2LastUsedDate.toSeq
+      cred.passwordLastUsed.toSeq ++ cred.accessKey1LastUsedDate.toSeq ++ cred.accessKey2LastUsedDate.toSeq
     allDates.sortWith(_.isAfter(_)).collectFirst { case date if date.isBefore(DateTime.now(DateTimeZone.UTC)) => date }
   }
 
@@ -61,7 +61,7 @@ object ReportDisplay {
     }
   }
 
-  def checkNoKeyExists(keyStatuses: KeyStatus* ): Boolean = {
+  def checkNoKeyExists(keyStatuses: KeyStatus*): Boolean = {
     keyStatuses.forall(_ == NoKey)
   }
 
@@ -70,5 +70,9 @@ object ReportDisplay {
     case Some(1) => "Yesterday"
     case Some(d) => s"${d.toString} days ago"
     case _ => ""
+  }
+
+  def reportStatusSummary(report: CredentialReportDisplay): Set[ReportStatus] = {
+    (report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)).toSet
   }
 }
