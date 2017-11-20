@@ -1,0 +1,14 @@
+@import model.CredentialReportDisplay
+@import logic.ReportDisplay
+@import model._
+@(report: CredentialReportDisplay)
+
+@if(ReportDisplay.reportStatusSummary(report).contains(Red)) {
+    <i class="material-icons right red-text" data-position="bottom" data-delay="50">error</i>
+}
+@if(ReportDisplay.reportStatusSummary(report).contains(Amber)) {
+    <i class="material-icons right amber-text" data-position="bottom" data-delay="50">warning</i>
+}
+@if(ReportDisplay.reportStatusSummary(report).contains(Green) && ReportDisplay.reportStatusSummary(report).size == 1) {
+    <i class="material-icons right green-text" data-position="bottom" data-delay="50">check</i>
+}

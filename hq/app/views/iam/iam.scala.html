@@ -1,6 +1,6 @@
-@import model.AwsAccount
+@import model._
+@(accounts: Map[AwsAccount, CredentialReportDisplay])
 
-@()
 
 @main(List("IAM report")) { @* Header *@
     <div class="container">
@@ -13,7 +13,19 @@
     </div>
 
 } { @* Main content *@
-    <div class="container">
-        <p>Fetch IAM summary for entire AWS estate.</p>
+    <div class="container greedy-width">
+        <ul class="collapsible" data-collapsible="accordion">
+        @for((account, report) <- accounts) {
+            <li>
+                <div class="collapsible-header">
+                    @{account.name}
+                    @views.html.fragments.statusSummary(report)
+                </div>
+                <div class="collapsible-body">
+                    @views.html.iam.iamCredReportBody(report)
+                </div>
+            </li>
+        }
+        </ul>
     </div>
 }
