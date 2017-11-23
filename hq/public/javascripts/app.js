@@ -22,4 +22,17 @@ $(document).ready(() => {
         .click();
     }
   );
+
+  $('.js-sg-pin-close').click(function() {
+    $('.collapsible').collapsible('close');
+  });
+
+  $('.js-sg-pin-top').click(function() {
+    $('html, body').animate(
+      {
+        scrollTop: $('.collapsible').offset().top - 20
+      },
+      'slow'
+    );
+  });
 });
