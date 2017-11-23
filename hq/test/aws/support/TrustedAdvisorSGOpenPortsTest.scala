@@ -72,7 +72,7 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
   "sorting" - {
 
     "security flags by port priority" in {
-      val portPriorityMap = Map("27017" -> 0, "27018" -> 0, "27019" -> 0, "6379" -> 0, "6380" -> 0,  "9000" -> 1, "7077" -> 1, "4040" -> 1, "8890" -> 1, "4041" -> 1, "4042" -> 1, "8080" -> 1, "22" -> 2)
+      val portPriorityMap = Map("27017" -> 0, "27018" -> 0, "27019" -> 0, "6379" -> 0, "6380" -> 0,  "9000" -> 1, "7077" -> 1, "4040" -> 1, "8890" -> 1, "4041" -> 1, "4042" -> 1, "8080" -> 1, "22" -> 9)
       val sgs: Gen[SGOpenPortsDetail] = for {
         status <- Gen.oneOf("Ok", "Warning", "Error")
         name <- Gen.alphaStr
