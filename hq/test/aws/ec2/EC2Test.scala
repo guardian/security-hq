@@ -2,16 +2,17 @@ package aws.ec2
 
 import com.amazonaws.services.ec2.model.{DescribeNetworkInterfacesResult, GroupIdentifier, NetworkInterface, NetworkInterfaceAttachment}
 import model._
+import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalatest.exceptions.TestFailedException
-import org.scalatest.prop.Checkers
+import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 
 import scala.collection.JavaConverters._
 
 
-class EC2Test extends FreeSpec with Matchers with Checkers {
+class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks  {
   "parseNetworkInterface" - {
     "parses an ELB" in {
       EC2.parseNetworkInterface(elb("test-elb")) shouldEqual ELB("test-elb")
@@ -114,6 +115,26 @@ class EC2Test extends FreeSpec with Matchers with Checkers {
       }
     }
   }
+
+  "security group" - {
+    "sort by usage" in {
+      val sgsOpenPorts = for {
+        status <- Gen.oneOf("Ok", "Warning", "Error")
+        name <- Gen.alphaStr
+        id <- Gen.alphaStr
+        vpcId <- Gen.alphaStr
+        port <- Gen.oneOf(0 to 65000)
+        instanceId <- Gen.alphaStr
+        usage <- Gen.someOf(Seq(Instance(instanceId), UnknownUsage("unknown", "nic-1"), ELB(instanceId)) )
+      } yield SGOpenPortsDetail(status, "eu-west-1", name, id, vpcId, "tcp", port.toString, "Yellow", false ) -> usage.toSet[SGInUse]
+
+      forAll(Gen.listOf(sgsOpenPorts)) { detail =>
+        val sortedResult = EC2.sortSecurityGroupsByInUse(detail)
+        sortedResult should be (sortedResult.sortWith{ case  ((_, s1), (_, s2)) => s1.size > s2.size })
+      }
+    }
+  }
+
 
   // helpers for creating test data
 

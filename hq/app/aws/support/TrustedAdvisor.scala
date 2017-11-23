@@ -11,10 +11,13 @@ import logic.DateUtils.fromISOString
 import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 
 object TrustedAdvisor {
+  val portPriorityMap = Map("27017" -> 0, "27018" -> 0, "27019" -> 0, "6379" -> 0, "6380" -> 0,  "9000" -> 1, "7077" -> 1, "4040" -> 1, "8890" -> 1, "4041" -> 1, "4042" -> 1, "8080" -> 1, "22" -> 9)
+  val alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
+
   def client(auth: AWSCredentialsProviderChain): AWSSupportAsync = {
     AWSSupportAsyncClientBuilder.standard()
       .withCredentials(auth)
@@ -54,6 +57,36 @@ object TrustedAdvisor {
     handleAWSErrs(awsToScala(client.describeTrustedAdvisorCheckResultAsync)(request))
   }
 
+  private[support] def sortSecurityFlags[A <: TrustedAdvisorCheckDetails](list: List[A]): List[A] = {
+    //    AWS Alert mappings
+    //    Green: Access to port 80, 25, 443, or 465 is unrestricted.
+    //    Red: Access to port 20, 21, 1433, 1434, 3306, 3389, 4333, 5432, or 5500 is unrestricted.
+    //    Yellow: Access to any other port is unrestricted.
+    //
+    //    FTP : 21
+    //    SSH : 22
+    //    SQL Server : 1433 x
+    //    PostgreSQL : 5432 x
+    //    MySQL : 3306 x
+    //    Amazon EMR Web : 8890 y
+    //    Play framework : 9000 y
+    //    MongoDB : 27017, 27018, 27019 y
+    //    Redis : 6379, 6380  y
+    //    Spark web : 8080 y
+    //    Spark master: 7077 y
+    //    Spark UI : 4040, 4041, 4042 y
+    list.sortWith {
+      case (a: RDSSGsDetail, b: RDSSGsDetail) =>
+        alertLevelMapping.getOrElse(a.alertLevel, 1) < alertLevelMapping.getOrElse(b.alertLevel, 1)
+      case (a: SGOpenPortsDetail, b: SGOpenPortsDetail) =>
+        if (a.alertLevel == b.alertLevel) {
+          portPriorityMap.getOrElse(a.port, 2) < portPriorityMap.getOrElse(b.port, 2)
+        } else
+          alertLevelMapping.getOrElse(a.alertLevel, 2) < alertLevelMapping.getOrElse(b.alertLevel, 2)
+      case (_, _) => false
+    }
+  }
+
   def parseTrustedAdvisorCheckResult[A <: TrustedAdvisorCheckDetails](parseDetails: TrustedAdvisorResourceDetail => Attempt[A], ec: ExecutionContext)(result: DescribeTrustedAdvisorCheckResultResult): Attempt[TrustedAdvisorDetailsResult[A]] = {
     implicit val executionContext: ExecutionContext = ec
     for {
@@ -62,7 +95,7 @@ object TrustedAdvisor {
       checkId = result.getResult.getCheckId,
       status = result.getResult.getStatus,
       timestamp = fromISOString(result.getResult.getTimestamp),
-      flaggedResources = resources,
+      flaggedResources = sortSecurityFlags(resources),
       resourcesIgnored = result.getResult.getResourcesSummary.getResourcesIgnored,
       resourcesFlagged = result.getResult.getResourcesSummary.getResourcesFlagged,
       resourcesSuppressed = result.getResult.getResourcesSummary.getResourcesSuppressed

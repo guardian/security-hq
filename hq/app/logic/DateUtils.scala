@@ -10,6 +10,7 @@ object DateUtils {
   def fromISOString(dateTime: String): DateTime = {
     formatter.parseDateTime(dateTime)
   }
+  def toISOString(dateTime: DateTime) = ISODateTimeFormat.dateTime().print(dateTime)
 
   def dayDiff(date: Option[DateTime]): Option[Long] =  date.map(new Duration(_, DateTime.now(DateTimeZone.UTC)).getStandardDays)
 
