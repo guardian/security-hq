@@ -5,7 +5,6 @@ import aws.AWS
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisor, TrustedAdvisorExposedIAMKeys}
 import config.Config
-import logic.ReportDisplay
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -39,20 +38,10 @@ class HQController(val config: Configuration)
         client = TrustedAdvisor.client(account)
         exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(client)
         exposedIamKeys = exposedIamKeysResult.flaggedResources
-      } yield Ok(views.html.iam.iamAccount(account, exposedIamKeys))
+        credReport <- IAMClient.getCredentialsReport(account)
+      } yield Ok(views.html.iam.iamAccount(account, exposedIamKeys, credReport))
     }
   }
-
-  def generateCredentialsReport(accountId: String) = AuthAction.async {
-    attempt {
-      for {
-        account <- AWS.lookupAccount(accountId, accounts)
-        report <- IAMClient.getCredentialsReport(account)
-      } yield Ok(views.html.iam.iamCredReport(ReportDisplay.toCredentialReportDisplay(report)))
-    }
-  }
-
-
 
 }
 

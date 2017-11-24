@@ -31,19 +31,19 @@ object IAMClient {
     handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
-  def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
+  def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val client = IAMClient.client(account)
     for {
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
-    } yield report
+    } yield ReportDisplay.toCredentialReportDisplay(report)
   }
 
   def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        getCredentialsReport(account).map(ReportDisplay.toCredentialReportDisplay).asFuture.map(account -> _)
+        getCredentialsReport(account).asFuture.map(account -> _)
       }
     }
   }

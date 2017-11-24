@@ -1,6 +1,5 @@
-@import model.{AwsAccount, TrustedAdvisorDetailsResult, ExposedIAMKeyDetail}
-
-@(awsAccount: AwsAccount, exposedIamKeys: List[ExposedIAMKeyDetail])
+@import model.{AwsAccount, CredentialReportDisplay, ExposedIAMKeyDetail}
+@(awsAccount: AwsAccount, exposedIamKeys: List[ExposedIAMKeyDetail], report: CredentialReportDisplay)
 
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
@@ -67,5 +66,11 @@
             }
         </div>
     }
+        <div>
+            <div class="row">
+                <h2>Credential Report</h2>
+                @views.html.iam.iamCredReportBody(report)
+            </div>
+        </div>
     </div>
 }
