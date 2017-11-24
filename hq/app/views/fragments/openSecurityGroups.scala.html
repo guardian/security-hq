@@ -1,14 +1,8 @@
 @import model.{SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
+@import logic.SecurityGroupService.resourceIcons
 
 @(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])], shadow: Boolean)
 
-@resourceIcons(usages: Set[SGInUse]) = {
-    @usages.map {
-      case Instance(id) => { <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="EC2 instance">computer</i> }
-      case ELB(description) => { <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i> }
-      case _ => { <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Unknown">report_problem</i> }
-    }
-}
 
 
 @resourceList(flaggedSg: SGOpenPortsDetail, usages: Set[SGInUse]) = {
@@ -82,7 +76,7 @@
                 } else {
                     <ul class="collapsible sg-details js-sg-details" data-collapsible="expandable">
                       <li class="sg-details__list">
-                          <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>@usages.size @resourceIcons(usages)</div>
+                          <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>@resourceIcons(usages)</div>
                         <div class="collapsible-body">
                             @resourceList(flaggedSg, usages)
                         </div>

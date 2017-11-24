@@ -173,6 +173,20 @@ nav {
 .sg-details__header {
     background-color: #009688;
     color: #ffffff;
+    display: flex;
+}
+
+.sg-details__header i {
+    display: inline-grid;
+    float: none;
+    margin-right: 0;
+    vertical-align: middle;
+}
+
+.sg--details__count {
+    margin-right: 5px;
+    text-align: end;
+    width: 30px;
 }
 
 .usage-cta {
