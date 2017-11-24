@@ -10,6 +10,7 @@ import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 
 import scala.collection.JavaConverters._
+import scala.util.Random
 
 
 class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks  {
@@ -124,13 +125,17 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks  
         id <- Gen.alphaStr
         vpcId <- Gen.alphaStr
         port <- Gen.oneOf(0 to 65000)
-        instanceId <- Gen.alphaStr
-        usage <- Gen.someOf(Seq(Instance(instanceId), UnknownUsage("unknown", "nic-1"), ELB(instanceId)) )
-      } yield SGOpenPortsDetail(status, "eu-west-1", name, id, vpcId, "tcp", port.toString, "Yellow", false ) -> usage.toSet[SGInUse]
+      } yield SGOpenPortsDetail(status, "eu-west-1", name, id, vpcId, "tcp", port.toString, "Yellow", false )
+
 
       forAll(Gen.listOf(sgsOpenPorts)) { detail =>
-        val sortedResult = EC2.sortSecurityGroupsByInUse(detail)
-        sortedResult should be (sortedResult.sortWith{ case  ((_, s1), (_, s2)) => s1.size > s2.size })
+        val sgsUsageMap = detail.map { sgs =>
+          val usages = Seq[Set[SGInUse]](Set.empty, Set(Instance(sgs.id), ELB(sgs.id)), Set(Instance(sgs.id), ELB(sgs.id), UnknownUsage("unknown", "nic-1")))
+          sgs.id -> usages(Random.nextInt(3))
+        }.toMap
+
+        val sortedResult = EC2.sortSecurityGroupsByInUse(detail, sgsUsageMap)
+        sortedResult should be(sortedResult.sortWith { case ((_, s1), (_, s2)) => s1.size > s2.size })
       }
     }
   }

@@ -56,7 +56,7 @@ object EC2 {
       sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
       sgUsage <- getSgsUsage(sgResult, account)
       flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
-    } yield sortSecurityGroupsByInUse(flaggedSgs.map(sgOpenPortsDetail => sgOpenPortsDetail -> sgUsage.getOrElse(sgOpenPortsDetail.id, Set.empty)))
+    } yield sortSecurityGroupsByInUse(flaggedSgs, sgUsage)
   }
 
   def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
@@ -67,8 +67,10 @@ object EC2 {
     }
   }
 
-  private [ec2] def sortSecurityGroupsByInUse(sgsPortFlags : List[(SGOpenPortsDetail, Set[SGInUse])]) = {
-    sgsPortFlags.sortWith{ case  ((_, s1), (_, s2)) => s1.size > s2.size }
+  private [ec2] def sortSecurityGroupsByInUse(sgsPortFlags : List[SGOpenPortsDetail], sgUsage: Map[String, Set[SGInUse]]) = {
+    sgsPortFlags
+      .map(sgOpenPortsDetail => sgOpenPortsDetail -> sgUsage.getOrElse(sgOpenPortsDetail.id, Set.empty))
+      .sortWith{ case  ((_, s1), (_, s2)) => s1.size > s2.size }
   }
 
   def sortAccountByFlaggedSgs[L, R](accountsWithFlaggedSgs: List[(AwsAccount, Either[L, List[R]])]): List[(AwsAccount, Either[L, List[R]])] = {

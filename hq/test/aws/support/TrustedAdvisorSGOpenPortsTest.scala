@@ -72,22 +72,37 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
   "sorting" - {
 
     "security flags by port priority" in {
-      val portPriorityMap = Map("27017" -> 0, "27018" -> 0, "27019" -> 0, "6379" -> 0, "6380" -> 0,  "9000" -> 1, "7077" -> 1, "4040" -> 1, "8890" -> 1, "4041" -> 1, "4042" -> 1, "8080" -> 1, "22" -> 9)
       val sgs: Gen[SGOpenPortsDetail] = for {
         status <- Gen.oneOf("Ok", "Warning", "Error")
         name <- Gen.alphaStr
         id <- Gen.alphaStr
         vpcId <- Gen.alphaStr
-        port <- Gen.oneOf(9000, 8080, 27017, 27018, 27019, 6379, 6380, 22, 4040, 8890, 4042, 4041 )
+        port <- Gen.oneOf(TrustedAdvisor.portPriorityMap.flatMap(_._2) )
         item = SGOpenPortsDetail(status, "eu-west-1", name.take(4), id.take(4), vpcId.take(4), "tcp", port.toString, "Yellow", false )
 
       } yield item
 
       forAll(Gen.listOf(sgs)) { detail =>
         val sortedResult = TrustedAdvisor.sortSecurityFlags(detail)
-        val expected = sortedResult.sortWith{ case  (s1, s2) =>  portPriorityMap.getOrElse(s1.port, 1) < portPriorityMap.getOrElse(s2.port, 1)  }
+        val expected = sortedResult.sortWith {
+          case  (s1, s2) =>  TrustedAdvisor.findPortPriorityIndex(s1.port).getOrElse(999) < TrustedAdvisor.findPortPriorityIndex(s2.port).getOrElse(999)
+        }
         sortedResult should be (expected)
       }
+    }
+
+    "handle range ports" in {
+      val portRange = "3304-3307"
+      TrustedAdvisor.findPortPriorityIndex(portRange) shouldBe Some(2)
+    }
+
+    "handle simple port" in {
+      TrustedAdvisor.indexedPortMap.foreach { case ((k, ports), idx) =>
+        ports.foreach { port =>
+          TrustedAdvisor.findPortPriorityIndex(port.toString) shouldBe Some(idx)
+        }
+      }
+
     }
 
     "security flags by alert level " in {
@@ -98,17 +113,16 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
         name <- Gen.alphaStr
         id <- Gen.alphaStr
         vpcId <- Gen.alphaStr
-        port <- Gen.oneOf(27017, 27018, 27019, 6379, 6380, 9000, 8080, 22 )
+        port <- Gen.oneOf( 0 to 65000)
       } yield SGOpenPortsDetail(status, "eu-west-1", name.take(4), id.take(4), vpcId.take(4), "tcp", port.toString, alertLevel, false )
 
       forAll(Gen.listOf(sgsOpenPorts)) { sgs =>
         val sortedResult = TrustedAdvisor.sortSecurityFlags(sgs)
-        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  alertLevelMapping.getOrElse(s1.alertLevel, 1) < alertLevelMapping.getOrElse(s2.alertLevel, 1)  })
+        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  alertLevelMapping.getOrElse(s1.alertLevel, 2) < alertLevelMapping.getOrElse(s2.alertLevel, 2)  })
       }
     }
 
     "RDS security flags by alert level " in {
-      val  alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
       val rdsSgs = for {
         alertLevel <- Gen.oneOf("Yellow", "Red", "Green")
         ec2SgId <- Gen.alphaStr
@@ -117,7 +131,7 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
 
       forAll(Gen.listOf(rdsSgs)) { sgs =>
         val sortedResult = TrustedAdvisor.sortSecurityFlags(sgs)
-        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  alertLevelMapping.getOrElse(s1.alertLevel, 1) < alertLevelMapping.getOrElse(s2.alertLevel, 1)  })
+        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  TrustedAdvisor.alertLevelMapping.getOrElse(s1.alertLevel, 2) < TrustedAdvisor.alertLevelMapping.getOrElse(s2.alertLevel, 2)  })
       }
     }
   }

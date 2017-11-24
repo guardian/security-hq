@@ -9,7 +9,6 @@ import logic.ReportDisplay
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import utils.attempt.Attempt
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
@@ -26,10 +25,10 @@ class HQController(val config: Configuration)
 
   def iam = AuthAction.async  {
     attempt {
-      val accountsAndReports = IAMClient.getAllCredentialReports(accounts)
       for {
-        accountReportMaps <- Attempt.sequence(accountsAndReports.toList)
-       } yield Ok(views.html.iam.iam(accountReportMaps.toMap))
+        accountsAndReports <- IAMClient.getAllCredentialReports(accounts)
+      } yield Ok(views.html.iam.iam(accountsAndReports.toMap))
+
     }
   }
 

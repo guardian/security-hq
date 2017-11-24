@@ -1,5 +1,5 @@
 @import model._
-@(accounts: Map[AwsAccount, CredentialReportDisplay])
+@(reports: Map[AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay]])
 
 
 @main(List("IAM report")) { @* Header *@
@@ -13,16 +13,32 @@
     </div>
 
 } { @* Main content *@
-    <div class="container greedy-width">
+    <div class="container">
         <ul class="collapsible" data-collapsible="accordion">
-        @for((account, report) <- accounts) {
+        @for((account, report) <- reports) {
             <li>
                 <div class="collapsible-header">
-                    @{account.name}
-                    @views.html.fragments.statusSummary(report)
+                    @account.name
+                    @report match {
+                        case Left(fa) => {
+                            <p class="p--warning">
+                            @for(err <- fa.failures) {
+                                @err.friendlyMessage
+                            }
+                            </p>
+                        }
+                        case Right(re) => {
+                            @views.html.fragments.statusSummary(re)
+                        }
+                    }
                 </div>
                 <div class="collapsible-body">
-                    @views.html.iam.iamCredReportBody(report)
+                @report match {
+                    case Right(re) => {
+                        @views.html.iam.iamCredReportBody(re)
+                    }
+                    case _ => {}
+                }
                 </div>
             </li>
         }

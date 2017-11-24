@@ -7,9 +7,9 @@ import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReport
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
 import logic.{ReportDisplay, Retry}
 import model.{AwsAccount, CredentialReportDisplay, IAMCredentialsReport}
-import utils.attempt.Attempt
+import utils.attempt.{Attempt, FailedAttempt}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 
@@ -40,12 +40,13 @@ object IAMClient {
     } yield report
   }
 
-  def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Seq[Attempt[(AwsAccount, CredentialReportDisplay)]] = {
-    accounts map { account =>
-      for {
-        credReport <- getCredentialsReport(account)
-        uiReport = ReportDisplay.toCredentialReportDisplay(credReport)
-      } yield account -> uiReport
+  def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
+    Attempt.Async.Right {
+      Future.traverse(accounts) { account =>
+        getCredentialsReport(account).map(ReportDisplay.toCredentialReportDisplay).asFuture.map(account -> _)
+      }
     }
   }
+
+
 }
