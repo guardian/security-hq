@@ -75,9 +75,8 @@
 
                 } else {
                     <ul class="collapsible sg-details js-sg-details" data-collapsible="expandable">
-                      <li class="sg-details__list">
-                          <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>
-
+                        <li class="sg-details__list">
+                            <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>
 
                               @defining(resourceIcons(usages.toList)) { iconCounts =>
                                   @if(iconCounts.instances > 0) {
@@ -91,11 +90,11 @@
                                   }
                               }
 
-                          </div>
+                            </div>
                         <div class="collapsible-body">
                             @resourceList(flaggedSg, usages)
                         </div>
-                      </li>
+                        </li>
                     </ul>
                 }
             }

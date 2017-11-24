@@ -209,7 +209,7 @@ nav {
 }
 
 .iam-key-disabled {
-    opacity: 0.3;
+    opacity: .3;
 }
 
 table.iam-report__table td, table.iam-report__table th {
