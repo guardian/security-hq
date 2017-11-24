@@ -1,5 +1,5 @@
 @import model.{SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
-@import logic.SecurityGroupService.resourceIcons
+@import logic.SecurityGroupDisplay.resourceIcons
 
 @(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])], shadow: Boolean)
 
@@ -64,7 +64,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="card-action">
+            <div class="card-action sg-card-action">
 
             @if(usages.isEmpty) {
                 <a class="btn usage-cta" href="#" disabled>Not in use</a>
@@ -76,7 +76,22 @@
                 } else {
                     <ul class="collapsible sg-details js-sg-details" data-collapsible="expandable">
                       <li class="sg-details__list">
-                          <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>@resourceIcons(usages)</div>
+                          <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>
+
+
+                              @defining(resourceIcons(usages.toList)) { iconCounts =>
+                                  @if(iconCounts.instances > 0) {
+                                    <span class="sg--details__count">@iconCounts.instances</span><i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="EC2 instance">computer</i>
+                                  }
+                                  @if(iconCounts.elbs > 0) {
+                                    <span class="sg--details__count">@iconCounts.elbs</span><i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i>
+                                  }
+                                  @if(iconCounts.unknown > 0) {
+                                    <span class="sg--details__count">@iconCounts.unknown</span><i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Unknown">report_problem</i>
+                                  }
+                              }
+
+                          </div>
                         <div class="collapsible-body">
                             @resourceList(flaggedSg, usages)
                         </div>
