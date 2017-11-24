@@ -152,6 +152,10 @@ nav {
     padding: 0 10px;
 }
 
+.sg-card-action {
+    min-height: 76px;
+}
+
 .sg-details__table td,
 .sg-details__table th {
     padding: 5px;
@@ -174,11 +178,15 @@ nav {
     background-color: #009688;
     color: #ffffff;
     display: flex;
+    line-height: 36px;
+    min-height: 36px;
 }
 
 .sg-details__header i {
     display: inline-grid;
     float: none;
+    height: 36px;
+    line-height: 36px;
     margin-right: 0;
     vertical-align: middle;
 }
@@ -193,6 +201,7 @@ nav {
     display: block;
     background-color: #4E8098;
     padding: 0 .6rem;
+    white-space: nowrap;
 }
 
 .collapsible-body {
