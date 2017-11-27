@@ -10,7 +10,7 @@ val awsSdkVersion = "1.11.185"
 val playVersion = "2.5.16"
 
 lazy val hq = (project in file("hq")).
-  enablePlugins(PlayScala).
+  enablePlugins(PlayScala, RiffRaffArtifact).
   settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -37,7 +37,9 @@ lazy val hq = (project in file("hq")).
       (baseDirectory.value / "beanstalk" * "*" get)
         .map(f => f -> s"beanstalk/${f.getName}"),
     parallelExecution in Test := false,
-    fork in Test := false
+    fork in Test := false,
+    riffRaffPackageType := (packageZipTarball in Universal).value,
+    riffRaffArtifactFile := "target/universal/security-hq.zip"
   )
 
 // More will go here!

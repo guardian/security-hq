@@ -8,7 +8,7 @@ reset=`tput sgr0`
 cd $(dirname $(realpath $0))
 
 # ask sbt/play to package up the security-hq application
-sbt "project hq" dist
+#sbt "project hq" dist
 
 # create elastic beanstalk bundle based on the zip produced by `zip`
 cd hq/target/universal

@@ -1,0 +1,9 @@
+stacks:
+- security
+regions:
+- eu-west-1
+deployments:
+  janus:
+    type: aws-s3
+    parameters:
+      bucket: security-dist
