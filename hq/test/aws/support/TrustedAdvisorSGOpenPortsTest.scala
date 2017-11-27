@@ -1,6 +1,9 @@
 package aws.support
 
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
+import model._
+import org.scalacheck.Gen
+import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 
@@ -8,7 +11,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues {
+class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues with PropertyChecks  {
   "parsing details" - {
     "works on example data" in {
       val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
@@ -62,6 +65,73 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
         case SGIds(sgId, vpcId) =>
           sgId shouldEqual "sg-12345a"
           vpcId shouldEqual "vpc-789abc"
+      }
+    }
+  }
+
+  "sorting" - {
+
+    "security flags by port priority" in {
+      val sgs: Gen[SGOpenPortsDetail] = for {
+        status <- Gen.oneOf("Ok", "Warning", "Error")
+        name <- Gen.alphaStr
+        id <- Gen.alphaStr
+        vpcId <- Gen.alphaStr
+        port <- Gen.oneOf(TrustedAdvisor.portPriorityMap.flatMap(_._2) )
+        item = SGOpenPortsDetail(status, "eu-west-1", name.take(4), id.take(4), vpcId.take(4), "tcp", port.toString, "Yellow", false )
+
+      } yield item
+
+      forAll(Gen.listOf(sgs)) { detail =>
+        val sortedResult = TrustedAdvisor.sortSecurityFlags(detail)
+        val expected = sortedResult.sortWith {
+          case  (s1, s2) =>  TrustedAdvisor.findPortPriorityIndex(s1.port).getOrElse(999) < TrustedAdvisor.findPortPriorityIndex(s2.port).getOrElse(999)
+        }
+        sortedResult should be (expected)
+      }
+    }
+
+    "handle range ports" in {
+      val portRange = "3304-3307"
+      TrustedAdvisor.findPortPriorityIndex(portRange) shouldBe Some(2)
+    }
+
+    "handle simple port" in {
+      TrustedAdvisor.indexedPortMap.foreach { case ((k, ports), idx) =>
+        ports.foreach { port =>
+          TrustedAdvisor.findPortPriorityIndex(port.toString) shouldBe Some(idx)
+        }
+      }
+
+    }
+
+    "security flags by alert level " in {
+      val  alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
+      val sgsOpenPorts = for {
+        status <- Gen.oneOf("Ok", "Warning", "Error")
+        alertLevel <- Gen.oneOf("Yellow", "Red", "Green")
+        name <- Gen.alphaStr
+        id <- Gen.alphaStr
+        vpcId <- Gen.alphaStr
+        port <- Gen.oneOf( 0 to 65000)
+      } yield SGOpenPortsDetail(status, "eu-west-1", name.take(4), id.take(4), vpcId.take(4), "tcp", port.toString, alertLevel, false )
+
+      forAll(Gen.listOf(sgsOpenPorts)) { sgs =>
+        val sortedResult = TrustedAdvisor.sortSecurityFlags(sgs)
+        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  alertLevelMapping.getOrElse(s1.alertLevel, 2) < alertLevelMapping.getOrElse(s2.alertLevel, 2)  })
+      }
+    }
+
+    "RDS security flags by alert level " in {
+      val rdsSgs = for {
+        alertLevel <- Gen.oneOf("Yellow", "Red", "Green")
+        ec2SgId <- Gen.alphaStr
+        rdsSgId <- Gen.alphaStr
+      } yield RDSSGsDetail("eu-west-1", rdsSgId.take(4), ec2SgId.take(4), alertLevel, false )
+
+      forAll(Gen.listOf(rdsSgs)) { sgs =>
+        val sortedResult = TrustedAdvisor.sortSecurityFlags(sgs)
+        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  TrustedAdvisor.alertLevelMapping.getOrElse(s1.alertLevel, 2) < TrustedAdvisor.alertLevelMapping.getOrElse(s2.alertLevel, 2)  })
       }
     }
   }

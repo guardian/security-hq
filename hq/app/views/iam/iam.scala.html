@@ -1,6 +1,6 @@
-@import model.AwsAccount
+@import model._
+@(reports: Map[AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay]])
 
-@()
 
 @main(List("IAM report")) { @* Header *@
     <div class="container">
@@ -14,6 +14,34 @@
 
 } { @* Main content *@
     <div class="container">
-        <p>Fetch IAM summary for entire AWS estate.</p>
+        <ul class="collapsible" data-collapsible="accordion">
+        @for((account, report) <- reports) {
+            <li>
+                <div class="collapsible-header">
+                    @account.name
+                    @report match {
+                        case Left(fa) => {
+                            <p class="p--warning">
+                            @for(err <- fa.failures) {
+                                @err.friendlyMessage
+                            }
+                            </p>
+                        }
+                        case Right(re) => {
+                            @views.html.fragments.statusSummary(re)
+                        }
+                    }
+                </div>
+                <div class="collapsible-body">
+                @report match {
+                    case Right(re) => {
+                        @views.html.iam.iamCredReportBody(re)
+                    }
+                    case _ => {}
+                }
+                </div>
+            </li>
+        }
+        </ul>
     </div>
 }

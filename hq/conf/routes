@@ -7,7 +7,6 @@ GET        /                                          controllers.HQController.i
 
 GET        /iam                                       controllers.HQController.iam
 GET        /iam/:accountId                            controllers.HQController.iamAccount(accountId)
-GET        /iam/:accountId/cred-report                controllers.HQController.generateCredentialsReport(accountId)
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
 GET        /login                                     controllers.AuthController.login
