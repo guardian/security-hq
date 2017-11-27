@@ -102,8 +102,15 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
           TrustedAdvisor.findPortPriorityIndex(port.toString) shouldBe Some(idx)
         }
       }
-
     }
+
+    "handle null in port" in {
+      TrustedAdvisor.findPortPriorityIndex(null) shouldBe None
+    }
+    "handle empty string in port" in {
+      TrustedAdvisor.findPortPriorityIndex(null) shouldBe None
+    }
+
 
     "security flags by alert level " in {
       val  alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)

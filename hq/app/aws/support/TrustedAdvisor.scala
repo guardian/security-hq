@@ -80,13 +80,15 @@ object TrustedAdvisor {
   }
 
   private[support] def findPortPriorityIndex(port: String) = {
-    val allPorts = port.split("-").map(_.toInt).toList match {
-      case head :: tail :: Nil => (head to tail).toSet
-      case head :: Nil => Set(head)
-      case _ => Set.empty[Int]
-    }
-    indexedPortMap.collectFirst {
-      case ((_, seq), idx) if allPorts.diff(seq) != allPorts  => idx
+    Option(port).flatMap { case p if p.trim.nonEmpty =>
+      val allPorts = p.trim.split("-").map(_.toInt).toList match {
+        case head :: tail :: Nil => (head to tail).toSet
+        case head :: Nil => Set(head)
+        case _ => Set.empty[Int]
+      }
+      indexedPortMap.collectFirst {
+        case ((_, seq), idx) if allPorts.diff(seq) != allPorts  => idx
+      }
     }
   }
 
