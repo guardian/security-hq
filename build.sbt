@@ -38,7 +38,8 @@ lazy val hq = (project in file("hq")).
         .map(f => f -> s"beanstalk/${f.getName}"),
     parallelExecution in Test := false,
     fork in Test := false,
-    riffRaffPackageType := (packageZipTarball in Universal).value
+    riffRaffPackageType := (packageZipTarball in Universal).value,
+    riffRaffArtifactFile := "target/universal/security-hq.zip"
   )
 
 // More will go here!
