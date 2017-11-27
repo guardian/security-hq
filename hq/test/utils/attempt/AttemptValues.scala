@@ -13,7 +13,7 @@ trait AttemptValues extends Matchers {
       val result = Await.result(attempt.asFuture, 5.seconds)
       withClue {
         result.fold(
-          fa => s"${fa.logString} -",
+          fa => s"${fa.failures.map(_.message)} -",
           _ => ""
         )
       } {

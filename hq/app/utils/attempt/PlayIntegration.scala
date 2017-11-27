@@ -9,7 +9,12 @@ object PlayIntegration extends Results {
   def attempt[A](action: => Attempt[Result])(implicit ec: ExecutionContext): Future[Result] = {
     action.fold(
       { err =>
-        Logger.error(err.logString)
+        err.failures.foreach { failure =>
+          failure.throwable match {
+            case Some(th) => Logger.error(failure.message, th)
+            case _ => Logger.error(failure.message)
+          }
+        }
         Status(err.statusCode)(views.html.error(err))
       },
       identity

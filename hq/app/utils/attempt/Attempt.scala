@@ -45,7 +45,7 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) {
     */
   def asFuture(implicit ec: ExecutionContext): Future[Either[FailedAttempt, A]] = {
     underlying recover { case err =>
-      val apiErrors = FailedAttempt(Failure(err.getMessage, "Unexpected error", 500))
+      val apiErrors = FailedAttempt(Failure(err.getMessage, "Unexpected error", 500, throwable = Some(err)))
       scala.Left(apiErrors)
     }
   }

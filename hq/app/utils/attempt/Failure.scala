@@ -3,7 +3,6 @@ package utils.attempt
 
 case class FailedAttempt(failures: List[Failure]) {
   def statusCode: Int = failures.map(_.statusCode).max
-  def logString: String = failures.map(_.message).mkString(", ")
 }
 object FailedAttempt {
   def apply(error: Failure): FailedAttempt = {
@@ -18,7 +17,8 @@ case class Failure(
   message: String,
   friendlyMessage: String,
   statusCode: Int,
-  context: Option[String] = None
+  context: Option[String] = None,
+  throwable: Option[Throwable] = None
 ) {
   def attempt = FailedAttempt(this)
 }
