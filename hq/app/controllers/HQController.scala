@@ -12,17 +12,17 @@ import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class HQController(val config: Configuration)
-                  (implicit val ec: ExecutionContext, val wsClient: WSClient)
-  extends Controller  with SecurityHQAuthActions {
+class HQController (val config: Configuration)
+                   (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents)
+  extends BaseController  with SecurityHQAuthActions {
 
   private val accounts = Config.getAwsAccounts(config)
 
-  def index = AuthAction {
+  def index = authAction {
     Ok(views.html.index(accounts))
   }
 
-  def iam = AuthAction.async  {
+  def iam = authAction.async {
     attempt {
       for {
         accountsAndReports <- IAMClient.getAllCredentialReports(accounts)
@@ -31,7 +31,7 @@ class HQController(val config: Configuration)
     }
   }
 
-  def iamAccount(accountId: String) = AuthAction.async {
+  def iamAccount(accountId: String) = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
