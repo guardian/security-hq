@@ -1,4 +1,4 @@
-@(error: String, user: Option[com.gu.googleauth.UserIdentity] = None)(implicit mode: play.api.Mode)
+@(error: String, user: Option[com.gu.googleauth.UserIdentity] = None)(implicit mode: play.api.Mode, assetsFinder: AssetsFinder)
 
 @main(Nil) { @* Header *@
 <div class="container">

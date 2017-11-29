@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 
 
 class AuthController(environment: Environment, val config: Configuration)
-                    (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents)
+                    (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController with SecurityHQAuthActions {
 
   implicit val mode = environment.mode

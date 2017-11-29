@@ -1,12 +1,13 @@
 package utils.attempt
 
+import controllers.AssetsFinder
 import play.api.Logger
 import play.api.mvc.{Result, Results}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object PlayIntegration extends Results {
-  def attempt[A](action: => Attempt[Result])(implicit ec: ExecutionContext): Future[Result] = {
+  def attempt[A](action: => Attempt[Result])(implicit ec: ExecutionContext, assetsFinder: AssetsFinder): Future[Result] = {
     action.fold(
       { err =>
         err.failures.foreach { failure =>

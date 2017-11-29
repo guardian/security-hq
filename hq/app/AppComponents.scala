@@ -16,9 +16,9 @@ class AppComponents(context: Context)
   with AhcWSComponents with AssetsComponents {
 
   implicit val impWsClient: WSClient = wsClient
-  implicit val playBodyParser: BodyParser[AnyContent] = playBodyParsers.default
-  implicit val components: ControllerComponents = controllerComponents
-
+  implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
+  implicit val impControllerComponents: ControllerComponents = controllerComponents
+  implicit val impAssetsFinder: AssetsFinder = assetsFinder
   override lazy val httpFilters = Seq(
     csrfFilter,
     new HstsFilter()
