@@ -9,13 +9,11 @@ object SecurityGroupDisplay {
 
   def resourceIcons(usages: List[SGInUse]): ResourceIcons = {
 
-    val instances = usages.collect {
-      case Instance(_) => 1
-    }.sum
-    val elbs = usages.collect {
-      case ELB(_) => 1
-    }.sum
-    val unknown = usages.size - instances - elbs
+    val (instances, elbs, unknown) = usages.foldLeft(0,0,0) {
+      case ( (ins, elb, unk), Instance(_) ) => (ins+1, elb, unk)
+      case ( (ins, elb, unk), ELB(_) ) => (ins, elb+1, unk)
+      case ( (ins, elb, unk), _ ) => (ins, elb, unk+1)
+    }
 
     ResourceIcons(instances, elbs, unknown)
   }
