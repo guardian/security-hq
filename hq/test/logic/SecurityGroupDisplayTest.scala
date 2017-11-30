@@ -7,9 +7,11 @@ import SecurityGroupDisplay._
 
 class SecurityGroupDisplayTest extends FreeSpec with Matchers {
   "resourceIcons" - {
-    "returns 2 when there are two instances" in {
-      val usages = List[SGInUse](Instance("instance-1"), Instance("instance-2"))
-      resourceIcons(usages).instances shouldEqual 2
+    "returns zeros when there are no resources in use" in {
+      val usages = List[SGInUse]()
+      resourceIcons(usages).instances shouldEqual 0
+      resourceIcons(usages).elbs shouldEqual 0
+      resourceIcons(usages).unknown shouldEqual 0
     }
 
     "returns individual counts for the different resource types" in {
