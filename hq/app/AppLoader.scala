@@ -7,7 +7,6 @@ class AppLoader extends ApplicationLoader {
     LoggerConfigurator(context.environment.classLoader).foreach {
       _.configure(context.environment)
     }
-
     new AppComponents(context).application
   }
 }

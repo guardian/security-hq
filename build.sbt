@@ -7,7 +7,7 @@ scalaVersion in ThisBuild := "2.11.8"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 val awsSdkVersion = "1.11.185"
-val playVersion = "2.5.16"
+val playVersion = "2.6.7"
 
 lazy val hq = (project in file("hq")).
   enablePlugins(PlayScala).
@@ -17,7 +17,7 @@ lazy val hq = (project in file("hq")).
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu" %% "play-googleauth" % "0.6.0",
+      "com.gu" %% "play-googleauth" % "0.7.0",
       "joda-time" % "joda-time" % "2.9.9",
       "org.typelevel" %% "cats" % "0.8.1",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",

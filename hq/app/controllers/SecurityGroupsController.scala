@@ -15,15 +15,15 @@ import scala.concurrent.ExecutionContext
 
 
 class SecurityGroupsController(val config: Configuration)
-                              (implicit val ec: ExecutionContext, val wsClient: WSClient)
-  extends Controller with SecurityHQAuthActions {
+                              (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
+  extends BaseController with SecurityHQAuthActions {
 
   private val accounts = Config.getAwsAccounts(config)
 
   // highly parallel for making simultaneous requests across all AWS accounts
   val highlyAsyncExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
 
-  def securityGroups = AuthAction.async {
+  def securityGroups = authAction.async {
     attempt {
       for {
         allFlaggedSgs <- EC2.allFlaggedSgs(accounts)(highlyAsyncExecutionContext)
@@ -32,7 +32,7 @@ class SecurityGroupsController(val config: Configuration)
     }
   }
 
-  def securityGroupsAccount(accountId: String) = AuthAction.async {
+  def securityGroupsAccount(accountId: String) = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)

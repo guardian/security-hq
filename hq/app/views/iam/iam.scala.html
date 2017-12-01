@@ -1,5 +1,5 @@
 @import model._
-@(reports: Map[AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay]])
+@(reports: Map[AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay]])(implicit assets: AssetsFinder)
 
 
 @main(List("IAM report")) { @* Header *@

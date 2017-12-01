@@ -1,6 +1,6 @@
-@import model.{AwsAccount, SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
+@import model.{AwsAccount, SGInUse, SGOpenPortsDetail}
 
-@(awsAccount: AwsAccount, flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])
+@(awsAccount: AwsAccount, flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])(implicit assets: AssetsFinder)
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
     <div class="container">

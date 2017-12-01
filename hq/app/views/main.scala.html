@@ -1,21 +1,21 @@
-@(title: List[String])(header: Html)(content: Html)
+@(title: List[String])(header: Html)(content: Html)(implicit assets: AssetsFinder)
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <title>@{(title ++ List("Security HQ")).mkString(" | ")}</title>
 
-        <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("materialize/css/materialize.min.css")'>
-        <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/main.css")'>
+        <link rel="stylesheet" media="screen" href='@assets.path("materialize/css/materialize.min.css")'>
+        <link rel="stylesheet" media="screen" href='@assets.path("stylesheets/main.css")'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-        <link rel="apple-touch-icon" sizes="180x180" href="@routes.Assets.versioned("images/favicon/apple-touch-icon.png")">
-        <link rel="icon" type="image/png" sizes="32x32" href="@routes.Assets.versioned("images/favicon/favicon-32x32.png")">
-        <link rel="icon" type="image/png" sizes="16x16" href="@routes.Assets.versioned("images/favicon/favicon-16x16.png")">
-        <link rel="manifest" href="@routes.Assets.versioned("images/favicon/manifest.json")">
-        <link rel="mask-icon" href="@routes.Assets.versioned("images/favicon/safari-pinned-tab.svg")" color="#009688">
-        <link rel="shortcut icon" href="@routes.Assets.versioned("images/favicon/favicon.ico")">
-        <meta name="msapplication-config" content="@routes.Assets.versioned("images/favicon/browserconfig.xml")">
+        <link rel="apple-touch-icon" sizes="180x180" href="@assets.path("images/favicon/apple-touch-icon.png")">
+        <link rel="icon" type="image/png" sizes="32x32" href="@assets.path("images/favicon/favicon-32x32.png")">
+        <link rel="icon" type="image/png" sizes="16x16" href="@assets.path("images/favicon/favicon-16x16.png")">
+        <link rel="manifest" href="@assets.path("images/favicon/manifest.json")">
+        <link rel="mask-icon" href="@assets.path("images/favicon/safari-pinned-tab.svg")" color="#009688">
+        <link rel="shortcut icon" href="@assets.path("images/favicon/favicon.ico")">
+        <meta name="msapplication-config" content="@assets.path("images/favicon/browserconfig.xml")">
         <meta name="theme-color" content="#009688">
     </head>
     <body>
@@ -23,7 +23,7 @@
             <div class="container">
                 <div class="main-icon right">
                     <a href="/">
-                        <img src="@routes.Assets.versioned("images/hq.png")" alt="Security HQ" class="main-icon__image" />
+                        <img src="@assets.path("images/hq.png")" alt="Security HQ" class="main-icon__image" />
                     </a>
                 </div>
             </div>
@@ -69,8 +69,8 @@
             </div>
         </footer>
 
-        <script src='@routes.Assets.versioned("javascripts/jquery-3.1.1.min.js")'></script>
-        <script src='@routes.Assets.versioned("materialize/js/materialize.min.js")'></script>
-        <script src='@routes.Assets.versioned("javascripts/app.js")'></script>
+        <script src='@assets.path("javascripts/jquery-3.1.1.min.js")'></script>
+        <script src='@assets.path("materialize/js/materialize.min.js")'></script>
+        <script src='@assets.path("javascripts/app.js")'></script>
     </body>
 </html>

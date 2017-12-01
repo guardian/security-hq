@@ -1,6 +1,6 @@
-@import model.{AwsAccount, SGOpenPortsDetail, SGInUse}
 
-@(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])
+
+@(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])(implicit assets: AssetsFinder)
 
 
 @main(List("Security Groups")) { @* Header *@

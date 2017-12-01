@@ -1,5 +1,5 @@
 @import model.{AwsAccount, CredentialReportDisplay, ExposedIAMKeyDetail}
-@(awsAccount: AwsAccount, exposedIamKeys: List[ExposedIAMKeyDetail], report: CredentialReportDisplay)
+@(awsAccount: AwsAccount, exposedIamKeys: List[ExposedIAMKeyDetail], report: CredentialReportDisplay)(implicit assets: AssetsFinder)
 
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
