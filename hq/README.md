@@ -89,13 +89,10 @@ Security HQ uses [Prettier](https://prettier.io), an opinionated code formatter.
   >
   > *Mac OSX:* `$ brew install yarn`
 
-2. Install all the dependencies:
+2. Then install all the dependencies by running:
 
 `$ yarn`
 
-3. Run the setup for the dependencies:
-
-`$ yarn run setup`
 
 #### Running checks with Yarn
 
