@@ -78,7 +78,19 @@ nav {
 .accounts__list {
   display: grid;
   grid-gap: 20px;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 740px) {
+  .accounts__list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1140px) {
+  .accounts__list {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .accounts__account {
