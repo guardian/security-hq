@@ -26,7 +26,7 @@ N.B. If you are using macOS you may need to install `coreutils` before you can r
 
 ## Development
 
-#### Getting started
+### Getting started
 
 Ensure that a file named `security-hq.local.conf` exists in your .gu directory, and that it contains the required information, otherwise the project may not run.
 
@@ -46,7 +46,7 @@ From the root of the project:
 
 Once the sever has started, the webapp should be accessible at http://localhost:9000/
 
-#### Using nginx as a proxy
+### Using nginx as a proxy
 
 It is possible to run the application and setup nginx as a proxy; this will make the application accessible via the url `https://security-hq.local.dev-gutools.co.uk/` (you may be familiar with this process if you have worked on Identity or Composer):
 
@@ -80,3 +80,34 @@ It is possible to run the application and setup nginx as a proxy; this will make
 
 6. Now when you run the project, it will also be accessible via https://security-hq.local.dev-gutools.co.uk/
 
+### Working with CSS and JS
+
+Security HQ uses [Prettier](https://prettier.io), an opinionated code formatter. This can be run as a pre-commit hook, to format all of the stages changes in the CSS and JS.
+
+1. You will need to install [Yarn](https://yarnpkg.com) to handle the dependencies:
+  > *Linux:* Instructions can be found here: https://yarnpkg.com/lang/en/docs/install/#linux-tab
+  >
+  > *Mac OSX:* `$ brew install yarn`
+
+2. Install all the dependencies:
+
+`$ yarn`
+
+3. Run the setup for the dependencies:
+
+`$ yarn run setup`
+
+#### Running checks with Yarn
+
+- It is possible to auto-fix all the CSS and JS files:
+
+`$ yarn run prettier`
+
+N.B. The changes will need to be staged afterwards.
+
+
+- To get detailed information on errors and warnings from the CSS, use:
+
+`$ yarn run sass-lint`
+
+If issues are raised, you can then decide if you want to manually fix them, or run Prettier against the file(s).
