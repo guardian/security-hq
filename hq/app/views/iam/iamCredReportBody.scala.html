@@ -20,8 +20,9 @@
                     <th>Status</th>
                 </tr>
                 @for(cred <- report.humanUsers) {
+
                     <tr>
-                        <td><span>@views.html.fragments.username(cred.username)</span></td>
+                        <td><a target="_blank" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)</a></td>
                         <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
                         <td>@views.html.fragments.mfa(cred.hasMFA)</td>
                         <td>
@@ -34,7 +35,7 @@
                 }
                 @for(cred <- report.machineUsers) {
                     <tr>
-                        <td>@views.html.fragments.username(cred.username)</td>
+                        <td><a target="_blank" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)</a></td>
                         <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
                         <td><span>-</span></td>
                         <td>
