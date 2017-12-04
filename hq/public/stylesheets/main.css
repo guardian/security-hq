@@ -58,10 +58,17 @@ nav {
 
 /* homepage */
 
+.hp-reports {
+  display: grid;
+  grid-column-gap: 20px;
+  grid-template-columns: 1fr 1fr;
+}
+
 .accounts__container {
   background-color: #4e8098;
   margin-top: 10px;
   border-top: solid 1px #0b5351;
+  height: max-content;
 }
 
 .accounts__header {
@@ -69,31 +76,15 @@ nav {
 }
 
 .accounts__list {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: stretch;
-  align-content: stretch;
-}
-
-.grid:after {
-  content: '';
-  flex: auto;
+  display: grid;
+  grid-gap: 20px;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .accounts__account {
-  flex-grow: 1;
-  margin: 10px;
   min-height: 100px;
   min-width: 200px;
   background-color: #f7f0f0;
-}
-
-.accounts__account--padding {
-  flex-grow: 1;
-  margin: 10px;
-  min-width: 200px;
 }
 
 .accounts__account-heading {
@@ -124,6 +115,8 @@ nav {
 .card-content--border {
   height: 3px;
 }
+
+/* security group pages */
 
 .sg-container {
   display: grid;
@@ -202,9 +195,7 @@ nav {
   white-space: nowrap;
 }
 
-.collapsible-body {
-  background-color: #ffffff;
-}
+/* IAM pages */
 
 .iam-key-disabled {
   opacity: 0.3;

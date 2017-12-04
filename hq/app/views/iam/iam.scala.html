@@ -18,6 +18,7 @@
         @for((account, report) <- reports) {
             <li>
                 <div class="collapsible-header">
+                    <i class="material-icons">keyboard_arrow_down</i>
                     @account.name
                     @report match {
                         case Left(fa) => {
