@@ -215,3 +215,7 @@ table.iam-report__table th {
   min-height: 21px;
   box-sizing: initial;
 }
+
+.sg-details__newtab {
+  vertical-align: bottom;
+}

@@ -51,7 +51,11 @@
                         </tr>
                         <tr>
                             <th>ID</th>
-                            <td><a target="_blank" rel="noopener noreferrer" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#SecurityGroups:search=@flaggedSg.id">@flaggedSg.id</a></td>
+                            <td>
+                                <a target="_blank" rel="noopener noreferrer" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#SecurityGroups:search=@flaggedSg.id">@flaggedSg.id</a>
+                                <i class="material-icons sg-details__newtab" >open_in_new</i>
+                            </td>
+
                         </tr>
                         <tr>
                             <th>VPC</th>
