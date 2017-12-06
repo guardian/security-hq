@@ -28,8 +28,35 @@ N.B. If you are using macOS you may need to install `coreutils` before you can r
 
 ### Getting started
 
-Ensure that a file named `security-hq.local.conf` exists in your .gu directory, and that it contains the required information, otherwise the project may not run.
+### AWS Configuration
+Go to AWS IAM console (security account) and clone `security-hq-dev` user to security-hq-<yourname>
+Create an Access key from the Security Credentials tab and save the access key under `security-test` section in your `~/.aws/credentials` file
+You should have an entry looks like below
+```
+[security-test]
+aws_access_key_id = xxxxxxxx
+aws_secret_access_key = yyyyyyyy
+```
+Create the entry below in `~/.aws/config` file.
+```
+[profile security-test]
+region = eu-west-1   
+```
 
+Ensure that a file named `security-hq.local.conf` exists in your .gu directory, and that it contains the required information, otherwise the project may not run.
+Ensure you have `security` account listed in your `security-hq.local.conf` in `AWS_ACCOUNTS` config, like below.
+
+```
+AWS_ACCOUNTS=[
+    {
+     name = "security"
+     id   = "security-test"
+     roleArn = "dev-local"
+    }
+]
+```
+
+### Running project
 From the root of the project:
 
 1. Run sbt and ensure that it will have access to the application configuration:
