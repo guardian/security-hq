@@ -12,7 +12,7 @@ val awsSdkVersion = "1.11.185"
 val playVersion = "2.6.7"
 
 lazy val hq = (project in file("hq")).
-  enablePlugins(PlayScala, RiffRaffArtifact).
+  enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin).
   settings(
     name := """security-hq""",
     playDefaultPort := 9090,
