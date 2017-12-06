@@ -45,7 +45,7 @@ lazy val hq = (project in file("hq")).
     parallelExecution in Test := false,
     fork in Test := false,
     riffRaffPackageType := (packageZipTarball in Universal).value,
-    riffRaffUploadArtifactBucket := Option("riffraff-artifact")
+    riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds")
   )
 
