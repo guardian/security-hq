@@ -1,0 +1,9 @@
+stacks:
+- security
+regions:
+- eu-west-1
+deployments:
+  security-hq:
+    type: autoscaling
+    parameters:
+      bucket: security-dist
