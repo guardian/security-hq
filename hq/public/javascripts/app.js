@@ -10,16 +10,25 @@ jQuery(function($) {
 $(document).ready(function() {
   $('.js-sg-details').hover(
     function() {
-      $(this)
-        .find('.collapsible-header')
-        .click();
+      $(this).collapsible('open', 0);
     },
     function() {
-      $(this)
-        .find('.collapsible-header')
-        .click();
+      $(this).collapsible('close', 0);
     }
   );
+
+  $('.js-sg-details').click(function() {
+    $(this).collapsible('destroy');
+
+    var clicks = $(this).data('clicks') || false;
+    if (clicks) {
+      $(this).collapsible('close', 0);
+    } else {
+      $(this).off('mouseenter mouseleave');
+      $(this).collapsible('open', 0);
+    }
+    $(this).data('clicks', !clicks);
+  });
 
   $('.js-sg-pin-close').click(function() {
     $('html, body')
