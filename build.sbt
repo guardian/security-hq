@@ -1,3 +1,5 @@
+import com.gu.riffraff.artifact.RiffRaffArtifact
+import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import play.sbt.PlayImport.PlayKeys._
 
 // common settings (apply to all projects)
@@ -10,7 +12,7 @@ val awsSdkVersion = "1.11.185"
 val playVersion = "2.6.7"
 
 lazy val hq = (project in file("hq")).
-  enablePlugins(PlayScala).
+  enablePlugins(PlayScala, RiffRaffArtifact).
   settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -36,8 +38,15 @@ lazy val hq = (project in file("hq")).
     mappings in Universal ++=
       (baseDirectory.value / "beanstalk" * "*" get)
         .map(f => f -> s"beanstalk/${f.getName}"),
+    // include upstart config files in the zip produced by `dist`
+    mappings in Universal ++=
+      (baseDirectory.value / "upstart" * "*" get)
+        .map(f => f -> s"upstart/${f.getName}"),
     parallelExecution in Test := false,
-    fork in Test := false
+    fork in Test := false,
+    riffRaffPackageType := (packageZipTarball in Universal).value,
+    riffRaffUploadArtifactBucket := Option("security-dist"),
+    riffRaffUploadManifestBucket := Option("security-dist")
   )
 
 // More will go here!
