@@ -7,7 +7,7 @@ jQuery(function($) {
 });
 
 // extensions to the security groups page
-$(document).ready(() => {
+$(document).ready(function() {
   $('.js-sg-details').hover(
     function() {
       $(this)

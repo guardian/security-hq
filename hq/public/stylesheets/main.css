@@ -46,7 +46,8 @@ nav {
   justify-content: space-between;
 }
 
-.main-icon {
+.greedy-width {
+  width: 90%;
 }
 
 .main-icon__image {
@@ -65,7 +66,9 @@ nav {
   background-color: #4e8098;
   margin-top: 10px;
   border-top: solid 1px #0b5351;
+  height: -moz-max-content;
   height: max-content;
+  padding-bottom: 20px;
 }
 
 .accounts__header {
@@ -126,6 +129,10 @@ nav {
 }
 
 /* security group pages */
+
+.sg-header__name {
+  margin-right: auto;
+}
 
 .sg-container {
   display: grid;
@@ -216,6 +223,10 @@ nav {
 
 /* IAM pages */
 
+.iam-header__name {
+  margin-right: auto;
+}
+
 .iam-key-disabled {
   opacity: 0.3;
 }
@@ -226,6 +237,6 @@ table.iam-report__table th {
   box-sizing: initial;
 }
 
-.link_new_tab  {
+.link_new_tab {
   vertical-align: bottom;
 }

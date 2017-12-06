@@ -32,7 +32,7 @@
     </div>
 
 } { @* Main content *@
-    <div class="container greedy-width">
+    <div class="container">
         <div class="row">
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
@@ -40,21 +40,20 @@
             <ul class="collapsible space-between js-sg-collapsible" data-collapsible="accordion">
             @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
                 <li class="js-sg-scroll">
-                    <div class="collapsible-header space-between">
-                        @account.name
+                    <div class="collapsible-header">
+                        <i class="material-icons">keyboard_arrow_down</i>
+                        <span class="sg-header__name">@account.name</span>
                         @flaggedSgsAttempt match {
                             case Left(_) => {
-                                <i class="material-icons right">warning</i>
+                                <i class="material-icons">warning</i>
                             }
                             case Right(Nil) => {
-                                <i class="material-icons right">done</i>
+                                <i class="material-icons">done</i>
                             }
                             case Right(flaggedSgs) => {
                                 <span class="new badge" data-badge-caption="flagged resources">@flaggedSgs.length</span>
                             }
                         }
-                        <i class="material-icons">keyboard_arrow_down</i>
-                        @account.name
                     </div>
                     <div class="collapsible-body">
                     @flaggedSgsAttempt match {
