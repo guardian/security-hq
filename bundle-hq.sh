@@ -16,14 +16,16 @@ cd hq/target/universal
 tmpbundledir=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpbundle'`
 
 cp security-hq.zip $tmpbundledir/
+cp -pr ../../../upstart $tmpbundledir
 cd $tmpbundledir
 
 unzip security-hq.zip
+mv upstart security-hq/
 rm security-hq.zip
 # move contents of beanstalk dir to the root of the package
 cp security-hq/beanstalk/* .
 
-zip -r security-hq.zip * --exclude security-hq/share security-hq/beanstalk
+zip -r security-hq.zip * --exclude security-hq/share security-hq/beanstalk security-hq/upstart
 
 cd -
 mv $tmpbundledir/security-hq.zip .
