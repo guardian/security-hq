@@ -15,31 +15,27 @@
 
 } { @* Main content *@
     <div class="container">
-        <div class="row">
-            <div class="col s12 m6">
-                <div class="card">
-                    <div class="card-content">
-                        <a href="/security-groups">
-                            <i class="right material-icons">vpn_lock</i>
-                            <span class="card-title">Security Groups</span>
-                            <p>
-                                Analysis of Security Group configuration.
-                            </p>
-                        </a>
-                    </div>
+        <div class="row hp-reports">
+            <div class="card">
+                <div class="card-content">
+                    <a href="/security-groups">
+                        <i class="right material-icons">vpn_lock</i>
+                        <span class="card-title">Security Groups</span>
+                        <p>
+                            Analysis of Security Group configuration.
+                        </p>
+                    </a>
                 </div>
             </div>
-            <div class="col s12 m6">
-                <div class="card">
-                    <div class="card-content">
-                        <a href="/iam">
-                            <i class="right material-icons">vpn_key</i>
-                            <span class="card-title">Credentials audits</span>
-                            <p>
-                                IAM credentials reports.
-                            </p>
-                        </a>
-                    </div>
+            <div class="card">
+                <div class="card-content">
+                    <a href="/iam">
+                        <i class="right material-icons">vpn_key</i>
+                        <span class="card-title">Credentials audits</span>
+                        <p>
+                            IAM credentials reports.
+                        </p>
+                    </a>
                 </div>
             </div>
         </div>
@@ -48,7 +44,7 @@
         <div class="container">
             <div class="row">
                 <div class="accounts__header">
-                    <h2 class="white-text">All accounts</h2>
+                    <h2 class="white-text">Individual accounts</h2>
                 </div>
                 <div class="accounts__list">
                     @for(awsAccount <- awsAccounts) {
@@ -66,16 +62,8 @@
                             </div>
                         </div>
                     }
-                        <!-- flexbox hack -->
-                    <div class="accounts__account--padding"></div>
-                    <div class="accounts__account--padding"></div>
-                    <div class="accounts__account--padding"></div>
-                    <div class="accounts__account--padding"></div>
-                    <div class="accounts__account--padding"></div>
-                    <div class="accounts__account--padding"></div>
-                    <div class="accounts__account--padding"></div>
                 </div>
             </div>
         </div>
     </div>
-}§
+}
