@@ -4,8 +4,6 @@ jQuery(function($) {
     console.log('insecure');
     // window.location.replace(location.href.replace(/^http:/, "https:"))
   }
-
-  $('.modal').modal();
 });
 
 // extensions to the security groups page
@@ -24,15 +22,42 @@ $(document).ready(() => {
   );
 
   $('.js-sg-pin-close').click(function() {
-    $('.collapsible').collapsible('close');
+    $('html, body')
+      .stop()
+      .animate(
+        {
+          scrollTop: 0
+        },
+        'slow'
+      );
+    $('.collapsible-header').removeClass(function() {
+      return 'active';
+    });
+    $('.collapsible').collapsible({ accordion: true });
+    $('.collapsible').collapsible({ accordion: false });
   });
 
   $('.js-sg-pin-top').click(function() {
-    $('html, body').animate(
-      {
-        scrollTop: $('.collapsible').offset().top - 20
-      },
-      'slow'
-    );
+    const scrollTarget = $(this).closest('.js-sg-scroll');
+    $('html, body')
+      .stop()
+      .animate(
+        {
+          scrollTop: scrollTarget.offset().top - 10
+        },
+        'slow'
+      );
+  });
+
+  $('.js-sg-pin-end').click(function() {
+    const scrollTarget = $(this).closest('.js-sg-scroll');
+    $('html, body')
+      .stop()
+      .animate(
+        {
+          scrollTop: scrollTarget[0].scrollHeight - 200
+        },
+        'slow'
+      );
   });
 });

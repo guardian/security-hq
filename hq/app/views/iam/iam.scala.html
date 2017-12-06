@@ -14,10 +14,10 @@
 
 } { @* Main content *@
     <div class="container">
-        <ul class="collapsible" data-collapsible="accordion">
+        <ul class="collapsible space-between" data-collapsible="accordion">
         @for((account, report) <- reports) {
             <li>
-                <div class="collapsible-header">
+                <div class="collapsible-header space-between">
                     <i class="material-icons">keyboard_arrow_down</i>
                     @account.name
                     @report match {

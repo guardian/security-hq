@@ -42,11 +42,8 @@ nav {
   display: none !important;
 }
 
-@media (min-width: 1140px) {
-  /* useful for when there are a lot of flagged resources */
-  .greedy-width {
-    width: 90%;
-  }
+.space-between {
+  justify-content: space-between;
 }
 
 .main-icon {
@@ -180,9 +177,9 @@ nav {
 .sg-details__header {
   background-color: #009688;
   color: #ffffff;
-  display: flex;
   line-height: 36px;
   min-height: 36px;
+  padding: 0 12px;
 }
 
 .sg-details__header i {
@@ -198,6 +195,16 @@ nav {
   margin-right: 5px;
   text-align: end;
   width: 30px;
+}
+
+.sg-details__body {
+  padding: 0 !important;
+}
+
+@media (max-width: 990px) {
+  .sg-floating-nav {
+    display: none;
+  }
 }
 
 .usage-cta {
