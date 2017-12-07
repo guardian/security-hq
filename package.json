@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "materialize-css": "0.100.2",
+    "prettier": "1.8.0",
+    "sass-lint": "1.12.1"
+  },
+  "name": "security-hq",
+  "prettier": {
+    "singleQuote": true
+  },
+  "private": true,
+  "scripts": {
+    "prettier": "prettier -o --write './**/*.{js,css}'",
+    "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css"
+  }
+}

@@ -3,7 +3,7 @@
 @import logic.ReportDisplay
 @(report: CredentialReportDisplay)
 
-<div class="container  greedy-width">
+<div class="container greedy-width">
     <div class="row">
         <div class="card-panel">
             <span>Report generated at @{DateUtils.printTime(report.reportDate)} (refreshed every four hours)</span>
@@ -20,8 +20,13 @@
                     <th>Status</th>
                 </tr>
                 @for(cred <- report.humanUsers) {
+
                     <tr>
-                        <td><span>@views.html.fragments.username(cred.username)</span></td>
+                        <td>
+                            <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
+                                <i class="material-icons link_new_tab" >open_in_new</i>
+                            </a>
+                        </td>
                         <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
                         <td>@views.html.fragments.mfa(cred.hasMFA)</td>
                         <td>
@@ -34,7 +39,11 @@
                 }
                 @for(cred <- report.machineUsers) {
                     <tr>
-                        <td>@views.html.fragments.username(cred.username)</td>
+                        <td>
+                            <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
+                                <i class="material-icons link_new_tab" >open_in_new</i>
+                            </a>
+                        </td>
                         <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
                         <td><span>-</span></td>
                         <td>

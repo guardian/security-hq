@@ -1,5 +1,7 @@
 package utils.attempt
 
+import java.io.{ByteArrayOutputStream, PrintWriter}
+
 import org.scalatest.Matchers
 import org.scalatest.exceptions.TestFailedException
 
@@ -9,11 +11,21 @@ import scala.concurrent.duration._
 
 trait AttemptValues extends Matchers {
   implicit class RichAttempt[A](attempt: Attempt[A]) {
+    private def stackTrace(failure: Failure) = {
+      failure.throwable.map { t =>
+        val baos = new ByteArrayOutputStream()
+        val pw = new PrintWriter(baos)
+        t.printStackTrace(pw)
+        pw.close()
+        baos.toString
+      }.getOrElse("")
+    }
+
     def value()(implicit ec: ExecutionContext): A = {
       val result = Await.result(attempt.asFuture, 5.seconds)
       withClue {
         result.fold(
-          fa => s"${fa.failures.map(_.message)} -",
+          fa => s"${fa.failures.map(_.message).mkString(", ")} - ${fa.failures.map(stackTrace).mkString("\n\n")}",
           _ => ""
         )
       } {

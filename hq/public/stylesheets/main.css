@@ -9,210 +9,234 @@ COMPLEMENT: #4E8098
  */
 
 html {
-    /*background-color: #009688;*/
+  /*background-color: #009688;*/
 }
 
 body {
-    display: flex;
-    min-height: 100vh;
-    flex-direction: column;
-    background-image: url('/assets/images/bg-texture.png');
-    background-repeat: repeat;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background-image: url('/assets/images/bg-texture.png');
+  background-repeat: repeat;
 }
 
 main {
-    flex: 1 0 auto;
+  flex: 1 0 auto;
 }
 
 .main-header {
-    background-color: #009688;
-    border-bottom: solid 1px #0B5351;
+  background-color: #009688;
+  border-bottom: solid 1px #0b5351;
 }
 
 footer {
 }
 
 nav {
-    background-color: transparent;
-    box-shadow: none;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .is-hidden,
 [hidden] {
-    display: none !important;
+  display: none !important;
 }
 
-
-@media (min-width: 1140px) {
-    /* useful for when there are a lot of flagged resources */
-    .greedy-width {
-        width: 90%;
-    }
+.space-between {
+  justify-content: space-between;
 }
 
-.main-icon {
-
+.greedy-width {
+  width: 90%;
 }
 
 .main-icon__image {
-    width: 100px;
+  width: 100px;
 }
 
 /* homepage */
 
+.hp-reports {
+  display: grid;
+  grid-column-gap: 20px;
+  grid-template-columns: 1fr 1fr;
+}
+
 .accounts__container {
-    background-color: #4E8098;
-    margin-top: 10px;
-    border-top: solid 1px #0B5351;
+  background-color: #4e8098;
+  margin-top: 10px;
+  border-top: solid 1px #0b5351;
+  height: -moz-max-content;
+  height: max-content;
+  padding-bottom: 20px;
 }
 
 .accounts__header {
-    padding: 5px 0;
+  padding: 5px 0;
 }
 
 .accounts__list {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: stretch;
-    align-content: stretch;
-}
-
-.grid:after {
-    content: '';
-    flex: auto;
-}
-
-.accounts__account {
-    flex-grow: 1;
-    margin: 10px;
-    min-height: 100px;
-    min-width: 200px;
-    background-color: #F7F0F0;
-}
-
-.accounts__account--padding {
-    flex-grow: 1;
-    margin: 10px;
-    min-width: 200px;
-}
-
-.accounts__account-heading {
-    padding: 10px;
-    font-size: 24px;
-    font-weight: 300;
-    line-height: 110%;
-}
-
-.accounts__link {
-    padding: 0 .5rem;
-    color: rgba(0, 0, 0, .87);
-}
-
-.accounts__account-actions {
-    padding: 10px;
-}
-
-.card .card-content--title {
-    padding-bottom: 10px;
-    word-wrap: break-word;
-}
-
-.card .card-content--body {
-    padding-top: 10px;
-}
-
-.card-content--border {
-    height: 3px;
-}
-
-.sg-container {
-    display: grid;
-    grid-column-gap: 10px;
-    grid-row-gap: 10px;
-    grid-template-rows: max-content;
-    margin: 0 auto;
+  display: grid;
+  grid-gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 @media (min-width: 740px) {
-    .sg-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .accounts__list {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (min-width: 1140px) {
-    .sg-container {
-        grid-template-columns: repeat(3, 1fr);
-    }
+  .accounts__list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.accounts__account {
+  min-height: 100px;
+  min-width: 200px;
+  background-color: #f7f0f0;
+}
+
+.accounts__account-heading {
+  padding: 10px;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 110%;
+}
+
+.accounts__link {
+  padding: 0 0.5rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.accounts__account-actions {
+  padding: 10px;
+}
+
+.card .card-content--title {
+  padding-bottom: 10px;
+  word-wrap: break-word;
+}
+
+.card .card-content--body {
+  padding-top: 10px;
+}
+
+.card-content--border {
+  height: 3px;
+}
+
+/* security group pages */
+
+.sg-header__name {
+  margin-right: auto;
+}
+
+.sg-container {
+  display: grid;
+  grid-column-gap: 10px;
+  grid-row-gap: 10px;
+  grid-template-rows: max-content;
+  margin: 0 auto;
+}
+
+@media (min-width: 740px) {
+  .sg-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1140px) {
+  .sg-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .sg-container__card {
-    min-width: 33%;
-    padding: 0 10px;
+  min-width: 33%;
+  padding: 0 10px;
 }
 
 .sg-card-action {
-    min-height: 76px;
+  min-height: 76px;
 }
 
 .sg-details__table td,
 .sg-details__table th {
-    padding: 5px;
-    word-wrap: break-word;
+  padding: 5px;
+  word-wrap: break-word;
 }
 
 .sg-details {
-    margin-top: 0;
-    position: relative;
-    width: 100%;
+  margin-top: 0;
+  position: relative;
+  width: 100%;
 }
 
 .sg-details__list {
-    position: absolute;
-    width: 100%;
-    z-index: 999;
+  position: absolute;
+  width: 100%;
+  z-index: 999;
 }
 
 .sg-details__header {
-    background-color: #009688;
-    color: #ffffff;
-    display: flex;
-    line-height: 36px;
-    min-height: 36px;
+  background-color: #009688;
+  color: #ffffff;
+  line-height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
 }
 
 .sg-details__header i {
-    display: inline-grid;
-    float: none;
-    height: 36px;
-    line-height: 36px;
-    margin-right: 0;
-    vertical-align: middle;
+  display: inline-grid;
+  float: none;
+  height: 36px;
+  line-height: 36px;
+  margin-right: 0;
+  vertical-align: middle;
 }
 
 .sg--details__count {
-    margin-right: 5px;
-    text-align: end;
-    width: 30px;
+  margin-right: 5px;
+  text-align: end;
+  width: 30px;
+}
+
+.sg-details__body {
+  padding: 0 !important;
+}
+
+@media (max-width: 990px) {
+  .sg-floating-nav {
+    display: none;
+  }
 }
 
 .usage-cta {
-    display: block;
-    background-color: #4E8098;
-    padding: 0 .6rem;
-    white-space: nowrap;
+  display: block;
+  background-color: #4e8098;
+  padding: 0 0.6rem;
+  white-space: nowrap;
 }
 
-.collapsible-body {
-    background-color: #ffffff;
+/* IAM pages */
+
+.iam-header__name {
+  margin-right: auto;
 }
 
 .iam-key-disabled {
-    opacity: .3;
+  opacity: 0.3;
 }
 
-table.iam-report__table td, table.iam-report__table th {
-    min-height: 21px;
-    box-sizing: initial;
+table.iam-report__table td,
+table.iam-report__table th {
+  min-height: 21px;
+  box-sizing: initial;
+}
+
+.link_new_tab {
+  vertical-align: bottom;
 }

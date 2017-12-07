@@ -66,7 +66,7 @@ rules:
     - size: 4
   leading-zero:
     - 1
-    - include: false
+    - include: true
   property-sort-order:
     - 0
     - order: 'margin,'
