@@ -5,7 +5,7 @@ import play.sbt.PlayImport.PlayKeys._
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.0.1"
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.12.3"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 val awsSdkVersion = "1.11.185"
@@ -27,7 +27,7 @@ lazy val hq = (project in file("hq")).
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
-      "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
     ),
