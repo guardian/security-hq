@@ -2,6 +2,24 @@
 
 @(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])(implicit assets: AssetsFinder)
 
+@floatingNav = {
+  <div class="fixed-action-btn js-floating-nav sg-floating-nav">
+      <a class="btn-floating btn-large">
+        <i class="large material-icons">menu</i>
+      </a>
+      <ul>
+          <li><a class="btn-floating red js-sg-pin-close">
+            <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="close current">close</i>
+          </a></li>
+          <li><a class="btn-floating btn-floating yellow darken-1 js-sg-pin-top">
+            <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to top">vertical_align_top</i>
+          </a></li>
+          <li><a class="btn-floating blue js-sg-pin-end">
+            <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to end">vertical_align_bottom</i>
+          </a></li>
+      </ul>
+  </div>
+}
 
 @main(List("Security Groups")) { @* Header *@
     <div class="container">
@@ -14,28 +32,28 @@
     </div>
 
 } { @* Main content *@
-    <div class="container greedy-width">
+    <div class="container">
         <div class="row">
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
 
-            <ul class="collapsible" data-collapsible="accordion">
+            <ul class="collapsible space-between js-sg-collapsible" data-collapsible="accordion">
             @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
-                <li>
+                <li class="js-sg-scroll">
                     <div class="collapsible-header">
+                        <i class="material-icons">keyboard_arrow_down</i>
+                        <span class="sg-header__name">@account.name</span>
                         @flaggedSgsAttempt match {
                             case Left(_) => {
-                                <i class="material-icons right">warning</i>
+                                <i class="material-icons">warning</i>
                             }
                             case Right(Nil) => {
-                                <i class="material-icons right">done</i>
+                                <i class="material-icons">done</i>
                             }
                             case Right(flaggedSgs) => {
                                 <span class="new badge" data-badge-caption="flagged resources">@flaggedSgs.length</span>
                             }
                         }
-                        <i class="material-icons">keyboard_arrow_down</i>
-                        @account.name
                     </div>
                     <div class="collapsible-body">
                     @flaggedSgsAttempt match {
@@ -53,6 +71,7 @@
                             @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=false)
                         }
                     }
+                    @floatingNav
                     </div>
                 </li>
 

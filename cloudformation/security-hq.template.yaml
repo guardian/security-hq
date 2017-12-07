@@ -7,7 +7,6 @@ Metadata:
     - Label:
         default: S3 Configuration
       Parameters:
-      - SecurityHQConfigBucket
       - SecurityHQSourceBundleBucket
     - Label:
         default: Security
@@ -26,15 +25,15 @@ Parameters:
   SecurityHQSourceBundleBucket:
     Type: String
     Description: S3 bucket containing Security HQ's source bundle
-  SecurityHQConfigBucket:
-    Type: String
-    Description: S3 bucket containing Security HQ's config
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: ID of the VPC Security HQ will run in
   Subnets:
     Description: The subnets in which Security HQ will run
     Type: List<AWS::EC2::Subnet::Id>
+  AMI:
+    Description: Base AMI for Security HQ instances
+    Type: AWS::EC2::Image::Id
   TLSCertArn:
     Description: ARN of a TLS certificate to install on the load balancer
     Type: String
@@ -65,173 +64,6 @@ Mappings:
       Value: security-hq
 
 Resources:
-  SecurityHQApplication:
-    Type: AWS::ElasticBeanstalk::Application
-    Properties:
-      ApplicationName: !Sub security-hq-${Stage}
-      Description: AWS Elastic Beanstalk Security HQ Application
-
-  SecurityHQVersion:
-    Type: AWS::ElasticBeanstalk::ApplicationVersion
-    DependsOn:
-    - SecurityHQApplication
-    Properties:
-      Description: AWS ElasticBeanstalk Security HQ Version
-      ApplicationName: !Sub security-hq-${Stage}
-      SourceBundle:
-        S3Bucket: !Ref SecurityHQSourceBundleBucket
-        S3Key: !Sub security/${Stage}/security-hq/security-hq.zip
-
-  SecurityHQConfigurationTemplate:
-    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
-    DependsOn:
-    - SecurityHQApplication
-    Properties:
-      ApplicationName: !Sub security-hq-${Stage}
-      Description: AWS ElasticBeanstalk Security HQ Configuration Template
-      SolutionStackName: 64bit Amazon Linux 2017.03 v2.5.3 running Java 8
-      OptionSettings:
-      # configure VPC
-      - Namespace: aws:ec2:vpc
-        OptionName: VPCId
-        Value: !Ref VpcId
-      - Namespace: aws:ec2:vpc
-        OptionName: Subnets
-        Value: !Join [",", {Ref: Subnets}]
-      - Namespace: aws:ec2:vpc
-        OptionName: ELBSubnets
-        Value: !Join [",", {Ref: Subnets}]
-      - Namespace: aws:ec2:vpc
-        OptionName: AssociatePublicIpAddress
-        Value: true
-
-      # load balancing
-      - Namespace: aws:elasticbeanstalk:environment
-        OptionName: EnvironmentType
-        Value: LoadBalanced
-      - Namespace: aws:elasticbeanstalk:environment
-        OptionName: LoadBalancerType
-        Value: application
-
-      - Namespace: aws:elbv2:loadbalancer
-        OptionName: SecurityGroups
-        Value: !GetAtt LoadBalancerSecurityGroup.GroupId
-      - Namespace: aws:elbv2:loadbalancer
-        OptionName: ManagedSecurityGroup
-        Value: !GetAtt LoadBalancerSecurityGroup.GroupId
-
-      - Namespace: aws:elbv2:listener:443
-        OptionName: DefaultProcess
-        Value: default
-      - Namespace: aws:elbv2:listener:443
-        OptionName: Protocol
-        Value: HTTPS
-      - Namespace: aws:elbv2:listener:443
-        OptionName: SSLCertificateArns
-        Value: !Ref TLSCertArn
-      - Namespace: aws:elbv2:listener:80
-        OptionName: DefaultProcess
-        Value: default
-      - Namespace: aws:elbv2:listener:80
-        OptionName: Protocol
-        Value: HTTP
-
-      # Beanstalk healthchecks
-      - Namespace: aws:elasticbeanstalk:application
-        OptionName: Application Healthcheck URL
-        Value: HTTP:9000/healthcheck
-      - Namespace: aws:elasticbeanstalk:environment:process:default
-        OptionName: HealthCheckPath
-        Value: /healthcheck
-      - Namespace: aws:elasticbeanstalk:environment:process:default
-        OptionName: Port
-        Value: 9000
-      - Namespace: aws:elasticbeanstalk:environment:process:default
-        OptionName: HealthyThresholdCount
-        Value: 2
-      - Namespace: aws:elasticbeanstalk:environment:process:default
-        OptionName: MatcherHTTPCode
-        Value: 200
-
-      # autoscaling and launch config
-      - Namespace: aws:autoscaling:launchconfiguration
-        OptionName: IamInstanceProfile
-        Value: !GetAtt SecurityHQInstanceProfile.Arn
-      - Namespace: aws:autoscaling:launchconfiguration
-        OptionName: SSHSourceRestriction
-        Value: !Sub tcp, 22, 22, ${SSHAccessCidr}
-      - Namespace: aws:autoscaling:launchconfiguration
-        OptionName: InstanceType
-        Value: t2.micro
-      - Namespace: aws:autoscaling:asg
-        OptionName: MinSize
-        Value: 1
-      - Namespace: aws:autoscaling:asg
-        OptionName: MaxSize
-        Value: 6
-      # during dev
-      - Namespace: aws:autoscaling:launchconfiguration
-        OptionName: EC2KeyName
-        Value: !Ref KeyName
-
-      # config
-      - Namespace: aws:elasticbeanstalk:application:environment
-        OptionName: HQ_CONFIG_BUCKET
-        Value: !Ref SecurityHQConfigBucket
-      - Namespace: aws:elasticbeanstalk:application:environment
-        OptionName: HQ_CONFIG_PATH
-        Value: !Sub security/${Stage}/security-hq/security-hq.conf
-      - Namespace: aws:elasticbeanstalk:application:environment
-        OptionName: HQ_CERT_PATH
-        Value: !Sub security/${Stage}/security-hq/security-hq-service-account-cert.json
-
-      # running
-      - Namespace: aws:elasticbeanstalk:environment
-        OptionName: ServiceRole
-        Value: !Ref SecurityHQServiceRole
-      - Namespace: aws:elasticbeanstalk:healthreporting:system
-        OptionName: SystemType
-        Value: enhanced
-      - Namespace: aws:elasticbeanstalk:managedactions
-        OptionName: ManagedActionsEnabled
-        Value: true
-      - Namespace: aws:elasticbeanstalk:managedactions
-        OptionName: PreferredStartTime
-        Value: Mon:11:30
-      - Namespace: aws:elasticbeanstalk:managedactions:platformupdate
-        OptionName: UpdateLevel
-        Value: minor
-      - Namespace: aws:elasticbeanstalk:managedactions:platformupdate
-        OptionName: InstanceRefreshEnabled
-        Value: true
-
-      # deployment
-      - Namespace: aws:autoscaling:updatepolicy:rollingupdate
-        OptionName: RollingUpdateType
-        Value: Health
-      - Namespace: aws:autoscaling:updatepolicy:rollingupdate
-        OptionName: Timeout
-        Value: PT10M
-
-  SecurityHQEnvironment:
-    Type: AWS::ElasticBeanstalk::Environment
-    Properties:
-      Description: AWS ElasticBeanstalk Security HQ Environment
-      ApplicationName: !Ref SecurityHQApplication
-      TemplateName: !Ref SecurityHQConfigurationTemplate
-      VersionLabel: !Ref SecurityHQVersion
-      Tags:
-      - Key: Stack
-        Value: !FindInMap [ Constants, Stack, Value ]
-      - Key: App
-        Value: !FindInMap [ Constants, App, Value ]
-      - Key: Stage
-        Value: !Ref Stage
-    DependsOn:
-    - SecurityHQApplication
-    - SecurityHQVersion
-    - SecurityHQConfigurationTemplate
-
   SecurityHQInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -260,13 +92,6 @@ Resources:
             Resource:
             - !Sub arn:aws:s3:::${SecurityHQSourceBundleBucket}
             - !Sub arn:aws:s3:::${SecurityHQSourceBundleBucket}/*
-            - !Sub arn:aws:s3:::${SecurityHQConfigBucket}
-            - !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref SecurityHQConfigBucket
-                - "/"
-                - !Sub security/${Stage}/security-hq/security-hq.conf
             Action:
             - s3:ListBucketVersions
             - s3:ListBucket
@@ -278,40 +103,18 @@ Resources:
             Action:
             - sts:AssumeRole
 
-  SecurityHQServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - elasticbeanstalk.amazonaws.com
-          Action:
-          - sts:AssumeRole
-          Condition:
-            StringEquals:
-              sts:ExternalId: elasticbeanstalk
-      Path: /
-      ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
-      - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkService
-      - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
-
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: HTTP access to the load balancer from within the Guardian (for now)
-      VpcId: !Ref VpcId
+      VpcId:
+        Ref: VpcId
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 443
         ToPort: 443
-        CidrIp: !Ref AccessRestrictionCidr
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: !Ref AccessRestrictionCidr
+        CidrIp:
+          Ref: AccessRestrictionCidr
       Tags:
       - Key: Stack
         Value: !FindInMap [ Constants, Stack, Value ]
@@ -320,7 +123,164 @@ Resources:
       - Key: Stage
         Value: !Ref Stage
 
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Listeners:
+      - LoadBalancerPort: 443
+        InstancePort: 9000
+        Protocol: HTTPS
+        SSLCertificateId:
+          Ref: TLSCertArn
+      CrossZone: true
+      HealthCheck:
+        Target: HTTP:9000/healthcheck
+        HealthyThreshold: 2
+        UnhealthyThreshold: 10
+        Interval: 30
+        Timeout: 10
+      Subnets:
+        Ref: Subnets
+      SecurityGroups:
+      - Ref: LoadBalancerSecurityGroup
+      AccessLoggingPolicy:
+        EmitInterval: 5
+        Enabled: true
+        S3BucketName: gu-elb-logs
+        S3BucketPrefix:
+          Fn::Join:
+          - "/"
+          - - ELBLogs
+            - Fn::FindInMap: [ Constants, Stack, Value ]
+            - Fn::FindInMap: [ Constants, App, Value ]
+            - Ref: Stage
+      Tags:
+      - Key: Stack
+        Value:
+          Fn::FindInMap: [ Constants, Stack, Value ]
+      - Key: App
+        Value:
+          Fn::FindInMap: [ Constants, App, Value ]
+      - Key: Stage
+        Value:
+          Ref: Stage
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: security-hq instance
+      VpcId:
+        Ref: VpcId
+      SecurityGroupIngress:
+        # allow ELB to talk to instance
+      - IpProtocol: tcp
+        FromPort: 9000
+        ToPort: 9000
+        SourceSecurityGroupId:
+          Ref: LoadBalancerSecurityGroup
+        # allow SSH access from within the office
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp:
+          Ref: SSHAccessCidr
+      SecurityGroupEgress:
+        # allow instance to make http requests
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Stage
+        Value:
+          Ref: Stage
+      - Key: Stack
+        Value:
+          Fn::FindInMap: [ Constants, Stack, Value ]
+      - Key: App
+        Value:
+          Fn::FindInMap: [ Constants, App, Value ]
+
+  LaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      KeyName:
+        Ref: KeyName
+      ImageId:
+        Ref: AMI
+      SecurityGroups:
+      - Ref: InstanceSecurityGroup
+      InstanceType: t2.micro
+      IamInstanceProfile:
+        Ref: SecurityHQInstanceProfile
+      AssociatePublicIpAddress: true
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash -ev
+          locale-gen en_GB.UTF-8
+          add-apt-repository -y ppa:openjdk-r/ppa
+          apt-get -y update
+          apt-get -y upgrade
+          apt-get -y install openjdk-8-jre-headless ntp python-pip
+          pip install --upgrade pip
+          pip install awscli
+          echo ${Stage} > /etc/stage
+          # fix java-8 certs
+          /var/lib/dpkg/info/ca-certificates-java.postinst configure
+          # setup security-hq
+          adduser --system --home /security-hq --disabled-password security-hq
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.conf /security-hq
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq-service-account-cert.json /security-hq
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.tgz /security-hq
+          # Expand zipped tar file; remove base directory 
+          tar -xzf /security-hq/security-hq.tgz --strip 1 --directory /security-hq/
+          # Put upstart file in correct location with correct ownership
+          mv /security-hq/upstart/security-hq.conf /etc/init
+          chown root /etc/init/security-hq.conf
+          chmod 700 /etc/init/security-hq.conf
+          # Give ownership of all the application files to the application user
+          chown -R security-hq /security-hq
+          # Start application
+          start security-hq
+
+  AutoscalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: ""
+      VPCZoneIdentifier:
+        Ref: Subnets
+      LaunchConfigurationName:
+        Ref: LaunchConfig
+      MinSize: 1
+      MaxSize: 2
+      DesiredCapacity: 1
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 120
+      LoadBalancerNames:
+      - Ref: LoadBalancer
+      Tags:
+      - Key: Stage
+        Value:
+          Ref: Stage
+        PropagateAtLaunch: true
+      - Key: Stack
+        Value:
+          Fn::FindInMap: [ Constants, Stack, Value ]
+        PropagateAtLaunch: true
+      - Key: App
+        Value:
+          Fn::FindInMap: [ Constants, App, Value ]
+        PropagateAtLaunch: true
 
 Outputs:
-  AppUrl:
-    Value: !GetAtt SecurityHQEnvironment.EndpointURL
+  LoadBalancerUrl:
+    Value:
+      'Fn::GetAtt':
+      - LoadBalancer
+      - DNSName
+

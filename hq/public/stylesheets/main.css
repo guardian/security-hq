@@ -42,14 +42,12 @@ nav {
   display: none !important;
 }
 
-@media (min-width: 1140px) {
-  /* useful for when there are a lot of flagged resources */
-  .greedy-width {
-    width: 90%;
-  }
+.space-between {
+  justify-content: space-between;
 }
 
-.main-icon {
+.greedy-width {
+  width: 90%;
 }
 
 .main-icon__image {
@@ -68,7 +66,9 @@ nav {
   background-color: #4e8098;
   margin-top: 10px;
   border-top: solid 1px #0b5351;
+  height: -moz-max-content;
   height: max-content;
+  padding-bottom: 20px;
 }
 
 .accounts__header {
@@ -130,6 +130,10 @@ nav {
 
 /* security group pages */
 
+.sg-header__name {
+  margin-right: auto;
+}
+
 .sg-container {
   display: grid;
   grid-column-gap: 10px;
@@ -180,9 +184,9 @@ nav {
 .sg-details__header {
   background-color: #009688;
   color: #ffffff;
-  display: flex;
   line-height: 36px;
   min-height: 36px;
+  padding: 0 12px;
 }
 
 .sg-details__header i {
@@ -200,6 +204,16 @@ nav {
   width: 30px;
 }
 
+.sg-details__body {
+  padding: 0 !important;
+}
+
+@media (max-width: 990px) {
+  .sg-floating-nav {
+    display: none;
+  }
+}
+
 .usage-cta {
   display: block;
   background-color: #4e8098;
@@ -208,6 +222,10 @@ nav {
 }
 
 /* IAM pages */
+
+.iam-header__name {
+  margin-right: auto;
+}
 
 .iam-key-disabled {
   opacity: 0.3;
@@ -219,6 +237,6 @@ table.iam-report__table th {
   box-sizing: initial;
 }
 
-.link_new_tab  {
+.link_new_tab {
   vertical-align: bottom;
 }

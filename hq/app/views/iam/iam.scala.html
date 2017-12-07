@@ -19,17 +19,13 @@
             <li>
                 <div class="collapsible-header">
                     <i class="material-icons">keyboard_arrow_down</i>
-                    @account.name
+                    <span class="iam-header__name">@account.name</span>
                     @report match {
-                        case Left(fa) => {
-                            <p class="p--warning">
-                            @for(err <- fa.failures) {
-                                @err.friendlyMessage
-                            }
-                            </p>
-                        }
                         case Right(re) => {
                             @views.html.fragments.statusSummary(re)
+                        }
+                        case Left(_) => {
+                            <i class="material-icons">warning</i>
                         }
                     }
                 </div>
@@ -38,7 +34,13 @@
                     case Right(re) => {
                         @views.html.iam.iamCredReportBody(re)
                     }
-                    case _ => {}
+                    case Left(fa) => {
+                        <p class="p--warning">
+                        @for(err <- fa.failures) {
+                            @err.friendlyMessage
+                        }
+                        </p>
+                    }
                 }
                 </div>
             </li>
