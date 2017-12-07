@@ -7,3 +7,12 @@ deployments:
     type: autoscaling
     parameters:
       bucket: security-dist
+    dependencies: [security-hq-cfn]
+
+  security-hq-cfn:
+    type: cloud-formation
+    app: security-hq
+    parameters:
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: security-hq
+      templatePath: cfn.yaml

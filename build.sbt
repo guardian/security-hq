@@ -46,7 +46,8 @@ lazy val hq = (project in file("hq")).
     fork in Test := false,
     riffRaffPackageType := (packageZipTarball in Universal).value,
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
-    riffRaffUploadManifestBucket := Option("riffraff-builds")
+    riffRaffUploadManifestBucket := Option("riffraff-builds"),
+    riffRaffArtifactResources += (file("cloudformation/security-hq.template.yaml"), s"${name.value}-cfn/cfn.yaml")
   )
 
 // More will go here!
