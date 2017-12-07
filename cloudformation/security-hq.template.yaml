@@ -235,11 +235,9 @@ Resources:
           adduser --system --home /security-hq --disabled-password security-hq
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.conf /security-hq
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq-service-account-cert.json /security-hq
-          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.zip /security-hq
-          # Expand zip file; remove base directory (unzip won't do this for us)
-          unzip /security-hq/security-hq.tgz -d /security-hq/
-          mv /security-hq/security-hq/* /security-hq/
-          rmdir /security-hq/security-hq
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.tgz /security-hq
+          # Expand zipped tar file; remove base directory 
+          tar -xzf /security-hq/security-hq.tgz --strip 1 --directory /security-hq/
           # Put upstart file in correct location with correct ownership
           mv /security-hq/upstart/security-hq.conf /etc/init
           chown root /etc/init/security-hq.conf
