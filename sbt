@@ -18,8 +18,9 @@ do
       shift
     fi
     if [ "$arg" == "--team-city" ]; then
-      echo "Adding team city property"
-      TC_PARAMS="-Dteamcity.configuration.properties.file=$TEAMCITY_BUILD_PROPERTIES_FILE"
+      f=$(grep '^teamcity.configuration.properties.file' "$TEAMCITY_BUILD_PROPERTIES_FILE" | cut -d'=' -f 2)
+      TC_PARAMS="-Dteamcity.configuration.properties.file=$f"
+      echo "Adding team city property: $TC_PARAMS"
       shift
     fi
 done
