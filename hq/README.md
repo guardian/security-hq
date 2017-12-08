@@ -56,6 +56,18 @@ AWS_ACCOUNTS=[
 ]
 ```
 
+### Required AWS Security Policies
+The following security policies are needed for security-hq to run.
+```
+    "trustedadvisor:Describe*",
+    "support:*",
+    "ec2:DescribeNetworkInterfaces",
+    "ec2:DescribeVpcs",
+    "iam:GenerateCredentialReport",
+    "iam:GetCredentialReport"
+
+```
+
 ### Running project
 From the root of the project:
 

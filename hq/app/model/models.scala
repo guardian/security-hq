@@ -68,7 +68,8 @@ case class SGOpenPortsDetail(
   protocol: String,
   port: String,
   alertLevel: String,
-  isSuppressed: Boolean
+  isSuppressed: Boolean,
+  vpcName: Option[String] = None
 ) extends TrustedAdvisorCheckDetails
 case class RDSSGsDetail(
   region: String,

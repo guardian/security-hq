@@ -1,6 +1,7 @@
 package aws.ec2
 
-import com.amazonaws.services.ec2.model.{DescribeNetworkInterfacesResult, GroupIdentifier, NetworkInterface, NetworkInterfaceAttachment}
+import com.amazonaws.services.ec2.AmazonEC2Async
+import com.amazonaws.services.ec2.model.{Instance => _, _}
 import model._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
@@ -8,12 +9,13 @@ import org.scalacheck.ScalacheckShapeless._
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
+import utils.attempt.{Attempt, AttemptValues}
 
 import scala.collection.JavaConverters._
 import scala.util.Random
+import scala.concurrent.ExecutionContext.Implicits.global
 
-
-class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks  {
+class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
   "parseNetworkInterface" - {
     "parses an ELB" in {
       EC2.parseNetworkInterface(elb("test-elb")) shouldEqual ELB("test-elb")
@@ -137,6 +139,38 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks  
         val sortedResult = EC2.sortSecurityGroupsByInUse(detail, sgsUsageMap)
         sortedResult should be(sortedResult.sortWith { case ((_, s1), (_, s2)) => s1.size > s2.size })
       }
+    }
+  }
+
+  "VPC" - {
+    val sgs1 = SGOpenPortsDetail("Ok", "eu-west-1", "name-1", "id-122", "vpc-1", "tcp", "1099", "Yellow", false )
+    val sgs2 = SGOpenPortsDetail("Ok", "eu-west-2", "name-2", "id-122", "vpc-2", "tcp", "1099", "Yellow", false )
+    val sgs3 = SGOpenPortsDetail("Ok", "eu-west-2", "name-3", "id-122", "vpc-3", "tcp", "1099", "Yellow", false )
+
+    val vpcsMap = Map(
+      "vpc-1" -> new Vpc().withVpcId("vpc-1").withTags(new Tag("Name", "name-1")),
+      "vpc-2" -> new Vpc().withVpcId("vpc-2").withTags(new Tag("Name", "name-2")),
+      "vpc-3" -> new Vpc().withVpcId("vpc-3")
+    )
+    val sgsList = List(sgs1, sgs2, sgs3)
+
+    "get vpcs"  in {
+
+      def vpcsF (ec2: AmazonEC2Async, vpcIds : List[String]) : Attempt[Map[String, Vpc]] = {
+        Attempt.Right(
+        vpcIds.map {
+          case id @ "vpc-1" => id -> new Vpc().withVpcId(id).withTags(new Tag("Name", "name-1"))
+          case id @ "vpc-2" => id -> new Vpc().withVpcId(id).withTags(new Tag("Name", "name-2"))
+          case id =>  id -> new Vpc().withVpcId(id)
+        }.toMap
+        )
+      }
+
+    EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)(vpcsF).value shouldBe vpcsMap
+    }
+
+    "add vpc name if exists" in {
+      EC2.addVpcName(sgsList, vpcsMap) shouldBe List(sgs1.copy(vpcName = Some("name-1")), sgs2.copy(vpcName = Some("name-2"))) :+ sgs3
     }
   }
 
