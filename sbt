@@ -14,4 +14,4 @@ done
 java $DEBUG_PARAMS \
     -Xms1024M -Xmx2048M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=1024M \
     -Dconfig.file=$HOME/.gu/security-hq.local.conf \
-    -jar sbt-launch.jar "$@"
+    -jar bin/sbt-launch.jar "$@"
