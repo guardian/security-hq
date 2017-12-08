@@ -2,6 +2,7 @@
 
 # Debug option
 DEBUG_PARAMS=""
+TC_PARAMS=""
 
 CONF_PARAMS="-Dconfig.file=$HOME/.gu/security-hq.local.conf"
 for arg in "$@"
@@ -16,9 +17,15 @@ do
       CONF_PARAMS=""
       shift
     fi
+    if [ "$arg" == "--team-city" ]; then
+      echo "Adding team city property"
+      TC_PARAMS="-Dteamcity.configuration.properties.file=$TEAMCITY_BUILD_PROPERTIES_FILE"
+      shift
+    fi
 done
 
 java $DEBUG_PARAMS \
     -Xms1024M -Xmx2048M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=1024M \
     $CONF_PARAMS \
+    $TC_PARAMS \
     -jar bin/sbt-launch.jar "$@"
