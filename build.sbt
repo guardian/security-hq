@@ -8,6 +8,8 @@ version in ThisBuild := "0.0.1"
 scalaVersion in ThisBuild := "2.12.3"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
+resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian"
+
 val awsSdkVersion = "1.11.185"
 val playVersion = "2.6.7"
 
