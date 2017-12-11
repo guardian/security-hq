@@ -50,9 +50,10 @@ object EC2 {
     }
   }
 
-  def flaggedSgsForAccount(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
+  def flaggedSgsForAccount(account: AwsAccount, refresh: Boolean = true)(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     val supportClient = TrustedAdvisor.client(account)
     for {
+      _  <- if (refresh) TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(supportClient) else Attempt.Right(Unit)
       sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
       sgUsage <- getSgsUsage(sgResult, account)
       flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
@@ -62,9 +63,16 @@ object EC2 {
   }
 
   def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
-    Attempt.Async.Right {
-      Future.traverse(accounts) { account =>
-        flaggedSgsForAccount(account).asFuture.map(account -> _)
+    val refreshAttempt = Attempt.traverseWithFailures(accounts) { account =>
+      val supportClient = TrustedAdvisor.client(account)
+      TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(supportClient)
+    }
+
+    refreshAttempt.flatMap { _ =>
+      Attempt.Async.Right {
+        Future.traverse(accounts) { account =>
+          flaggedSgsForAccount(account, refresh = false).asFuture.map(account -> _)
+        }
       }
     }
   }

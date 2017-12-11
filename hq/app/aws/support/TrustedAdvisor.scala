@@ -120,4 +120,10 @@ object TrustedAdvisor {
       resourcesSuppressed = result.getResult.getResourcesSummary.getResourcesSuppressed
     )
   }
+
+  def refreshTrustedAdvisorCheck(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
+    val request = new RefreshTrustedAdvisorCheckRequest()
+      .withCheckId(checkId)
+    handleAWSErrs(awsToScala(client.refreshTrustedAdvisorCheckAsync)(request))
+  }
 }

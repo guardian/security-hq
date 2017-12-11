@@ -1,14 +1,15 @@
 package aws.support
 
-import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
+import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult, refreshTrustedAdvisorCheck}
 import com.amazonaws.services.support.AWSSupportAsync
-import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
+import com.amazonaws.services.support.model.{RefreshTrustedAdvisorCheckResult, TrustedAdvisorResourceDetail}
+import logic.Retry
 import model.{SGOpenPortsDetail, TrustedAdvisorDetailsResult}
 import utils.attempt.{Attempt, Failure}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
-
+import scala.concurrent.duration._
 
 object TrustedAdvisorSGOpenPorts {
   val AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER = "HCP4007jGY"
@@ -59,5 +60,11 @@ object TrustedAdvisorSGOpenPorts {
           Failure(s"Could not parse SGOpenPorts from TrustedAdvisorResourceDetail with metadata $metadata", "Could not parse SGOpenPorts result", 500).attempt
         }
     }
+  }
+
+  def refreshSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult]  = {
+    val delay = 3.seconds
+    val checkId = AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER
+    Retry.until(refreshTrustedAdvisorCheck(client, checkId), _.getStatus.getStatus == "success", s"Failed to refresh $checkId report",  delay)
   }
 }
