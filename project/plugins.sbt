@@ -23,3 +23,5 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.4")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.1.2")
 
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
+
