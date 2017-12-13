@@ -17,7 +17,7 @@
         <div class="row hp-reports">
             <div class="card">
                 <div class="card-content">
-                    <a href="/security-groups">
+                    <a class="hp__link" href="/security-groups">
                         <i class="right material-icons">vpn_lock</i>
                         <span class="card-title">Security Groups</span>
                         <p>
@@ -28,7 +28,7 @@
             </div>
             <div class="card">
                 <div class="card-content">
-                    <a href="/iam">
+                    <a class="hp__link" href="/iam">
                         <i class="right material-icons">vpn_key</i>
                         <span class="card-title">Credentials audits</span>
                         <p>
@@ -49,12 +49,11 @@
                     @for(awsAccount <- awsAccounts) {
                         <div class="accounts__account z-depth-2">
                             <div class="accounts__account-heading">
-                                <span>@awsAccount.name</span>
+                                <a href="/hub/@awsAccount.id" class="accounts__link">
+                                    <span>@awsAccount.name</span>
+                                </a>
                             </div>
                             <div class="accounts__account-actions">
-                                <a href="/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Account hub">
-                                    <i class="material-icons">assessment</i>
-                                </a>
                                 <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">
                                     <i class="material-icons">vpn_lock</i>
                                 </a>

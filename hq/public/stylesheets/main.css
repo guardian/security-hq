@@ -75,6 +75,13 @@ nav {
   width: 100px;
 }
 
+@media (max-width: 740px) {
+  .hq-nav__image {
+    width: 60px;
+    margin-top: 20px;
+  }
+}
+
 .hq-sub-header {
   background-color: #00695c;
   min-height: 80px;
@@ -88,13 +95,13 @@ nav {
 }
 
 .hq-sub-header__name {
+  padding-right: 20px;
 }
 
 .hq-sub-header__tabs {
   margin-bottom: 5px;
   margin-top: auto;
   background-color: #00695c;
-  padding-left: 20px;
 }
 
 @media (min-width: 1140px) {
@@ -114,6 +121,10 @@ nav {
   display: grid;
   grid-column-gap: 20px;
   grid-template-columns: 1fr 1fr;
+}
+
+.hp__link {
+  color: rgba(0, 0, 0, 0.87);
 }
 
 .accounts__container {
