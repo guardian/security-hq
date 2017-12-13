@@ -4,11 +4,10 @@
 
 
 @main(Nil) { @* Header *@
-    <div class="container">
-        <div class="row">
-            <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
-            <div class="col s12 m9">
-                <h4 class="grey-text text-darken-4 center-on-small-only">Centralised AWS Account security management</h4>
+    <div class="hq-sub-header">
+        <div class="container hq-sub-header__row">
+            <div class="hq-sub-header__name">
+                <h4 class="header light center-on-small-only grey-text text-lighten-5">Centralised AWS Account security management</h4>
             </div>
         </div>
     </div>
@@ -53,6 +52,9 @@
                                 <span>@awsAccount.name</span>
                             </div>
                             <div class="accounts__account-actions">
+                                <a href="/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Account hub">
+                                    <i class="material-icons">assessment</i>
+                                </a>
                                 <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">
                                     <i class="material-icons">vpn_lock</i>
                                 </a>
