@@ -2,6 +2,7 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
+import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisor, TrustedAdvisorExposedIAMKeys}
 import config.Config
@@ -20,6 +21,19 @@ class HQController (val config: Configuration)
 
   def index = authAction {
     Ok(views.html.index(accounts))
+  }
+
+  def accountHub(accountId: String) = authAction.async {
+    attempt {
+      for {
+        account <- AWS.lookupAccount(accountId, accounts)
+        client = TrustedAdvisor.client(account)
+        exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(client)
+        exposedIamKeys = exposedIamKeysResult.flaggedResources
+        credReport <- IAMClient.getCredentialsReport(account)
+        flaggedSgs <- EC2.flaggedSgsForAccount(account)
+      } yield Ok(views.html.accountHub(account, exposedIamKeys, credReport, flaggedSgs))
+    }
   }
 
   def iam = authAction.async {

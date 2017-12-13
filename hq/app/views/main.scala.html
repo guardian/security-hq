@@ -1,4 +1,4 @@
-@(title: List[String])(header: Html)(content: Html)(implicit assets: AssetsFinder)
+@(title: List[String])(pageHeader: Html)(content: Html)(implicit assets: AssetsFinder)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,33 +19,10 @@
         <meta name="theme-color" content="#009688">
     </head>
     <body>
-        <header class="main-header section" id="index-banner">
-            <div class="container">
-                <div class="main-icon right">
-                    <a href="/">
-                        <img src="@assets.path("images/hq.png")" alt="Security HQ" class="main-icon__image" />
-                    </a>
-                </div>
-            </div>
-            @header
-            <nav class="">
-                <div class="container">
-                    <div class="nav-wrapper">
-                        <ul class="main-nav left">
-                            <li class="main-nav--home">
-                                <a href="/"><i class="material-icons">home</i></a>
-                            </li>
-                            <li class="main-nav">
-                                <a href="/security-groups"><i class="material-icons">vpn_lock</i></a>
-                            </li>
-                            <li class="main-nav">
-                                <a href="/iam"><i class="material-icons">vpn_key</i></a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-        </header>
+
+        @views.html.header()
+
+        @pageHeader
 
         <main>
         @content

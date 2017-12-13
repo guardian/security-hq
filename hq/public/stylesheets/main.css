@@ -4,6 +4,7 @@ TEAL:       #009688
 NOT-WHITE:  #F7F0F0
 HIGHLIGHT:  #8AF3FF
 
+MID-TEAL:   #00695c
 DARK-TEAL:  #0B5351
 COMPLEMENT: #4E8098
  */
@@ -22,11 +23,6 @@ body {
 
 main {
   flex: 1 0 auto;
-}
-
-.main-header {
-  background-color: #009688;
-  border-bottom: solid 1px #0b5351;
 }
 
 footer {
@@ -50,8 +46,66 @@ nav {
   width: 90%;
 }
 
-.main-icon__image {
+/* navigation and header */
+
+.main-header {
+  background-color: #009688;
+  border-bottom: solid 1px #0b5351;
+}
+
+.hq-nav {
+  display: flex;
+}
+
+.hq-nav__header {
+  flex-grow: 1;
+}
+
+.hq-nav__menu {
+  margin: auto;
+}
+
+.hq-nav__image-wrapper {
+  height: 100px;
+  margin: auto;
+  padding-left: 20px;
+}
+
+.hq-nav__image {
   width: 100px;
+}
+
+.hq-sub-header {
+  background-color: #00695c;
+  min-height: 80px;
+  padding: 10px 0;
+  margin-bottom: 20px;
+}
+
+.hq-sub-header__row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.hq-sub-header__name {
+}
+
+.hq-sub-header__tabs {
+  margin-bottom: 5px;
+  margin-top: auto;
+  background-color: #00695c;
+  padding-left: 20px;
+}
+
+@media (min-width: 1140px) {
+  .hq-sub-header__tabs {
+    min-width: 200px;
+  }
+}
+
+.hq-sub-header__tabs i {
+  height: 48px;
+  line-height: 48px;
 }
 
 /* homepage */
