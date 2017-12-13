@@ -2,15 +2,15 @@
 
 @(awsAccount: AwsAccount, flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])(implicit assets: AssetsFinder)
 
-@main(List(awsAccount.name, "IAM report")) { @* Header *@
-    <div class="container">
-        <div class="row">
-            <h1 class="header center-on-small-only grey-text text-lighten-5">Security Groups</h1>
-            <div class="col s12 m9">
-                <h4 class="grey-text text-darken-4 center-on-small-only">For @awsAccount.name</h4>
-            </div>
+@main(List(awsAccount.name)) { @* Header *@
+<div class="hq-sub-header">
+    <div class="container hq-sub-header__row">
+        <div class="hq-sub-header__name">
+            <h2 class="header light center-on-small-only grey-text text-lighten-5">Security Groups</h2>
+            <h4 class="header light center-on-small-only grey-text text-lighten-5">For @awsAccount.name</h4>
         </div>
     </div>
+</div>
 
 } { @* Main content *@
     <div class="container">
