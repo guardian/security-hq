@@ -74,7 +74,7 @@ From the root of the project:
 
 `$ run`
 
-Once the sever has started, the webapp should be accessible at http://localhost:9000/
+Once the sever has started, the webapp should be accessible at http://localhost:9090/
 
 ### Using nginx as a proxy
 
