@@ -73,6 +73,17 @@
                             <th>Region</th>
                             <td>@flaggedSg.region</td>
                         </tr>
+
+                        <tr>
+                            <th>Cloudformation Stack</th>
+                            <td>@flaggedSg.stackId match {
+                                case Some(id) => {
+                                    <a target="_blank" rel="noopener noreferrer" href="https://@{flaggedSg.region}.console.aws.amazon.com/cloudformation/home?region=@{flaggedSg.region}#/stack/detail?stackId=@helper.urlEncode(id)">@flaggedSg.stackName.get</a>
+                                }
+                                case None => {}
+                            }
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

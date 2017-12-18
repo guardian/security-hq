@@ -1,7 +1,6 @@
 package aws.ec2
 
-import com.amazonaws.services.ec2.AmazonEC2Async
-import com.amazonaws.services.ec2.model.{Instance => _, _}
+import com.amazonaws.services.ec2.model._
 import model._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
@@ -11,9 +10,11 @@ import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{Attempt, AttemptValues}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 import scala.util.Random
 import scala.concurrent.ExecutionContext.Implicits.global
+
 
 class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
   "parseNetworkInterface" - {
@@ -139,6 +140,22 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
         val sortedResult = EC2.sortSecurityGroupsByInUse(detail, sgsUsageMap)
         sortedResult should be(sortedResult.sortWith { case ((_, s1), (_, s2)) => s1.size > s2.size })
       }
+    }
+
+    "add cloudformation stackId & stackName" in {
+      val sgs1 = new SecurityGroup().withGroupId("id-1").withTags(new Tag().withKey("aws:cloudformation:stack-id").withValue("stack-id-1"), new Tag().withKey("aws:cloudformation:stack-name").withValue("stack-name-1"))
+      val sgs2 = new SecurityGroup().withGroupId("id-2").withTags(new Tag().withKey("aws:cloudformation:stack-id").withValue("stack-id-2"), new Tag().withKey("aws:cloudformation:stack-name").withValue("stack-name-2"))
+      val sgs3 = new SecurityGroup().withGroupId("id-3")
+      val result = new DescribeSecurityGroupsResult().withSecurityGroups(sgs1, sgs2, sgs3)
+      val sgsOpenPort1 = SGOpenPortsDetail("warning", "eu-west-1", "name-1", "id-1", "vpc-1", "tcp", "8080", "Red", false )
+      val sgsOpenPort2 = SGOpenPortsDetail("warning", "eu-west-2", "name-2", "id-2", "vpc-2", "tcp", "8080", "Red", false )
+      val sgsOpenPort3 = SGOpenPortsDetail("warning", "eu-west-1", "name-4", "id-4", "vpc-4", "tcp", "8080", "Red", false )
+      val account = AwsAccount("id-1", "security", "security-role")
+      EC2.updateSgsWithTags(account, List(sgsOpenPort1, sgsOpenPort2, sgsOpenPort3))((_, _) => Attempt.Right(result) ).value().toSet shouldBe
+        Set(
+        sgsOpenPort1.copy(stackId = Some("stack-id-1"), stackName = Some("stack-name-1")),
+        sgsOpenPort2.copy(stackId = Some("stack-id-2"), stackName = Some("stack-name-2")),
+        sgsOpenPort3)
     }
   }
 
