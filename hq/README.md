@@ -57,7 +57,7 @@ AWS_ACCOUNTS=[
 ```
 
 ### AWS Security Policies
-See ```watched-account``` cloud formation template for the security policies needed to run security-hq.
+See `watched-account` template under `cloudformation` folder for the security policies needed to run security-hq.
 
 ### Running project
 From the root of the project:
