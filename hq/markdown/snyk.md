@@ -88,11 +88,14 @@ step for more than ten seconds or so, you should check your `build.sbt` is good.
 
 ### Pre-requisites
 
-Ensure your node packages are up to date with the following:
+Ensure your node packages are up to date.  For example:
 
 ```
-rm node_modules
 npm install
+```
+or
+```
+yarn upgrade
 ```
 
 ### Invocation
