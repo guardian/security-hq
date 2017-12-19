@@ -7,7 +7,6 @@ GET        /                                          controllers.HQController.i
 
 GET        /iam                                       controllers.HQController.iam
 GET        /iam/:accountId                            controllers.HQController.iamAccount(accountId)
-GET        /hub/:accountId                            controllers.HQController.accountHub(accountId)
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
 GET        /login                                     controllers.AuthController.login
@@ -20,4 +19,3 @@ GET        /build                                     controllers.Assets.at(path
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /assets/*file                              controllers.Assets.versioned(file)
-
