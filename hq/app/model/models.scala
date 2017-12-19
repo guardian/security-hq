@@ -68,7 +68,8 @@ case class SGOpenPortsDetail(
   protocol: String,
   port: String,
   alertLevel: String,
-  isSuppressed: Boolean
+  isSuppressed: Boolean,
+  vpcName: Option[String] = None
 ) extends TrustedAdvisorCheckDetails
 case class RDSSGsDetail(
   region: String,
@@ -89,7 +90,7 @@ case class ExposedIAMKeyDetail(
 ) extends TrustedAdvisorCheckDetails
 
 sealed trait SGInUse
-case class Instance(instanceId: String) extends SGInUse
+case class Ec2Instance(instanceId: String) extends SGInUse
 case class ELB(description: String) extends SGInUse
 case class UnknownUsage(
   description: String,

@@ -1,4 +1,4 @@
-@import model.{SGOpenPortsDetail, SGInUse, Instance, ELB, UnknownUsage}
+@import model.{SGOpenPortsDetail, SGInUse, Ec2Instance, ELB, UnknownUsage}
 @import logic.SecurityGroupDisplay.resourceIcons
 
 @(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])], shadow: Boolean)
@@ -7,15 +7,17 @@
 
 @resourceList(flaggedSg: SGOpenPortsDetail, usages: Set[SGInUse]) = {
     @usages.map {
-        case Instance(id) => {
-              <a class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#Instances:search=@id">
+        case Ec2Instance(id) => {
+              <a target="_blank" rel="noopener noreferrer" class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#Instances:search=@id">
                 <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="EC2 instance">computer</i>
+                <i class="material-icons link_new_tab" >open_in_new</i>
                 @id
             </a>
         }
         case ELB(description) => {
-              <a class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#LoadBalancers:search=@description">
+              <a target="_blank" rel="noopener noreferrer" class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#LoadBalancers:search=@description">
                 <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i>
+                <i class="material-icons link_new_tab" >open_in_new</i>
                 @description
             </a>
         }
@@ -59,9 +61,14 @@
 
                         </tr>
                         <tr>
-                            <th>VPC</th>
+                            <th>VPC Id</th>
                             <td>@flaggedSg.vpcId</td>
                         </tr>
+                        <tr>
+                            <th>VPC Name</th>
+                            <td>@flaggedSg.vpcName.getOrElse("N/A")</td>
+                        </tr>
+
                         <tr>
                             <th>Region</th>
                             <td>@flaggedSg.region</td>
