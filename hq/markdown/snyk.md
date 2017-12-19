@@ -11,7 +11,7 @@ Snyk requires node, and `npm`.  To install on a mac, please use:
 
 ```
 brew install npm
-npm install -g snyk
+npm install -g snyk
 ```
 
 Snyk then requires an authentication token to be set up.  Github auth is almost certainly most appropriate.
