@@ -1,6 +1,7 @@
 import com.gu.riffraff.artifact.RiffRaffArtifact
 import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import play.sbt.PlayImport.PlayKeys._
+import com.typesafe.sbt.packager.MappingsHelper._
 
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
@@ -29,6 +30,7 @@ lazy val hq = (project in file("hq")).
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
+      "com.vladsch.flexmark" % "flexmark-all" % "0.28.20",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
@@ -44,6 +46,7 @@ lazy val hq = (project in file("hq")).
     mappings in Universal ++=
       (baseDirectory.value / "upstart" * "*" get)
         .map(f => f -> s"upstart/${f.getName}"),
+    unmanagedResourceDirectories in Compile += baseDirectory.value / "markdown",
     parallelExecution in Test := false,
     fork in Test := false,
     riffRaffPackageType := (packageZipTarball in Universal).value,
