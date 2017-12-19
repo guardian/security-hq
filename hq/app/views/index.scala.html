@@ -49,9 +49,7 @@
                     @for(awsAccount <- awsAccounts) {
                         <div class="accounts__account z-depth-2">
                             <div class="accounts__account-heading">
-                                <a href="/hub/@awsAccount.id" class="accounts__link">
-                                    <span>@awsAccount.name</span>
-                                </a>
+                                <span>@awsAccount.name</span>
                             </div>
                             <div class="accounts__account-actions">
                                 <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">

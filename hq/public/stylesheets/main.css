@@ -207,13 +207,13 @@ nav {
   margin: 0 auto;
 }
 
-@media (min-width: 740px) {
+@media (min-width: 940px) {
   .sg-container {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 1140px) {
+@media (min-width: 1400px) {
   .sg-container {
     grid-template-columns: repeat(3, 1fr);
   }
