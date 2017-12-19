@@ -157,6 +157,6 @@ run
 
 ## References
 
-1. http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html
-2. http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html
+1. [http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html](http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html)
+2. [http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html)
 
