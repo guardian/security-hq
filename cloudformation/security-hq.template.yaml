@@ -83,6 +83,7 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
+      ManagedPolicyArns: [ "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM" ]
       Policies:
       - PolicyName: security-hq-instance-policy
         PolicyDocument:
@@ -228,6 +229,9 @@ Resources:
           apt-get -y install openjdk-8-jre-headless ntp python-pip
           pip install --upgrade pip
           pip install awscli
+          wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+          mkdir /tmp/ssm
+          dpkg -i amazon-ssm-agent.deb
           echo ${Stage} > /etc/stage
           # fix java-8 certs
           /var/lib/dpkg/info/ca-certificates-java.postinst configure
