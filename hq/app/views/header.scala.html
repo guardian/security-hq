@@ -8,7 +8,8 @@
                     <h2 class="header grey-text text-lighten-5">Security HQ</h2>
                 </div>
                 <div class="hq-nav__menu">
-                    <ul class="main-nav">
+                    <a href="#" data-activates="mobile-nav" class="button-collapse"><i class="material-icons black-text">menu</i></a>
+                    <ul class="main-nav hide-on-med-and-down">
                         <li class="main-nav--home">
                             <a href="/"><i class="material-icons black-text">home</i></a>
                         </li>
@@ -18,7 +19,26 @@
                         <li class="main-nav">
                             <a href="/iam"><i class="material-icons black-text">vpn_key</i></a>
                         </li>
+                        <li class="main-nav">
+                            <a href="/documentation/"><i class="material-icons black-text">description</i></a>
+                        </li>
                     </ul>
+
+                    <ul id="mobile-nav" class="side-nav">
+                        <li class="main-nav--home">
+                            <a href="/"><i class="material-icons black-text">home</i>Home</a>
+                        </li>
+                        <li class="main-nav">
+                            <a href="/security-groups"><i class="material-icons black-text">vpn_lock</i>Security Groups</a>
+                        </li>
+                        <li class="main-nav">
+                            <a href="/iam"><i class="material-icons black-text">vpn_key</i>Credentials audits</a>
+                        </li>
+                        <li class="main-nav">
+                            <a href="/documentation"><i class="material-icons black-text">description</i>Documentation</a>
+                        </li>
+                    </ul>
+
                 </div>
                 <div class="hq-nav__image-wrapper">
                     <a href="/">
