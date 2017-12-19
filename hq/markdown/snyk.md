@@ -152,7 +152,7 @@ index 434dbb2..d123098 100644
 @@ -29,7 +29,11 @@ libraryDependencies ++= Seq(
    "org.typelevel" %% "cats" % "0.8.1",
 -  "my.library" %% "cleverstuff" % "0.0.99"
-+  "my.library" %% "cleverstuff" % "1.0.0+"
++  "my.library" %% "cleverstuff" % "1.0.0"
  )
 
 ```
