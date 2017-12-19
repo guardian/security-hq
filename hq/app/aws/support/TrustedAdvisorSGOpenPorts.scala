@@ -62,9 +62,9 @@ object TrustedAdvisorSGOpenPorts {
     }
   }
 
-  def refreshSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult]  = {
+  def refreshSGOpenPorts(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
     val delay = 3.seconds
     val checkId = AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER
-    Retry.until(refreshTrustedAdvisorCheck(client, checkId), _.getStatus.getStatus == "success", s"Failed to refresh $checkId report",  delay)
+    Retry.until(refreshTrustedAdvisorCheck(client, checkId), _.getStatus.getStatus == "success", s"Failed to refresh $checkId report", delay)
   }
 }
