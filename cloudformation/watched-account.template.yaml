@@ -34,6 +34,7 @@ Resources:
             - trustedadvisor:Describe*
             - support:*
             - ec2:DescribeNetworkInterfaces
+            - ec2:DescribeVpcs
             # IAM credentials overview
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport

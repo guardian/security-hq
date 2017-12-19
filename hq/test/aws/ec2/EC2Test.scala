@@ -22,7 +22,7 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
     }
 
     "parses an instance" in {
-      EC2.parseNetworkInterface(instance("instance-id")) shouldEqual Instance("instance-id")
+      EC2.parseNetworkInterface(instance("instance-id")) shouldEqual Ec2Instance("instance-id")
     }
 
     "parses something unexpected" in {
@@ -49,7 +49,7 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
 
     "returns matching subset of NIs" in {
       val result = EC2.parseDescribeNetworkInterfacesResults(niResult, List("sg-1", "sg-3"))
-      result.values.flatten.toSet should contain only (ELB("elb-1"), Instance("i-1"), Instance("i-2"))
+      result.values.flatten.toSet should contain only (ELB("elb-1"), Ec2Instance("i-1"), Ec2Instance("i-2"))
     }
 
     "keys should be only matching SG IDs" in {
@@ -132,7 +132,7 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
 
       forAll(Gen.listOf(sgsOpenPorts)) { detail =>
         val sgsUsageMap = detail.map { sgs =>
-          val usages = Seq[Set[SGInUse]](Set.empty, Set(Instance(sgs.id), ELB(sgs.id)), Set(Instance(sgs.id), ELB(sgs.id), UnknownUsage("unknown", "nic-1")))
+          val usages = Seq[Set[SGInUse]](Set.empty, Set(Ec2Instance(sgs.id), ELB(sgs.id)), Set(Ec2Instance(sgs.id), ELB(sgs.id), UnknownUsage("unknown", "nic-1")))
           sgs.id -> usages(Random.nextInt(3))
         }.toMap
 
@@ -143,37 +143,34 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
   }
 
   "VPC" - {
-    val sgs1 = SGOpenPortsDetail("Ok", "eu-west-1", "name-1", "id-122", "vpc-1", "tcp", "1099", "Yellow", false )
-    val sgs2 = SGOpenPortsDetail("Ok", "eu-west-2", "name-2", "id-122", "vpc-2", "tcp", "1099", "Yellow", false )
-    val sgs3 = SGOpenPortsDetail("Ok", "eu-west-2", "name-3", "id-122", "vpc-3", "tcp", "1099", "Yellow", false )
-
+    val sgs1 = SGOpenPortsDetail("Ok", "eu-west-1", "name-1", "id-122", "vpc-1", "tcp", "1099", "Yellow", false)
+    val sgs2 = SGOpenPortsDetail("Ok", "eu-west-2", "name-2", "id-122", "vpc-2", "tcp", "1099", "Yellow", false)
+    val sgs3 = SGOpenPortsDetail("Ok", "eu-west-2", "name-3", "id-122", "vpc-3", "tcp", "1099", "Yellow", false)
+    val sgsList = List(sgs1, sgs2, sgs3)
     val vpcsMap = Map(
       "vpc-1" -> new Vpc().withVpcId("vpc-1").withTags(new Tag("Name", "name-1")),
       "vpc-2" -> new Vpc().withVpcId("vpc-2").withTags(new Tag("Name", "name-2")),
       "vpc-3" -> new Vpc().withVpcId("vpc-3")
     )
-    val sgsList = List(sgs1, sgs2, sgs3)
 
-    "get vpcs"  in {
+    "getVpcs" - {
 
-      def vpcsF (ec2: AmazonEC2Async, vpcIds : List[String]) : Attempt[Map[String, Vpc]] = {
-        Attempt.Right(
-        vpcIds.map {
-          case id @ "vpc-1" => id -> new Vpc().withVpcId(id).withTags(new Tag("Name", "name-1"))
-          case id @ "vpc-2" => id -> new Vpc().withVpcId(id).withTags(new Tag("Name", "name-2"))
-          case id =>  id -> new Vpc().withVpcId(id)
-        }.toMap
-        )
+      "returns vpc details in a map" in {
+        val vpcsResult = Attempt.Right(vpcsMap)
+        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)((_, _) => vpcsResult).value shouldBe vpcsMap
       }
 
-    EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)(vpcsF).value shouldBe vpcsMap
+      "returns empty vpc details" in {
+        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)((_, _) => Attempt.Right(Map.empty)).value shouldBe Map.empty
+      }
     }
 
-    "add vpc name if exists" in {
-      EC2.addVpcName(sgsList, vpcsMap) shouldBe List(sgs1.copy(vpcName = Some("name-1")), sgs2.copy(vpcName = Some("name-2"))) :+ sgs3
+    "addVpcName" - {
+      "updates SGSOpenPortDetails with vpc name if vpc ids match" in {
+        EC2.addVpcName(sgsList, vpcsMap) shouldBe List(sgs1.copy(vpcName = Some("name-1")), sgs2.copy(vpcName = Some("name-2"))) :+ sgs3
+      }
     }
   }
-
 
   // helpers for creating test data
 

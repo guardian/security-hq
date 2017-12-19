@@ -1,6 +1,6 @@
 package logic
 
-import model.{ELB, Instance, SGInUse}
+import model.{ELB, Ec2Instance, SGInUse}
 
 
 object SecurityGroupDisplay {
@@ -10,7 +10,7 @@ object SecurityGroupDisplay {
   def resourceIcons(usages: List[SGInUse]): ResourceIcons = {
 
     val (instances, elbs, unknown) = usages.foldLeft(0,0,0) {
-      case ( (ins, elb, unk), Instance(_) ) => (ins+1, elb, unk)
+      case ( (ins, elb, unk), Ec2Instance(_) ) => (ins+1, elb, unk)
       case ( (ins, elb, unk), ELB(_) ) => (ins, elb+1, unk)
       case ( (ins, elb, unk), _ ) => (ins, elb, unk+1)
     }
