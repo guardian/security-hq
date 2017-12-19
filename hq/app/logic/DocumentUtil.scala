@@ -4,23 +4,26 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
 import java.io.InputStream
+import scala.io.Source
 import play.twirl.api.Html
 
 object DocumentUtil {
 
+  private val options = new MutableDataSet()
+  private val parser = Parser.builder(options).build()
+  private val renderer = HtmlRenderer.builder(options).build
+
   def convert(markdownfile: String): Option[Html] = {
-    val filename = s"/$markdownfile.md"
-    var is = getClass.getResourceAsStream(filename)
-    if (is == null) None else convertInputStream(is)
+    getClass getResourceAsStream s"/$markdownfile.md" match {
+      case is:InputStream => Some(renderInputAsHtml(is))
+      case _ => None
+    }
   }
 
-  private def convertInputStream(is: InputStream) = {
-    val options = new MutableDataSet()
-    val parser = Parser.builder(options).build()
-    val renderer = HtmlRenderer.builder(options).build
-    val content = scala.io.Source.fromInputStream(is).mkString
+  private def renderInputAsHtml(is: InputStream) = {
+    val content = Source.fromInputStream(is).mkString
     val document = parser.parse(content)
-    Some(new Html(renderer.render(document)))
+    new Html(renderer.render(document))
   }
 
 }
