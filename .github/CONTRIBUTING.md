@@ -43,7 +43,7 @@ This is applicable to [GMG employees](http://www.gmgplc.co.uk/).
     - Explain why you are making this change in the pull request
 5. A member of the team will review the changes. Once they are satisfied they will approve the pull request.
 6. If there are no broken or ongoing builds in [TeamCity](https://teamcity.gutools.co.uk/viewType.html?buildTypeId=Tools_SecurityHq), merge your branch and then ensure the master branch is built successfully.
-7. Deploy the build to `PROD` using our deployment platform - [Riff-Raff](https://riffraff.gutools.co.uk/).
+7. Your change will then be automatically deployed to `PROD` by - [Riff-Raff](https://riffraff.gutools.co.uk/).
 
 ### External contributions
 
