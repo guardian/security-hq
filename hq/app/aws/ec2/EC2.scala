@@ -124,24 +124,23 @@ object EC2 {
   }
 
   private[ec2] def addVpcName(flaggedSgs: List[SGOpenPortsDetail], vpcs: Map[String, Vpc]): List[SGOpenPortsDetail] = {
-    for {
-      sgs <- flaggedSgs
-      vpc <- vpcs.collectFirst { case (id, v) if id == sgs.vpcId => v }
-      vpcN = vpc.getTags.asScala.collectFirst { case tag if tag.getKey == "Name" => tag.getValue }
-      sgsUpdated = sgs.copy(vpcName = vpcN)
-    } yield sgsUpdated
+    def vpcName(vpc: Vpc) = vpc.getTags.asScala.collectFirst { case tag if tag.getKey == "Name" => tag.getValue }
+
+    flaggedSgs.map {
+      case s if s.vpcId.nonEmpty => s.copy(vpcName = vpcs.get(s.vpcId) flatMap vpcName)
+      case s => s
+    }
   }
 
-  private[ec2] def getVpcs(account: AwsAccount, flaggedSgs: List[SGOpenPortsDetail])(vpcsDetailsF: (AmazonEC2Async, List[String]) => Attempt[Map[String, Vpc]])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
+  private[ec2] def getVpcs(account: AwsAccount, flaggedSgs: List[SGOpenPortsDetail])(vpcsDetailsF: AmazonEC2Async => Attempt[Map[String, Vpc]])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
     Attempt.traverse(flaggedSgs.map(_.region).distinct) { region =>
       val ec2Client = client(account, Regions.fromName(region))
-      val vpcIds = flaggedSgs.filter(_.region == region).map(_.vpcId)
-      vpcsDetailsF(ec2Client, vpcIds)
+      vpcsDetailsF(ec2Client)
     }.map(_.fold(Map.empty)(_ ++ _))
   }
 
-  private def getVpcsDetails(client: AmazonEC2Async, vpcIds: List[String])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
-    val request = new DescribeVpcsRequest().withVpcIds(vpcIds.asJava)
+  private def getVpcsDetails(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
+    val request = new DescribeVpcsRequest()
     val vpcsResult = handleAWSErrs(awsToScala(client.describeVpcsAsync)(request))
     vpcsResult.map { result =>
       result.getVpcs.asScala.map(vpc => vpc.getVpcId -> vpc).toMap
