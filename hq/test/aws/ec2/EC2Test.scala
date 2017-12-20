@@ -146,28 +146,29 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
     val sgs1 = SGOpenPortsDetail("Ok", "eu-west-1", "name-1", "id-122", "vpc-1", "tcp", "1099", "Yellow", false)
     val sgs2 = SGOpenPortsDetail("Ok", "eu-west-2", "name-2", "id-122", "vpc-2", "tcp", "1099", "Yellow", false)
     val sgs3 = SGOpenPortsDetail("Ok", "eu-west-2", "name-3", "id-122", "vpc-3", "tcp", "1099", "Yellow", false)
-    val sgsList = List(sgs1, sgs2, sgs3)
+    val sgs4 = SGOpenPortsDetail("Ok", "eu-west-2", "name-3", "id-122", "", "tcp", "1099", "Yellow", false)
+    val sgsList = List(sgs1, sgs2, sgs3, sgs4)
     val vpcsMap = Map(
       "vpc-1" -> new Vpc().withVpcId("vpc-1").withTags(new Tag("Name", "name-1")),
       "vpc-2" -> new Vpc().withVpcId("vpc-2").withTags(new Tag("Name", "name-2")),
       "vpc-3" -> new Vpc().withVpcId("vpc-3")
     )
+    val vpcsResult = Attempt.Right(vpcsMap)
 
     "getVpcs" - {
 
       "returns vpc details in a map" in {
-        val vpcsResult = Attempt.Right(vpcsMap)
-        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)((_, _) => vpcsResult).value shouldBe vpcsMap
+        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)( _ => vpcsResult).value shouldBe vpcsMap
       }
 
       "returns empty vpc details" in {
-        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)((_, _) => Attempt.Right(Map.empty)).value shouldBe Map.empty
+        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)( _ => Attempt.Right(Map.empty)).value shouldBe Map.empty
       }
     }
 
     "addVpcName" - {
       "updates SGSOpenPortDetails with vpc name if vpc ids match" in {
-        EC2.addVpcName(sgsList, vpcsMap) shouldBe List(sgs1.copy(vpcName = Some("name-1")), sgs2.copy(vpcName = Some("name-2"))) :+ sgs3
+        EC2.addVpcName(sgsList, vpcsMap) shouldBe List(sgs1.copy(vpcName = Some("name-1")), sgs2.copy(vpcName = Some("name-2"))) :+ sgs3 :+ sgs4
       }
     }
   }
