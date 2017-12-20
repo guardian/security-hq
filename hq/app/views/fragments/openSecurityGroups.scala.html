@@ -8,21 +8,21 @@
 @resourceList(flaggedSg: SGOpenPortsDetail, usages: Set[SGInUse]) = {
     @usages.map {
         case Ec2Instance(id) => {
-              <a target="_blank" rel="noopener noreferrer" class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#Instances:search=@id">
+              <a target="_blank" rel="noopener noreferrer" class="btn usage-cta truncate" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#Instances:search=@id">
                 <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="EC2 instance">computer</i>
                 <i class="material-icons link_new_tab" >open_in_new</i>
                 @id
             </a>
         }
         case ELB(description) => {
-              <a target="_blank" rel="noopener noreferrer" class="btn usage-cta" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#LoadBalancers:search=@description">
+              <a target="_blank" rel="noopener noreferrer" class="btn usage-cta truncate" href="https://@{flaggedSg.region}.console.aws.amazon.com/ec2/v2/home?region=@{flaggedSg.region}#LoadBalancers:search=@description">
                 <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i>
                 <i class="material-icons link_new_tab" >open_in_new</i>
                 @description
             </a>
         }
         case UnknownUsage(description: String, networkInterfaceId: String) => {
-              <a class="btn usage-cta">
+              <a class="btn usage-cta truncate">
                 <i class="material-icons right">report_problem</i>
                 Unknown usage: @description @networkInterfaceId
             </a>
