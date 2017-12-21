@@ -1,7 +1,5 @@
 package controllers
 
-import java.util.concurrent.Executors
-
 import auth.SecurityHQAuthActions
 import aws.AWS
 import aws.ec2.EC2
@@ -20,13 +18,10 @@ class SecurityGroupsController(val config: Configuration)
 
   private val accounts = Config.getAwsAccounts(config)
 
-  // highly parallel for making simultaneous requests across all AWS accounts
-  val highlyAsyncExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
-
   def securityGroups = authAction.async {
     attempt {
       for {
-        allFlaggedSgs <- EC2.allFlaggedSgs(accounts)(highlyAsyncExecutionContext)
+        allFlaggedSgs <- service.SecurityGroups.getFlaggedSecurityGroups
         sortedFlaggedSgs = EC2.sortAccountByFlaggedSgs(allFlaggedSgs)
       } yield Ok(views.html.sgs.sgs(sortedFlaggedSgs))
     }
