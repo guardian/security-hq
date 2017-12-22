@@ -28,7 +28,7 @@ class SecurityGroupsUpdaterTest extends FreeSpec with Eventually with Matchers w
       updater.update(actorSystem)( _ => Attempt.Right(flaggedSgs))
 
       eventually {
-        SecurityGroups.getFlaggedSecurityGroups().value() shouldBe flaggedSgs
+        SecurityGroupsService.getFlaggedSecurityGroups().value() shouldBe flaggedSgs
       }
 
     }

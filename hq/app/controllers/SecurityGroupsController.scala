@@ -7,8 +7,10 @@ import config.Config
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import service.SecurityGroups
+import service.SecurityGroupsService
+import service.SecurityGroupsService.EitherFlaggedSgs
 import utils.attempt.PlayIntegration.attempt
+import utils.attempt.{FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
 
@@ -22,17 +24,22 @@ class SecurityGroupsController(val config: Configuration)
   def securityGroups = authAction.async {
     attempt {
       for {
-        allFlaggedSgs <- SecurityGroups.getFlaggedSecurityGroups
+        allFlaggedSgs <- SecurityGroupsService.getFlaggedSecurityGroups
         sortedFlaggedSgs = EC2.sortAccountByFlaggedSgs(allFlaggedSgs)
       } yield Ok(views.html.sgs.sgs(sortedFlaggedSgs))
     }
   }
 
   def securityGroupsAccount(accountId: String) = authAction.async {
+
+
+    def transform(flaggedSgs : List[EitherFlaggedSgs]) =
+      flaggedSgs.headOption.getOrElse(Left(FailedAttempt(Failure.cannotGetSecurityGroups(accountId))))
+
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        flaggedSgs <- EC2.flaggedSgsForAccount(account)
+        flaggedSgs <- SecurityGroupsService.getFlaggedSecurityGroups.map(fsgs => transform(fsgs.filter{case (acc, _) => acc == account}.map(_._2)))
       } yield Ok(views.html.sgs.sgsAccount(account, flaggedSgs))
     }
   }
