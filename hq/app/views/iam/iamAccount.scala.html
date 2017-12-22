@@ -1,5 +1,5 @@
 @import model.{AwsAccount, CredentialReportDisplay, ExposedIAMKeyDetail}
-@(awsAccount: AwsAccount, exposedIamKeys: List[ExposedIAMKeyDetail], report: CredentialReportDisplay)(implicit assets: AssetsFinder)
+@(awsAccount: AwsAccount, exposedIamKeys: Either[utils.attempt.FailedAttempt, List[ExposedIAMKeyDetail]], report: Either[utils.attempt.FailedAttempt, CredentialReportDisplay])(implicit assets: AssetsFinder)
 
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
@@ -19,62 +19,85 @@
 
 } { @* Main content *@
     <div class="container">
-    @if(exposedIamKeys.nonEmpty) {
-        <div class="row">
-            <h2>Exposed IAM Keys</h2>
-            <div class="card-panel red white-text">
+    @exposedIamKeys match {
+        case Left(errs) => {
+            <p class="p--warning">
+            @for(err <- errs.failures) {
+                @err.friendlyMessage
+            }
+            </p>
+        }
+        case Right(keys) => {
+            @if(keys.nonEmpty) {
+                <div class="row">
+                    <h2>Exposed IAM Keys</h2>
+                    <div class="card-panel red white-text">
 
-                <p class="warning">
-                    <i class="material-icons right">warning</i>
-                    <b>URGENT:</b>
-                    Keys that have been identified as 'exposed' are very likely being used in an ongoing attack.
-                </p>
-            </div>
-
-            @for(exposedIamKey <- exposedIamKeys) {
-                <div class="col s12 m6 l4">
-                    <div class="card">
-                        <div class="card-content card-content--title">
-                            <span class="card-title">@exposedIamKey.username</span>
-                        </div>
-                        <div class="card-content--border red darken-1"></div>
-                        <div class="card-content card-content--body">
-                            <table class="sg-details__table">
-                                <tbody>
-                                    <tr>
-                                        <th>Fraud type</th>
-                                        <td>@exposedIamKey.fraudType</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Usage</th>
-                                        <td>@exposedIamKey.usage</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Case ID</th>
-                                        <td>
-                                            <a href="https://console.aws.amazon.com/support/home#/case/?displayId=@{exposedIamKey.caseId}&language=en">
-                                            @exposedIamKey.caseId
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="card-action">
-                            <a class="btn usage-cta" href="https://console.aws.amazon.com/iam/home?region=eu-west-1#/users/@{exposedIamKey.username}?section=security_credentials">
-                                <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="IAM user">person</i>
-                                @exposedIamKey.username
-                            </a>
-                        </div>
+                        <p class="warning">
+                            <i class="material-icons right">warning</i>
+                            <b>URGENT:</b>
+                            Keys that have been identified as 'exposed' are very likely being used in an ongoing attack.
+                        </p>
                     </div>
+
+                    @for(exposedIamKey <- keys) {
+                        <div class="col s12 m6 l4">
+                            <div class="card">
+                                <div class="card-content card-content--title">
+                                    <span class="card-title">@exposedIamKey.username</span>
+                                </div>
+                                <div class="card-content--border red darken-1"></div>
+                                <div class="card-content card-content--body">
+                                    <table class="sg-details__table">
+                                        <tbody>
+                                            <tr>
+                                                <th>Fraud type</th>
+                                                <td>@exposedIamKey.fraudType</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Usage</th>
+                                                <td>@exposedIamKey.usage</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Case ID</th>
+                                                <td>
+                                                    <a href="https://console.aws.amazon.com/support/home#/case/?displayId=@{exposedIamKey.caseId}&language=en">
+                                                    @exposedIamKey.caseId
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="card-action">
+                                    <a class="btn usage-cta" href="https://console.aws.amazon.com/iam/home?region=eu-west-1#/users/@{exposedIamKey.username}?section=security_credentials">
+                                        <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="IAM user">person</i>
+                                        @exposedIamKey.username
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
-        </div>
+        }
     }
-        <div>
+
+     <div>
             <div class="row">
                 <h2>Credential Report</h2>
-                @views.html.iam.iamCredReportBody(report)
+                @report match {
+                    case Right(success) => {
+                        @views.html.iam.iamCredReportBody(success)
+                    }
+                    case Left(errs) => {
+                        <p class="p--warning">
+                        @for(err <- errs.failures) {
+                            @err.friendlyMessage
+                        }
+                        </p>
+                    }
+                }
             </div>
         </div>
     </div>

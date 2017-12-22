@@ -1,6 +1,6 @@
 @import model.{AwsAccount, SGInUse, SGOpenPortsDetail}
+@(awsAccount: AwsAccount, flaggedSgs: Either[utils.attempt.FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])(implicit assets: AssetsFinder)
 
-@(awsAccount: AwsAccount, flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])(implicit assets: AssetsFinder)
 
 @main(List(awsAccount.name)) { @* Header *@
 <div class="hq-sub-header">
@@ -19,11 +19,22 @@
 
 } { @* Main content *@
     <div class="container">
-        <div class="row">
-            <h2>Open Security Groups</h2>
-            <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
+        @flaggedSgs match {
+            case Left(errs) => {
+                <p class="p--warning">
+                @for(err <- errs.failures) {
+                    @err.friendlyMessage
+                }
+                </p>
+            }
+            case Right(sgs) => {
+                <div class="row">
+                    <h2>Open Security Groups</h2>
+                    <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
+                    @views.html.fragments.openSecurityGroups(sgs, shadow=true)
+                </div>
+            }
+        }
 
-            @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
-        </div>
     </div>
 }

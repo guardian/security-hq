@@ -59,6 +59,23 @@ object Failure {
     Failure(details, friendlyMessage, 403)
   }
 
+  def cannotGetSecurityGroups(accountId: String): Failure =
+    Failure(
+      s"Cannot retrieve Security Groups for $accountId",
+      s"Cannot retrieve Security Groups for $accountId",
+      500)
+
+ def cannotExposedKeys(accountId: String): Failure =
+    Failure(
+      s"Cannot retrieve exposed IAM keys for $accountId",
+      s"Cannot retrieve exposed IAM keys for $accountId",
+      500)
+def cannotGetCredentialReports(accountId: String): Failure =
+    Failure(
+      s"Cannot retrieve credential report for $accountId",
+      s"Cannot retrieve credential report for $accountId",
+      500)
+
   def awsAccountNotFound(accountId: String): Failure = {
     Failure(
       s"Unknown account $accountId",
