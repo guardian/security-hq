@@ -132,7 +132,7 @@ nav {
   margin-top: 10px;
   border-top: solid 1px #0b5351;
   height: -moz-max-content;
-  height: max-content;
+  height: max-content; /* sass-lint:disable-line no-duplicate-properties */
   padding-bottom: 20px;
 }
 
