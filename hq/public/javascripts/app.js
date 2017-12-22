@@ -1,6 +1,7 @@
 jQuery(function($) {
   // idempotent redirect to HTTPS
   if (!/^https/.test(window.location.protocol)) {
+    // eslint-disable-next-line no-console
     console.log('insecure');
     // window.location.replace(location.href.replace(/^http:/, "https:"))
   }
