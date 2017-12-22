@@ -12,7 +12,7 @@ import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import service.{CredentialServiceUpdater, SecurityGroupsUpdater}
+import service._
 
 
 class AppComponents(context: Context)
@@ -20,8 +20,7 @@ class AppComponents(context: Context)
   with CSRFComponents
   with AhcWSComponents with AssetsComponents  {
 
-  val sgsUpdater = new SecurityGroupsUpdater(configuration)
-  val credUpdater = new CredentialServiceUpdater(configuration)
+  val cacheService = new CacheService(configuration)
 
   implicit val impWsClient: WSClient = wsClient
   implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
@@ -33,9 +32,9 @@ class AppComponents(context: Context)
   )
 
   def startBackgroundServices(actorSystem : ActorSystem) = {
-    sgsUpdater.update(actorSystem)(EC2.allFlaggedSgs)
-    credUpdater.updateExposedKeys(actorSystem)(TrustedAdvisorExposedIAMKeys.getAllAccountsExposedIAMKeys)
-    credUpdater.updateCredentialReport(actorSystem)(IAMClient.getAllCredentialReports)
+    cacheService.update(actorSystem)(IAMClient.getAllCredentialReports)(CacheService.updateCredentialReport)
+    cacheService.update(actorSystem)(TrustedAdvisorExposedIAMKeys.getAllAccountsExposedIAMKeys)(CacheService.updateExposedKeys)
+    cacheService.update(actorSystem)(EC2.allFlaggedSgs)(CacheService.updateSecurityGroups)
   }
 
   override def router: Router = new Routes(
