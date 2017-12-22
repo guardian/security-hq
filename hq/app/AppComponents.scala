@@ -1,4 +1,5 @@
 import akka.actor.ActorSystem
+import aws.ec2.EC2
 import controllers._
 import filters.HstsFilter
 import play.api.ApplicationLoader.Context
@@ -29,7 +30,8 @@ class AppComponents(context: Context)
   )
 
   def startBackgroundServices(actorSystem : ActorSystem) = {
-    sgsUpdater.update(actorSystem)(executionContext)
+
+    sgsUpdater.update(actorSystem)(EC2.allFlaggedSgs)
   }
 
   override def router: Router = new Routes(

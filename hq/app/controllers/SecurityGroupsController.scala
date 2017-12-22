@@ -7,6 +7,7 @@ import config.Config
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import service.SecurityGroups
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
@@ -21,7 +22,7 @@ class SecurityGroupsController(val config: Configuration)
   def securityGroups = authAction.async {
     attempt {
       for {
-        allFlaggedSgs <- service.SecurityGroups.getFlaggedSecurityGroups
+        allFlaggedSgs <- SecurityGroups.getFlaggedSecurityGroups
         sortedFlaggedSgs = EC2.sortAccountByFlaggedSgs(allFlaggedSgs)
       } yield Ok(views.html.sgs.sgs(sortedFlaggedSgs))
     }
