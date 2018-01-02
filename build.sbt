@@ -15,7 +15,7 @@ val awsSdkVersion = "1.11.185"
 val playVersion = "2.6.7"
 
 lazy val hq = (project in file("hq")).
-  enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin).
+  enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin, SbtWeb).
   settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -35,6 +35,7 @@ lazy val hq = (project in file("hq")).
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
     ),
+    pipelineStages in Assets := Seq(digest),
     // exclude docs
     sources in (Compile,doc) := Seq.empty,
     packageName in Universal := "security-hq",
