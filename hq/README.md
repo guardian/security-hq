@@ -112,9 +112,13 @@ It is possible to run the application and setup nginx as a proxy; this will make
 
 ### Working with CSS and JS
 
-Security HQ uses [Prettier](https://prettier.io), an opinionated code formatter. This can be run as a pre-commit hook, to format all of the stages changes in the CSS and JS.
+Security HQ uses [Prettier](https://prettier.io) and [ESLint](https://eslint.org/docs/about/) to provide opinionated code formatting and linting. As part of the automated build, all CSS and JS will be validated using the rules of Prettier and ESLint.
 
-1. You will need to install [Yarn](https://yarnpkg.com) to handle the dependencies:
+#### Testing changes, and passing code validation
+
+Before beginning, you may want to install a node version manager, such as [nvm](https://github.com/creationix/nvm).
+
+1. You will need to install [Yarn](https://yarnpkg.com) to handle the project dependencies:
   > *Linux:* Instructions can be found here: https://yarnpkg.com/lang/en/docs/install/#linux-tab
   >
   > *Mac OSX:* `$ brew install yarn`
@@ -124,17 +128,19 @@ Security HQ uses [Prettier](https://prettier.io), an opinionated code formatter.
 `$ yarn`
 
 
-#### Running checks with Yarn
+##### Running checks with Yarn
 
-- It is possible to auto-fix all the CSS and JS files:
-
-`$ yarn run prettier`
-
-N.B. The changes will need to be staged afterwards.
-
-
-- To get detailed information on errors and warnings from the CSS, use:
+To see any errors and warnings for the CSS use:
 
 `$ yarn run sass-lint`
 
-If issues are raised, you can then decide if you want to manually fix them, or run Prettier against the file(s).
+To see any errors and warnings for the JS use:
+
+`$ yarn run eslint`
+
+To attempt to auto-fix the CSS and JS, you can try using Prettier:
+
+`$ yarn run prettier`
+
+**N.B. Although Prettier will write to the files, changes will still need to be staged afterwards.**
+
