@@ -22,10 +22,9 @@
 
         @views.html.header()
 
-        @pageHeader
-
         <main>
-        @content
+          @pageHeader
+          @content
         </main>
 
         <footer class="page-footer grey darken-4">
@@ -39,7 +38,12 @@
                     </div>
                     <div class="col l3 offset-l1 s12">
                         <ul>
-                            <li><a class="grey-text text-lighten-3" href="https://github.com/guardian/security-hq">GitHub</a></li>
+                            <li class="hq-footer__links">
+                              <a class="grey-text text-lighten-3" href="https://github.com/guardian/security-hq"><i class="material-icons left">link</i><span>GitHub</span></a>
+                            </li>
+                            <li class="hq-footer__links">
+                              <a class="grey-text text-lighten-3" href="/documentation/"><i class="material-icons left">description</i><span>Documentation</span></a>
+                            </li>
                         </ul>
                     </div>
                 </div>
