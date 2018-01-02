@@ -1,13 +1,17 @@
 jQuery(function($) {
   // idempotent redirect to HTTPS
   if (!/^https/.test(window.location.protocol)) {
+    // eslint-disable-next-line no-console
     console.log('insecure');
     // window.location.replace(location.href.replace(/^http:/, "https:"))
   }
 });
 
-// extensions to the security groups page
 $(document).ready(function() {
+  // initalizing the mobile nav
+  $('.button-collapse').sideNav();
+
+  // Extra interactions for the dropdowns on the Security Groups page
   $('.js-sg-details').hover(
     function() {
       $(this).collapsible('open', 0);
@@ -30,6 +34,7 @@ $(document).ready(function() {
     $(this).data('clicks', !clicks);
   });
 
+  // Functionality for the floating menus on the Security Groups page
   $('.js-sg-pin-close').click(function() {
     $('html, body')
       .stop()

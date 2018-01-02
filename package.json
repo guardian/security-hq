@@ -1,15 +1,26 @@
 {
+  "name": "security-hq",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": "8.5.0",
+    "yarn": "1.2.1"
+  },
   "devDependencies": {
+    "eslint": "4.13.1",
+    "eslint-config-prettier": "2.9.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-prettier": "2.4.0",
     "materialize-css": "0.100.2",
     "prettier": "1.8.0",
     "sass-lint": "1.12.1"
   },
-  "name": "security-hq",
   "prettier": {
     "singleQuote": true
   },
-  "private": true,
   "scripts": {
+    "eslint": "eslint --max-warnings 0 --format codeframe --ignore-pattern '**/*.min.js' hq/public/javascripts/",
+    "linter-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "prettier": "prettier -o --write './**/*.{js,css}'",
     "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css"
   }

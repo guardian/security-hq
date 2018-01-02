@@ -132,7 +132,7 @@ nav {
   margin-top: 10px;
   border-top: solid 1px #0b5351;
   height: -moz-max-content;
-  height: max-content;
+  height: max-content; /* sass-lint:disable-line no-duplicate-properties */
   padding-bottom: 20px;
 }
 
@@ -304,4 +304,10 @@ table.iam-report__table th {
 
 .link_new_tab {
   vertical-align: bottom;
+}
+
+/* footer */
+
+.hq-footer__links {
+  height: 40px;
 }
