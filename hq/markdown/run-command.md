@@ -2,8 +2,8 @@
 
 ## Prerequisites for this tutorial
 
- * jq - the command line json manipulation program
- * aws - the command line amazon tool (awscli)
+ * [jq](https://stedolan.github.io/jq/) - the command line json manipulation program
+ * [aws](https://docs.aws.amazon.com/cli/latest/userguide/installing.html) - the command line Amazon tool (awscli)
  * some understanding of bash
  * some understanding of IAM, EC2 and Cloudformation
 
@@ -26,13 +26,13 @@ If you have not yet setup EC2 run on the instance, then go to the second section
 
 ### Create IAM client permissions
 
-Use an admin account, then you can skip this. If not, it is task 1 in doc 1 below
+Use an admin account, then you can skip this. If not, see Task 1 of the [AWS documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html#sysman-access-user)
 
 ### Installation
 
 #### Create an IAM role (this will need to be done in cloudformation)
 
-See Task 2 in doc 1 below
+See Task 2 in the [AWS documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html#sysman-configuring-access-role)
 
 In short, assuming you have an instance role already, you will need to include the following yaml entry under the [instance properties](https://github.com/guardian/security-hq/blob/master/cloudformation/security-hq.template.yaml#L86):
 ```
@@ -59,7 +59,7 @@ then log off
 
 #### Check you now have access to the box via ssm
 
-// you can do this with the developer credentials from Janus? (tried dev before admin)
+// kate - you can do this with the developer credentials from Janus? (tried dev before admin)
 
 Choose the target account and region.  For example:
 ```
@@ -84,14 +84,12 @@ aws --region $region --profile $profile ec2 describe-instances
 
 ### Convenience functions
 
-See doc 2 below
+The AWS documentation has [a tutorial](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html) on using Run Command
 
-Create the following functions:
-
-// see updated script in file
-// also, can we make this a script that takes parameters?
+To help with running commands, we should create the following functions:
 
 ```
+#!/usr/bin/env bash
 function send_command {
 aws --region $region --profile $profile ssm send-command \
    --document-name "AWS-RunShellScript" \
@@ -118,14 +116,14 @@ for this_instance in $instance; do
    while [[ $responseCode -eq -1 ]]; do
       printf "."
       sleep 1
-      responseCode=$(aws --region $region --profile $profile ssm get-command-invocation \
+      responseCode=$(aws --region $region --profile $profile ssm list-command-invocations \
          --command-id "$command_id" \
           --instance-id "$this_instance" \
          | jq -r '.ResponseCode')
-      if [[ $responseCode -ne -1 ]]; then 
-         echo; 
+      if [[ $responseCode -ne -1 ]]; then
+         echo;
       fi
-      if [[ $responseCode -gt -0 ]]; then 
+      if [[ $responseCode -gt -0 ]]; then
          result=1
       fi
    done
@@ -134,20 +132,25 @@ return $result
 }
 
 function run {
-command_id=$(send_command)
-wait_for_command
-echo "Return code was $?"
-read_command_output
+    command_id=$(send_command)
+    wait_for_command
+    echo "Return code was $?"
+    read_command_output
 }
+
+export command=$1
+export instance=$2
+
 run
 ```
 
+An example can be found in the [Security HQ ssm-util file](https://git.io/vNv6w)
 
 // Give people the complete script, and how to use it... then explain how it works!
 
 ### Run a command
 
-1. Specify the command and target:
+Specify the command and target:
 ```
 export command="uname -a"
 export instance="i-0fe40a72847b61cc6"
@@ -157,33 +160,34 @@ or
 export instance="i-01cfb366185e459bd i-0fe40a72847b61cc6"
 ```
 
-2. Run the script"
+Run the script:
 ```
 sh ssm-util.sh
 ```
 
 
-// BONUS! Details on how the script works for the curious - not required reading
+## Bonus details for the curious - not required reading
 
+### How the ssm-util script works:
 
-This command will output the command id required for the next section
+#### This command will output the command id required for the next section:
 ```
 export command_id=$(send_command)
 ```
 
-### Wait for command to complete
+#### Wait for command to complete:
 
 ```
 wait_for_command
 ```
 
-### Get the output
+#### Get the output:
 
 ```
 read_command_output
 ```
 
-## Finally, do it all in one go!
+#### Finally, do it all in one go!
 
 ```
 function run {
@@ -197,10 +201,8 @@ run
 
 
 
-
-
 ## References
 
 1. [http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html](http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html)
 2. [http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html)
-
+3. [https://docs.aws.amazon.com/cli/latest/userguide/installing.html](https://docs.aws.amazon.com/cli/latest/userguide/installing.html)
