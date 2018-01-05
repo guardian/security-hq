@@ -8,7 +8,7 @@ import cats.instances.set._
 import cats.syntax.semigroup._
 import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.ec2.model._
+import com.amazonaws.services.ec2.model.{DescribeVpcsRequest, Vpc, DescribeNetworkInterfacesRequest, DescribeNetworkInterfacesResult, Filter, NetworkInterface}
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import model._
 import utils.attempt.{Attempt, FailedAttempt}
@@ -56,14 +56,8 @@ object EC2 {
       sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
       sgUsage <- getSgsUsage(sgResult, account)
       flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
-      flaggedSgsIds = flaggedSgs.map(_.id)
-      regions = flaggedSgs.map(sg => Regions.fromName(sg.region)).distinct
-      clients = regions.map(client(account, _))
-      describeSecurityGroupsResults <- Attempt.traverse(clients)(EC2.describeSecurityGroups(flaggedSgsIds))
-      sgTagDetails = describeSecurityGroupsResults.flatMap(extractTagsForSecurityGroups).toMap
-      enrichedFlaggedSgs = enrichSecurityGroups(flaggedSgs, sgTagDetails)
-      vpcs <- getVpcs(account, enrichedFlaggedSgs)(getVpcsDetails)
-      flaggedSgsWithVpc = addVpcName(enrichedFlaggedSgs, vpcs)
+      vpcs <- getVpcs(account, flaggedSgs)(getVpcsDetails)
+      flaggedSgsWithVpc = addVpcName(flaggedSgs, vpcs)
     } yield sortSecurityGroupsByInUse(flaggedSgsWithVpc, sgUsage)
   }
 
@@ -95,30 +89,6 @@ object EC2 {
       // sort internally by name of account
       case (account, Right(flaggedSgs)) =>
         (1, 0, 0, account.name)
-    }
-  }
-
-  private def describeSecurityGroups(sgIds: List[String])(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[DescribeSecurityGroupsResult] = {
-    val request = new DescribeSecurityGroupsRequest()
-      .withFilters(new Filter("group-id", sgIds.asJava))
-    handleAWSErrs(awsToScala(client.describeSecurityGroupsAsync)(request))
-  }
-
-  private[ec2] def extractTagsForSecurityGroups(describeSecurityGroupsResult: DescribeSecurityGroupsResult): Map[String, List[Tag]] = {
-    val sgs = describeSecurityGroupsResult.getSecurityGroups.asScala.toList
-    sgs.map { sg =>
-      sg.getGroupId -> sg.getTags.asScala.toList
-    }.toMap
-  }
-
-  private[ec2] def enrichSecurityGroups(sGOpenPortsDetails: List[SGOpenPortsDetail], sgTagDetails: Map[String, List[Tag]]): List[SGOpenPortsDetail] = {
-    sGOpenPortsDetails.map { sGOpenPortsDetail =>
-      val enrichedSGOpenPortsDetail = for {
-        tags <- sgTagDetails.get(sGOpenPortsDetail.id)
-        cfStackNameTag <- tags.find(_.getKey == "aws:cloudformation:stack-name")
-        cfStackIdTag <- tags.find(_.getKey == "aws:cloudformation:stack-id")
-      } yield sGOpenPortsDetail.copy(stackName = Some(cfStackNameTag.getValue), stackId = Some(cfStackIdTag.getValue))
-      enrichedSGOpenPortsDetail.getOrElse(sGOpenPortsDetail)
     }
   }
 

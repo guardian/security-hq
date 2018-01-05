@@ -1,6 +1,7 @@
 package aws.ec2
 
-import com.amazonaws.services.ec2.model._
+import com.amazonaws.services.ec2.AmazonEC2Async
+import com.amazonaws.services.ec2.model.{Instance => _, _}
 import model._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
@@ -10,11 +11,9 @@ import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{Attempt, AttemptValues}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 import scala.util.Random
 import scala.concurrent.ExecutionContext.Implicits.global
-
 
 class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
   "parseNetworkInterface" - {
@@ -32,88 +31,6 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
         .withNetworkInterfaceId("ni-123")
         .withAttachment(new NetworkInterfaceAttachment())
       EC2.parseNetworkInterface(ni) shouldEqual UnknownUsage("network-interface", "ni-123")
-    }
-  }
-
-  "extractTagsForSecurityGroups" - {
-    "finds the tags for each security group" in {
-      val tag1 = new Tag("tag1", "value1")
-      val tag2 = new Tag("tag2", "value2")
-      val tag3 = new Tag("tag3", "value3")
-      val sg1 = new SecurityGroup()
-        .withGroupId("sg-1")
-        .withTags(tag1)
-      val sg2 = new SecurityGroup()
-        .withGroupId("sg-2")
-        .withTags(tag2, tag3)
-      val result = new DescribeSecurityGroupsResult()
-        .withSecurityGroups(sg1, sg2)
-
-      EC2.extractTagsForSecurityGroups(result) shouldEqual Map("sg-1" -> List(tag1), "sg-2" -> List(tag2, tag3))
-    }
-
-    "returns an empty list of tags, if the security group has no tags" in {
-      val sgWithNoTags = new SecurityGroup().withGroupId("sg-1")
-      val result = new DescribeSecurityGroupsResult()
-        .withSecurityGroups(sgWithNoTags)
-      EC2.extractTagsForSecurityGroups(result) shouldEqual Map("sg-1" -> Nil)
-    }
-
-    "returns an empty map if there are no security groups" in {
-      val emptyResult = new DescribeSecurityGroupsResult()
-      EC2.extractTagsForSecurityGroups(emptyResult) shouldEqual Map.empty
-    }
-  }
-
-  "enrichSecurityGroups" - {
-    val nonCfTag = new Tag("tag1", "value1")
-    val cfStackIdTag = new Tag("aws:cloudformation:stack-id", "cf-stack-1")
-    val cfStackNameTag = new Tag("aws:cloudformation:stack-name", "cf-name-1")
-    val sg1 = SGOpenPortsDetail("Ok", "eu-west-1", "name-1", "sg-1", "vpc-1", "tcp", "1099", "Yellow", false, None, None)
-    val sg2 = SGOpenPortsDetail("Ok", "eu-west-1", "name-2", "sg-2", "vpc-2", "tcp", "1099", "Yellow", false, None, None)
-    val sgs = List(sg1, sg2)
-
-    "when provided relevant tags," - {
-      "adds the Cloudformation stack name and ID to a security group" in {
-        val List(sg1, _) = EC2.enrichSecurityGroups(sgs, Map("sg-1" -> List(cfStackIdTag, cfStackNameTag)))
-        sg1 should have(
-          'stackId (Some("cf-stack-1")),
-          'stackName (Some("cf-name-1"))
-        )
-      }
-
-      "adds the Cloudformation stack name and ID to multiple security groups" in {
-        val tagDetails = Map("sg-1" -> List(cfStackIdTag, cfStackNameTag), "sg-2" -> List(cfStackIdTag, cfStackNameTag))
-        val enrichedSgs = EC2.enrichSecurityGroups(sgs, tagDetails)
-        enrichedSgs.foreach { sg =>
-          sg should have(
-            'stackId (Some("cf-stack-1")),
-            'stackName (Some("cf-name-1"))
-          )
-        }
-      }
-
-      "will not change the security group if the Cloudformation stack name is missing" in {
-        val tagDetails = Map("sg-1" -> List(cfStackIdTag))
-        EC2.enrichSecurityGroups(List(sg1), tagDetails) shouldEqual List(sg1)
-      }
-
-      "will not change the security group if the Cloudformation stack ID is missing" in {
-        val tagDetails = Map("sg-1" -> List(cfStackNameTag))
-        EC2.enrichSecurityGroups(List(sg1), tagDetails) shouldEqual List(sg1)
-      }
-    }
-
-    "leaves the security group as is in the absence of Cloudformation tags" in {
-      EC2.enrichSecurityGroups(sgs, Map("sg-1" -> List(nonCfTag))) shouldEqual sgs
-    }
-
-    "preserves provided security groups in the absence of any tags" in {
-      EC2.enrichSecurityGroups(sgs, Map.empty) shouldEqual sgs
-    }
-
-    "returns Nil if the security groups are empty" in {
-      EC2.enrichSecurityGroups(Nil, Map("sg-1" -> List(cfStackIdTag, cfStackNameTag))) shouldEqual Nil
     }
   }
 
