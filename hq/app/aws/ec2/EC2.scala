@@ -113,12 +113,12 @@ object EC2 {
 
   private[ec2] def enrichSecurityGroups(sGOpenPortsDetails: List[SGOpenPortsDetail], sgTagDetails: Map[String, List[Tag]]): List[SGOpenPortsDetail] = {
     sGOpenPortsDetails.map { sGOpenPortsDetail =>
-      val enrichedSGOpenPortsDetail = for {
+      val temp = for {
         tags <- sgTagDetails.get(sGOpenPortsDetail.id)
         cfStackNameTag <- tags.find(_.getKey == "aws:cloudformation:stack-name")
         cfStackIdTag <- tags.find(_.getKey == "aws:cloudformation:stack-id")
       } yield sGOpenPortsDetail.copy(stackName = Some(cfStackNameTag.getValue), stackId = Some(cfStackIdTag.getValue))
-      enrichedSGOpenPortsDetail.getOrElse(sGOpenPortsDetail)
+      temp.getOrElse(sGOpenPortsDetail)
     }
   }
 
