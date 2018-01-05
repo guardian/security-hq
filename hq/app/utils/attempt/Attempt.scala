@@ -67,14 +67,6 @@ object Attempt {
     as.foldRight[Attempt[List[B]]](Right(Nil))(f(_).map2(_)(_ :: _))
   }
 
-  /** Traverses the given list `List[A]` with the function f, A => Attempt[List[B]]` and flattens the generated result into Attempt[List[B]]`
-    * This implementation returns the first failure in the resulting list,
-    * or the successful result.
-    */
-  def flatTraverse[A, B](as: List[A])(f: A => Attempt[List[B]])(implicit ec: ExecutionContext): Attempt[List[B]] = {
-    as.foldRight[Attempt[List[B]]](Right(Nil))(f(_).map2(_)(_ ++ _))
-  }
-
   /**
     * Using the provided traversal function, sequence the resulting attempts
     * into a list that preserves failures.
