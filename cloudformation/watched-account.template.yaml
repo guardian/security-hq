@@ -32,6 +32,7 @@ Resources:
             Action:
             # Analyse security groups
             - trustedadvisor:Describe*
+            - trustedadvisor:Refresh*
             - support:*
             - ec2:DescribeNetworkInterfaces
             - ec2:DescribeSecurityGroups

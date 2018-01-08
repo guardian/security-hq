@@ -2,6 +2,7 @@ package aws.ec2
 
 import aws.AWS
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
+import aws.support.TrustedAdvisor.refreshTrustedAdvisorCheck
 import aws.support.{TrustedAdvisor, TrustedAdvisorSGOpenPorts}
 import cats.instances.map._
 import cats.instances.set._
@@ -10,6 +11,7 @@ import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.model.{DescribeVpcsRequest, Vpc, DescribeNetworkInterfacesRequest, DescribeNetworkInterfacesResult, Filter, NetworkInterface}
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
+import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model._
 import utils.attempt.{Attempt, FailedAttempt}
 
@@ -61,12 +63,19 @@ object EC2 {
     } yield sortSecurityGroupsByInUse(flaggedSgsWithVpc, sgUsage)
   }
 
-  def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
-    Attempt.Async.Right {
-      Future.traverse(accounts) { account =>
-        flaggedSgsForAccount(account).asFuture.map(account -> _)
-      }
+  def refreshSGSReports(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, RefreshTrustedAdvisorCheckResult]]] = {
+    Attempt.traverseWithFailures(accounts) { account =>
+      val supportClient = TrustedAdvisor.client(account)
+      TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(supportClient)
     }
+  }
+
+  def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
+      Attempt.Async.Right {
+        Future.traverse(accounts) { account =>
+          flaggedSgsForAccount(account).asFuture.map(account -> _)
+        }
+      }
   }
 
   private [ec2] def sortSecurityGroupsByInUse(sgsPortFlags : List[SGOpenPortsDetail], sgUsage: Map[String, Set[SGInUse]]) = {
