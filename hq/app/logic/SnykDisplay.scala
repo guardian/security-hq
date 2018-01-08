@@ -57,12 +57,12 @@ object SnykDisplay {
     }}
   }
 
-  def getOrganisationId(s: WSRequest#Self#Response, organisation: Organisation) = {
+  def getOrganisationId(s: String, organisation: Organisation) = {
     val id = for {
-      orglist <- (Json.parse(s.body) \ "orgs").asOpt[List[SnykOrg]]
+      orglist <- (Json.parse(s) \ "orgs").asOpt[List[SnykOrg]]
       org <- orglist.find(_.name == organisation.value)
     } yield org.id
-    val f = Failure(s"Unable to find organisation from ${s.body}", "Could not read Snyk response", 502, None, None)
+    val f = Failure(s"Unable to find organisation from ${s}", "Could not read Snyk response", 502, None, None)
     Attempt.fromOption(id, FailedAttempt(f))
   }
 
@@ -78,9 +78,9 @@ object SnykDisplay {
     }}
   }
 
-  def getProjectIdList(s: WSRequest#Self#Response) = {
-    val projectIds = (Json.parse(s.body) \ "projects").asOpt[List[SnykProject]]
-    val f = Failure(s"Unable to find project ids from ${s.body}", "Could not read Snyk response", 502, None, None)
+  def getProjectIdList(s: String) = {
+    val projectIds = (Json.parse(s) \ "projects").asOpt[List[SnykProject]]
+    val f = Failure(s"Unable to find project ids from ${s}", "Could not read Snyk response", 502, None, None)
     Attempt.fromOption(projectIds, FailedAttempt(f))
   }
 
@@ -117,15 +117,18 @@ object SnykDisplay {
     )
   }
 
-  def parseProjectVulnerabilities(projects: List[WSRequest#Self#Response])(implicit ec:ExecutionContext) = {
+  def parseProjectVulnerabilities(projects: List[String])(implicit ec:ExecutionContext) = {
     val b = projects.map( s => {
-      val projectVulnerabilities = (Json.parse(s.body)).asOpt[SnykProjectIssues]
-      val f = Failure(s"Unable to find project vulnerabilities from ${s.body}", "Could not read Snyk response", 502, None, None)
+      val projectVulnerabilities = (Json.parse(s)).asOpt[SnykProjectIssues]
+      val f = Failure(s"Unable to find project vulnerabilities from ${s}", "Could not read Snyk response", 502, None, None)
       Attempt.fromOption(projectVulnerabilities, FailedAttempt(f))
     })
     Attempt.traverse(b)(a => a)
   }
 
+  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]) = {
+    projects.zip(responses).map(a => a._2.withName(a._1.name).withId(a._1.id))
+  }
 }
 
 case class SnykOrg(name: String, id: String)

@@ -24,12 +24,13 @@ class SnykController(val config: Configuration)
       attempt {
         for {
           organisationResponse <- SnykDisplay.getSnykOrganisations(token, wsClient)
-          organisationId <- SnykDisplay.getOrganisationId(organisationResponse, organisation)
+          organisationId <- SnykDisplay.getOrganisationId(organisationResponse.body, organisation)
           projectResponse <- SnykDisplay.getProjects(token, organisationId, wsClient)
-          projects <- SnykDisplay.getProjectIdList(projectResponse)
+          projects <- SnykDisplay.getProjectIdList(projectResponse.body)
           vulnerabilitiesResponse <- SnykDisplay.getProjectVulnerabilities(organisationId, projects, token, wsClient)
-          parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponse)
-          results = projects.zip(parsedVulnerabilitiesResponse).map(a => a._2.withName(a._1.name).withId(a._1.id))
+          vulnerabilitiesResponseBodies = vulnerabilitiesResponse.map(a => a.body)
+          parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)
+          results = SnykDisplay.labelProjects(projects, parsedVulnerabilitiesResponse)
         } yield Ok(views.html.snyk.snyk(results))
       }
     }
