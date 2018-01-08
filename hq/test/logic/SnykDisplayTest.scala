@@ -12,10 +12,16 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     organisationId.value() shouldBe "1111111111"
   }
 
-  "fail to find organisationId" in {
-    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponse, new Organisation("guardian"))
+  "fail to find organisationId (nice)" in {
+    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponseWithMessage, new Organisation("guardian"))
     organisationId.isFailedAttempt shouldBe true
-    organisationId.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
+    organisationId.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+  }
+
+  "fail to find organisationId (not nice)" in {
+    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponseWithoutMessage, new Organisation("guardian"))
+    organisationId.isFailedAttempt shouldBe true
+    organisationId.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response ({\"toughluck\": \"no use\"})"
   }
 
   "find project id list" in {
@@ -24,10 +30,16 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     projects.value().find(p => p.name == "project2").isEmpty shouldBe false
   }
 
-  "fail to find project id list" in {
-    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponse)
+  "fail to find project id list (nice)" in {
+    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithMessage)
     projects.isFailedAttempt shouldBe true
-    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
+    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+  }
+
+  "fail to find project id list (not nice)" in {
+    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithoutMessage)
+    projects.isFailedAttempt shouldBe true
+    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response ({\"toughluck\": \"no use\"})"
   }
 
   "find empty vulnerability list" in {
@@ -43,10 +55,16 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     projects.value().head.low shouldBe 0
   }
 
-  "fail to find vulnerability list" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponse))
+  "fail to find vulnerability list (nice)" in {
+    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithMessage))
     projects.isFailedAttempt() shouldBe true
-    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
+    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+  }
+
+  "fail to find vulnerability list (not nice)" in {
+    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
+    projects.isFailedAttempt() shouldBe true
+    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response ({\"toughluck\": \"no use\"})"
   }
 
   "label projects" in {
@@ -61,7 +79,10 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
 object SnykDisplayTest  {
 
-  val mockBadResponse = s"""{\"banana\": \"apple\"}"""
+  val mockBadResponseWithMessage = s"""{\"error\": \"some nice error\"}"""
+
+  val mockBadResponseWithoutMessage = s"""{\"toughluck\": \"no use\"}"""
+
   val mockGoodOrganisationResponse =
     s"""
        |{\"orgs\":
