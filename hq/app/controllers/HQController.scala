@@ -2,13 +2,15 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
-import aws.iam.IAMClient
-import aws.support.{TrustedAdvisor, TrustedAdvisorExposedIAMKeys}
 import config.Config
+import model.AwsAccount
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import service.CacheService
+import service.CacheService.ExposedKeys
 import utils.attempt.PlayIntegration.attempt
+import utils.attempt.{Attempt, Failure}
 
 import scala.concurrent.ExecutionContext
 
@@ -25,20 +27,32 @@ class HQController (val config: Configuration)
   def iam = authAction.async {
     attempt {
       for {
-        accountsAndReports <- IAMClient.getAllCredentialReports(accounts)
+        accountsAndReports <- CacheService.getCredentialReport()
       } yield Ok(views.html.iam.iam(accountsAndReports.toMap))
 
     }
   }
 
   def iamAccount(accountId: String) = authAction.async {
+
+    def findExposedKeys(account: AwsAccount)(exposedKeys: ExposedKeys) = {
+      val opt = exposedKeys.filter {
+        case Right((acc, _)) => acc == account
+        case Left(_) => false
+      }
+      opt.headOption.map(e => e.map(_._2.flaggedResources)).map(Attempt.Right).getOrElse(Attempt.Left(Failure.cannotExposedKeys(accountId)))
+    }
+
+    def findCredReport(account: AwsAccount)(reports: CacheService.CredentialReport) = {
+      val filtered = reports.filter { case (acc, _) => acc == account }
+      filtered.headOption.map(e => Attempt.Right(e._2)).getOrElse(Attempt.Left(Failure.cannotGetCredentialReports(accountId)))
+    }
+
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        client = TrustedAdvisor.client(account)
-        exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(client)
-        exposedIamKeys = exposedIamKeysResult.flaggedResources
-        credReport <- IAMClient.getCredentialsReport(account)
+        exposedIamKeys <-  CacheService.getExposedKeys() flatMap findExposedKeys(account)
+        credReport <- CacheService.getCredentialReport() flatMap findCredReport(account)
       } yield Ok(views.html.iam.iamAccount(account, exposedIamKeys, credReport))
     }
   }

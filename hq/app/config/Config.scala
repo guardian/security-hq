@@ -8,10 +8,15 @@ import model.{AwsAccount, DEV, PROD, Stage}
 import play.api.Configuration
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 import scala.util.Try
 
 
 object Config {
+  def getAwsApiCacheInterval(config: Configuration): Duration = {
+    config.getOptional[Int]("hq.awsApiCacheInterval").getOrElse(120).seconds
+  }
+
   def getStage(config: Configuration): Stage = {
     config.getAndValidate("stage", Set("DEV", "PROD")) match {
       case "DEV" => DEV

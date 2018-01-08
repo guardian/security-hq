@@ -7,6 +7,10 @@ class AppLoader extends ApplicationLoader {
     LoggerConfigurator(context.environment.classLoader).foreach {
       _.configure(context.environment)
     }
-    new AppComponents(context).application
+    val components = new AppComponents(context)
+    val app = components.application
+
+    components.startBackgroundServices(app.actorSystem)
+    app
   }
 }
