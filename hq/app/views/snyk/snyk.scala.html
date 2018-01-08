@@ -1,0 +1,61 @@
+@import logic.SnykDisplay
+@import logic._
+
+@(results: List[SnykProjectIssues])(implicit assets: AssetsFinder)
+
+@main(Nil) { @* Header *@
+    <div class="container">
+        <div class="row">
+            <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
+            <div class="col s12 m9">
+                <h4 class="grey-text text-darken-4 center-on-small-only">Snyk Results</h4>
+            </div>
+        </div>
+    </div>
+
+} { @* Main content *@
+
+    <div class="container">
+
+        <table class="striped responsive-table filterable-table">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>High</th>
+                    <th>Medium</th>
+                    <th>Low</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @for(project <- results.sortWith((a, b) =>
+                a.high > b.high
+                        || a.high == b.high && (
+                        a.medium > b.medium
+                                || a.medium == b.medium && (
+                                a.low > b.low
+                                        || a.low == b.low && a.name < b.name)))) {
+                <tr>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/">@project.name</a>
+                    </td>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/?disclosure=all&severity=high">
+                            @project.high
+                        </a>
+                    </td>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/?disclosure=all&severity=medium">@project.medium</a>
+                    </td>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/?disclosure=all&severity=low">@project.low</a>
+                    </td>
+                </tr>
+            }
+
+        </table>
+
+    </div>
+    </div>
+
+}
