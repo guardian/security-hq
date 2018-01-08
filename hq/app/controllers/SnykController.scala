@@ -7,8 +7,10 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
-import logic.{Organisation, SnykDisplay, Token}
+import logic.SnykDisplay
+import api.Snyk
 import utils.attempt.PlayIntegration.attempt
+import model._
 
 
 class SnykController(val config: Configuration)
@@ -23,11 +25,11 @@ class SnykController(val config: Configuration)
     Action.async {
       attempt {
         for {
-          organisationResponse <- SnykDisplay.getSnykOrganisations(token, wsClient)
+          organisationResponse <- Snyk.getSnykOrganisations(token, wsClient)
           organisationId <- SnykDisplay.getOrganisationId(organisationResponse.body, organisation)
-          projectResponse <- SnykDisplay.getProjects(token, organisationId, wsClient)
+          projectResponse <- Snyk.getProjects(token, organisationId, wsClient)
           projects <- SnykDisplay.getProjectIdList(projectResponse.body)
-          vulnerabilitiesResponse <- SnykDisplay.getProjectVulnerabilities(organisationId, projects, token, wsClient)
+          vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(organisationId, projects, token, wsClient)
           vulnerabilitiesResponseBodies = vulnerabilitiesResponse.map(a => a.body)
           parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)
           results = SnykDisplay.labelProjects(projects, parsedVulnerabilitiesResponse)

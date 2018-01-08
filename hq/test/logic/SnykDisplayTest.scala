@@ -1,14 +1,65 @@
 package logic
 
 import model._
-import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{Attempt, AttemptValues}
+import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.concurrent.ExecutionContext
+class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
-class SnykDisplayTest  extends FreeSpec with Matchers with AttemptValues {
-  import scala.concurrent.ExecutionContext.Implicits.global
+  "find organisationId" in {
+    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockGoodOrganisationResponse, new Organisation("guardian"))
+    organisationId.value() shouldBe "1111111111"
+  }
+
+  "fail to find organisationId" in {
+    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponse, new Organisation("guardian"))
+    organisationId.isFailedAttempt shouldBe true
+    organisationId.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
+  }
+
+  "find project id list" in {
+    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockGoodProjectResponse)
+    projects.value().find(p => p.name == "project1").isEmpty shouldBe false
+    projects.value().find(p => p.name == "project2").isEmpty shouldBe false
+  }
+
+  "fail to find project id list" in {
+    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponse)
+    projects.isFailedAttempt shouldBe true
+    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
+  }
+
+  "find empty vulnerability list" in {
+    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodAndNotVulnerableResponse))
+    projects.value().head.ok shouldBe true
+  }
+
+  "find non-empty vulnerability list" in {
+    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodButVulnerableResponse))
+    projects.value().head.ok shouldBe false
+    projects.value().head.high shouldBe 1
+    projects.value().head.medium shouldBe 0
+    projects.value().head.low shouldBe 0
+  }
+
+  "fail to find vulnerability list" in {
+    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponse))
+    projects.isFailedAttempt() shouldBe true
+    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
+  }
+
+  "label projects" in {
+    val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
+    results.head.id shouldBe "id1"
+    results.head.name shouldBe "name1"
+    results.tail.head.id shouldBe "id2"
+    results.tail.head.name shouldBe "name2"
+  }
+
+}
+
+object SnykDisplayTest  {
 
   val mockBadResponse = s"""{\"banana\": \"apple\"}"""
   val mockGoodOrganisationResponse =
@@ -19,20 +70,6 @@ class SnykDisplayTest  extends FreeSpec with Matchers with AttemptValues {
        |{ \"name\": \"nottheguardian\", \"id\": \"9999999999\" }
        |]
        |}""".stripMargin
-
-  "find organisationId" in {
-    val organisationId = SnykDisplay.getOrganisationId(mockGoodOrganisationResponse, new Organisation("guardian"))
-    organisationId.value() shouldBe "1111111111"
-  }
-
-  "fail to find organisationId" in {
-    val organisationId = SnykDisplay.getOrganisationId(mockBadResponse, new Organisation("guardian"))
-    organisationId.isFailedAttempt shouldBe true
-    organisationId.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
-  }
-
-
-
 
   val mockGoodProjectResponse =
     s"""
@@ -53,21 +90,6 @@ class SnykDisplayTest  extends FreeSpec with Matchers with AttemptValues {
        |  ]
        |}
      """.stripMargin
-
-  "find project id list" in {
-    val projects = SnykDisplay.getProjectIdList(mockGoodProjectResponse)
-    projects.value().find(p => p.name == "project1").isEmpty shouldBe false
-    projects.value().find(p => p.name == "project2").isEmpty shouldBe false
-  }
-
-  "fail to find project id list" in {
-    val projects = SnykDisplay.getProjectIdList(mockBadResponse)
-    projects.isFailedAttempt shouldBe true
-    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
-  }
-
-
-
 
   val mockGoodAndNotVulnerableResponse =
     s"""
@@ -152,27 +174,6 @@ class SnykDisplayTest  extends FreeSpec with Matchers with AttemptValues {
        |}
      """.stripMargin
 
-  "find empty vulnerability list" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(mockGoodAndNotVulnerableResponse))
-    projects.value().head.ok shouldBe true
-  }
-
-  "find non-empty vulnerability list" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(mockGoodButVulnerableResponse))
-    projects.value().head.ok shouldBe false
-    projects.value().head.high shouldBe 1
-    projects.value().head.medium shouldBe 0
-    projects.value().head.low shouldBe 0
-  }
-
-  "fail to find vulnerability list" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(mockBadResponse))
-    projects.isFailedAttempt() shouldBe true
-    projects.getFailedAttempt.get.failures.head.friendlyMessage shouldBe "Could not read Snyk response"
-  }
-
-
-
   val goodProjects = List(
     SnykProject("name1", "id1"),
     SnykProject("name2", "id2")
@@ -182,13 +183,6 @@ class SnykDisplayTest  extends FreeSpec with Matchers with AttemptValues {
     SnykProjectIssues("fake name2", "fake id2", false, List[SnykIssue]())
   )
 
-  "label projects" in {
-    val results = SnykDisplay.labelProjects(goodProjects, goodVulnerabilities)
-    results.head.id shouldBe "id1"
-    results.head.name shouldBe "name1"
-    results.tail.head.id shouldBe "id2"
-    results.tail.head.name shouldBe "name2"
-  }
-
 
 }
+
