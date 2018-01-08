@@ -47,7 +47,4 @@ function run {
     read_command_output
 }
 
-export command=$1
-export instance=$2
-
 run

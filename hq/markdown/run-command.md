@@ -7,7 +7,7 @@
  * some understanding of bash
  * some understanding of IAM, EC2 and Cloudformation
 
-OS X users can download jq and awscli using Homebrew:
+OS X users can download jq and awscli using [Homebrew](https://brew.sh/):
 
 ```
 brew install jq
@@ -16,25 +16,23 @@ brew install awscli
 ```
 
 
-## Using EC2run on a configured instance
-
-If you have not yet setup EC2 run on the instance, then go to the second section....
-
 ## Setting up a instance with EC2run
 
-
+If you have already setup EC2 run on the instance, then you can skip to the Commands section.
 
 ### Create IAM client permissions
 
-Use an admin account, then you can skip this. If not, see Task 1 of the [AWS documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html#sysman-access-user)
+Use an admin account, then you can skip this. If not, see Task 1 of the [AWS documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html#sysman-access-user).
+
 
 ### Installation
 
-#### Create an IAM role (this will need to be done in cloudformation)
+#### Create an IAM role (this will need to be done in CloudFormation)
 
-See Task 2 in the [AWS documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html#sysman-configuring-access-role)
+See Task 2 in the [AWS documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-access.html#sysman-configuring-access-role).
 
 In short, assuming you have an instance role already, you will need to include the following yaml entry under the [instance properties](https://github.com/guardian/security-hq/blob/master/cloudformation/security-hq.template.yaml#L86):
+
 ```
 ManagedPolicyArns: [ "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM" ]
 ```
@@ -49,25 +47,28 @@ Install (this bit will need to be done in launch config or config management)
 sudo apt-get update
 sudo apt-get install amazon-ssm-agent
 ```
+
 OR
+
 ```
 wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
 mkdir /tmp/ssm
 sudo dpkg -i amazon-ssm-agent.deb
 ```
+
 then log off
 
 #### Check you now have access to the box via ssm
 
-// kate - you can do this with the developer credentials from Janus? (tried dev before admin)
-
 Choose the target account and region.  For example:
+
 ```
 export region="eu-west-1"
 export profile="security"
 ```
 
 The box id should be present in the following command output:
+
 ```
 aws --region $region --profile $profile ssm describe-instance-information
 ```
@@ -76,20 +77,23 @@ Note that there is a very limited set of items on which you can filter the outpu
 This list does not include arbitrary tags.  If you wish to find the list of instances with
 specific tags, do that first using the `ec2 describe-instances` command, then execute the 
 command against the resulting set of instance ids:
+
 ```
 aws --region $region --profile $profile ec2 describe-instances
 ```
 
-### Commands 
+
+## Commands 
+
+The AWS documentation has [a larger tutorial](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html) on using Run Command. However, exporting a `region`, `profile`, `command` and then using the following convenience functions will cover most purposes.
 
 ### Convenience functions
 
-The AWS documentation has [a tutorial](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html) on using Run Command
+To help with running commands, we can create several functions, and save them as a shell script. 
 
-To help with running commands, we should create the following functions:
+An [example script](https://git.io/vNv6w) can be found in the Security HQ repository. Here are the functions it contains:
 
 ```
-#!/usr/bin/env bash
 function send_command {
 aws --region $region --profile $profile ssm send-command \
    --document-name "AWS-RunShellScript" \
@@ -98,16 +102,18 @@ aws --region $region --profile $profile ssm send-command \
    --parameters commands="$command" \
    | jq -r '.Command.CommandId'
 }
+```
 
-
+```
 function read_command_output {
 aws --region $region --profile $profile ssm list-command-invocations \
    --command-id "$command_id" \
    --details \
    | jq -r '.CommandInvocations[].CommandPlugins[].Output'
 }
+```
 
-
+```
 function wait_for_command {
 result=0
 for this_instance in $instance; do
@@ -130,7 +136,9 @@ for this_instance in $instance; do
 done
 return $result
 }
+```
 
+```
 function run {
     command_id=$(send_command)
     wait_for_command
@@ -138,41 +146,42 @@ function run {
     read_command_output
 }
 
-export command=$1
-export instance=$2
-
 run
 ```
 
-An example can be found in the [Security HQ ssm-util file](https://git.io/vNv6w)
-
-// Give people the complete script, and how to use it... then explain how it works!
 
 ### Run a command
 
 Specify the command and target:
+
 ```
 export command="uname -a"
 export instance="i-0fe40a72847b61cc6"
 ```
+
 or
+
 ```
 export instance="i-01cfb366185e459bd i-0fe40a72847b61cc6"
 ```
 
-Run the script:
+Finally, run the script:
+
 ```
 sh ssm-util.sh
 ```
 
+The instance should respond with `Return code was 0`, followed by any output from the command sent.
 
-## Bonus details for the curious - not required reading
 
-### How the ssm-util script works:
+## How the ssm-util script works
 
-#### This command will output the command id required for the next section:
+Details for the curious, not required reading.
+
+#### Output the command id required for the next section:
+
 ```
-export command_id=$(send_command)
+command_id=$(send_command)
 ```
 
 #### Wait for command to complete:
@@ -191,11 +200,12 @@ read_command_output
 
 ```
 function run {
-command_id=$(send_command)
-wait_for_command
-echo "Return code was $?"
-read_command_output
+    command_id=$(send_command)
+    wait_for_command
+    echo "Return code was $?"
+    read_command_output
 }
+
 run
 ```
 
