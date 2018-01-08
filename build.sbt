@@ -11,7 +11,7 @@ scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-t
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 
-val awsSdkVersion = "1.11.185"
+val awsSdkVersion = "1.11.258"
 val playVersion = "2.6.7"
 
 lazy val hq = (project in file("hq")).
