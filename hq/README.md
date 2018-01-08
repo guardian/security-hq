@@ -29,56 +29,38 @@ N.B. If you are using macOS you may need to install `coreutils` before you can r
 ### Getting started
 
 ### AWS Configuration
-Go to AWS IAM console (security account) and clone `security-hq-dev` user to security-hq-<yourname>
-Create an Access key from the Security Credentials tab and save the access key under `security-test` section in your `~/.aws/credentials` file
-You should have an entry looks like below
+
+Using the Security Admin account, go to AWS IAM console and clone the `security-hq-dev` user to `security-hq-<yourname>`.
+
+At the last step of the creation of this new user, you will be presented with an *Access key ID* and a *Secret access key* that you are going to use during the next step.
+
+Create the file `~/.aws/credentials` with the following contents
+
 ```
 [security-test]
-aws_access_key_id = xxxxxxxx
-aws_secret_access_key = yyyyyyyy
+aws_access_key_id = <Access key ID>
+aws_secret_access_key = <Secret Access key>
 ```
+
+If you already had this file, you should just add this section.
+
 Create the entry below in `~/.aws/config` file.
+
 ```
 [profile security-test]
 region = eu-west-1   
 ```
 
-Ensure that a file named `security-hq.local.conf` exists in your .gu directory, and that it contains the required information, otherwise the project may not run.
-Ensure you have `security` account listed in your `security-hq.local.conf` in `AWS_ACCOUNTS` config, like below.
+The next file is `~/.gu/security-hq.local.conf`, which should be given by one of your team members. Once you have it, make sure to update the value of key `GOOGLE_SERVICE_ACCOUNT_CERT_PATH`. 
 
-```
-AWS_ACCOUNTS=[
-    {
-     name = "security"
-     id   = "security-test"
-     roleArn = "dev-local"
-    }
-]
-```
+Another file you need will need (here again ask for a team member) is `~/.gu/security-hq-service-account-cert.json`.
 
 ### AWS Security Policies
 See `watched-account` template under `cloudformation` folder for the security policies needed to run security-hq.
 
-### Running project
-From the root of the project:
+### nginx setup
 
-1. Run sbt and ensure that it will have access to the application configuration:
-
-`$ ./sbt`
-
-2. Select the project that you want to run, for example:
-
-`$ project hq`
-
-3. Start the application:
-
-`$ run`
-
-Once the sever has started, the webapp should be accessible at http://localhost:9090/
-
-### Using nginx as a proxy
-
-It is possible to run the application and setup nginx as a proxy; this will make the application accessible via the url `https://security-hq.local.dev-gutools.co.uk/` (you may be familiar with this process if you have worked on Identity or Composer):
+At this step we configure nginx.
 
 1. Install nginx:
   > *Linux:*   ```sudo apt-get install nginx```
@@ -108,7 +90,31 @@ It is possible to run the application and setup nginx as a proxy; this will make
     sudo ./setup-app.rb <path_of_security-hq>/nginx/nginx-mapping.yml
   ```
 
-6. Now when you run the project, it will also be accessible via https://security-hq.local.dev-gutools.co.uk/
+6. To stop and restart ngnix you can now do
+
+```
+sudo nginx -s stop
+sudo nginx
+```
+
+7. Now when you run the project (see next step for details), it will also be accessible via [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
+
+### Running project
+From the root of the project:
+
+1. Run sbt and ensure that it will have access to the application configuration:
+
+`$ ./sbt`
+
+2. Select the project that you want to run:
+
+`sbt:security-hq> project hq`
+
+3. Start the application:
+
+`sbt:security-hq> run`
+
+Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
 ### Working with CSS and JS
 
