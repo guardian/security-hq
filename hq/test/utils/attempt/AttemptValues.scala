@@ -42,5 +42,11 @@ trait AttemptValues extends Matchers {
         _ => false
       )
     }
+    def getFailedAttempt()(implicit ec: ExecutionContext): Option[FailedAttempt] = {
+      Await.result(attempt.asFuture, 5.seconds).fold (
+        fa => Some(fa),
+        _ => None
+      )
+    }
   }
 }
