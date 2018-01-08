@@ -28,6 +28,7 @@ class AppComponents(context: Context)
     httpErrorHandler,
     new HQController(configuration),
     new SecurityGroupsController(configuration),
+    new SnykController(configuration),
     new AuthController(environment, configuration),
     new UtilityController(),
     assets
