@@ -29,7 +29,9 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
         'protocol ("tcp"),
         'port ("22"),
         'alertLevel ("Yellow"),
-        'isSuppressed (false)
+        'isSuppressed (false),
+        'stackId (None),
+        'stackName (None),
       )
     }
 
