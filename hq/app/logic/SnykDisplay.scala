@@ -10,8 +10,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
-import java.lang.Exception
-
 object SnykDisplay {
 
   implicit val snykOrgFormat: Format[SnykOrg] = (

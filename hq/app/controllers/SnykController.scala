@@ -7,7 +7,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
-import logic.{Organisation, SnykDisplay, SnykProjectIssues, Token}
+import logic.{Organisation, SnykDisplay, Token}
 import utils.attempt.PlayIntegration.attempt
 
 
