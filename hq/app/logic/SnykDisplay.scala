@@ -76,20 +76,6 @@ object SnykDisplay {
       val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
       FailedAttempt(failure)
     }}
-//        try {
-//          Await.ready(a, Duration(10, TimeUnit.SECONDS)).value.get match {
-//            case Success(s) => (Json.parse(s.body) \ "projects").asOpt[List[SnykProject]] match {
-//              case Some(i) => Ok(views.html.snyk.snyk(listProjectVulnerabilities(id, i, token, wsClient)))
-//              case None => NotFound(views.html.snyk.snykError("No projects in response"))
-//            }
-//            case Failure(e) => NotFound(views.html.snyk.snykError(e.getMessage))
-//          }
-//        } catch {
-//          case te:TimeoutException => GatewayTimeout(views.html.snyk.snykError(te.getMessage))
-//        }
-
-//    }
-//
   }
 
   def getProjectIdList(s: WSRequest#Self#Response) = {
