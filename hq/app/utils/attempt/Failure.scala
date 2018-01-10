@@ -35,6 +35,12 @@ object Failure {
     Failure(details, friendlyMessage, 500)
   }
 
+  def cacheServiceError(accountId: String, cacheContent: String): Failure = {
+    val details = s"Cache service error; unable to retrieve $cacheContent for $accountId"
+    val friendlyMessage = s"No $cacheContent data available for $accountId"
+    Failure(details, friendlyMessage, 500)
+  }
+
   def expiredCredentials(serviceNameOpt: Option[String]): Failure = {
     val details = serviceNameOpt.fold("expired AWS credentials, unknown service") { serviceName =>
       s"expired AWS credentials, service: $serviceName"
