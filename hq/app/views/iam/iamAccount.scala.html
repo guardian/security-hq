@@ -1,6 +1,20 @@
 @import model.{AwsAccount, CredentialReportDisplay, ExposedIAMKeyDetail}
-@(awsAccount: AwsAccount, exposedIamKeys: Either[utils.attempt.FailedAttempt, List[ExposedIAMKeyDetail]], report: CredentialReportDisplay)(implicit assets: AssetsFinder)
+@(awsAccount: AwsAccount, exposedIamKeys: Either[utils.attempt.FailedAttempt, List[ExposedIAMKeyDetail]], credentialsReport: Either[utils.attempt.FailedAttempt, CredentialReportDisplay])(implicit assets: AssetsFinder)
 
+
+@errorMessage(fa: utils.attempt.FailedAttempt) = {
+    <div class="row">
+        <div class="card-panel yellow black-text">
+            @for(err <- fa.failures) {
+            <p class="warning">
+                <i class="material-icons right">warning</i>
+                <b>WARNING:</b>
+                @err.friendlyMessage
+            </p>
+            }
+        </div>
+    </div>
+}
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
 <div class="hq-sub-header">
@@ -25,22 +39,20 @@
                 @views.html.iam.exposedKeys(exposedIamKeys)
             }
             case Left(fa) => {
-                <div class="row">
-                    <div class="card-panel yellow black-text">
-                        @for(err <- fa.failures) {
-                            <p class="warning">
-                                <i class="material-icons right">warning</i>
-                                    <b>WARNING:</b>
-                                    @err.friendlyMessage
-                            </p>
-                        }
-                    </div>
-                </div>
+                @errorMessage(fa)
             }
         }
-        <div class="row">
-            <h2>Credential Report</h2>
-        </div>
-        @views.html.iam.iamCredReportBody(report)
+
+        @credentialsReport match {
+            case Right(report) => {
+                <div class="row">
+                    <h2>Credential Report</h2>
+                </div>
+                @views.html.iam.iamCredReportBody(report)
+            }
+            case Left(fa) => {
+                @errorMessage(fa)
+            }
+        }
     </div>
 }
