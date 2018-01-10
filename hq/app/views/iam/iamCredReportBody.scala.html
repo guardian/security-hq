@@ -3,56 +3,54 @@
 @import logic.ReportDisplay
 @(report: CredentialReportDisplay)
 
-<div class="container greedy-width">
-    <div class="row">
-        <div class="card-panel">
-            <span>Report generated at @{DateUtils.printTime(report.reportDate)} (refreshed every four hours)</span>
-        </div>
+<div class="row">
+    <div class="card-panel">
+        <span>Report generated at @{DateUtils.printTime(report.reportDate)} (refreshed every four hours)</span>
     </div>
-    <div class="row">
-        <div class="col s12">
-            <table class="striped responsive-table iam-report__table" >
-                <tr>
-                    <th>User name</th>
-                    <th>Access Keys</th>
-                    <th>Password/MFA</th>
-                    <th>Last Activity</th>
-                    <th>Status</th>
-                </tr>
-                @for(cred <- report.humanUsers) {
+</div>
+<div class="row">
+    <div class="col s12">
+        <table class="striped responsive-table iam-report__table" >
+            <tr>
+                <th>User name</th>
+                <th>Access Keys</th>
+                <th>Password/MFA</th>
+                <th>Last Activity</th>
+                <th>Status</th>
+            </tr>
+            @for(cred <- report.humanUsers) {
 
-                    <tr>
-                        <td>
-                            <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
-                                <i class="material-icons link_new_tab" >open_in_new</i>
-                            </a>
-                        </td>
-                        <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
-                        <td>@views.html.fragments.mfa(cred.hasMFA)</td>
-                        <td>
-                            <span>
-                                @ReportDisplay.toDayString(cred.lastActivityDay)
-                            </span>
-                        </td>
-                        <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
-                    </tr>
-                }
-                @for(cred <- report.machineUsers) {
-                    <tr>
-                        <td>
-                            <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
-                                <i class="material-icons link_new_tab" >open_in_new</i>
-                            </a>
-                        </td>
-                        <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
-                        <td><span>-</span></td>
-                        <td>
-                            <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
-                        </td>
-                        <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
-                    </tr>
-                }
-            </table>
-        </div>
+                <tr>
+                    <td>
+                        <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
+                            <i class="material-icons link_new_tab" >open_in_new</i>
+                        </a>
+                    </td>
+                    <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
+                    <td>@views.html.fragments.mfa(cred.hasMFA)</td>
+                    <td>
+                        <span>
+                            @ReportDisplay.toDayString(cred.lastActivityDay)
+                        </span>
+                    </td>
+                    <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
+                </tr>
+            }
+            @for(cred <- report.machineUsers) {
+                <tr>
+                    <td>
+                        <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
+                            <i class="material-icons link_new_tab" >open_in_new</i>
+                        </a>
+                    </td>
+                    <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
+                    <td><span>-</span></td>
+                    <td>
+                        <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
+                    </td>
+                    <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
+                </tr>
+            }
+        </table>
     </div>
 </div>
