@@ -5,7 +5,7 @@ import com.gu.Box
 import config.Config
 import model.{AwsAccount, SGInUse, SGOpenPortsDetail}
 import play.api.inject.ApplicationLifecycle
-import play.api.{Configuration, Environment, Mode}
+import play.api.{Configuration, Environment, Logger, Mode}
 import rx.lang.scala.Observable
 import utils.attempt.{FailedAttempt, Failure}
 
@@ -27,11 +27,11 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   }
 
   private def refreshSgsBox(): Unit = {
-    println("Started refresh of the Security Groups")
+    Logger.info("Started refresh of the Security Groups data")
     for {
       allFlaggedSgs <- EC2.allFlaggedSgs(accounts)
     } yield {
-      println("Sending the refreshed data to the Security Groups Box")
+      Logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
     }
   }
