@@ -16,10 +16,11 @@ import scala.concurrent.duration._
 
 
 class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, environment: Environment)(implicit ec: ExecutionContext) {
-  private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(Map.empty)
-  private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(Map.empty)
-  private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(Map.empty)
   private val accounts = Config.getAwsAccounts(config)
+  private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceError(acc.id, "cache").attempt))).toMap
+  private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
+  private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
+  private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
 
   def getAllCredentials(): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
 
@@ -49,21 +50,21 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   }
 
   private def refreshCredentialsBox(): Unit = {
-    Logger.debug("Started refresh of the Credentials data")
+    Logger.info("Started refresh of the Credentials data")
     for {
       allCredentialReports <- IAMClient.getAllCredentialReports(accounts)
     } yield {
-      Logger.debug("Sending the refreshed data to the Credentials Box")
+      Logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
     }
   }
 
   private def refreshExposedKeysBox(): Unit = {
-    Logger.debug("Started refresh of the Exposed Keys data")
+    Logger.info("Started refresh of the Exposed Keys data")
     for {
       allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(accounts)
     } yield {
-      Logger.debug("Sending the refreshed data to the Exposed Keys Box")
+      Logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
     }
   }
