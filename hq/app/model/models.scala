@@ -134,9 +134,9 @@ case class MachineUser  (
   lastActivityDay : Option[Long]
 )
 
-class Token(val value: String) extends AnyVal
+case class Token(value: String) extends AnyVal
 
-class Organisation(val value: String) extends AnyVal
+case class Organisation(value: String) extends AnyVal
 
 case class SnykOrg(name: String, id: String)
 

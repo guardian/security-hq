@@ -1,11 +1,11 @@
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
-import com.gu.configraun.models.{Configuration, StringParam}
+import com.gu.configraun.models.{Stack, Identifier, App, Stage}
 import controllers._
 import filters.HstsFilter
 import play.api.ApplicationLoader.Context
-import play.api.BuiltInComponentsFromContext
+import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
@@ -31,14 +31,24 @@ class AppComponents(context: Context)
 
   implicit val configraun = {
 
-    configuration.getOptional[String]("configSource") match {
-      case Some("local") => {
-        val token = new StringParam(configuration.get[String]("hq.snyk_token"))
-        val organisation = new StringParam(configuration.get[String]("hq.organisation"))
-        com.gu.configraun.models.Configuration(Map(("/snyk/token", token), ("/snyk/organisation", organisation)))
+    configuration.getOptional[String]("stage") match {
+      case Some("DEV") => {
+        val stack = configuration.get[String]("stack")
+        val app = configuration.get[String]("app")
+        val stage = "DEV"
+        Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
+          case Left(a) => {
+            Logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
+            sys.exit(1)
+          }
+          case Right(a: com.gu.configraun.models.Configuration) => a
+        }
       }
       case _ => Configraun.loadConfig match {
-        case Left(a) => throw new RuntimeException(s"Unable to load Configraun configuration (${a.message})")
+        case Left(a) => {
+          Logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
+          sys.exit(1)
+        }
         case Right(a: com.gu.configraun.models.Configuration) => a
       }
     }
