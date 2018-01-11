@@ -65,17 +65,14 @@ snyk test --file=build.sbt [--show-vulnerable-paths=(true|false)]
 
 #### With SBT 1.0.0+
 
-It appears that sbt expects to invoke `dependency-tree`.  After sbt 1.0, this command appears to be `dependencyTree`.
+You can check the version of sbt you are using with `sbt sbt-version`.
 
-As Snyk is written in an interpreted script, this can be 'fixed' for now (if you use sbt > 1.0.0) using the following (mac) command:
+Snyk expects to invoke `dependency-tree`.  After sbt 1.0, this command becomes `dependencyTree`.
+
+This is easily resolved as follows:
 
 ```
-sed -i '' 's/dependency-tree/dependencyTree/g' $(grep -wrl 'dependency-tree' /usr/local/lib/node_modules/snyk/node_modules/snyk-sbt-plugin/)
-```
-
-And to revert:
-```
-sed -i '' 's/dependencyTree/dependency-tree/g' $(grep -wrl 'dependencyTree' /usr/local/lib/node_modules/snyk/node_modules/snyk-sbt-plugin/)
+echo "addCommandAlias(\"dependency-tree\", \"dependencyTree\")" >> ~/.sbt/1.0/user.sbt
 ```
 
 #### With bugs in build.sbt
