@@ -36,19 +36,44 @@ code is non-zero (ie at least one vulnerability found or error).
 Snyk needs to first create a dependency tree for your project (based on the sbt dependencies), then check with the
 Snyk database.
 
-Dependency graph creation is via an sbt plugin.  Add the following line to your project plugins file or your `.sbt/plugins`
-directory:
+Dependency graph creation is via an sbt plugin.  
 
+### Project
 
-```
-/Users/<you>/.sbt/<sbt-version>/plugins/snyk.sbt
-or
-<projectroot>/project/plugins.sbt
-```
+To add directly to a project, add the following line to your project plugins (<projectroot>/project/plugins.sbt):
 
 ```
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
 ```
+
+If you are using SBT 1.0, you will also need to add the following line to your build.sbt:
+
+```
+addCommandAlias("dependency-tree", "dependencyTree")
+```
+
+### User
+
+To add for your personal user, which will make snyk available for any project, add the following line to your 
+.sbt plugins (/~/.sbt/<sbt-version>/plugins/snyk.sbt):
+
+
+```
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
+```
+
+If you are using SBT 1.0, you will also need to add the following line to your user.sbt (~/.sbt/1.0/user.sbt):
+
+```
+addCommandAlias("dependency-tree", "dependencyTree")
+```
+
+### Team City
+
+At present, while Snyk is being evaluated, we will not include these plugins and aliases on the Team City build servers.
+
+However, a SNYK_TOKEN environment variable will be exposed which will permit invocation of `snyk test` and `snyk monitor`,
+with the results being pushed to the `guardian` organisation on Snyk, and visible via security-hq.
 
 ### Invocation
 
