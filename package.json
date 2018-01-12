@@ -13,7 +13,8 @@
     "eslint-plugin-prettier": "2.4.0",
     "materialize-css": "0.100.2",
     "prettier": "1.8.0",
-    "sass-lint": "1.12.1"
+    "sass-lint": "1.12.1",
+    "snyk": "1.68.0"
   },
   "prettier": {
     "singleQuote": true
@@ -22,6 +23,7 @@
     "eslint": "eslint --max-warnings 0 --format codeframe --ignore-pattern '**/*.min.js' hq/public/javascripts/",
     "linter-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "prettier": "prettier -o --write './**/*.{js,css}'",
-    "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css"
+    "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
+    "snyk": "snyk test --file=build.sbt; snyk monitor"
   }
 }

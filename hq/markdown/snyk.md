@@ -7,7 +7,11 @@ vulnerabilities in your application.
 
 ## Installing
 
-Snyk requires node, and `npm`.  To install on a mac, please use:
+Snyk requires node, and `npm`.
+
+### Developer Install
+
+To install on a mac, please use:
 
 ```
 brew install npm
@@ -18,6 +22,46 @@ Snyk then requires an authentication token to be set up.  Github auth is almost 
 
 ```
 snyk auth
+```
+
+## Build Server Install
+
+Build servers will not have Snyk installed.  The project must declare it as a development dependency.
+
+This can be achieved by merging the entries from the following content into package.json:
+
+### Scala Builds
+
+```
+  "devDependencies": {
+    "snyk": "1.68.0"
+  },
+  "scripts": {
+    "snyk": "snyk test --file=build.sbt; snyk monitor"
+  }
+```
+
+### Node Builds
+
+```
+  "devDependencies": {
+    "snyk": "1.68.0"
+  },
+  "scripts": {
+    "snyk": "snyk test --file=package.json; snyk monitor"
+  }
+```
+
+## Build Server Invocation
+
+A SNYK_TOKEN environment variable will be exposed which will permit invocation of `snyk test` and `snyk monitor`,
+with the results being pushed to the `guardian` organisation on Snyk, and visible via security-hq.
+
+The build process will require a build step with the following:
+
+```
+npm install --only=dev
+npm run snyk
 ```
 
 # Usage
@@ -36,7 +80,7 @@ code is non-zero (ie at least one vulnerability found or error).
 Snyk needs to first create a dependency tree for your project (based on the sbt dependencies), then check with the
 Snyk database.
 
-Dependency graph creation is via an sbt plugin.  
+Dependency graph creation is via an sbt plugin.
 
 ### Project
 
@@ -54,7 +98,7 @@ addCommandAlias("dependency-tree", "dependencyTree")
 
 ### User
 
-To add for your personal user, which will make snyk available for any project, add the following line to your 
+To add for your personal user, which will make snyk available for any project, add the following line to your
 .sbt plugins (~/.sbt/<sbt-version>/plugins/snyk.sbt):
 
 
@@ -68,14 +112,7 @@ If you are using SBT 1.0, you will also need to add the following line to your u
 addCommandAlias("dependency-tree", "dependencyTree")
 ```
 
-### Team City
-
-At present, while Snyk is being evaluated, we will not include these plugins and aliases on the Team City build servers.
-
-However, a SNYK_TOKEN environment variable will be exposed which will permit invocation of `snyk test` and `snyk monitor`,
-with the results being pushed to the `guardian` organisation on Snyk, and visible via security-hq.
-
-### Invocation
+### Manual Invocation
 
 It is recommended that `sbt` itself is invoked first, to confirm that the build file is good.  You
 can then invoke `snyk` as follows.  If you are working on a new snyk implementation, then it is often
@@ -115,7 +152,7 @@ or
 yarn upgrade
 ```
 
-### Invocation
+### Manual Invocation
 
 Scan for vulnerabilities with:
 
