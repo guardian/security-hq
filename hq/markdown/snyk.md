@@ -55,7 +55,7 @@ addCommandAlias("dependency-tree", "dependencyTree")
 ### User
 
 To add for your personal user, which will make snyk available for any project, add the following line to your 
-.sbt plugins (/~/.sbt/<sbt-version>/plugins/snyk.sbt):
+.sbt plugins (~/.sbt/<sbt-version>/plugins/snyk.sbt):
 
 
 ```
@@ -86,19 +86,14 @@ sbt test
 snyk test --file=build.sbt [--show-vulnerable-paths=(true|false)]
 ```
 
+If you also wish to send your dependencies to Snyk, where they will be monitored for new vulnerabilities, found after the
+build, then you should also add:
+
+```
+snyk monitor
+```
+
 ### Gotchas
-
-#### With SBT 1.0.0+
-
-You can check the version of sbt you are using with `sbt sbt-version`.
-
-Snyk expects to invoke `dependency-tree`.  After sbt 1.0, this command becomes `dependencyTree`.
-
-This is easily resolved as follows:
-
-```
-echo "addCommandAlias(\"dependency-tree\", \"dependencyTree\")" >> ~/.sbt/1.0/user.sbt
-```
 
 #### With bugs in build.sbt
 
@@ -134,6 +129,13 @@ the `--dev` flag:
 
 ```
 snyk test --file=package.json --dev
+```
+
+If you also wish to send your dependencies to Snyk, where they will be monitored for new vulnerabilities, found after the
+build, then you should also add:
+
+```
+snyk monitor
 ```
 
 ### Optional Magic
@@ -207,10 +209,13 @@ The worst case scenario is that the library is still vulnerable, has no alternat
 may wish to build and release anyway, ideally reporting the situation to a risk register. This is most likely to happen when
 a new vulnerability is discovered and the library publisher has not had chance to respond.
 
-This is cleanly achieved by creating a `.snyk` file which can act both as an exemption and the risk register itself.
+For private repositories, this is cleanly achieved by creating a `.snyk` file which can act both as an exemption and the risk register itself.
 Please try to give meaningful reasons for allowing the exemption.
 
 The `.snyk` file can then be added to the repository and the build should continue.
+
+__However, for public repositories, this would mean that the vulnerability is effectively advertised right in
+the project!  This is therefore not an acceptable approach for public repositories.__
 
 When an exemption expires, the build will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
