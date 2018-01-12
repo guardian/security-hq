@@ -24,6 +24,7 @@
     "linter-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "prettier": "prettier -o --write './**/*.{js,css}'",
     "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
-    "snyk": "snyk test --file=build.sbt; snyk monitor"
+    "snyk-test": "snyk test --file=build.sbt",
+    "snyk-monitor": "snyk monitor"
   }
 }
