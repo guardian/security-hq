@@ -1,8 +1,9 @@
 @import model.{AwsAccount, CredentialReportDisplay, ExposedIAMKeyDetail}
-@(awsAccount: AwsAccount, exposedIamKeys: Either[utils.attempt.FailedAttempt, List[ExposedIAMKeyDetail]], credentialsReport: Either[utils.attempt.FailedAttempt, CredentialReportDisplay])(implicit assets: AssetsFinder)
+@import utils.attempt.FailedAttempt
+@(awsAccount: AwsAccount, exposedIamKeys: Either[FailedAttempt, List[ExposedIAMKeyDetail]], credentialsReport: Either[FailedAttempt, CredentialReportDisplay])(implicit assets: AssetsFinder)
 
 
-@errorMessage(fa: utils.attempt.FailedAttempt) = {
+@errorMessage(fa: FailedAttempt) = {
     <div class="row">
         <div class="card-panel yellow black-text">
             @for(err <- fa.failures) {
