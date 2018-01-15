@@ -103,15 +103,12 @@ sudo nginx
 From the root of the project:
 
 1. Run sbt and ensure that it will have access to the application configuration:
-
 `$ ./sbt`
 
 2. Select the project that you want to run:
-
 `sbt:security-hq> project hq`
 
 3. Start the application:
-
 `sbt:security-hq> run`
 
 Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
