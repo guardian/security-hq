@@ -59,6 +59,12 @@ object TrustedAdvisor {
     handleAWSErrs(awsToScala(client.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult))
   }
 
+  def refreshTrustedAdvisorChecks(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
+    val request = new RefreshTrustedAdvisorCheckRequest()
+      .withCheckId(checkId)
+    handleAWSErrs(awsToScala(client.refreshTrustedAdvisorCheckAsync)(request))
+  }
+
   def parseTrustedAdvisorChecksResult(result: DescribeTrustedAdvisorChecksResult): List[TrustedAdvisorCheck] = {
     result.getChecks.asScala.toList.map { trustedAdvisorCheckResult =>
       TrustedAdvisorCheck(
