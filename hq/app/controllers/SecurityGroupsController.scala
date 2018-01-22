@@ -36,5 +36,4 @@ class SecurityGroupsController(val config: Configuration, cacheService: CacheSer
     }
   }
 
-
 }

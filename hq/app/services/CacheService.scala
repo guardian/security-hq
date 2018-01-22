@@ -15,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 
+
 class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, environment: Environment)(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceError(acc.id, "cache").attempt))).toMap
@@ -72,6 +73,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   private def refreshSgsBox(): Unit = {
     Logger.info("Started refresh of the Security Groups data")
     for {
+      _ <- EC2.refreshSGSReports(accounts)
       allFlaggedSgs <- EC2.allFlaggedSgs(accounts)
     } yield {
       Logger.info("Sending the refreshed data to the Security Groups Box")
