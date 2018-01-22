@@ -7,6 +7,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 
 object ReportDisplay {
 
+  case class ReportSummary(warnings: Int, errors: Int, other: Int)
 
   private[logic] def lastActivityDate(cred: IAMCredential): Option[DateTime] = {
     val allDates =
@@ -72,7 +73,14 @@ object ReportDisplay {
     case _ => ""
   }
 
-  def reportStatusSummary(report: CredentialReportDisplay): Seq[ReportStatus] = {
-    report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)
+  def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
+    val reportStatusSummary = report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)
+
+    val (warnings, errors, other) = reportStatusSummary.foldLeft(0,0,0) {
+      case ( (war, err, oth), Amber ) => (war+1, err, oth)
+      case ( (war, err, oth), Red ) => (war, err+1, oth)
+      case ( (war, err, oth), _ ) => (war, err, oth+1)
+    }
+    ReportSummary(warnings, errors, other)
   }
 }
