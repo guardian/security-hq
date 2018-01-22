@@ -105,13 +105,16 @@
 
                               @defining(resourceIcons(usages.toList)) { iconCounts =>
                                   @if(iconCounts.instances > 0) {
-                                    <span class="sg--details__count">@iconCounts.instances</span><i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="EC2 instance">computer</i>
+                                    <span class="icon-count">@iconCounts.instances</span>
+                                    <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="EC2 instance">computer</i>
                                   }
                                   @if(iconCounts.elbs > 0) {
-                                    <span class="sg--details__count">@iconCounts.elbs</span><i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i>
+                                    <span class="icon-count">@iconCounts.elbs</span>
+                                    <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Elastic Load Balancer">device_hub</i>
                                   }
                                   @if(iconCounts.unknown > 0) {
-                                    <span class="sg--details__count">@iconCounts.unknown</span><i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Unknown">report_problem</i>
+                                    <span class="icon-count">@iconCounts.unknown</span>
+                                    <i class="material-icons tooltipped" data-position="top" data-delay="50" data-tooltip="Unknown">report_problem</i>
                                   }
                               }
 

@@ -1,3 +1,4 @@
+@import logic.CredentialsDisplay.credentialsIcons
 @import model._
 @(reports: Map[AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay]])(implicit assets: AssetsFinder)
 
@@ -27,7 +28,19 @@
                     <span class="iam-header__name">@account.name</span>
                     @report match {
                         case Right(re) => {
-                            @views.html.fragments.statusSummary(re)
+                            @defining(credentialsIcons(re)) { iconCounts =>
+                                @if(iconCounts.errors > 0) {
+                                    <span class="icon-count">@iconCounts.errors</span>
+                                    <i class="material-icons red-text" data-delay="50">error</i>
+                                }
+                                @if(iconCounts.warnings > 0) {
+                                    <span class="icon-count">@iconCounts.warnings</span>
+                                    <i class="material-icons amber-text" data-delay="50">warning</i>
+                                }
+                                @if(iconCounts.errors == 0 && iconCounts.warnings == 0) {
+                                    <i class="material-icons green-text" data-delay="50">check</i>
+                                }
+                            }
                         }
                         case Left(_) => {
                             <i class="material-icons">warning</i>

@@ -128,7 +128,7 @@ case class HumanUser(
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long]
 )
-case class MachineUser  (
+case class MachineUser(
   username: String,
   key1Status: KeyStatus,
   key2Status: KeyStatus,
