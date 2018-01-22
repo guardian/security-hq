@@ -72,7 +72,7 @@ object ReportDisplay {
     case _ => ""
   }
 
-  def reportStatusSummary(report: CredentialReportDisplay): Set[ReportStatus] = {
-    (report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)).toSet
+  def reportStatusSummary(report: CredentialReportDisplay): Seq[ReportStatus] = {
+    report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)
   }
 }

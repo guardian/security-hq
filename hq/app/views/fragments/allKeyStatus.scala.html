@@ -7,7 +7,7 @@
 
 @keyStatus(keyStatus: KeyStatus)  = {
     @if(keyStatus == AccessKeyDisabled) {
-        <span><i class="material-icons left tooltipped iam-key-disabled"  data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i></span>
+        <span><i class="material-icons left tooltipped iam-key--disabled"  data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i></span>
     }
     @if(keyStatus == AccessKeyEnabled) {
         <span><i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="Has active Access Key">vpn_key</i></span>

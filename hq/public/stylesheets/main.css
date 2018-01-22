@@ -42,8 +42,14 @@ nav {
   justify-content: space-between;
 }
 
-.greedy-width {
-  width: 90%;
+.icon-count {
+  margin-right: 5px;
+  text-align: end;
+  width: 30px;
+}
+
+.link_new_tab {
+  vertical-align: bottom;
 }
 
 /* navigation and header */
@@ -263,12 +269,6 @@ nav {
   vertical-align: middle;
 }
 
-.sg--details__count {
-  margin-right: 5px;
-  text-align: end;
-  width: 30px;
-}
-
 .sg-details__body {
   padding: 0 !important;
 }
@@ -292,7 +292,7 @@ nav {
   margin-right: auto;
 }
 
-.iam-key-disabled {
+.iam-key--disabled {
   opacity: 0.3;
 }
 
@@ -300,10 +300,6 @@ table.iam-report__table td,
 table.iam-report__table th {
   min-height: 21px;
   box-sizing: initial;
-}
-
-.link_new_tab {
-  vertical-align: bottom;
 }
 
 /* footer */
