@@ -14,7 +14,7 @@
     "materialize-css": "0.100.2",
     "prettier": "1.8.0",
     "sass-lint": "1.12.1",
-    "snyk": "1.68.0"
+    "snyk": "1.69.1"
   },
   "prettier": {
     "singleQuote": true
@@ -24,7 +24,7 @@
     "linter-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "prettier": "prettier -o --write './**/*.{js,css}'",
     "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
-    "snyk-test": "snyk test -d --file=build.sbt",
+    "snyk-test": "snyk test -d --json --file=build.sbt",
     "snyk-monitor": "snyk monitor"
   }
 }
