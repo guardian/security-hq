@@ -135,3 +135,23 @@ case class MachineUser  (
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long]
 )
+
+case class Token(value: String) extends AnyVal
+
+case class Organisation(value: String) extends AnyVal
+
+case class SnykOrg(name: String, id: String)
+
+case class SnykProject(name: String, id: String)
+
+case class SnykIssue(title: String, id: String, severity: String)
+
+case class SnykProjectIssues(name: String, id: String, ok: Boolean, vulnerabilities: List[SnykIssue])  {
+  def withName(name: String) = new SnykProjectIssues(name, this.id, this.ok, this.vulnerabilities)
+  def withId(id: String) = new SnykProjectIssues(this.name, id, this.ok, this.vulnerabilities)
+  def high = vulnerabilities.filter(s => s.severity.equalsIgnoreCase("high")).length
+  def medium = vulnerabilities.filter(s => s.severity.equalsIgnoreCase("medium")).length
+  def low = vulnerabilities.filter(s => s.severity.equalsIgnoreCase("low")).length
+}
+
+case class SnykError(error: String)

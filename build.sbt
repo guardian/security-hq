@@ -10,6 +10,7 @@ scalaVersion in ThisBuild := "2.12.3"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
+resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.258"
 val playVersion = "2.6.7"
@@ -22,10 +23,11 @@ lazy val hq = (project in file("hq")).
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu" %% "play-googleauth" % "0.7.0",
+      "com.gu" %% "play-googleauth" % "0.7.1",
       "joda-time" % "joda-time" % "2.9.9",
-      "org.typelevel" %% "cats" % "0.8.1",
+      "org.typelevel" %% "cats-core" % "1.0.1",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
+      "com.gu" %% "configraun" % "0.2",
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,
