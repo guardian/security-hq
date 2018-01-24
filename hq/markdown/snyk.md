@@ -32,12 +32,16 @@ This can be achieved by merging the entries from the following content into pack
 
 ### Scala Builds
 
+As the invocation will be via an npm plugin (Snyk is a node tool), build servers may not expose the sbt executable
+on the PATH.  As a result it is necessary to pre-pend the sbt location onto the PATH so that Snyk can invoke it.
+
 ```
   "devDependencies": {
-    "snyk": "1.68.0"
+    "snyk": "1.69.3"
   },
   "scripts": {
-    "snyk": "snyk test --file=build.sbt; snyk monitor"
+    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
+    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt",
   }
 ```
 
@@ -48,7 +52,8 @@ This can be achieved by merging the entries from the following content into pack
     "snyk": "1.68.0"
   },
   "scripts": {
-    "snyk": "snyk test --file=package.json; snyk monitor"
+    "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
+    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json"
   }
 ```
 
@@ -61,7 +66,8 @@ The build process will require a build step with the following:
 
 ```
 npm install --only=dev
-npm run snyk
+npm run snyk-test
+npm run snyk-monitor
 ```
 
 # Usage
