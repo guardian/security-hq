@@ -10,6 +10,7 @@ scalaVersion in ThisBuild := "2.12.3"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
+resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.258"
 val playVersion = "2.6.7"
