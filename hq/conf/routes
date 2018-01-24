@@ -14,7 +14,7 @@ GET        /login                                     controllers.AuthController
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback
 GET        /logout                                    controllers.AuthController.logout
-GET        /documentation/                            controllers.UtilityController.documentation(file = "index")
+GET        /documentation                             controllers.UtilityController.documentation(file = "index")
 GET        /documentation/:file                       controllers.UtilityController.documentation(file)
 
 GET        /healthcheck                               controllers.UtilityController.healthcheck

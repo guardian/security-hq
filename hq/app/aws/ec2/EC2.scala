@@ -10,8 +10,11 @@ import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.model._
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
+import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model._
 import utils.attempt.{Attempt, FailedAttempt}
+
+
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -65,6 +68,13 @@ object EC2 {
       vpcs <- getVpcs(account, enrichedFlaggedSgs)(getVpcsDetails)
       flaggedSgsWithVpc = addVpcName(enrichedFlaggedSgs, vpcs)
     } yield sortSecurityGroupsByInUse(flaggedSgsWithVpc, sgUsage)
+  }
+
+  def refreshSGSReports(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, RefreshTrustedAdvisorCheckResult]]] = {
+    Attempt.traverseWithFailures(accounts) { account =>
+      val supportClient = TrustedAdvisor.client(account)
+      TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(supportClient)
+    }
   }
 
   def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {

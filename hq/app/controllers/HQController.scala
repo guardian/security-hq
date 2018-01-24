@@ -7,7 +7,6 @@ import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import services.CacheService
-import utils.attempt.Attempt
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
@@ -31,8 +30,8 @@ class HQController (val config: Configuration, cacheService: CacheService)
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        exposedIamKeys <- Attempt.fromEither(cacheService.getExposedKeysForAccount(account))
-        credReport <- Attempt.fromEither(cacheService.getCredentialsForAccount(account))
+        exposedIamKeys = cacheService.getExposedKeysForAccount(account)
+        credReport = cacheService.getCredentialsForAccount(account)
       } yield Ok(views.html.iam.iamAccount(account, exposedIamKeys, credReport))
     }
   }

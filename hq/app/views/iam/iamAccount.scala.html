@@ -1,6 +1,21 @@
 @import model.{AwsAccount, CredentialReportDisplay, ExposedIAMKeyDetail}
-@(awsAccount: AwsAccount, exposedIamKeys: List[ExposedIAMKeyDetail], report: CredentialReportDisplay)(implicit assets: AssetsFinder)
+@import utils.attempt.FailedAttempt
+@(awsAccount: AwsAccount, exposedIamKeys: Either[FailedAttempt, List[ExposedIAMKeyDetail]], credentialsReport: Either[FailedAttempt, CredentialReportDisplay])(implicit assets: AssetsFinder)
 
+
+@errorMessage(fa: FailedAttempt) = {
+    <div class="row">
+        <div class="card-panel yellow black-text">
+            @for(err <- fa.failures) {
+            <p class="warning">
+                <i class="material-icons right">warning</i>
+                <b>WARNING:</b>
+                @err.friendlyMessage
+            </p>
+            }
+        </div>
+    </div>
+}
 
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
 <div class="hq-sub-header">
@@ -19,63 +34,26 @@
 
 } { @* Main content *@
     <div class="container">
-    @if(exposedIamKeys.nonEmpty) {
-        <div class="row">
-            <h2>Exposed IAM Keys</h2>
-            <div class="card-panel red white-text">
 
-                <p class="warning">
-                    <i class="material-icons right">warning</i>
-                    <b>URGENT:</b>
-                    Keys that have been identified as 'exposed' are very likely being used in an ongoing attack.
-                </p>
-            </div>
-
-            @for(exposedIamKey <- exposedIamKeys) {
-                <div class="col s12 m6 l4">
-                    <div class="card">
-                        <div class="card-content card-content--title">
-                            <span class="card-title">@exposedIamKey.username</span>
-                        </div>
-                        <div class="card-content--border red darken-1"></div>
-                        <div class="card-content card-content--body">
-                            <table class="sg-details__table">
-                                <tbody>
-                                    <tr>
-                                        <th>Fraud type</th>
-                                        <td>@exposedIamKey.fraudType</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Usage</th>
-                                        <td>@exposedIamKey.usage</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Case ID</th>
-                                        <td>
-                                            <a href="https://console.aws.amazon.com/support/home#/case/?displayId=@{exposedIamKey.caseId}&language=en">
-                                            @exposedIamKey.caseId
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="card-action">
-                            <a class="btn usage-cta" href="https://console.aws.amazon.com/iam/home?region=eu-west-1#/users/@{exposedIamKey.username}?section=security_credentials">
-                                <i class="material-icons right tooltipped" data-position="bottom" data-delay="50" data-tooltip="IAM user">person</i>
-                                @exposedIamKey.username
-                            </a>
-                        </div>
-                    </div>
-                </div>
+        @exposedIamKeys match {
+            case Right(exposedIamKeys) => {
+                @views.html.iam.exposedKeys(exposedIamKeys)
             }
-        </div>
-    }
-        <div>
-            <div class="row">
-                <h2>Credential Report</h2>
+            case Left(fa) => {
+                @errorMessage(fa)
+            }
+        }
+
+        @credentialsReport match {
+            case Right(report) => {
+                <div class="row">
+                    <h2>Credential Report</h2>
+                </div>
                 @views.html.iam.iamCredReportBody(report)
-            </div>
-        </div>
+            }
+            case Left(fa) => {
+                @errorMessage(fa)
+            }
+        }
     </div>
 }

@@ -286,6 +286,10 @@ Resources:
         Value:
           Fn::FindInMap: [ Constants, App, Value ]
         PropagateAtLaunch: true
+      - Key: Name
+        Value:
+          Fn::FindInMap: [ Constants, App, Value ]
+        PropagateAtLaunch: true
 
 Outputs:
   LoadBalancerUrl:
