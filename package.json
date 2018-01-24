@@ -26,6 +26,7 @@
     "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
     "snyk-test": "PATH=${pwd}:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
     "snyk-monitor": "PATH=${pwd}:$PATH snyk monitor --debug --org=guardian --file=build.sbt",
-    "sbt": "PATH=${pwd}:$PATH which sbt"
+    "sbt-with-path": "PATH=${pwd}:$PATH which sbt",
+    "sbt-without-path": "which sbt"
   }
 }
