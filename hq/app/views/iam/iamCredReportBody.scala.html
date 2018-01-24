@@ -22,8 +22,12 @@
             @for(cred <- report.humanUsers) {
                 <tr>
                     <td>
-                        <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
-                            <i class="material-icons link_new_tab" >open_in_new</i>
+                        <a href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
+                            @if(cred.username.length > 30) {
+                            <span class="tooltipped" data-tooltip="@cred.username">@cred.username.slice(0, 30)&hellip;</span>
+                            } else {
+                            <span>@cred.username</span>
+                            }
                         </a>
                     </td>
                     <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
@@ -38,8 +42,12 @@
             @for(cred <- report.machineUsers) {
                 <tr>
                     <td>
-                        <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
-                            <i class="material-icons link_new_tab" >open_in_new</i>
+                        <a href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
+                            @if(cred.username.length > 30) {
+                                <span class="tooltipped" data-tooltip="@cred.username">@cred.username.slice(0, 30)&hellip;</span>
+                            } else {
+                                <span>@cred.username</span>
+                            }
                         </a>
                     </td>
                     <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
