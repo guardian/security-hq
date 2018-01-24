@@ -8,8 +8,9 @@ jQuery(function($) {
 });
 
 $(document).ready(function() {
-  // initalizing the mobile nav
+  // initalizing the mobile nav and the modal
   $('.button-collapse').sideNav();
+  $('.modal').modal();
 
   // Extra interactions for the dropdowns on the Security Groups page
   $('.js-sg-details').hover(

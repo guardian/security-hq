@@ -2,10 +2,13 @@
 @(status: ReportStatus)
 
 @if(status == model.Amber) {
-    <i class="material-icons left amber-text" data-position="bottom" data-delay="50" >warning</i>
-    <span>Doesn't have active access keys</span  >
+    <span>
+        <i class="material-icons left amber-text">warning</i>
+        No active access keys
+        <a class="modal-trigger right" href="#credentials-help--machine"><i class="material-icons black-text">help_outline</i></a>
+    </span>
 }
 @if(status == model.Green) {
-    <i class="material-icons left green-text" data-position="bottom" data-delay="50" >check</i>
+    <i class="material-icons left green-text">check</i>
 }
 
