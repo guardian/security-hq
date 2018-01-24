@@ -46,7 +46,8 @@ class SnykController(val config: Configuration)
           parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)
 
           results = SnykDisplay.labelProjects(projects, parsedVulnerabilitiesResponse)
-        } yield Ok(views.html.snyk.snyk(results))
+          sortedResult = SnykDisplay.sortProjects(results)
+        } yield Ok(views.html.snyk.snyk(sortedResult))
       }
     }
 

@@ -40,4 +40,13 @@ object SnykDisplay extends Serializers {
   def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]) = {
     projects.zip(responses).map(a => a._2.withName(a._1.name).withId(a._1.id))
   }
+
+  def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
+    projects.sortWith((a, b) =>
+      a.high > b.high
+        || a.high == b.high && (
+        a.medium > b.medium
+          || a.medium == b.medium && (
+          a.low > b.low
+            || a.low == b.low && a.name < b.name)))
 }
