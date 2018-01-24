@@ -12,6 +12,7 @@ import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
 import play.filters.csrf.CSRFComponents
 import router.Routes
+import services.CacheService
 
 
 class AppComponents(context: Context)
@@ -54,10 +55,12 @@ class AppComponents(context: Context)
     }
   }
 
+  val cacheService = new CacheService(configuration, applicationLifecycle, environment)
+
   override def router: Router = new Routes(
     httpErrorHandler,
-    new HQController(configuration),
-    new SecurityGroupsController(configuration),
+  new HQController(configuration, cacheService),
+    new SecurityGroupsController(configuration, cacheService),
     new SnykController(configuration),
     new AuthController(environment, configuration),
     new UtilityController(),

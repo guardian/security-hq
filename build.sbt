@@ -11,7 +11,7 @@ scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-t
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 
-val awsSdkVersion = "1.11.185"
+val awsSdkVersion = "1.11.258"
 val playVersion = "2.6.7"
 
 lazy val hq = (project in file("hq")).
@@ -32,6 +32,8 @@ lazy val hq = (project in file("hq")).
       "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark-all" % "0.28.20",
+      "io.reactivex" %% "rxscala" % "0.26.5",
+      "com.gu" %% "box" % "0.1.0",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
