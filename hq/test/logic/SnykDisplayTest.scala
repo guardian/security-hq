@@ -2,7 +2,7 @@ package logic
 
 import model._
 import org.scalatest.{FreeSpec, Matchers}
-import utils.attempt.{AttemptValues}
+import utils.attempt.AttemptValues
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
