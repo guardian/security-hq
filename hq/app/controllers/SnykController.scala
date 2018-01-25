@@ -9,25 +9,22 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 import logic.SnykDisplay
 import api.Snyk
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Errors.ConfigraunError
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.{Attempt, Failure}
 import utils.attempt.PlayIntegration.attempt
 import model._
 
-class SnykController(val config: Configuration)
+class SnykController(val config: Configuration, val configraun: com.gu.configraun.models.Configuration)
                     (implicit
                      val ec: ExecutionContext,
                      val wsClient: WSClient,
                      val bodyParser: BodyParser[AnyContent],
                      val controllerComponents: ControllerComponents,
-                     val assetsFinder: AssetsFinder,
-                     val awsClient: AWSSimpleSystemsManagement,
-                     val configraun: com.gu.configraun.models.Configuration)
+                     val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions
 {
 
-  def snyk() = {
+  def snyk: Action[AnyContent] = {
 
     Action.async {
       attempt {
@@ -53,20 +50,18 @@ class SnykController(val config: Configuration)
 
   }
 
-  def getToken = configraun.getAsString("/snyk/token") match {
-    case Left(a:ConfigraunError) => {
+  def getToken: Attempt[Token] = configraun.getAsString("/snyk/token") match {
+    case Left(a:ConfigraunError) =>
       val failure = Failure(a.message, "Could not read Snyk token from aws parameter store", 500, None, Some(a.e))
-      Attempt.fromOption(None, FailedAttempt(failure))
-    }
-    case Right(a:String) => Attempt.fromOption(Some(new Token(a)), null)
+      Attempt.Left(failure)
+    case Right(a:String) => Attempt.Right(Token(a))
   }
 
-  def getOrganisation = configraun.getAsString("/snyk/organisation") match {
-    case Left(a:ConfigraunError) => {
+  def getOrganisation: Attempt[Organisation] = configraun.getAsString("/snyk/organisation") match {
+    case Left(a:ConfigraunError) =>
       val failure = Failure(a.message, "Could not read Snyk organisation from aws parameter store", 500, None, Some(a.e))
-      Attempt.fromOption(None, FailedAttempt(failure))
-    }
-    case Right(a:String) => Attempt.fromOption(Some(new Organisation(a)), null)
+      Attempt.Left(failure)
+    case Right(a:String) => Attempt.Right(Organisation(a))
   }
 
 }

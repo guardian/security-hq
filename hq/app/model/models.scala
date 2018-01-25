@@ -147,11 +147,9 @@ case class SnykProject(name: String, id: String)
 case class SnykIssue(title: String, id: String, severity: String)
 
 case class SnykProjectIssues(name: String, id: String, ok: Boolean, vulnerabilities: List[SnykIssue])  {
-  def withName(name: String) = new SnykProjectIssues(name, this.id, this.ok, this.vulnerabilities)
-  def withId(id: String) = new SnykProjectIssues(this.name, id, this.ok, this.vulnerabilities)
-  def high = vulnerabilities.filter(s => s.severity.equalsIgnoreCase("high")).length
-  def medium = vulnerabilities.filter(s => s.severity.equalsIgnoreCase("medium")).length
-  def low = vulnerabilities.filter(s => s.severity.equalsIgnoreCase("low")).length
+  def high: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("high"))
+  def medium: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("medium"))
+  def low: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("low"))
 }
 
 case class SnykError(error: String)

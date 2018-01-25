@@ -1,7 +1,6 @@
 package logic
 
 import play.api.libs.json._
-import play.api.libs.json.Reads._
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
@@ -10,43 +9,37 @@ import model._
 
 object SnykDisplay extends Serializers {
 
-  def getOrganisationId(s: String, organisation: Organisation) = {
+  def getOrganisationId(s: String, organisation: Organisation): Attempt[String] = {
     val id = for {
       orglist <- (Json.parse(s) \ "orgs").asOpt[List[SnykOrg]]
       org <- orglist.find(_.name == organisation.value)
     } yield org.id
-    val error = Json.parse(s).asOpt[SnykError].getOrElse(new SnykError(s))
-    val f = Failure(s"Unable to find organisation from ${s}", s"Could not read Snyk response (${error.error})", 502, None, None)
+    val error = Json.parse(s).asOpt[SnykError].getOrElse(SnykError(s))
+    val f = Failure(s"Unable to find organisation from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
     Attempt.fromOption(id, FailedAttempt(f))
   }
 
-  def getProjectIdList(s: String) = {
+  def getProjectIdList(s: String): Attempt[List[SnykProject]] = {
     val projectIds = (Json.parse(s) \ "projects").asOpt[List[SnykProject]]
-    val error = Json.parse(s).asOpt[SnykError].getOrElse(new SnykError(s))
-    val f = Failure(s"Unable to find project ids from ${s}", s"Could not read Snyk response (${error.error})", 502, None, None)
+    val error = Json.parse(s).asOpt[SnykError].getOrElse(SnykError(s))
+    val f = Failure(s"Unable to find project ids from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
     Attempt.fromOption(projectIds, FailedAttempt(f))
   }
 
-  def parseProjectVulnerabilities(projects: List[String])(implicit ec:ExecutionContext) = {
+  def parseProjectVulnerabilities(projects: List[String])(implicit ec:ExecutionContext): Attempt[List[SnykProjectIssues]] = {
     val b = projects.map( s => {
       val projectVulnerabilities = Json.parse(s).asOpt[SnykProjectIssues]
-      val error = Json.parse(s).asOpt[SnykError].getOrElse(new SnykError(s))
-      val f = Failure(s"Unable to find project vulnerabilities from ${s}", s"Could not read Snyk response (${error.error})", 502, None, None)
+      val error = Json.parse(s).asOpt[SnykError].getOrElse(SnykError(s))
+      val f = Failure(s"Unable to find project vulnerabilities from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
       Attempt.fromOption(projectVulnerabilities, FailedAttempt(f))
     })
     Attempt.traverse(b)(a => a)
   }
 
-  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]) = {
-    projects.zip(responses).map(a => a._2.withName(a._1.name).withId(a._1.id))
+  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = {
+    projects.zip(responses).map(a => a._2.copy(name = a._1.name).copy(id = a._1.id))
   }
 
   def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
-    projects.sortWith((a, b) =>
-      a.high > b.high
-        || a.high == b.high && (
-        a.medium > b.medium
-          || a.medium == b.medium && (
-          a.low > b.low
-            || a.low == b.low && a.name < b.name)))
+    projects.sortBy(spi => (-spi.high, -spi.medium, -spi.low, spi.name))  //Negations to produce maximum-first sort.
 }

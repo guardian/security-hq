@@ -1,7 +1,7 @@
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
-import com.gu.configraun.models.{Stack, Identifier, App, Stage}
+import com.gu.configraun.models._
 import controllers._
 import filters.HstsFilter
 import play.api.ApplicationLoader.Context
@@ -30,7 +30,7 @@ class AppComponents(context: Context)
   )
   implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory("eu-west-1", "security")
 
-  implicit val configraun = {
+  val configraun: Configuration = {
 
     configuration.getOptional[String]("stage") match {
       case Some("DEV") => {
@@ -61,7 +61,7 @@ class AppComponents(context: Context)
     httpErrorHandler,
   new HQController(configuration, cacheService),
     new SecurityGroupsController(configuration, cacheService),
-    new SnykController(configuration),
+    new SnykController(configuration, configraun),
     new AuthController(environment, configuration),
     new UtilityController(),
     assets
