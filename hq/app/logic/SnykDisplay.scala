@@ -27,13 +27,13 @@ object SnykDisplay extends Serializers {
   }
 
   def parseProjectVulnerabilities(projects: List[String])(implicit ec:ExecutionContext): Attempt[List[SnykProjectIssues]] = {
-    val b = projects.map( s => {
+    val projectVulnerabilitiesList = projects.map( s => {
       val projectVulnerabilities = Json.parse(s).asOpt[SnykProjectIssues]
       val error = Json.parse(s).asOpt[SnykError].getOrElse(SnykError(s))
       val f = Failure(s"Unable to find project vulnerabilities from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
       Attempt.fromOption(projectVulnerabilities, FailedAttempt(f))
     })
-    Attempt.traverse(b)(a => a)
+    Attempt.traverse(projectVulnerabilitiesList)(a => a)
   }
 
   def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = {
