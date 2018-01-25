@@ -33,23 +33,20 @@ class AppComponents(context: Context)
   val configraun: Configuration = {
 
     configuration.getOptional[String]("stage") match {
-      case Some("DEV") => {
+      case Some("DEV") =>
         val stack = configuration.get[String]("stack")
         val app = configuration.get[String]("app")
         val stage = "DEV"
         Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
-          case Left(a) => {
+          case Left(a) =>
             Logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
             sys.exit(1)
-          }
           case Right(a: com.gu.configraun.models.Configuration) => a
         }
-      }
       case _ => Configraun.loadConfig match {
-        case Left(a) => {
+        case Left(a) =>
           Logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
           sys.exit(1)
-        }
         case Right(a: com.gu.configraun.models.Configuration) => a
       }
     }
