@@ -41,7 +41,7 @@ class AppComponents(context: Context)
           case Left(a) =>
             Logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
             sys.exit(1)
-          case Right(a: com.gu.configraun.models.Configuration) => a
+          case Right(a) => a
         }
       case _ => Configraun.loadConfig match {
         case Left(a) =>
