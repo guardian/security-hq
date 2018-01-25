@@ -58,7 +58,9 @@ object ReportDisplay {
         } else None
 
       report.copy(
-        machineUsers = report.machineUsers ++ machineUser, humanUsers = report.humanUsers ++ humanUser)
+        machineUsers = report.machineUsers.sortWith(sortByStatus) ++ machineUser,
+        humanUsers = report.humanUsers.sortWith(sortByStatus) ++ humanUser
+      )
     }
   }
 
@@ -82,5 +84,25 @@ object ReportDisplay {
       case ( (war, err, oth), _ ) => (war, err, oth+1)
     }
     ReportSummary(warnings, errors, other)
+  }
+
+  def sortByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
+    reports.sortBy {
+      case (account, Right(report)) if reportStatusSummary(report).errors + reportStatusSummary(report).warnings != 0 =>
+        (0, reportStatusSummary(report).errors * -1, reportStatusSummary(report).warnings * -1, account.name)
+      case (account, Left(_)) =>
+        (0, 1, 0, account.name)
+      case (account, Right(_)) =>
+        (1, 0, 0, account.name)
+    }
+  }
+
+  private def sortByStatus(u1: AwsUser, u2: AwsUser) = {
+    def statusCode(status: ReportStatus): Int = status match {
+      case Red => 2
+      case Amber => 1
+      case _ => 0
+    }
+    statusCode(u1.reportStatus) > statusCode(u2.reportStatus)
   }
 }

@@ -120,6 +120,14 @@ object Red extends ReportStatus
 object Green extends ReportStatus
 object Amber extends ReportStatus
 
+sealed trait AwsUser {
+  def username: String
+  def key1Status: KeyStatus
+  def key2Status: KeyStatus
+  def reportStatus: ReportStatus
+  def lastActivityDay: Option[Long]
+}
+
 case class HumanUser(
   username: String,
   hasMFA : Boolean,
@@ -127,11 +135,12 @@ case class HumanUser(
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long]
-)
+) extends AwsUser
+
 case class MachineUser(
   username: String,
   key1Status: KeyStatus,
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
-  lastActivityDay : Option[Long]
-)
+  lastActivityDay: Option[Long]
+) extends AwsUser

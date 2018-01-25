@@ -103,7 +103,7 @@ object EC2 {
         (0, 1, 0, account.name)
       // finally, empty flagged results
       // sort internally by name of account
-      case (account, Right(flaggedSgs)) =>
+      case (account, Right(_)) =>
         (1, 0, 0, account.name)
     }
   }

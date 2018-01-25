@@ -1,6 +1,6 @@
-@import logic.ReportDisplay.reportStatusSummary
+@import logic.ReportDisplay._
 @import model._
-@(reports: Map[AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay]])(implicit assets: AssetsFinder)
+@(reports: List[(AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay])])(implicit assets: AssetsFinder)
 
 
 @main(List("IAM report")) { @* Header *@
