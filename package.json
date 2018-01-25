@@ -22,6 +22,8 @@
     "eslint": "eslint --max-warnings 0 --format codeframe --ignore-pattern '**/*.min.js' hq/public/javascripts/",
     "linter-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
     "prettier": "prettier -o --write './**/*.{js,css}'",
-    "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css"
+    "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
+    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
+    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt"
   }
 }
