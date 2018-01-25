@@ -4,7 +4,7 @@
 
 @(results: List[SnykProjectIssues])(implicit assets: AssetsFinder)
 
-@main(Nil) { @* Header *@
+@main(List("Snyk")) { @* Header *@
     <div class="container">
         <div class="row">
             <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
@@ -29,21 +29,19 @@
             </thead>
 
             <tbody>
-            @for(project <- results) {
+            @for(projectIssues <- results) {
                 <tr>
                     <td>
-                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/">@project.name</a>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/">@projectIssues.project.get.name</a>
                     </td>
                     <td>
-                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/?disclosure=all&severity=high">
-                            @project.high
-                        </a>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=high">@projectIssues.high</a>
                     </td>
                     <td>
-                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/?disclosure=all&severity=medium">@project.medium</a>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=medium">@projectIssues.medium</a>
                     </td>
                     <td>
-                        <a class="black-text" href="https://snyk.io/org/guardian/project/@project.id/?disclosure=all&severity=low">@project.low</a>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=low">@projectIssues.low</a>
                     </td>
                 </tr>
             }

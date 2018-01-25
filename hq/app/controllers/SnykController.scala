@@ -30,19 +30,20 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
       attempt {
         for {
           token <- getSnykToken
-          organisation <- getSnykOrganisation
+          requiredOrganisation <- getSnykOrganisation
 
           organisationResponse <- Snyk.getSnykOrganisations(token, wsClient)
-          organisationId <- SnykDisplay.getOrganisationId(organisationResponse.body, organisation)
+          organisation <- SnykDisplay.getOrganisation(organisationResponse.body, requiredOrganisation)
 
-          projectResponse <- Snyk.getProjects(token, organisationId, wsClient)
+          projectResponse <- Snyk.getProjects(token, organisation.id, wsClient)
           projects <- SnykDisplay.getProjectIdList(projectResponse.body)
+          labelledProjects = SnykDisplay.labelOrganisations(projects, organisation)
 
-          vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(organisationId, projects, token, wsClient)
+          vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(organisation.id, projects, token, wsClient)
           vulnerabilitiesResponseBodies = vulnerabilitiesResponse.map(a => a.body)
           parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)
 
-          results = SnykDisplay.labelProjects(projects, parsedVulnerabilitiesResponse)
+          results = SnykDisplay.labelProjects(labelledProjects, parsedVulnerabilitiesResponse)
           sortedResult = SnykDisplay.sortProjects(results)
         } yield Ok(views.html.snyk.snyk(sortedResult))
       }
@@ -57,11 +58,11 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
     case Right(a:String) => Attempt.Right(SnykToken(a))
   }
 
-  def getSnykOrganisation: Attempt[SnykOrganisation] = configraun.getAsString("/snyk/organisation") match {
+  def getSnykOrganisation: Attempt[SnykOrganisationName] = configraun.getAsString("/snyk/organisation") match {
     case Left(a:ConfigraunError) =>
       val failure = Failure(a.message, "Could not read Snyk organisation from aws parameter store", 500, None, Some(a.e))
       Attempt.Left(failure)
-    case Right(a:String) => Attempt.Right(SnykOrganisation(a))
+    case Right(a:String) => Attempt.Right(SnykOrganisationName(a))
   }
 
 }

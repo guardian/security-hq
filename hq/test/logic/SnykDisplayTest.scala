@@ -7,19 +7,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
-  "find organisationId" in {
-    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockGoodOrganisationResponse, Organisation("guardian"))
-    organisationId.value() shouldBe "1111111111"
+  "find organisation" in {
+    val organisation = SnykDisplay.getOrganisation(SnykDisplayTest.mockGoodOrganisationResponse, SnykOrganisationName("guardian"))
+    organisation.value shouldBe SnykOrganisation("guardian", "1111111111")
   }
 
   "fail to find organisationId (nice)" in {
-    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponseWithMessage, Organisation("guardian"))
+    val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithMessage, SnykOrganisationName("guardian"))
     organisationId.isFailedAttempt shouldBe true
     organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
   }
 
   "fail to find organisationId (not nice)" in {
-    val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponseWithoutMessage, Organisation("guardian"))
+    val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithoutMessage, SnykOrganisationName("guardian"))
     organisationId.isFailedAttempt shouldBe true
     organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
   }
@@ -67,12 +67,20 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
   }
 
+  "label organisation" in {
+    val results = SnykDisplay.labelOrganisations(SnykDisplayTest.goodProjects, SnykDisplayTest.goodOrganisation)
+    results.head.organisation.get.id shouldBe "id0"
+    results.head.organisation.get.name shouldBe "name0"
+    results.tail.head.organisation.get.id shouldBe "id0"
+    results.tail.head.organisation.get.name shouldBe "name0"
+  }
+
   "label projects" in {
     val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
-    results.head.id shouldBe "id1"
-    results.head.name shouldBe "name1"
-    results.tail.head.id shouldBe "id2"
-    results.tail.head.name shouldBe "name2"
+    results.head.project.get.id shouldBe "id1"
+    results.head.project.get.name shouldBe "name1"
+    results.tail.head.project.get.id shouldBe "id2"
+    results.tail.head.project.get.name shouldBe "name2"
   }
 
 }
@@ -197,13 +205,16 @@ object SnykDisplayTest  {
        |}
      """.stripMargin
 
+  val goodOrganisation =
+    SnykOrganisation("name0", "id0")
+
   val goodProjects = List(
-    SnykProject("name1", "id1"),
-    SnykProject("name2", "id2")
+    SnykProject("name1", "id1", None),
+    SnykProject("name2", "id2", None)
   )
   val goodVulnerabilities = List(
-    SnykProjectIssues("fake name1", "fake id1", ok = false, List[SnykIssue]()),
-    SnykProjectIssues("fake name2", "fake id2", ok = false, List[SnykIssue]())
+    SnykProjectIssues(None, ok = false, List[SnykIssue]()),
+    SnykProjectIssues(None, ok = false, List[SnykIssue]())
   )
 
 
