@@ -12,34 +12,51 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     organisation.value shouldBe SnykOrganisation("guardian", "1111111111")
   }
 
-  "fail to find organisationId (nice)" in {
+  "fail to find organisation (nice)" in {
     val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithMessage, SnykOrganisationName("guardian"))
     organisationId.isFailedAttempt shouldBe true
     organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
   }
 
-  "fail to find organisationId (not nice)" in {
+  "fail to find organisation (not nice)" in {
     val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithoutMessage, SnykOrganisationName("guardian"))
     organisationId.isFailedAttempt shouldBe true
     organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
   }
 
-  "find project id list" in {
-    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockGoodProjectResponse)
-    !projects.value().exists(p => p.name == "project1") shouldBe false
-    !projects.value().exists(p => p.name == "project2") shouldBe false
+  "find projects" - {
+
+    "find project 1 in project list" in {
+      val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockGoodProjectResponse)
+      projects.value().exists(p => p.name == "project1") shouldBe true
+    }
+
+    "find project 2 in project list" in {
+      val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockGoodProjectResponse)
+      projects.value().exists(p => p.name == "project2") shouldBe true
+    }
+
   }
 
-  "fail to find project id list (nice)" in {
-    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithMessage)
-    projects.isFailedAttempt shouldBe true
-    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
-  }
+  "fail to find project list" - {
+    "fail to find project id list (nice) - fails" in {
+      val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithMessage)
+      projects.isFailedAttempt shouldBe true
+    }
 
-  "fail to find project id list (not nice)" in {
-    val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithoutMessage)
-    projects.isFailedAttempt shouldBe true
-    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
+    "fail to find project id list (nice) - has message" in {
+      val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithMessage)
+      projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+    }
+
+    "fail to find project id list (not nice) - fails" in {
+      val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithoutMessage)
+      projects.isFailedAttempt shouldBe true
+    }
+    "fail to find project id list (not nice) - has message" in {
+      val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithoutMessage)
+      projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
+    }
   }
 
   "find empty vulnerability list" in {
@@ -47,40 +64,92 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     projects.value().head.ok shouldBe true
   }
 
-  "find non-empty vulnerability list" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodButVulnerableResponse))
-    projects.value().head.ok shouldBe false
-    projects.value().head.high shouldBe 1
-    projects.value().head.medium shouldBe 0
-    projects.value().head.low shouldBe 0
+  "find non-empty vulnerability list" - {
+    "find ok" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodButVulnerableResponse))
+      projects.value().head.ok shouldBe false
+    }
+
+    "find high count" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodButVulnerableResponse))
+      projects.value().head.high shouldBe 1
+    }
+
+    "find medium count" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodButVulnerableResponse))
+      projects.value().head.medium shouldBe 0
+    }
+
+    "find low count" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockGoodButVulnerableResponse))
+      projects.value().head.low shouldBe 0
+    }
   }
 
-  "fail to find vulnerability list (nice)" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithMessage))
-    projects.isFailedAttempt() shouldBe true
-    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+  "fail to find vulnerability list (nice)" - {
+    "fail to find vulnerability list (nice) - fails" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithMessage))
+      projects.isFailedAttempt() shouldBe true
+    }
+    "fail to find vulnerability list (nice) - has message" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithMessage))
+      projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+    }
   }
 
-  "fail to find vulnerability list (not nice)" in {
-    val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
-    projects.isFailedAttempt() shouldBe true
-    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
+  "fail to find vulnerability list (not nice)" - {
+    "fail to find vulnerability list (not nice) - fails" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
+      projects.isFailedAttempt() shouldBe true
+    }
+    "fail to find vulnerability list (not nice) - has message" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
+      projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
+    }
   }
 
-  "label organisation" in {
-    val results = SnykDisplay.labelOrganisations(SnykDisplayTest.goodProjects, SnykDisplayTest.goodOrganisation)
-    results.head.organisation.get.id shouldBe "id0"
-    results.head.organisation.get.name shouldBe "name0"
-    results.tail.head.organisation.get.id shouldBe "id0"
-    results.tail.head.organisation.get.name shouldBe "name0"
+  "label organisation" - {
+    "label organisation - first id" in {
+      val results = SnykDisplay.labelOrganisations(SnykDisplayTest.goodProjects, SnykDisplayTest.goodOrganisation)
+      results.head.organisation.get.id shouldBe "id0"
+    }
+
+    "label organisation - first name" in {
+      val results = SnykDisplay.labelOrganisations(SnykDisplayTest.goodProjects, SnykDisplayTest.goodOrganisation)
+      results.head.organisation.get.name shouldBe "name0"
+    }
+
+    "label organisation - second id" in {
+      val results = SnykDisplay.labelOrganisations(SnykDisplayTest.goodProjects, SnykDisplayTest.goodOrganisation)
+      results.tail.head.organisation.get.id shouldBe "id0"
+    }
+
+    "label organisation - second name" in {
+      val results = SnykDisplay.labelOrganisations(SnykDisplayTest.goodProjects, SnykDisplayTest.goodOrganisation)
+      results.tail.head.organisation.get.name shouldBe "name0"
+    }
   }
 
-  "label projects" in {
-    val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
-    results.head.project.get.id shouldBe "id1"
-    results.head.project.get.name shouldBe "name1"
-    results.tail.head.project.get.id shouldBe "id2"
-    results.tail.head.project.get.name shouldBe "name2"
+  "label projects" - {
+    "label projects - first id" - {
+      val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
+      results.head.project.get.id shouldBe "id1"
+    }
+
+    "label projects - first name" in {
+      val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
+      results.head.project.get.name shouldBe "name1"
+    }
+
+    "label projects - second id" in {
+      val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
+      results.tail.head.project.get.id shouldBe "id2"
+    }
+
+    "label projects - second name" in {
+      val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
+      results.tail.head.project.get.name shouldBe "name2"
+    }
   }
 
 }
