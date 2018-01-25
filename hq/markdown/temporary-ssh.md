@@ -19,7 +19,7 @@ The mechanism is via AWS run-command.  Please see AWS documentation for details.
 
 The instance must 
 
-  * be set up to use run-command
+  * be set up to use [run-command](run-command)
   * have sshd running
   * have a public IP address
   * have ssh access permitted (port 22 open)
