@@ -21,7 +21,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
   "fail to find organisationId (not nice)" in {
     val organisationId = SnykDisplay.getOrganisationId(SnykDisplayTest.mockBadResponseWithoutMessage, Organisation("guardian"))
     organisationId.isFailedAttempt shouldBe true
-    organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response ({\"toughluck\": \"no use\"})"
+    organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
   }
 
   "find project id list" in {
@@ -39,7 +39,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
   "fail to find project id list (not nice)" in {
     val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithoutMessage)
     projects.isFailedAttempt shouldBe true
-    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response ({\"toughluck\": \"no use\"})"
+    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
   }
 
   "find empty vulnerability list" in {
@@ -64,7 +64,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
   "fail to find vulnerability list (not nice)" in {
     val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
     projects.isFailedAttempt() shouldBe true
-    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response ({\"toughluck\": \"no use\"})"
+    projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
   }
 
   "label projects" in {
@@ -79,16 +79,18 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
 object SnykDisplayTest  {
 
-  private val mockBadResponseWithMessage = s"""{\"error\": \"some nice error\"}"""
+  private val mockBadResponseWithMessage =
+    s"""{"error": "some nice error"}"""
 
-  private val mockBadResponseWithoutMessage = s"""{\"toughluck\": \"no use\"}"""
+  private val mockBadResponseWithoutMessage =
+    s"""{"toughluck": "no use"}"""
 
   private val mockGoodOrganisationResponse =
     s"""
-       |{\"orgs\":
+       |{"orgs":
        |[
-       |{ \"name\": \"guardian\", \"id\": \"1111111111\" },
-       |{ \"name\": \"nottheguardian\", \"id\": \"9999999999\" }
+       |  {"name": "guardian", "id": "1111111111" },
+       |  {"name": "nottheguardian", "id": "9999999999"}
        |]
        |}""".stripMargin
 
