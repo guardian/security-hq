@@ -25,10 +25,10 @@ object Snyk {
   }
 
   def getProjects(token: Token, id: String, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
-        val snykProjectsUrl = s"https://snyk.io/api/v1/org/$id/projects"
-        val a = wsClient.url(snykProjectsUrl)
-          .addHttpHeaders("Authorization" -> s"token ${token.value}")
-          .get()
+    val snykProjectsUrl = s"https://snyk.io/api/v1/org/$id/projects"
+    val a = wsClient.url(snykProjectsUrl)
+        .addHttpHeaders("Authorization" -> s"token ${token.value}")
+        .get()
 
     Attempt.fromFuture(a) { case NonFatal(e) =>
       val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
