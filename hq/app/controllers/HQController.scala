@@ -8,7 +8,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
-import logic.ReportDisplay.sortByReportSummary
+import logic.ReportDisplay.sortAccountsByReportSummary
 
 
 import scala.concurrent.ExecutionContext
@@ -25,7 +25,7 @@ class HQController (val config: Configuration, cacheService: CacheService)
 
   def iam = authAction {
     val accountsAndReports = cacheService.getAllCredentials()
-    val sortedAccountsAndReports = sortByReportSummary(accountsAndReports.toList)
+    val sortedAccountsAndReports = sortAccountsByReportSummary(accountsAndReports.toList)
     Ok(views.html.iam.iam(sortedAccountsAndReports))
   }
 

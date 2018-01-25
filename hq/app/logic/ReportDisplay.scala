@@ -86,7 +86,7 @@ object ReportDisplay {
     ReportSummary(warnings, errors, other)
   }
 
-  def sortByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
+  def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
     reports.sortBy {
       case (account, Right(report)) if reportStatusSummary(report).errors + reportStatusSummary(report).warnings != 0 =>
         (0, reportStatusSummary(report).errors * -1, reportStatusSummary(report).warnings * -1, account.name)
