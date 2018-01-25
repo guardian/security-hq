@@ -10,7 +10,7 @@ import scala.util.control.NonFatal
 
 object Snyk {
 
-  def getSnykOrganisations(token: Token, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
+  def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
 
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
 
@@ -24,7 +24,7 @@ object Snyk {
     }
   }
 
-  def getProjects(token: Token, id: String, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
+  def getProjects(token: SnykToken, id: String, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
     val snykProjectsUrl = s"https://snyk.io/api/v1/org/$id/projects"
     val a = wsClient.url(snykProjectsUrl)
         .addHttpHeaders("Authorization" -> s"token ${token.value}")
@@ -36,7 +36,7 @@ object Snyk {
     }
   }
 
-  def getProjectVulnerabilities(id: String, projects: List[SnykProject], token: Token, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[List[WSResponse]] = {
+  def getProjectVulnerabilities(id: String, projects: List[SnykProject], token: SnykToken, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[List[WSResponse]] = {
     val projectVulnerabilityResponses = projects
       .map(project => {
         val snykProjectUrl = s"https://snyk.io/api/v1/org/$id/project/${project.id}/issues"

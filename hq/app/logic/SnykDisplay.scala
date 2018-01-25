@@ -10,7 +10,7 @@ import model.Serializers._
 
 object SnykDisplay {
 
-  def getOrganisationId(s: String, organisation: Organisation): Attempt[String] = {
+  def getOrganisationId(s: String, organisation: SnykOrganisation): Attempt[String] = {
     val id = for {
       orglist <- (Json.parse(s) \ "orgs").asOpt[List[SnykOrg]]
       org <- orglist.find(_.name == organisation.value)
