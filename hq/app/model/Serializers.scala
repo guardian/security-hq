@@ -3,7 +3,7 @@ package model
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, JsPath, Json, Reads}
 
-trait Serializers {
+object Serializers {
 
   implicit val snykErrorFormat: Reads[SnykError] = Json.reads[SnykError]
 

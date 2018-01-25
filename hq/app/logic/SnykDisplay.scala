@@ -6,8 +6,9 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.ExecutionContext
 
 import model._
+import model.Serializers._
 
-object SnykDisplay extends Serializers {
+object SnykDisplay {
 
   def getOrganisationId(s: String, organisation: Organisation): Attempt[String] = {
     val id = for {
