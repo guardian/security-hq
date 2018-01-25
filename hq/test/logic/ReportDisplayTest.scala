@@ -4,6 +4,7 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import ReportDisplay._
+import utils.attempt.FailedAttempt
 
 
 class ReportDisplayTest extends FreeSpec with Matchers {
@@ -133,6 +134,51 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
 
+  }
+
+  "reportSort" - {
+    val now = DateTime.now()
+    val humanRed = HumanUser("humanRed", hasMFA = false, AccessKeyEnabled, AccessKeyEnabled, Red, Some(1))
+    val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
+    val machineAmber = MachineUser("machineAmber", AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+    val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
+    val awsAccA = AwsAccount("aswAccA", "Account A", "roleArnA")
+    val awsAccB = AwsAccount("aswAccB", "Account B", "roleArnB")
+    val awsAccC = AwsAccount("aswAccC", "Account C", "roleArnC")
+
+    "will sort reports by account name if there are no alerts" in {
+      val greenReport0 = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanGreen), machineUsers = Seq(machineGreen))
+      val greenReport1 = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanGreen), machineUsers = Seq(machineGreen, machineGreen, machineGreen))
+      val greenReport2 = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanGreen), machineUsers = Seq(machineGreen, machineGreen))
+      val reports = List((awsAccB, Right(greenReport1)), (awsAccC, Right(greenReport2)), (awsAccA, Right(greenReport0)))
+
+      sortByReportSummary(reports) shouldEqual List((awsAccA, Right(greenReport0)), (awsAccB, Right(greenReport1)), (awsAccC, Right(greenReport2)))
+    }
+
+    "will place accounts with unsuccessful reports above accounts with green ones" in {
+      val greenReport = CredentialReportDisplay(now, humanUsers = Seq(humanGreen), machineUsers = Seq(machineGreen))
+      val reports = List((awsAccB, Right(greenReport)), (awsAccC, Left(FailedAttempt)), (awsAccA, Right(greenReport)))
+
+      sortByReportSummary(reports) shouldEqual List((awsAccC, Left(FailedAttempt)), (awsAccA, Right(greenReport)), (awsAccB, Right(greenReport)))
+    }
+
+    "will sort according to the number of red, then amber alerts" in {
+      val mostGreen = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineAmber, machineGreen, machineGreen))
+      val mostAmber = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineAmber, machineAmber, machineGreen))
+      val mostRed = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanRed), machineUsers = Seq(machineAmber, machineGreen, machineGreen, machineGreen))
+      val reports = List((awsAccA, Right(mostGreen)), (awsAccB, Right(mostRed)), (awsAccC, Right(mostAmber)))
+
+      sortByReportSummary(reports) shouldEqual List((awsAccB, Right(mostRed)), (awsAccC, Right(mostAmber)), (awsAccA, Right(mostGreen)))
+    }
+
+    "orders unsuccessful reports by the account name" in {
+      val mostGreen = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineAmber, machineGreen, machineGreen))
+      val mostAmber = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineAmber, machineAmber, machineGreen))
+      val mostRed = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanRed), machineUsers = Seq(machineAmber, machineGreen, machineGreen, machineGreen))
+      val reports = List((awsAccA, Right(mostGreen)), (awsAccB, Right(mostRed)), (awsAccC, Right(mostAmber)))
+
+      sortByReportSummary(reports) shouldEqual List((awsAccB, Right(mostRed)), (awsAccC, Right(mostAmber)), (awsAccA, Right(mostGreen)))
+    }
   }
 
   "reportStatusSummary" - {

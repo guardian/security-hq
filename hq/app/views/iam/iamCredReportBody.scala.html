@@ -1,5 +1,5 @@
 @import logic.DateUtils
-@import model.CredentialReportDisplay
+@import model._
 @import logic.ReportDisplay
 @(report: CredentialReportDisplay)
 
@@ -18,8 +18,8 @@
                 <th>Last Activity</th>
                 <th>Status</th>
             </tr>
-            @for(cred <- report.humanUsers) {
 
+            @for(cred <- report.humanUsers) {
                 <tr>
                     <td>
                         <a target="_blank" rel="noopener noreferrer"  href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">@views.html.fragments.username(cred.username)
@@ -29,13 +29,12 @@
                     <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
                     <td>@views.html.fragments.mfa(cred.hasMFA)</td>
                     <td>
-                        <span>
-                            @ReportDisplay.toDayString(cred.lastActivityDay)
-                        </span>
+                        <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
                     <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
                 </tr>
             }
+
             @for(cred <- report.machineUsers) {
                 <tr>
                     <td>
