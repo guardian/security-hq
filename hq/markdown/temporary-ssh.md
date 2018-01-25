@@ -26,4 +26,4 @@ The instance must
 
 # Download
 
-The application is available to download at https://github.com/guardian/ssm-scala/
+The application is available to download at [github](https://github.com/guardian/ssm-scala/)
