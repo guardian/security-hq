@@ -10,8 +10,6 @@ jQuery(function($) {
 $(document).ready(function() {
   // initalizing the mobile nav
   $('.button-collapse').sideNav();
-  // Make any tables with the filter class filterable
-  $('.filterable-table').filterTable();
 
   // Extra interactions for the dropdowns on the Security Groups page
   $('.js-sg-details').hover(
