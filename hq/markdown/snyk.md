@@ -7,11 +7,7 @@ vulnerabilities in your application.
 
 ## Installing
 
-Snyk requires node, and `npm`.
-
-### Developer Install
-
-To install on a mac, please use:
+Snyk requires node, and `npm`.  To install on a mac, please use:
 
 ```
 brew install npm
@@ -22,52 +18,6 @@ Snyk then requires an authentication token to be set up.  Github auth is almost 
 
 ```
 snyk auth
-```
-
-## Build Server Install
-
-Build servers will not have Snyk installed.  The project must declare it as a development dependency.
-
-This can be achieved by merging the entries from the following content into package.json:
-
-### Scala Builds
-
-As the invocation will be via an npm plugin (Snyk is a node tool), build servers may not expose the sbt executable
-on the PATH.  As a result it is necessary to pre-pend the sbt location onto the PATH so that Snyk can invoke it.
-
-```
-  "devDependencies": {
-    "snyk": "1.69.3"
-  },
-  "scripts": {
-    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
-    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt",
-  }
-```
-
-### Node Builds
-
-```
-  "devDependencies": {
-    "snyk": "1.68.0"
-  },
-  "scripts": {
-    "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
-    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json"
-  }
-```
-
-## Build Server Invocation
-
-A SNYK_TOKEN environment variable will be exposed which will permit invocation of `snyk test` and `snyk monitor`,
-with the results being pushed to the `guardian` organisation on Snyk, and visible via security-hq.
-
-The build process will require a build step with the following:
-
-```
-npm install --only=dev
-npm run snyk-test
-npm run snyk-monitor
 ```
 
 # Usage
@@ -86,39 +36,21 @@ code is non-zero (ie at least one vulnerability found or error).
 Snyk needs to first create a dependency tree for your project (based on the sbt dependencies), then check with the
 Snyk database.
 
-Dependency graph creation is via an sbt plugin.
+Dependency graph creation is via an sbt plugin.  Add the following line to your project plugins file or your `.sbt/plugins`
+directory:
 
-### Project
 
-To add directly to a project, add the following line to your project plugins (<projectroot>/project/plugins.sbt):
+```
+/Users/<you>/.sbt/<sbt-version>/plugins/snyk.sbt
+or
+<projectroot>/project/plugins.sbt
+```
 
 ```
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
 ```
 
-If you are using SBT 1.0, you will also need to add the following line to your build.sbt:
-
-```
-addCommandAlias("dependency-tree", "dependencyTree")
-```
-
-### User
-
-To add for your personal user, which will make snyk available for any project, add the following line to your
-.sbt plugins (~/.sbt/<sbt-version>/plugins/snyk.sbt):
-
-
-```
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
-```
-
-If you are using SBT 1.0, you will also need to add the following line to your user.sbt (~/.sbt/1.0/user.sbt):
-
-```
-addCommandAlias("dependency-tree", "dependencyTree")
-```
-
-### Manual Invocation
+### Invocation
 
 It is recommended that `sbt` itself is invoked first, to confirm that the build file is good.  You
 can then invoke `snyk` as follows.  If you are working on a new snyk implementation, then it is often
@@ -129,14 +61,22 @@ sbt test
 snyk test --file=build.sbt [--show-vulnerable-paths=(true|false)]
 ```
 
-If you also wish to send your dependencies to Snyk, where they will be monitored for new vulnerabilities, found after the
-build, then you should also add:
-
-```
-snyk monitor
-```
-
 ### Gotchas
+
+#### With SBT 1.0.0+
+
+It appears that sbt expects to invoke `dependency-tree`.  After sbt 1.0, this command appears to be `dependencyTree`.
+
+As Snyk is written in an interpreted script, this can be 'fixed' for now (if you use sbt > 1.0.0) using the following (mac) command:
+
+```
+sed -i '' 's/dependency-tree/dependencyTree/g' $(grep -wrl 'dependency-tree' /usr/local/lib/node_modules/snyk/node_modules/snyk-sbt-plugin/)
+```
+
+And to revert:
+```
+sed -i '' 's/dependencyTree/dependency-tree/g' $(grep -wrl 'dependencyTree' /usr/local/lib/node_modules/snyk/node_modules/snyk-sbt-plugin/)
+```
 
 #### With bugs in build.sbt
 
@@ -158,7 +98,7 @@ or
 yarn upgrade
 ```
 
-### Manual Invocation
+### Invocation
 
 Scan for vulnerabilities with:
 
@@ -172,13 +112,6 @@ the `--dev` flag:
 
 ```
 snyk test --file=package.json --dev
-```
-
-If you also wish to send your dependencies to Snyk, where they will be monitored for new vulnerabilities, found after the
-build, then you should also add:
-
-```
-snyk monitor
 ```
 
 ### Optional Magic
@@ -252,13 +185,10 @@ The worst case scenario is that the library is still vulnerable, has no alternat
 may wish to build and release anyway, ideally reporting the situation to a risk register. This is most likely to happen when
 a new vulnerability is discovered and the library publisher has not had chance to respond.
 
-For private repositories, this is cleanly achieved by creating a `.snyk` file which can act both as an exemption and the risk register itself.
+This is cleanly achieved by creating a `.snyk` file which can act both as an exemption and the risk register itself.
 Please try to give meaningful reasons for allowing the exemption.
 
 The `.snyk` file can then be added to the repository and the build should continue.
-
-__However, for public repositories, this would mean that the vulnerability is effectively advertised right in
-the project!  This is therefore not an acceptable approach for public repositories.__
 
 When an exemption expires, the build will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
