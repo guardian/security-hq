@@ -2,7 +2,7 @@ package logic
 
 import model._
 import DateUtils.dayDiff
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{DateTime, DateTimeZone, Days}
 
 
 object ReportDisplay {
@@ -34,6 +34,8 @@ object ReportDisplay {
   private[logic] def machineReportStatus(cred: IAMCredential): ReportStatus = {
     if (!Seq(key1Status(cred), key2Status(cred)).contains(AccessKeyEnabled))
       Amber
+    else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
+      Blue
     else Green
   }
 
@@ -42,6 +44,8 @@ object ReportDisplay {
       Red
     else if (Seq(key1Status(cred), key2Status(cred)).contains(AccessKeyEnabled))
       Amber
+    else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
+      Blue
     else Green
   }
 

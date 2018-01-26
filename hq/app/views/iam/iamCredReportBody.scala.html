@@ -12,6 +12,7 @@
     <div class="col s12">
         <table class="striped responsive-table iam-report__table" >
             <tr>
+                <th>Type</th>
                 <th>User name</th>
                 <th>Access Keys</th>
                 <th>Password/MFA</th>
@@ -21,13 +22,15 @@
 
             @for(cred <- report.humanUsers) {
                 <tr>
+                    <td><i class="material-icons left">person</i></td>
                     <td>
-                        <a href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
+                        <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {
                             <span class="tooltipped" data-tooltip="@cred.username">@cred.username.slice(0, 30)&hellip;</span>
                             } else {
                             <span>@cred.username</span>
                             }
+                            <i class="material-icons link_new_tab">open_in_new</i>
                         </a>
                     </td>
                     <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
@@ -41,13 +44,15 @@
 
             @for(cred <- report.machineUsers) {
                 <tr>
+                    <td><i class="material-icons left">computer</i></td>
                     <td>
-                        <a href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
+                        <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {
                                 <span class="tooltipped" data-tooltip="@cred.username">@cred.username.slice(0, 30)&hellip;</span>
                             } else {
                                 <span>@cred.username</span>
                             }
+                            <i class="material-icons link_new_tab">open_in_new</i>
                         </a>
                     </td>
                     <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
