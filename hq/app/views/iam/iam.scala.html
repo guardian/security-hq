@@ -50,7 +50,7 @@
                 <div class="collapsible-body">
                 @report match {
                     case Right(re) => {
-                        @views.html.iam.iamCredReportBody(re)
+                        @views.html.iam.iamCredReportBody(sortUsersByReportSummary(re))
                     }
                     case Left(fa) => {
                         <p class="p--warning">

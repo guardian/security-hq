@@ -58,8 +58,8 @@ object ReportDisplay {
         } else None
 
       report.copy(
-        machineUsers = report.machineUsers.sortWith(sortByStatus) ++ machineUser,
-        humanUsers = report.humanUsers.sortWith(sortByStatus) ++ humanUser
+        machineUsers = report.machineUsers ++ machineUser,
+        humanUsers = report.humanUsers ++ humanUser
       )
     }
   }
@@ -97,12 +97,22 @@ object ReportDisplay {
     }
   }
 
-  private def sortByStatus(u1: AwsUser, u2: AwsUser) = {
-    def statusCode(status: ReportStatus): Int = status match {
-      case Red => 2
+  def sortUsersByReportSummary(report: CredentialReportDisplay): CredentialReportDisplay = {
+    report.copy(
+      machineUsers = report.machineUsers.sortBy(user => (user.reportStatus, user.username)),
+      humanUsers = report.humanUsers.sortBy(user => (user.reportStatus, user.username))
+    )
+  }
+
+  implicit val reportStatusOrdering: Ordering[ReportStatus] = new Ordering[ReportStatus] {
+    private def statusCode(status: ReportStatus): Int = status match {
+      case Red => 0
       case Amber => 1
-      case _ => 0
+      case Green => 99
     }
-    statusCode(u1.reportStatus) > statusCode(u2.reportStatus)
+
+    override def compare(x: ReportStatus, y: ReportStatus): Int = {
+      statusCode(x) - statusCode(y)
+    }
   }
 }

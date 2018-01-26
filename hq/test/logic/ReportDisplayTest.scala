@@ -152,11 +152,11 @@ class ReportDisplayTest extends FreeSpec with Matchers {
     val reportBadScenario = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanAmber, humanRed, humanAmber), machineUsers = Seq(machineAmber, machineAmber, machineGreen))
     val reportWorstCase = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanAmber, humanRed, humanGreen), machineUsers = Seq(machineAmber, machineGreen))
 
-    val awsAccA = AwsAccount("aswAccA", "Account A", "roleArnA")
-    val awsAccB = AwsAccount("aswAccB", "Account B", "roleArnB")
-    val awsAccC = AwsAccount("aswAccC", "Account C", "roleArnC")
-    val awsAccD = AwsAccount("aswAccD", "Account D", "roleArnD")
-    val awsAccE = AwsAccount("aswAccE", "Account E", "roleArnE")
+    val awsAccA = AwsAccount("awsAccA", "Account A", "roleArnA")
+    val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB")
+    val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC")
+    val awsAccD = AwsAccount("awsAccD", "Account D", "roleArnD")
+    val awsAccE = AwsAccount("awsAccE", "Account E", "roleArnE")
 
     "will sort reports by account name if there are no alerts" in {
       val reports = List(
@@ -194,7 +194,7 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       )
     }
 
-    "will sort according to the number of red, then amber alerts" in {
+    "will sort according to the number of red alerts, then amber alerts" in {
       val reports = List(
         (awsAccA, Right(reportSomeWarnings)),
         (awsAccB, Right(reportWorstCase)),
@@ -209,6 +209,24 @@ class ReportDisplayTest extends FreeSpec with Matchers {
         (awsAccE, Right(reportMediumConcern)),
         (awsAccA, Right(reportSomeWarnings)),
         (awsAccD, Right(reportAllGreen))
+      )
+    }
+
+    "will sort according to account name if the reports are equal" in {
+      val reports = List(
+        (awsAccC, Right(reportMediumConcern)),
+        (awsAccD, Right(reportSomeWarnings)),
+        (awsAccE, Right(reportMediumConcern)),
+        (awsAccA, Right(reportMediumConcern)),
+        (awsAccB, Right(reportSomeWarnings))
+      )
+
+      sortAccountsByReportSummary(reports) shouldEqual List(
+        (awsAccA, Right(reportMediumConcern)),
+        (awsAccC, Right(reportMediumConcern)),
+        (awsAccE, Right(reportMediumConcern)),
+        (awsAccB, Right(reportSomeWarnings)),
+        (awsAccD, Right(reportSomeWarnings))
       )
     }
   }
@@ -232,6 +250,43 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       reportStatusSummary(report).warnings shouldEqual 2
       reportStatusSummary(report).errors shouldEqual 1
       reportStatusSummary(report).other shouldEqual 3
+    }
+  }
+
+  "sortUsersByReportSummary" - {
+    val now = DateTime.now()
+
+    val humanRedA = HumanUser("humanRedA", hasMFA = false, NoKey, NoKey, Red, Some(1))
+    val humanRedB = HumanUser("humanRedB", hasMFA = false, NoKey, NoKey, Red, Some(1))
+    val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+    val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+    val humanGreenA = HumanUser("humanGreenA", hasMFA = true, NoKey, NoKey, Green, Some(1))
+    val humanGreenB = HumanUser("humanGreenB", hasMFA = true, NoKey, NoKey, Green, Some(1))
+
+    val machineAmberA = MachineUser("machineAmberA", AccessKeyDisabled, NoKey, Amber, Some(1))
+    val machineAmberB = MachineUser("machineAmberB", AccessKeyDisabled, NoKey, Amber, Some(1))
+    val machineGreenA = MachineUser("machineGreenA", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
+    val machineGreenB = MachineUser("machineGreenB", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
+
+    "will sort according to username if the ReportStatuses are equal" in {
+      val report = CredentialReportDisplay(now,
+        machineUsers = Seq(machineGreenB, machineGreenA, machineGreenB, machineGreenA),
+        humanUsers = Seq(humanAmberA, humanAmberB, humanAmberB, humanAmberA, humanAmberB)
+      )
+
+      sortUsersByReportSummary(report).machineUsers shouldEqual Seq(machineGreenA, machineGreenA, machineGreenB, machineGreenB)
+      sortUsersByReportSummary(report).humanUsers shouldEqual Seq(humanAmberA, humanAmberA, humanAmberB, humanAmberB, humanAmberB)
+    }
+
+    "orders the humanUsers and machineUsers according to severity of the ReportStatus" in {
+      val report = CredentialReportDisplay(now,
+        machineUsers = Seq(machineAmberB, machineGreenA, machineAmberA, machineGreenB),
+        humanUsers = Seq(humanGreenB, humanRedA, humanAmberB, humanAmberA, humanRedB, humanGreenA)
+      )
+
+      sortUsersByReportSummary(report).machineUsers shouldEqual Seq(machineAmberA, machineAmberB, machineGreenA, machineGreenB)
+      sortUsersByReportSummary(report).humanUsers shouldEqual Seq(humanRedA, humanRedB, humanAmberA, humanAmberB, humanGreenA, humanGreenB)
+
     }
   }
 }
