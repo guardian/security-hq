@@ -33,11 +33,6 @@ nav {
   box-shadow: none;
 }
 
-.is-hidden,
-[hidden] {
-  display: none !important;
-}
-
 .space-between {
   justify-content: space-between;
 }
@@ -50,6 +45,10 @@ nav {
 
 .link_new_tab {
   vertical-align: bottom;
+}
+
+.large-icon {
+  font-size: 36px !important;
 }
 
 /* navigation and header */
@@ -300,6 +299,10 @@ table.iam-report__table td,
 table.iam-report__table th {
   min-height: 21px;
   box-sizing: initial;
+}
+
+.iam-modal__trigger {
+  height: 24px;
 }
 
 /* footer */

@@ -2,19 +2,21 @@
 @(status: ReportStatus)
 
 @if(status == model.Red) {
-    <span>
-        <i class="material-icons left red-text">error</i>
-        MFA not enabled
-        <a class="modal-trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
-    </span>
+    <i class="material-icons left red-text">error</i>
+    <span>MFA not enabled</span>
+    <a class="modal-trigger iam-modal__trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
 }
 
 @if(status == model.Amber) {
-    <span>
-        <i class="material-icons left amber-text">warning</i>
-        Has active access keys
-        <a class="modal-trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
-    </span>
+    <i class="material-icons left amber-text">warning</i>
+    <span>Has active access keys</span>
+    <a class="modal-trigger iam-modal__trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
+}
+
+@if(status == model.Blue) {
+    <i class="material-icons left purple-text">watch_later</i>
+    <span class="title">Inactive user</span>
+    <a class="modal-trigger iam-modal__trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
 }
 
 @if(status == model.Green) {
