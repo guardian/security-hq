@@ -22,7 +22,7 @@
 
             @for(cred <- report.humanUsers) {
                 <tr>
-                    <td><i class="material-icons left">person</i></td>
+                    <td><i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i></td>
                     <td>
                         <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {
@@ -44,7 +44,7 @@
 
             @for(cred <- report.machineUsers) {
                 <tr>
-                    <td><i class="material-icons left">computer</i></td>
+                    <td><i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i></td>
                     <td>
                         <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {

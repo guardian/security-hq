@@ -112,7 +112,7 @@ object ReportDisplay {
     private def statusCode(status: ReportStatus): Int = status match {
       case Red => 0
       case Amber => 1
-      case Green => 99
+      case _ => 99
     }
 
     override def compare(x: ReportStatus, y: ReportStatus): Int = {
