@@ -8,8 +8,9 @@ jQuery(function($) {
 });
 
 $(document).ready(function() {
-  // initalizing the mobile nav
+  // initalizing the mobile nav and the modal
   $('.button-collapse').sideNav();
+  $('.modal').modal();
   // Make any tables with the filter class filterable
   $('.filterable-table').filterTable();
 
