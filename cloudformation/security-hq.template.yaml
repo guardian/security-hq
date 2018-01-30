@@ -98,11 +98,6 @@ Resources:
             - s3:ListBucket
             - s3:GetObjectVersion
             - s3:GetObject
-          # Describe instance tags, to find out its own stack, app, stage.
-          - Effect: Allow
-            Resource: "*"
-            Action:
-            - ec2:DescribeTags
           # allow security HQ to assume roles in watched accounts
           - Effect: Allow
             Resource: "*"

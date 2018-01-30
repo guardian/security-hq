@@ -92,10 +92,10 @@ At this step we configure nginx.
 
 6. To stop and restart ngnix you can now do
 
-```
-sudo nginx -s stop
-sudo nginx
-```
+	```
+	sudo nginx -s stop
+	sudo nginx
+	```
 
 7. Now when you run the project (see next step for details), it will also be accessible via [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 

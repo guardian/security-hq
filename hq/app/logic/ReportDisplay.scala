@@ -7,6 +7,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 
 object ReportDisplay {
 
+  case class ReportSummary(warnings: Int, errors: Int, other: Int)
 
   private[logic] def lastActivityDate(cred: IAMCredential): Option[DateTime] = {
     val allDates =
@@ -57,7 +58,9 @@ object ReportDisplay {
         } else None
 
       report.copy(
-        machineUsers = report.machineUsers ++ machineUser, humanUsers = report.humanUsers ++ humanUser)
+        machineUsers = report.machineUsers ++ machineUser,
+        humanUsers = report.humanUsers ++ humanUser
+      )
     }
   }
 
@@ -72,7 +75,44 @@ object ReportDisplay {
     case _ => ""
   }
 
-  def reportStatusSummary(report: CredentialReportDisplay): Set[ReportStatus] = {
-    (report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)).toSet
+  def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
+    val reportStatusSummary = report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)
+
+    val (warnings, errors, other) = reportStatusSummary.foldLeft(0,0,0) {
+      case ( (war, err, oth), Amber ) => (war+1, err, oth)
+      case ( (war, err, oth), Red ) => (war, err+1, oth)
+      case ( (war, err, oth), _ ) => (war, err, oth+1)
+    }
+    ReportSummary(warnings, errors, other)
+  }
+
+  def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
+    reports.sortBy {
+      case (account, Right(report)) if reportStatusSummary(report).errors + reportStatusSummary(report).warnings != 0 =>
+        (0, reportStatusSummary(report).errors * -1, reportStatusSummary(report).warnings * -1, account.name)
+      case (account, Left(_)) =>
+        (0, 1, 0, account.name)
+      case (account, Right(_)) =>
+        (1, 0, 0, account.name)
+    }
+  }
+
+  def sortUsersByReportSummary(report: CredentialReportDisplay): CredentialReportDisplay = {
+    report.copy(
+      machineUsers = report.machineUsers.sortBy(user => (user.reportStatus, user.username)),
+      humanUsers = report.humanUsers.sortBy(user => (user.reportStatus, user.username))
+    )
+  }
+
+  implicit val reportStatusOrdering: Ordering[ReportStatus] = new Ordering[ReportStatus] {
+    private def statusCode(status: ReportStatus): Int = status match {
+      case Red => 0
+      case Amber => 1
+      case Green => 99
+    }
+
+    override def compare(x: ReportStatus, y: ReportStatus): Int = {
+      statusCode(x) - statusCode(y)
+    }
   }
 }
