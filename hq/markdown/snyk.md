@@ -49,7 +49,7 @@ on the PATH.  As a result it is necessary to pre-pend the sbt location onto the 
 
 ```
   "devDependencies": {
-    "snyk": "1.68.0"
+    "snyk": "1.69.3"
   },
   "scripts": {
     "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
