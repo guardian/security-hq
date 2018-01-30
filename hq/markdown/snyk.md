@@ -7,7 +7,7 @@ vulnerabilities in your application.
 
 ## Installing
 
-Snyk requires node, and `npm`.
+Snyk requires node, and a Node package manager such as npm or Yarn.
 
 ### Developer Install
 
@@ -17,6 +17,8 @@ To install on a mac, please use:
 brew install npm
 npm install -g snyk
 ```
+
+If not installed, Homebrew is available [here](https://brew.sh/).
 
 Snyk then requires an authentication token to be set up.  Github auth is almost certainly most appropriate.
 
