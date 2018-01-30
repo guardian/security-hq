@@ -259,8 +259,8 @@ Please try to give meaningful reasons for allowing the exemption.
 
 The `.snyk` file can then be added to the repository and the build should continue.
 
-__However, for public repositories, this would mean that the vulnerability is effectively advertised right in
-the project!  This is therefore not an acceptable approach for public repositories.__
+__This would mean that a vulnerability is openly declared in the root of the project, which may not be considered
+appropriate for public repositories.__
 
 When an exemption expires, the build will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
