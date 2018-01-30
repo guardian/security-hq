@@ -33,6 +33,9 @@ lazy val hq = (project in file("hq")).
       "com.vladsch.flexmark" % "flexmark-all" % "0.28.20",
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.gu" %% "box" % "0.1.0",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11",
+      "com.fasterxml.jackson.core" % "jackson-annotations" % "2.8.11",
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % "2.8.10",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
@@ -80,7 +83,9 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
       "ch.qos.logback" %  "logback-classic" % "1.2.3",
       "com.amazonaws" % "aws-java-sdk-config" % "1.11.246",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.10"
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11",
+      "com.fasterxml.jackson.core" % "jackson-annotations" % "2.8.11",
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % "2.8.10",
     )
   )
 
@@ -90,3 +95,5 @@ lazy val root = (project in file(".")).
   settings(
     name := """security-hq"""
   )
+
+addCommandAlias("dependency-tree", "dependencyTree")
