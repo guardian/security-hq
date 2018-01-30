@@ -1,8 +1,9 @@
 package logic
 
-import model._
+import model.{SnykIssue, _}
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
@@ -12,43 +13,49 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     organisation.value shouldBe SnykOrganisation("guardian", "1111111111")
   }
 
-  "fail to find organisation (nice)" in {
-    val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithMessage, SnykOrganisationName("guardian"))
-    organisationId.isFailedAttempt shouldBe true
-    organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
-  }
-
-  "fail to find organisation (not nice)" in {
-    val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithoutMessage, SnykOrganisationName("guardian"))
-    organisationId.isFailedAttempt shouldBe true
-    organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
+  "fail to find organisation" - {
+    "bad response" in {
+      val organisationId = SnykDisplay.getOrganisation(s"""response is not json!""", SnykOrganisationName("guardian"))
+      organisationId.isFailedAttempt shouldBe true
+      organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (response is not json!)"
+    }
+    "message received in response" in {
+      val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithMessage, SnykOrganisationName("guardian"))
+      organisationId.isFailedAttempt shouldBe true
+      organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
+    }
+    "message not received in response" in {
+      val organisationId = SnykDisplay.getOrganisation(SnykDisplayTest.mockBadResponseWithoutMessage, SnykOrganisationName("guardian"))
+      organisationId.isFailedAttempt shouldBe true
+      organisationId.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
+    }
   }
 
   "find projects" - {
-
     "find project 1 in project list" in {
       val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockGoodProjectResponse)
       projects.value().exists(p => p.name == "project1") shouldBe true
     }
-
     "find project 2 in project list" in {
       val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockGoodProjectResponse)
       projects.value().exists(p => p.name == "project2") shouldBe true
     }
-
   }
 
   "fail to find project list" - {
+    "bad response" in {
+      val projects = SnykDisplay.getProjectIdList(s"""response is not json!""")
+      projects.isFailedAttempt shouldBe true
+      projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (response is not json!)"
+    }
     "fail to find project id list (nice) - fails" in {
       val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithMessage)
       projects.isFailedAttempt shouldBe true
     }
-
     "fail to find project id list (nice) - has message" in {
       val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithMessage)
       projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
     }
-
     "fail to find project id list (not nice) - fails" in {
       val projects = SnykDisplay.getProjectIdList(SnykDisplayTest.mockBadResponseWithoutMessage)
       projects.isFailedAttempt shouldBe true
@@ -86,23 +93,25 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     }
   }
 
-  "fail to find vulnerability list (nice)" - {
-    "fail to find vulnerability list (nice) - fails" in {
+  "fail to find vulnerability list" - {
+    "bad response" in {
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(s"""response is not json!"""))
+      projects.isFailedAttempt shouldBe true
+      projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (response is not json!)"
+    }
+    "fail to find vulnerability list with error message - fails" in {
       val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithMessage))
       projects.isFailedAttempt() shouldBe true
     }
-    "fail to find vulnerability list (nice) - has message" in {
+    "fail to find vulnerability list with error message - has message" in {
       val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithMessage))
       projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
     }
-  }
-
-  "fail to find vulnerability list (not nice)" - {
-    "fail to find vulnerability list (not nice) - fails" in {
+    "fail to find vulnerability list without error message - fails" in {
       val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
       projects.isFailedAttempt() shouldBe true
     }
-    "fail to find vulnerability list (not nice) - has message" in {
+    "fail to find vulnerability list without error message - has message" in {
       val projects = SnykDisplay.parseProjectVulnerabilities(List(SnykDisplayTest.mockBadResponseWithoutMessage))
       projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
     }
@@ -149,6 +158,108 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     "label projects - second name" in {
       val results = SnykDisplay.labelProjects(SnykDisplayTest.goodProjects, SnykDisplayTest.goodVulnerabilities)
       results.tail.head.project.get.name shouldBe "name2"
+    }
+  }
+
+  "sort projects" - {
+    "All equal except number of high risk issues" in {
+      val sortedProjects = SnykDisplay.sortProjects(
+        List(
+          SnykProjectIssues(
+            Some(SnykProject("X", "b", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue2", "3", "low")
+            )
+          ),
+          SnykProjectIssues(
+            Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "high"),
+              SnykIssue("Issue2", "3", "medium"),
+              SnykIssue("Issue2", "3", "low")
+            )
+          )
+        )
+      ).map(spi => spi.project.get.id) shouldBe (List[String]("a", "b"))
+    }
+    "All equal except number of medium risk issues" in {
+      val sortedProjects = SnykDisplay.sortProjects(
+        List(
+          SnykProjectIssues(
+            Some(SnykProject("X", "b", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue3", "3", "low")
+            )
+          ),
+          SnykProjectIssues(
+            Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue3", "3", "medium"),
+              SnykIssue("Issue4", "4", "low")
+            )
+          )
+        )
+      ).map(spi => spi.project.get.id) shouldBe (List[String]("a", "b"))
+    }
+    "All equal except number of low risk issues" in {
+      val sortedProjects = SnykDisplay.sortProjects(
+        List(
+          SnykProjectIssues(
+            Some(SnykProject("X", "b", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue3", "3", "low")
+            )
+          ),
+          SnykProjectIssues(
+            Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue3", "3", "low"),
+              SnykIssue("Issue4", "4", "low")
+            )
+          )
+        )
+      ).map(spi => spi.project.get.id) shouldBe (List[String]("a", "b"))
+    }
+    "All equal except name" in {
+      val sortedProjects = SnykDisplay.sortProjects(
+        List(
+          SnykProjectIssues(
+            Some(SnykProject("Y", "b", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue3", "3", "low")
+            )
+          ),
+          SnykProjectIssues(
+            Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
+            true,
+            List(
+              SnykIssue("Issue1", "1", "high"),
+              SnykIssue("Issue2", "2", "medium"),
+              SnykIssue("Issue3", "3", "low")
+            )
+          )
+        )
+      ).map(spi => spi.project.get.id) shouldBe (List[String]("a", "b"))
     }
   }
 

@@ -11,13 +11,10 @@ import scala.util.control.NonFatal
 object Snyk {
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
-
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
-
     val futureResponse = wsClient.url(snykOrgUrl)
       .addHttpHeaders("Authorization" -> s"token ${token.value}")
       .get
-
     Attempt.fromFuture(futureResponse) { case NonFatal(e) =>
       val failure = Failure(e.getMessage, "Could not read organisations from Snyk", 502, None, Some(e))
       FailedAttempt(failure)
@@ -29,7 +26,6 @@ object Snyk {
     val a = wsClient.url(snykProjectsUrl)
         .addHttpHeaders("Authorization" -> s"token ${token.value}")
         .get()
-
     Attempt.fromFuture(a) { case NonFatal(e) =>
       val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
       FailedAttempt(failure)
@@ -40,7 +36,6 @@ object Snyk {
     val projectVulnerabilityResponses = projects
       .map(project => {
         val snykProjectUrl = s"https://snyk.io/api/v1/org/$id/project/${project.id}/issues"
-
         val projectIssuesFilter = Json.obj(
           "filters" -> Json.obj(
             "severity" -> JsArray(List(
@@ -53,7 +48,6 @@ object Snyk {
             "patched" -> "false"
           )
         )
-
         wsClient.url(snykProjectUrl)
           .addHttpHeaders("Authorization" -> s"token ${token.value}")
           .post(projectIssuesFilter)
