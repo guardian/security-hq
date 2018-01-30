@@ -26,6 +26,7 @@ lazy val hq = (project in file("hq")).
       "joda-time" % "joda-time" % "2.9.9",
       "org.typelevel" %% "cats" % "0.8.1",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
+      "com.gu" %% "configraun" % "0.3",
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,
