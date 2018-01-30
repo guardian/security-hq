@@ -119,6 +119,7 @@ sealed trait ReportStatus
 object Red extends ReportStatus
 object Green extends ReportStatus
 object Amber extends ReportStatus
+object Blue extends ReportStatus
 
 case class HumanUser(
   username: String,

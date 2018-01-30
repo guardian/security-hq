@@ -49,7 +49,10 @@
                 <div class="row">
                     <h2>Credential Report</h2>
                 </div>
+
                 @views.html.iam.iamCredReportBody(report)
+
+                @views.html.fragments.credentialsHelp()
             }
             case Left(fa) => {
                 @errorMessage(fa)
