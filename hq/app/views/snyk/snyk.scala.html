@@ -1,0 +1,54 @@
+@import logic.SnykDisplay
+@import logic._
+@import model._
+
+@(results: List[SnykProjectIssues])(implicit assets: AssetsFinder)
+
+@main(List("Snyk")) { @* Header *@
+    <div class="container">
+        <div class="row">
+            <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
+            <div class="col s12 m9">
+                <h4 class="grey-text text-darken-4 center-on-small-only">Snyk Results</h4>
+            </div>
+        </div>
+    </div>
+
+} { @* Main content *@
+
+    <div class="container">
+
+        <table class="striped responsive-table filterable-table">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>High</th>
+                    <th>Medium</th>
+                    <th>Low</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @for(projectIssues <- results) {
+                <tr>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/">@projectIssues.project.get.name</a>
+                    </td>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=high">@projectIssues.high</a>
+                    </td>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=medium">@projectIssues.medium</a>
+                    </td>
+                    <td>
+                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=low">@projectIssues.low</a>
+                    </td>
+                </tr>
+            }
+
+        </table>
+
+    </div>
+    </div>
+
+}
