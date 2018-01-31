@@ -24,7 +24,7 @@ class HQController (val config: Configuration, cacheService: CacheService)
   }
 
   def iam = authAction {
-    val accountsAndReports = cacheService.getAllCredentials()
+    val accountsAndReports = cacheService.getAllCredentials
     val sortedAccountsAndReports = sortAccountsByReportSummary(accountsAndReports.toList)
     Ok(views.html.iam.iam(sortedAccountsAndReports))
   }

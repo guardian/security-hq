@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 
 
 object IAMClient {
-  private def client(account: AwsAccount, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonIdentityManagementAsync = {
+  def client(account: AwsAccount, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonIdentityManagementAsync = {
     val auth = AWS.credentialsProvider(account)
     AmazonIdentityManagementAsyncClientBuilder.standard()
       .withCredentials(auth)
@@ -31,19 +31,18 @@ object IAMClient {
     handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
-  def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
+  def getCredentialsReportTa(account: (AmazonIdentityManagementAsync, AwsAccount))(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
-    val client = IAMClient.client(account)
     for {
-      _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
-      report <- getCredentialsReport(client)
+      _ <- Retry.until(generateCredentialsReport(account._1), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
+      report <- getCredentialsReport(account._1)
     } yield ReportDisplay.toCredentialReportDisplay(report)
   }
 
-  def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
+  def getAllCredentialReportsTa(accounts: Seq[(AmazonIdentityManagementAsync, AwsAccount)])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        getCredentialsReport(account).asFuture.map(account -> _)
+        getCredentialsReportTa(account).asFuture.map(account._2 -> _)
       }
     }
   }

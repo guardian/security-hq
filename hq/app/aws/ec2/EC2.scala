@@ -10,11 +10,10 @@ import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.model._
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
+import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model._
 import utils.attempt.{Attempt, FailedAttempt}
-
-
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -53,8 +52,7 @@ object EC2 {
     }
   }
 
-  def flaggedSgsForAccount(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
-    val supportClient = TrustedAdvisor.client(account)
+  def flaggedSgsForAccountTa(supportClient: AWSSupportAsync, account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     for {
       sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
       sgUsage <- getSgsUsage(sgResult, account)
@@ -70,17 +68,16 @@ object EC2 {
     } yield sortSecurityGroupsByInUse(flaggedSgsWithVpc, sgUsage)
   }
 
-  def refreshSGSReports(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, RefreshTrustedAdvisorCheckResult]]] = {
+  def refreshSGSReportsTa(accounts: List[(AWSSupportAsync, AwsAccount)])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, RefreshTrustedAdvisorCheckResult]]] = {
     Attempt.traverseWithFailures(accounts) { account =>
-      val supportClient = TrustedAdvisor.client(account)
-      TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(supportClient)
+      TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(account._1)
     }
   }
 
-  def allFlaggedSgs(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
+  def allFlaggedSgsTa(accounts: List[(AWSSupportAsync, AwsAccount)])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        flaggedSgsForAccount(account).asFuture.map(account -> _)
+        flaggedSgsForAccountTa(account._1, account._2).asFuture.map(account._2 -> _)
       }
     }
   }
