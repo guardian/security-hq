@@ -1,3 +1,5 @@
+@import logic.SecurityGroupDisplay.splitReportsBySuppressed
+
 @(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])(implicit assets: AssetsFinder)
 
 @floatingNav = {
@@ -39,11 +41,27 @@
         <div class="row">
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
+        </div>
 
+        <div class="row">
+            <div class="card-panel valign-wrapper">
+                <i class="material-icons left">visibility_off</i>
+                <span class="sg-header__name">Some Security Groups may be ignored due to settings in AWS Trusted Advisor</span>
+
+                <form action="#">
+                    <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
+                    <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
+                    <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
+                    <label class="black-text sg-filter__label" for="show-ignored-sgs">Show ignored</label>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
             <ul class="collapsible space-between js-sg-collapsible" data-collapsible="accordion">
             @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
                 <li class="js-sg-scroll">
-                    <div class="collapsible-header">
+                    <div class="collapsible-header sg-header">
                         <i class="material-icons">keyboard_arrow_down</i>
                         <span class="sg-header__name">@account.name</span>
                         @flaggedSgsAttempt match {
@@ -54,7 +72,12 @@
                                 <i class="material-icons">done</i>
                             }
                             case Right(flaggedSgs) => {
-                                <span class="new badge" data-badge-caption="flagged resources">@flaggedSgs.length</span>
+                                @defining(splitReportsBySuppressed(flaggedSgs)) { sgReports =>
+                                    <span class="new badge" data-badge-caption="flagged resources">@sgReports.flagged.length</span>
+                                    @if(sgReports.suppressed.length > 0) {
+                                        <span class="new badge grey sg-header__badge" data-badge-caption="ignored">@sgReports.suppressed.length</span>
+                                    }
+                                }
                             }
                         }
                     </div>

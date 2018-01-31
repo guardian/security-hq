@@ -22,6 +22,15 @@ $(document).ready(function() {
     }
   );
 
+  $('.js-sg-filter').change(function() {
+    $('#show-ignored-sgs')[0].checked
+      ? $('.sg-suppressed--true').show()
+      : $('.sg-suppressed--true').hide();
+    $('#show-flagged-sgs')[0].checked
+      ? $('.sg-suppressed--false').show()
+      : $('.sg-suppressed--false').hide();
+  });
+
   $('.js-sg-details').click(function() {
     $(this).collapsible('destroy');
 

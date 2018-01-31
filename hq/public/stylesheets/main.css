@@ -1,6 +1,7 @@
 /* COLOUR SCHEME
 DARK GREY:  #212121
 TEAL:       #009688
+LIGHT GREY: #F5F5F5
 NOT-WHITE:  #F7F0F0
 HIGHLIGHT:  #8AF3FF
 
@@ -200,8 +201,16 @@ nav {
 
 /* security group pages */
 
+.sg-filter__label {
+  margin-left: 20px;
+}
+
 .sg-header__name {
-  margin-right: auto;
+  flex-grow: 2;
+}
+
+.sg-header span.sg-header__badge {
+  margin-left: 10px;
 }
 
 .sg-container {
@@ -222,6 +231,14 @@ nav {
   .sg-container {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.sg-suppressed--true {
+  display: none;
+}
+
+.sg-suppressed--true .card {
+  background-color: #f5f5f5;
 }
 
 .sg-container__card {
