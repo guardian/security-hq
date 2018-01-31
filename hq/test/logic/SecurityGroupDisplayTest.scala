@@ -28,18 +28,22 @@ class SecurityGroupDisplayTest extends FreeSpec with Matchers {
     val suppressedA = SGOpenPortsDetail("Ok", "eu-west-1", "name-3", "sg-3", "vpc-3", "tcp", "1099", "Yellow", isSuppressed = true, None, None)
     val suppressedB = SGOpenPortsDetail("Ok", "eu-west-1", "name-4", "sg-4", "vpc-4", "tcp", "1099", "Yellow", isSuppressed = true, None, None)
 
-    "returns two lists when there are flagged and suppressed" in {
+    "returns two lists when there are only flagged Security Groups, and no suppressed" in {
+      val sgReport = List((flaggedA, Set[SGInUse]()), (flaggedB, Set[SGInUse]()))
+      splitReportsBySuppressed(sgReport).suppressed.length shouldEqual 0
+      splitReportsBySuppressed(sgReport).flagged.length shouldEqual 2
+    }
+
+    "returns two lists when there are both flagged and suppressed Security Groups" in {
       val sgReport = List((flaggedA, Set[SGInUse]()), (suppressedA, Set[SGInUse]()), (flaggedB, Set[SGInUse]()), (flaggedA, Set[SGInUse]()))
       splitReportsBySuppressed(sgReport).suppressed.length shouldEqual 1
       splitReportsBySuppressed(sgReport).flagged.length shouldEqual 3
     }
 
-    "will place SGs with suppressed reports into the suppressed list" in {
-      val sgReport = List((suppressedA, Set[SGInUse]()), (flaggedA, Set[SGInUse]()), (suppressedB, Set[SGInUse]()))
-      splitReportsBySuppressed(sgReport).suppressed shouldEqual List(
-        (suppressedA, Set[SGInUse]())
-        (suppressedB, Set[SGInUse]())
-      )
+    "will place each Security Group into the correct list" in {
+      val sgReport = List((suppressedA, Set[SGInUse]()), (flaggedA, Set[SGInUse]()), (flaggedB, Set[SGInUse]()), (suppressedB, Set[SGInUse]()))
+      splitReportsBySuppressed(sgReport).suppressed shouldEqual List((suppressedA, Set()), (suppressedB, Set()))
+      splitReportsBySuppressed(sgReport).flagged shouldEqual List((flaggedA, Set()), (flaggedB, Set()))
     }
   }
 }
