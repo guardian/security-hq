@@ -1,11 +1,16 @@
 package logic
 
-import model.{ELB, Ec2Instance, SGInUse}
+import model.{ELB, Ec2Instance, SGInUse, SGOpenPortsDetail}
 
 
 object SecurityGroupDisplay {
 
   case class ResourceIcons(instances: Int, elbs: Int, unknown: Int)
+
+  case class SGReportDisplay(
+    suppressed: List[(SGOpenPortsDetail, Set[SGInUse])],
+    flagged: List[(SGOpenPortsDetail, Set[SGInUse])]
+  )
 
   def resourceIcons(usages: List[SGInUse]): ResourceIcons = {
 
@@ -16,6 +21,16 @@ object SecurityGroupDisplay {
     }
 
     ResourceIcons(instances, elbs, unknown)
+  }
+
+  def hasSuppressedReports(sgs: List[(SGOpenPortsDetail, Set[SGInUse])]): Boolean = {
+    sgs.exists(sg => sg._1.isSuppressed)
+  }
+
+  def splitReportsBySuppressed(sgs: List[(SGOpenPortsDetail, Set[SGInUse])]): SGReportDisplay = {
+    val (suppressed, flagged) = sgs.partition( sg => sg._1.isSuppressed )
+
+    SGReportDisplay(suppressed, flagged)
   }
 
 }

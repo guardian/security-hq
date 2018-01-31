@@ -1,5 +1,5 @@
 @import model.{SGOpenPortsDetail, SGInUse, Ec2Instance, ELB, UnknownUsage}
-@import logic.SecurityGroupDisplay.resourceIcons
+@import logic.SecurityGroupDisplay._
 
 @(flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])], shadow: Boolean)
 
@@ -32,10 +32,14 @@
 
 <div class="sg-container">
 @for((flaggedSg, usages) <- flaggedSgs) {
-    <div class="sg-container__card">
+    <div class="sg-container__card sg-suppressed--@flaggedSg.isSuppressed">
         <div class="card @if(!shadow){z-depth-0}">
             <div class="card-content card-content--title">
-                <span class="card-title">@flaggedSg.name</span>
+                <span class="card-title">@flaggedSg.name
+                @if(flaggedSg.isSuppressed) {
+                    <i class="material-icons right tooltipped" data-position="top" data-tooltip="Suppressed alert">alarm_off</i>
+                }
+                </span>
             </div>
             <div class="card-content--border @{
                 flaggedSg.alertLevel.toLowerCase
