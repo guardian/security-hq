@@ -2,7 +2,7 @@
 
 @(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])(implicit assets: AssetsFinder)
 
-@floatingNav = {
+@floatingNav(accountId: String) = {
   <div class="fixed-action-btn js-floating-nav sg-floating-nav">
       <a class="btn-floating btn-large">
         <i class="large material-icons">menu</i>
@@ -16,6 +16,9 @@
           </a></li>
           <li><a class="btn-floating blue js-sg-pin-end">
             <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to end">vertical_align_bottom</i>
+          </a></li>
+          <li><a href="/security-groups/@accountId" class="btn-floating purple js-sg-pin-acc">
+              <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to account page">pageview</i>
           </a></li>
       </ul>
   </div>
@@ -61,7 +64,7 @@
             <ul class="collapsible space-between js-sg-collapsible" data-collapsible="accordion">
             @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
                 <li class="js-sg-scroll">
-                    <div class="collapsible-header sg-header">
+                    <div class="collapsible-header sg-header" tabindex="22">
                         <i class="material-icons">keyboard_arrow_down</i>
                         <span class="sg-header__name">@account.name</span>
                         @flaggedSgsAttempt match {
@@ -97,7 +100,7 @@
                             @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=false)
                         }
                     }
-                    @floatingNav
+                    @floatingNav(account.id)
                     </div>
                 </li>
 
