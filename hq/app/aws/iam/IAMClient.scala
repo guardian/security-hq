@@ -46,6 +46,4 @@ object IAMClient {
       }
     }
   }
-
-
 }

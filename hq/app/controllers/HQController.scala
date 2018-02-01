@@ -24,12 +24,12 @@ class HQController (val config: Configuration, cacheService: CacheService)
   }
 
   def iam = authAction {
-    val accountsAndReports = cacheService.getAllCredentials
+    val accountsAndReports = cacheService.getAllCredentials()
     val sortedAccountsAndReports = sortAccountsByReportSummary(accountsAndReports.toList)
     Ok(views.html.iam.iam(sortedAccountsAndReports))
   }
 
-  def iamAccount(accountId: String) = authAction.async {
+  def iamAccount(accountId: String): Action[AnyContent] = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)

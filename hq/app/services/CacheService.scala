@@ -18,15 +18,15 @@ import scala.concurrent.duration._
 
 class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, environment: Environment)(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
-  private val taAccounts = Config.getAwsAccounts(config).map(account => TrustedAdvisor.client(account)).zip(accounts)
-  private val iamAccounts = Config.getAwsAccounts(config).map(account => IAMClient.client(account)).zip(accounts)
+  private val taAccounts = Config.getAwsAccounts(config).map(account => (TrustedAdvisor.client(account), account))
+  private val iamAccounts = Config.getAwsAccounts(config).map(account => (IAMClient.client(account), account))
 
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceError(acc.id, "cache").attempt))).toMap
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
 
-  def getAllCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
+  def getAllCredentials(): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
 
   def getCredentialsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] = {
     credentialsBox.get().getOrElse(
@@ -44,7 +44,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
     )
   }
 
-  def getAllSgs: Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = sgsBox.get()
+  def getAllSgs(): Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = sgsBox.get()
 
   def getSgsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     sgsBox.get().getOrElse(
