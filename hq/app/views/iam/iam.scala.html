@@ -23,7 +23,7 @@
         <ul class="collapsible" data-collapsible="accordion">
         @for((account, report) <- reports) {
             <li>
-                <div class="collapsible-header">
+                <div class="collapsible-header" tabindex="22">
                     <i class="material-icons">keyboard_arrow_down</i>
                     <span class="iam-header__name">@account.name</span>
                     @report match {
