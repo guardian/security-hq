@@ -1,7 +1,6 @@
 import com.gu.riffraff.artifact.RiffRaffArtifact
 import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import play.sbt.PlayImport.PlayKeys._
-import com.typesafe.sbt.packager.MappingsHelper._
 
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
