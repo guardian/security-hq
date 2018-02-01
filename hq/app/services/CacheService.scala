@@ -85,15 +85,15 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   }
 
   if (environment.mode != Mode.Test) {
-    val credentialsSubscription = Observable.interval(500.millis, 1.minutes).subscribe { _ =>
+    val credentialsSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
       refreshCredentialsBoxTa()
     }
 
-    val exposedKeysSubscription = Observable.interval(500.millis, 1.minutes).subscribe { _ =>
+    val exposedKeysSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
       refreshExposedKeysBoxTa()
     }
 
-    val sgSubscription = Observable.interval(500.millis, 1.minutes).subscribe { _ =>
+    val sgSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
       refreshSgsBoxTa()
     }
 
