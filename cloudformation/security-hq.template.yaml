@@ -98,6 +98,11 @@ Resources:
             - s3:ListBucket
             - s3:GetObjectVersion
             - s3:GetObject
+          # Get parameters from SSM
+          - Effect: Allow
+            Resource: "*"
+            Action:
+            - ssm:GetParametersByPath
           # Describe instance tags, to find out its own stack, app, stage.
           - Effect: Allow
             Resource: "*"
