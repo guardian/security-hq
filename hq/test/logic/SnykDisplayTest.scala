@@ -258,8 +258,8 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
     )
 
     val goodVulnerabilities = List(
-      SnykProjectIssues(None, ok = false, List[SnykIssue]()),
-      SnykProjectIssues(None, ok = false, List[SnykIssue]())
+      SnykProjectIssues(None, ok = false, Set[SnykIssue]()),
+      SnykProjectIssues(None, ok = false, Set[SnykIssue]())
     )
 
     "label projects - first id" - {
@@ -290,7 +290,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "b", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue2", "3", "low")
@@ -299,7 +299,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "high"),
               SnykIssue("Issue2", "3", "medium"),
@@ -315,7 +315,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "b", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue3", "3", "low")
@@ -324,7 +324,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue3", "3", "medium"),
@@ -340,7 +340,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "b", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue3", "3", "low")
@@ -349,7 +349,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue3", "3", "low"),
@@ -365,7 +365,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("Y", "b", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue3", "3", "low")
@@ -374,7 +374,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
           SnykProjectIssues(
             Some(SnykProject("X", "a", Some(SnykOrganisation("guardian", "guardian")))),
             ok = true,
-            List(
+            Set(
               SnykIssue("Issue1", "1", "high"),
               SnykIssue("Issue2", "2", "medium"),
               SnykIssue("Issue3", "3", "low")
