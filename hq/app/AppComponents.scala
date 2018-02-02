@@ -1,7 +1,11 @@
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
+import com.gu.configraun.Configraun
+import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
+import com.gu.configraun.models._
 import controllers._
 import filters.HstsFilter
 import play.api.ApplicationLoader.Context
-import play.api.BuiltInComponentsFromContext
+import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
@@ -24,6 +28,29 @@ class AppComponents(context: Context)
     csrfFilter,
     new HstsFilter()
   )
+  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory("eu-west-1", "security")
+
+  val configraun: Configuration = {
+
+    configuration.getOptional[String]("stage") match {
+      case Some("DEV") =>
+        val stack = configuration.get[String]("stack")
+        val app = configuration.get[String]("app")
+        val stage = "DEV"
+        Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
+          case Left(a) =>
+            Logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
+            sys.exit(1)
+          case Right(a) => a
+        }
+      case _ => Configraun.loadConfig match {
+        case Left(a) =>
+          Logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
+          sys.exit(1)
+        case Right(a: com.gu.configraun.models.Configuration) => a
+      }
+    }
+  }
 
   val cacheService = new CacheService(configuration, applicationLifecycle, environment)
 
@@ -31,6 +58,7 @@ class AppComponents(context: Context)
     httpErrorHandler,
     new HQController(configuration, cacheService),
     new SecurityGroupsController(configuration, cacheService),
+    new SnykController(configuration, configraun),
     new AuthController(environment, configuration),
     new UtilityController(),
     assets
