@@ -24,7 +24,7 @@ object Serializers {
       and
       (JsPath \ "ok").read[Boolean]
       and
-      (JsPath \ "issues" \ "vulnerabilities").read[List[SnykIssue]]
+      (JsPath \ "issues" \ "vulnerabilities").read[Set[SnykIssue]]
     )(SnykProjectIssues.apply _)
 
 }

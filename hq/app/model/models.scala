@@ -147,7 +147,7 @@ case class SnykProject(name: String, id: String, organisation: Option[SnykOrgani
 
 case class SnykIssue(title: String, id: String, severity: String)
 
-case class SnykProjectIssues(project: Option[SnykProject], ok: Boolean, vulnerabilities: List[SnykIssue])  {
+case class SnykProjectIssues(project: Option[SnykProject], ok: Boolean, vulnerabilities: Set[SnykIssue])  {
   def high: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("high"))
   def medium: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("medium"))
   def low: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("low"))
