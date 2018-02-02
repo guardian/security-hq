@@ -7,7 +7,7 @@ vulnerabilities in your application.
 
 ## Installing
 
-Snyk requires node, and a Node package manager such as npm or Yarn.
+Snyk requires node, and `npm`.
 
 ### Developer Install
 
@@ -17,8 +17,6 @@ To install on a mac, please use:
 brew install npm
 npm install -g snyk
 ```
-
-If not installed, Homebrew is available [here](https://brew.sh/).
 
 Snyk then requires an authentication token to be set up.  Github auth is almost certainly most appropriate.
 
@@ -51,7 +49,7 @@ on the PATH.  As a result it is necessary to pre-pend the sbt location onto the 
 
 ```
   "devDependencies": {
-    "snyk": "1.69.3"
+    "snyk": "1.68.0"
   },
   "scripts": {
     "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
@@ -259,8 +257,8 @@ Please try to give meaningful reasons for allowing the exemption.
 
 The `.snyk` file can then be added to the repository and the build should continue.
 
-__This would mean that a vulnerability is openly declared in the root of the project, which may not be considered
-appropriate for public repositories.__
+__However, for public repositories, this would mean that the vulnerability is effectively advertised right in
+the project!  This is therefore not an acceptable approach for public repositories.__
 
 When an exemption expires, the build will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
