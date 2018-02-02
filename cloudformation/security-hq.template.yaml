@@ -98,6 +98,11 @@ Resources:
             - s3:ListBucket
             - s3:GetObjectVersion
             - s3:GetObject
+          # Get parameters from SSM
+          - Effect: Allow
+            Resource: "*"
+            Action:
+            - ssm:GetParametersByPath
           # Describe instance tags, to find out its own stack, app, stage.
           - Effect: Allow
             Resource: "*"
@@ -265,9 +270,9 @@ Resources:
         Ref: Subnets
       LaunchConfigurationName:
         Ref: LaunchConfig
-      MinSize: 1
-      MaxSize: 2
-      DesiredCapacity: 1
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 2
       HealthCheckType: ELB
       HealthCheckGracePeriod: 120
       LoadBalancerNames:
