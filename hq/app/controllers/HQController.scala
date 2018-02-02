@@ -29,7 +29,7 @@ class HQController (val config: Configuration, cacheService: CacheService)
     Ok(views.html.iam.iam(sortedAccountsAndReports))
   }
 
-  def iamAccount(accountId: String) = authAction.async {
+  def iamAccount(accountId: String): Action[AnyContent] = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
