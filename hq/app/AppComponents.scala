@@ -2,6 +2,7 @@ import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
 import com.gu.configraun.models._
+import config.Config
 import controllers._
 import filters.HstsFilter
 import play.api.ApplicationLoader.Context
@@ -52,14 +53,15 @@ class AppComponents(context: Context)
     }
   }
 
-  val cacheService = new CacheService(configuration, applicationLifecycle, environment)
+  private val cacheService = new CacheService(configuration, applicationLifecycle, environment)
+  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
 
   override def router: Router = new Routes(
     httpErrorHandler,
-    new HQController(configuration, cacheService),
-    new SecurityGroupsController(configuration, cacheService),
-    new SnykController(configuration, configraun),
-    new AuthController(environment, configuration),
+    new HQController(configuration, cacheService, googleAuthConfig),
+    new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
+    new SnykController(configuration, configraun, googleAuthConfig),
+    new AuthController(environment, configuration, googleAuthConfig),
     new UtilityController(),
     assets
   )

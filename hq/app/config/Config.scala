@@ -4,8 +4,10 @@ import java.io.FileInputStream
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.gu.googleauth.{GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
+import io.jsonwebtoken.SignatureAlgorithm
 import model.{AwsAccount, DEV, PROD, Stage}
 import play.api.Configuration
+import play.api.http.HttpConfiguration
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -20,16 +22,20 @@ object Config {
     }
   }
 
-  def googleSettings(implicit config: Configuration): GoogleAuthConfig = {
+  def googleSettings(httpConfiguration: HttpConfiguration, config: Configuration): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
     val domain = requiredString(config, "auth.domain")
     val redirectUrl = s"${requiredString(config, "host")}/oauthCallback"
-    GoogleAuthConfig(
+    val secret: String = httpConfiguration.secret.secret
+    val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.forName(httpConfiguration.session.jwt.signatureAlgorithm)
+    GoogleAuthConfig.withSecret(
       clientId,
       clientSecret,
       redirectUrl,
-      domain
+      domain,
+      secret,
+      signatureAlgorithm
     )
   }
 

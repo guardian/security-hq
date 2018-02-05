@@ -10,11 +10,13 @@ import scala.concurrent.ExecutionContext
 import logic.SnykDisplay
 import api.Snyk
 import com.gu.configraun.Errors.ConfigraunError
+import com.gu.googleauth.GoogleAuthConfig
 import utils.attempt.{Attempt, Failure}
 import utils.attempt.PlayIntegration.attempt
 import model._
 
-class SnykController(val config: Configuration, val configraun: com.gu.configraun.models.Configuration)
+class SnykController(val config: Configuration, val configraun: com.gu.configraun.models.Configuration,
+                     val authConfig: GoogleAuthConfig)
                     (implicit
                      val ec: ExecutionContext,
                      val wsClient: WSClient,
