@@ -2,20 +2,23 @@
 
 @(file: String)(implicit assets: AssetsFinder)
 
-@main(Nil) { @* Header *@
+@main(List("Documentation")) { @* Header *@
   <div class="hq-sub-header">
       <div class="container hq-sub-header__row">
           <div class="hq-sub-header__name">
-              <h4 class="header light grey-text text-lighten-5">Documentation</h4>
+              <h4 class="header light grey-text text-lighten-5">
+                  Documentation
+              </h4>
           </div>
       </div>
   </div>
 
 } { @* Main content *@
-
     <div class="container">
         <div class="row">
-            @{DocumentUtil.convert(file) getOrElse views.html.documentation.unknown(file)}
+            <div class="doc-content col">
+                @{DocumentUtil.convert(file) getOrElse views.html.documentation.unknown(file)}
+            </div>
         </div>
     </div>
 
