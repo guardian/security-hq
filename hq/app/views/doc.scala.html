@@ -16,7 +16,7 @@
 } { @* Main content *@
     <div class="container">
         <div class="row">
-            <div class="doc-content col">
+            <div class="doc-content col s12 flow-text">
                 @{DocumentUtil.convert(file) getOrElse views.html.documentation.unknown(file)}
             </div>
         </div>
