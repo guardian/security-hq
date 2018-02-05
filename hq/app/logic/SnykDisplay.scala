@@ -61,6 +61,14 @@ object SnykDisplay {
     case _: JsonParseException => None
   }
 
+  def linkToSnykProject(snykProjectIssues: SnykProjectIssues, queryString: Option[String]): String = {
+    snykProjectIssues.project match {
+      case Some(project: SnykProject) if project.organisation.nonEmpty =>
+        s"https://snyk.io/org/${project.organisation.get.name}/project/${project.id}/${queryString.getOrElse("")}"
+      case _ => ""
+    }
+  }
+
   def labelOrganisations(projects: List[SnykProject], snykOrg: SnykOrganisation): List[SnykProject] = {
     projects.map(project => project.copy(organisation = Some(snykOrg)))
   }

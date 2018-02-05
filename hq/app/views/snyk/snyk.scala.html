@@ -1,15 +1,13 @@
-@import logic.SnykDisplay
-@import logic._
+@import logic.SnykDisplay._
 @import model._
 
 @(results: List[SnykProjectIssues])(implicit assets: AssetsFinder)
 
 @main(List("Snyk")) { @* Header *@
-    <div class="container">
-        <div class="row">
-            <h1 class="header center-on-small-only grey-text text-lighten-5">Security HQ</h1>
-            <div class="col s12 m9">
-                <h4 class="grey-text text-darken-4 center-on-small-only">Snyk Results</h4>
+    <div class="hq-sub-header">
+        <div class="container hq-sub-header__row">
+            <div class="hq-sub-header__name">
+                <h4 class="header light grey-text text-lighten-5">Snyk Results</h4>
             </div>
         </div>
     </div>
@@ -30,20 +28,36 @@
 
             <tbody>
             @for(projectIssues <- results) {
-                <tr>
-                    <td>
-                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/">@projectIssues.project.get.name</a>
-                    </td>
-                    <td>
-                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=high">@projectIssues.high</a>
-                    </td>
-                    <td>
-                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=medium">@projectIssues.medium</a>
-                    </td>
-                    <td>
-                        <a class="black-text" href="https://snyk.io/org/@projectIssues.project.get.organisation.get.name/project/@projectIssues.project.get.id/?disclosure=all&severity=low">@projectIssues.low</a>
-                    </td>
-                </tr>
+                @projectIssues.project match {
+                    case Some(snykProject) => {
+                        <tr>
+                            <td>
+                                <a target="_blank" rel="noopener noreferrer" href="@linkToSnykProject(projectIssues, None)">
+                                    @snykProject.name
+                                    <i class="material-icons link_new_tab">open_in_new</i>
+                                </a>
+                            </td>
+                            <td>
+                                <a target="_blank" href="@{linkToSnykProject(projectIssues, Some("?disclosure=all&severity=high"))}">
+                                    @projectIssues.high
+                                </a>
+                            </td>
+                            <td>
+                                <a target="_blank" href="@{linkToSnykProject(projectIssues, Some("?disclosure=all&severity=medium"))}">
+                                    @projectIssues.medium
+                                </a>
+                            </td>
+                            <td>
+                                <a target="_blank" href="@{linkToSnykProject(projectIssues, Some("?disclosure=all&severity=low"))}">
+                                    @projectIssues.low
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    case None => { }
+                }
+
+
             }
 
         </table>

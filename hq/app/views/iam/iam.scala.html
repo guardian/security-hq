@@ -31,14 +31,14 @@
                             @defining(reportStatusSummary(re)) { statusCounts =>
                                 @if(statusCounts.errors > 0) {
                                     <span class="icon-count">@statusCounts.errors</span>
-                                    <i class="material-icons red-text" data-delay="50">error</i>
+                                    <i class="material-icons red-text">error</i>
                                 }
                                 @if(statusCounts.warnings > 0) {
                                     <span class="icon-count">@statusCounts.warnings</span>
-                                    <i class="material-icons amber-text" data-delay="50">warning</i>
+                                    <i class="material-icons amber-text">warning</i>
                                 }
                                 @if(statusCounts.errors == 0 && statusCounts.warnings == 0) {
-                                    <i class="material-icons green-text" data-delay="50">check</i>
+                                    <i class="material-icons green-text">check</i>
                                 }
                             }
                         }

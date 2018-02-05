@@ -210,7 +210,7 @@
         containerClass: 'filter-table',
 
         // tag name of the container
-        containerTag: 'p',
+        containerTag: 'div',
 
         // jQuery expression method to use for filtering
         filterExpression: 'filterTableFind',
@@ -237,7 +237,7 @@
         inputType: 'search',
 
         // text to precede the filter input tag
-        label: 'Filter:',
+        label: '<i class="material-icons medium left">search</i>',
 
         // filter only when at least this number of characters are in the filter input field
         minChars: 1,
@@ -255,10 +255,11 @@
         quickList: [],
 
         // class of each quick list item
-        quickListClass: 'quick',
+        quickListClass: 'quick black-text',
 
         // quick list item label to clear the filter (e.g., '&times; Clear filter')
-        quickListClear: '',
+        quickListClear:
+          '<i class="material-icons filter-table__clear">close</i>',
 
         // tag surrounding quick list items (e.g., ul)
         quickListGroupTag: '',

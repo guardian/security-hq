@@ -322,6 +322,30 @@ table.iam-report__table th {
   height: 24px;
 }
 
+/* Docs */
+
+.doc-content h1 {
+  font-size: 3.5rem;
+}
+
+.doc-content h2 {
+  font-size: 3rem;
+}
+
+.doc-content h3 {
+  font-size: 2.5rem;
+}
+
+.doc-content h4 {
+  font-size: 2rem;
+}
+
+/* Snyk */
+
+.filter-table {
+  display: flex;
+}
+
 /* footer */
 
 .hq-footer__links {
