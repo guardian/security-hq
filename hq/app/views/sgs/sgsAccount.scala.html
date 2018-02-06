@@ -23,6 +23,7 @@
         <div class="row">
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
+            <a class="modal-trigger iam-modal__trigger right" href="#sg-help"><i class="material-icons black-text">help_outline</i></a>
         </div>
 
         @if(hasSuppressedReports(flaggedSgs)) {
@@ -31,7 +32,7 @@
                     <i class="material-icons left">visibility_off</i>
                     <span class="sg-header__name">Some Security Groups have been ignored due to settings in AWS Trusted Advisor</span>
 
-                    <form action="#">
+                    <form class="sg-filter" action="#">
                         <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
                         <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
                         <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
