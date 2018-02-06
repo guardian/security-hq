@@ -3,6 +3,7 @@ stacks:
 regions:
 - eu-west-1
 deployments:
+
   security-hq:
     type: autoscaling
     parameters:
@@ -16,3 +17,7 @@ deployments:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: security-hq
       templatePath: cfn.yaml
+      amiTags:
+        Recipe: security-hq
+        BuiltBy: amigo
+        AmigoStage: PROD

@@ -233,18 +233,10 @@ Resources:
         'Fn::Base64': !Sub |
           #!/bin/bash -ev
           locale-gen en_GB.UTF-8
-          add-apt-repository -y ppa:openjdk-r/ppa
           apt-get -y update
           apt-get -y upgrade
-          apt-get -y install openjdk-8-jre-headless ntp python-pip
-          pip install --upgrade pip
-          pip install awscli
-          wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
-          mkdir /tmp/ssm
-          dpkg -i amazon-ssm-agent.deb
+          apt-get -y install ntp
           echo ${Stage} > /etc/stage
-          # fix java-8 certs
-          /var/lib/dpkg/info/ca-certificates-java.postinst configure
           # setup security-hq
           adduser --system --home /security-hq --disabled-password security-hq
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.conf /security-hq
