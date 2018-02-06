@@ -78,9 +78,15 @@
                             }
                             case Right(flaggedSgs) => {
                                 @defining(reportSummary(flaggedSgs)) { summary =>
-                                    <span class="new badge red darken-3 sg-header__badge" data-badge-caption="in use">@summary.active</span>
-                                    <span class="new badge sg-header__badge" data-badge-caption="not in use">@{summary.flagged - summary.active}</span>
-                                    <span class="new badge grey sg-header__badge" data-badge-caption="ignored">@summary.suppressed</span>
+                                    @if(summary.active > 0) {
+                                        <span class="new badge red darken-3 sg-header__badge" data-badge-caption="in use">@summary.active</span>
+                                    }
+                                    @if((summary.flagged - summary.active) > 0) {
+                                        <span class="new badge sg-header__badge" data-badge-caption="not in use">@{summary.flagged - summary.active}</span>
+                                    }
+                                    @if(summary.suppressed > 0) {
+                                        <span class="new badge grey sg-header__badge" data-badge-caption="ignored">@summary.suppressed</span>
+                                    }
                                 }
                             }
                         }
