@@ -85,7 +85,8 @@ object ReportDisplay {
     val (warnings, errors, other) = reportStatusSummary.foldLeft(0,0,0) {
       case ( (war, err, oth), Amber ) => (war+1, err, oth)
       case ( (war, err, oth), Red ) => (war, err+1, oth)
-      case ( (war, err, oth), _ ) => (war, err, oth+1)
+      case ( (war, err, oth), Blue ) => (war, err, oth+1)
+      case ( (war, err, oth), _ ) => (war, err, oth)
     }
     ReportSummary(warnings, errors, other)
   }
