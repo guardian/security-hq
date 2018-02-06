@@ -201,6 +201,10 @@ nav {
 
 /* security group pages */
 
+.sg-filter {
+  min-width: 300px;
+}
+
 .sg-filter__label {
   margin-left: 20px;
 }
@@ -211,6 +215,7 @@ nav {
 
 .sg-header span.sg-header__badge {
   margin-left: 10px;
+  width: 80px;
 }
 
 .sg-container {

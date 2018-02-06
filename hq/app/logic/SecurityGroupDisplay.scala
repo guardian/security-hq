@@ -6,6 +6,7 @@ import model.{ELB, Ec2Instance, SGInUse, SGOpenPortsDetail}
 object SecurityGroupDisplay {
 
   case class ResourceIcons(instances: Int, elbs: Int, unknown: Int)
+  case class SGReportSummary(total: Int, suppressed: Int, flagged: Int, active: Int)
 
   case class SGReportDisplay(
     suppressed: List[(SGOpenPortsDetail, Set[SGInUse])],
@@ -19,8 +20,14 @@ object SecurityGroupDisplay {
       case ( (ins, elb, unk), ELB(_) ) => (ins, elb+1, unk)
       case ( (ins, elb, unk), _ ) => (ins, elb, unk+1)
     }
-
     ResourceIcons(instances, elbs, unknown)
+  }
+
+  def reportSummary(sgs: List[(SGOpenPortsDetail, Set[SGInUse])]): SGReportSummary = {
+    val (active, _) = sgs.partition( sg => sg._2.nonEmpty )
+    val (suppressed, flagged) = sgs.partition( sg => sg._1.isSuppressed )
+
+    SGReportSummary(sgs.length, suppressed.length, flagged.length, active.length)
   }
 
   def hasSuppressedReports(sgs: List[(SGOpenPortsDetail, Set[SGInUse])]): Boolean = {

@@ -1,4 +1,4 @@
-@import logic.SecurityGroupDisplay.splitReportsBySuppressed
+@import logic.SecurityGroupDisplay.reportSummary
 
 @(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])(implicit assets: AssetsFinder)
 
@@ -41,8 +41,8 @@
 
 } { @* Main content *@
     <div class="container">
-        <div class="row">
-            <h2>Open Security Groups</h2>
+        <div class="row flow-text">
+            <h3>Open Security Groups</h3>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
         </div>
 
@@ -51,7 +51,7 @@
                 <i class="material-icons left">visibility_off</i>
                 <span class="sg-header__name">Some Security Groups may be ignored due to settings in AWS Trusted Advisor</span>
 
-                <form action="#">
+                <form class="sg-filter" action="#">
                     <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
                     <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
                     <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
@@ -59,6 +59,8 @@
                 </form>
             </div>
         </div>
+
+        @views.html.fragments.securityGroupHelp()
 
         <div class="row">
             <ul class="collapsible space-between js-sg-collapsible" data-collapsible="accordion">
@@ -75,11 +77,10 @@
                                 <i class="material-icons green-text">check</i>
                             }
                             case Right(flaggedSgs) => {
-                                @defining(splitReportsBySuppressed(flaggedSgs)) { sgReports =>
-                                    <span class="new badge" data-badge-caption="flagged resources">@sgReports.flagged.length</span>
-                                    @if(sgReports.suppressed.length > 0) {
-                                        <span class="new badge grey sg-header__badge" data-badge-caption="ignored">@sgReports.suppressed.length</span>
-                                    }
+                                @defining(reportSummary(flaggedSgs)) { summary =>
+                                    <span class="new badge red darken-3 sg-header__badge" data-badge-caption="in use">@summary.active</span>
+                                    <span class="new badge sg-header__badge" data-badge-caption="not in use">@{summary.flagged - summary.active}</span>
+                                    <span class="new badge grey sg-header__badge" data-badge-caption="ignored">@summary.suppressed</span>
                                 }
                             }
                         }
