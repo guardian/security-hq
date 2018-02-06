@@ -91,3 +91,5 @@ lazy val root = (project in file(".")).
   settings(
     name := """security-hq"""
   )
+
+addCommandAlias("dependency-tree", "dependencyTree")
