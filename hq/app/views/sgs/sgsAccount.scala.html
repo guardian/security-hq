@@ -23,8 +23,9 @@
         <div class="row">
             <h2>Open Security Groups</h2>
             <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
-            <a class="modal-trigger iam-modal__trigger right" href="#sg-help"><i class="material-icons black-text">help_outline</i></a>
         </div>
+
+        @views.html.fragments.securityGroupHelp()
 
         @if(hasSuppressedReports(flaggedSgs)) {
             <div class="row">
@@ -45,5 +46,6 @@
         <div class="row">
             @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
         </div>
+
     </div>
 }
