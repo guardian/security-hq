@@ -4,7 +4,6 @@ import java.io.FileInputStream
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
-import io.jsonwebtoken.SignatureAlgorithm
 import model.{AwsAccount, DEV, PROD, Stage}
 import play.api.Configuration
 import play.api.http.HttpConfiguration
