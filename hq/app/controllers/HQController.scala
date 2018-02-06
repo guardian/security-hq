@@ -2,6 +2,7 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
+import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import play.api._
 import play.api.libs.ws.WSClient
@@ -10,10 +11,9 @@ import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 import logic.ReportDisplay.sortAccountsByReportSummary
 
-
 import scala.concurrent.ExecutionContext
 
-class HQController (val config: Configuration, cacheService: CacheService)
+class HQController (val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig)
                    (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 

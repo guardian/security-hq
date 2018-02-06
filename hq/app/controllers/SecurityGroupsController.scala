@@ -3,6 +3,7 @@ package controllers
 import auth.SecurityHQAuthActions
 import aws.AWS
 import aws.ec2.EC2
+import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import play.api._
 import play.api.libs.ws.WSClient
@@ -14,7 +15,7 @@ import utils.attempt.PlayIntegration.attempt
 import scala.concurrent.ExecutionContext
 
 
-class SecurityGroupsController(val config: Configuration, cacheService: CacheService)
+class SecurityGroupsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig)
                               (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController with SecurityHQAuthActions {
 

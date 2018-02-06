@@ -18,7 +18,7 @@ trait SecurityHQAuthActions extends LoginSupport {
   val loginTarget: Call = routes.AuthController.login()
   override val failureRedirectTarget: Call = routes.AuthController.loginError()
   override val defaultRedirectTarget: Call = routes.HQController.index()
-  override val authConfig: GoogleAuthConfig = Config.googleSettings
+  override val authConfig: GoogleAuthConfig
 
   val googleGroupChecker = Config.googleGroupChecker
   val requiredGoogleGroups = Set(Config.twoFAGroup)
