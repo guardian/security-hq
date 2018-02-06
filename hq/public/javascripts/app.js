@@ -14,6 +14,18 @@ $(document).ready(function() {
   // Make any tables with the filter class filterable
   $('.filterable-table').filterTable();
 
+  $('.js-iam-expand').click(function() {
+    $('.collapsible-header').addClass('active');
+    $('.collapsible-body').css('display', 'block');
+  });
+
+  $('.js-iam-collapse').click(function() {
+    $('.collapsible-header').removeClass(function() {
+      return 'active';
+    });
+    $('.collapsible-body').css('display', 'none');
+  });
+
   // Extra interactions for the dropdowns on the Security Groups page
   $('.js-sg-details').hover(
     function() {
