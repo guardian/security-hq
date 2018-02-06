@@ -3,7 +3,7 @@ package config
 import java.io.FileInputStream
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.gu.googleauth.{GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
+import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import io.jsonwebtoken.SignatureAlgorithm
 import model.{AwsAccount, DEV, PROD, Stage}
 import play.api.Configuration
@@ -27,15 +27,12 @@ object Config {
     val clientSecret = requiredString(config, "auth.google.clientSecret")
     val domain = requiredString(config, "auth.domain")
     val redirectUrl = s"${requiredString(config, "host")}/oauthCallback"
-    val secret: String = httpConfiguration.secret.secret
-    val signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.forName(httpConfiguration.session.jwt.signatureAlgorithm)
-    GoogleAuthConfig.withSecret(
+    GoogleAuthConfig(
       clientId,
       clientSecret,
       redirectUrl,
       domain,
-      secret,
-      signatureAlgorithm
+      antiForgeryChecker = AntiForgeryChecker.borrowSettingsFromPlay(httpConfiguration)
     )
   }
 
