@@ -4,18 +4,26 @@
         <p>A security group acts as a virtual stateful firewall that controls the traffic for one or more instances. Traffic can be restricted by protocol, by service port, source IP address or security group. The following issues may apply:</p>
         <ul class="collection">
             <li class="collection-item avatar">
-                <i class="material-icons circle large-icon white red-text">error</i>
+                <i class="material-icons circle large-icon red white-text">code</i>
                 <span class="title">Unrestricted Access on Administrative Ports</span>
                 <p></p>
                 Limit access to common administrative ports to only a small subset of addresses.
-                <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html" class="secondary-content">Read more in the AWS docs</a>
+                <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html#add-rule-authorize-access" class="secondary-content">authorising inbound traffic<i class="material-icons right">open_in_new</i></a>
             </li>
             <li class="collection-item avatar">
-                <i class="material-icons circle large-icon white amber-text">warning</i>
+                <i class="material-icons circle large-icon amber while-text">network_check</i>
                 <span class="title">Specific Ports Unrestricted</span>
                 <p>Restrict access to only those IP addresses that require it. Be sure to delete overly permissive rules after creating rules that are more restrictive.</p>
-                <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html" class="secondary-content">Read more in the AWS docs</a>
+                <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#security-group-rules" class="secondary-content">using network security<i class="material-icons right">open_in_new</i></a>
             </li>
+            <li class="collection-item avatar">
+                <i class="material-icons circle large-icon purple white-text">control_point_duplicate</i>
+                <span class="title">Duplicate Security Group Rules</span>
+                <p>If there is more than one rule for a specific port, the most permissive rule will be applied.</p>
+                <a href="https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html#SecurityGroupRules" class="secondary-content">security group rules<i class="material-icons right">open_in_new</i></a>
+            </li>
+
+
         </ul>
     </div>
 </div>
