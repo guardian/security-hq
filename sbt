@@ -18,10 +18,6 @@ do
       CONF_PARAMS=""
       shift
     fi
-    if [ "$arg" == "--team-city" ]; then
-      echo "Ignoring '--team-city' in favour of checking for TEAMCITY_BUILD_PROPERTIES_FILE env var; please remove this switch"
-      shift
-    fi
 done
 
 if [ $TEAMCITY_BUILD_PROPERTIES_FILE ]; then
