@@ -3,6 +3,7 @@
 # Debug option
 DEBUG_PARAMS=""
 TC_PARAMS=""
+COLOUR_PARAMS=""
 
 CONF_PARAMS="-Dconfig.file=$HOME/.gu/security-hq.local.conf"
 for arg in "$@"
@@ -18,15 +19,27 @@ do
       shift
     fi
     if [ "$arg" == "--team-city" ]; then
-      f=$(grep '^teamcity.configuration.properties.file' "$TEAMCITY_BUILD_PROPERTIES_FILE" | cut -d'=' -f 2)
-      TC_PARAMS="-Dteamcity.configuration.properties.file=$f"
-      echo "Adding team city property: $TC_PARAMS"
+      echo "Ignoring '--team-city' in favour of checking for TEAMCITY_BUILD_PROPERTIES_FILE env var; please remove this switch"
       shift
     fi
 done
 
+if [ $TEAMCITY_BUILD_PROPERTIES_FILE ]; then
+  if [ -f $TEAMCITY_BUILD_PROPERTIES_FILE ]; then
+    f=$(grep '^teamcity.configuration.properties.file' "$TEAMCITY_BUILD_PROPERTIES_FILE" | cut -d'=' -f 2)
+    TC_PARAMS="-Dteamcity.configuration.properties.file=$f"
+    echo "Adding team city property: $TC_PARAMS"
+  else
+    echo "Unable to locate Team City build properties file $TEAMCITY_BUILD_PROPERTIES_FILE"
+  fi
+  COLOUR_PARAMS="-Dsbt.log.noformat=true"
+fi
+
 java $DEBUG_PARAMS \
-    -Xms1024M -Xmx2048M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=1024M \
+    -Xms1024M -Xmx2048M \
+    -Xss1M \
+    -XX:+CMSClassUnloadingEnabled \
     $CONF_PARAMS \
     $TC_PARAMS \
+    $COLOUR_PARAMS \
     -jar bin/sbt-launch.jar "$@"
