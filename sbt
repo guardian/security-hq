@@ -26,7 +26,11 @@ do
 done
 
 java $DEBUG_PARAMS \
-    -Xms1024M -Xmx2048M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=1024M \
+    -Xms1024M -Xmx2048M \
+    -Xss1M \
+    -XX:+CMSClassUnloadingEnabled \
+    -XX:MaxPermSize=1024M \
     $CONF_PARAMS \
     $TC_PARAMS \
+    -Dsbt.log.noformat=true \
     -jar bin/sbt-launch.jar "$@"
