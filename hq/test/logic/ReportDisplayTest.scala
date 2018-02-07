@@ -245,8 +245,11 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       val humanRed = HumanUser("humanRed", hasMFA = false, AccessKeyEnabled, AccessKeyEnabled, Red, Some(1))
       val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
       val machineAmber = MachineUser("machineAmber", AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+      val machineBlue = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Blue, Some(1))
       val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
-      val report = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineGreen, machineGreen, machineAmber))
+      val report = CredentialReportDisplay(
+        now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineBlue, machineGreen, machineAmber, machineBlue, machineBlue)
+      )
       reportStatusSummary(report).warnings shouldEqual 2
       reportStatusSummary(report).errors shouldEqual 1
       reportStatusSummary(report).other shouldEqual 3
