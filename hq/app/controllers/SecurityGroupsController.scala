@@ -9,7 +9,6 @@ import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import services.CacheService
-import utils.attempt.Attempt
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
@@ -24,7 +23,6 @@ class SecurityGroupsController(val config: Configuration, cacheService: CacheSer
   def securityGroups = authAction {
     val allFlaggedSgs = cacheService.getAllSgs()
     val sortedFlaggedSgs = EC2.sortAccountByFlaggedSgs(allFlaggedSgs.toList)
-
     Ok(views.html.sgs.sgs(sortedFlaggedSgs))
   }
 

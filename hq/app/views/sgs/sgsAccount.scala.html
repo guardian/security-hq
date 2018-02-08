@@ -48,16 +48,22 @@
                     </div>
                 </div>
                 }
+
                 <div class="row">
-                    @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
+                    @if(flaggedSgs.nonEmpty) {
+                        @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
+                    } else {
+                    <div class="card-panel valign-wrapper">
+                        <i class="material-icons medium green-text left">verified_user</i>
+                        <h5>No open Security Groups found</h5>
+                    </div>
+                    }
                 </div>
             }
             case Left(fa) => {
                 @views.html.fragments.warningMessage("security groups", fa)
             }
         }
-
-
 
     </div>
 }
