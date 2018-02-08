@@ -1,0 +1,12 @@
+@import utils.attempt.FailedAttempt
+
+@(report: String, fa: FailedAttempt)
+
+<div class="row">
+    <div class="card-panel amber black-text">
+        @for(err <- fa.failures) {
+        <h5 class="uppercase">@report<i class="material-icons medium right">warning</i></h5>
+        <b>WARNING: </b>@err.friendlyMessage
+        }
+    </div>
+</div>

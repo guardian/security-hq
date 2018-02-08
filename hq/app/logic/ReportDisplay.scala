@@ -3,6 +3,7 @@ package logic
 import model._
 import DateUtils.dayDiff
 import org.joda.time.{DateTime, DateTimeZone, Days}
+import utils.attempt.FailedAttempt
 
 
 object ReportDisplay {
@@ -89,6 +90,17 @@ object ReportDisplay {
       case ( (war, err, oth), _ ) => (war, err, oth)
     }
     ReportSummary(warnings, errors, other)
+  }
+
+  def exposedKeysSummary(allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]): Map[AwsAccount, Boolean] = {
+    def checkForExposedKeys(temp: Either[FailedAttempt, List[ExposedIAMKeyDetail]]): Boolean = temp match {
+      case Right(keys) if keys.nonEmpty => true
+      case _ => false
+    }
+
+    for {
+      report <- allReports
+    } yield (report._1, checkForExposedKeys(report._2))
   }
 
   def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {

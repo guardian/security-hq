@@ -32,7 +32,7 @@ class SecurityGroupsController(val config: Configuration, cacheService: CacheSer
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        flaggedSgs <- Attempt.fromEither(cacheService.getSgsForAccount(account))
+        flaggedSgs = cacheService.getSgsForAccount(account)
       } yield Ok(views.html.sgs.sgsAccount(account, flaggedSgs))
     }
   }

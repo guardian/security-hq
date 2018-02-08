@@ -4,12 +4,12 @@ import auth.SecurityHQAuthActions
 import aws.AWS
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
+import logic.ReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
-import logic.ReportDisplay.sortAccountsByReportSummary
 
 import scala.concurrent.ExecutionContext
 
@@ -24,9 +24,11 @@ class HQController (val config: Configuration, cacheService: CacheService, val a
   }
 
   def iam = authAction {
+    val exposedKeys = cacheService.getAllExposedKeys()
+    val keysSummary = exposedKeysSummary(exposedKeys)
     val accountsAndReports = cacheService.getAllCredentials()
     val sortedAccountsAndReports = sortAccountsByReportSummary(accountsAndReports.toList)
-    Ok(views.html.iam.iam(sortedAccountsAndReports))
+    Ok(views.html.iam.iam(sortedAccountsAndReports, keysSummary))
   }
 
   def iamAccount(accountId: String) = authAction.async {

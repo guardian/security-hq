@@ -38,6 +38,10 @@ nav {
   justify-content: space-between;
 }
 
+.uppercase {
+  text-transform: uppercase;
+}
+
 .icon-count {
   margin-right: 5px;
   text-align: end;

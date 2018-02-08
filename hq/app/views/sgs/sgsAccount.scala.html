@@ -1,7 +1,9 @@
 @import model.{AwsAccount, SGInUse, SGOpenPortsDetail}
 @import logic.SecurityGroupDisplay.hasSuppressedReports
+@import utils.attempt.FailedAttempt
 
-@(awsAccount: AwsAccount, flaggedSgs: List[(SGOpenPortsDetail, Set[SGInUse])])(implicit assets: AssetsFinder)
+@(awsAccount: AwsAccount, flaggedSgsResult: Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])(implicit assets: AssetsFinder)
+
 
 @main(List(awsAccount.name)) { @* Header *@
 <div class="hq-sub-header">
@@ -20,32 +22,42 @@
 
 } { @* Main content *@
     <div class="container">
-        <div class="row">
-            <h2>Open Security Groups</h2>
-            <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
-        </div>
 
-        @views.html.fragments.securityGroupHelp()
 
-        @if(hasSuppressedReports(flaggedSgs)) {
-            <div class="row">
-                <div class="card-panel valign-wrapper">
-                    <i class="material-icons left">visibility_off</i>
-                    <span class="sg-header__name">Some Security Groups have been ignored due to settings in AWS Trusted Advisor</span>
-
-                    <form class="sg-filter" action="#">
-                        <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
-                        <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
-                        <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
-                        <label class="black-text sg-filter__label" for="show-ignored-sgs">Show ignored</label>
-                    </form>
+        @flaggedSgsResult match {
+            case Right(flaggedSgs) => {
+                <div class="row">
+                    <h2>Open Security Groups</h2>
+                    <p>The following Security Groups have ports open to the world, i.e. a CIDR set to <code>0.0.0.0/0</code>.</p>
                 </div>
-            </div>
+
+                @views.html.fragments.securityGroupHelp()
+
+                @if(hasSuppressedReports(flaggedSgs)) {
+                <div class="row">
+                    <div class="card-panel valign-wrapper">
+                        <i class="material-icons left">visibility_off</i>
+                        <span class="sg-header__name">Some Security Groups have been ignored due to settings in AWS Trusted Advisor</span>
+
+                        <form class="sg-filter" action="#">
+                            <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
+                            <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
+                            <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
+                            <label class="black-text sg-filter__label" for="show-ignored-sgs">Show ignored</label>
+                        </form>
+                    </div>
+                </div>
+                }
+                <div class="row">
+                    @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
+                </div>
+            }
+            case Left(fa) => {
+                @views.html.fragments.warningMessage("security groups", fa)
+            }
         }
 
-        <div class="row">
-            @views.html.fragments.openSecurityGroups(flaggedSgs, shadow=true)
-        </div>
+
 
     </div>
 }

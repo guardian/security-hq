@@ -33,8 +33,15 @@
                             <i class="material-icons link_new_tab">open_in_new</i>
                         </a>
                     </td>
-                    <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
-                    <td>@views.html.fragments.mfa(cred.hasMFA)</td>
+                    <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)
+
+                    </td>
+                    <td>
+                        <i class="material-icons left tooltipped" data-tooltip="Password enabled">lock_outline</i>
+                        @if(cred.hasMFA) {
+                        <i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="MFA enabled">important_devices</i>
+                        }
+                    </td>
                     <td>
                         <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>

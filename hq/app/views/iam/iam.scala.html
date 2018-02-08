@@ -1,6 +1,7 @@
 @import logic.ReportDisplay._
 @import model._
-@(reports: List[(AwsAccount, Either[utils.attempt.FailedAttempt, CredentialReportDisplay])])(implicit assets: AssetsFinder)
+@import utils.attempt.FailedAttempt
+@(reports: List[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])], exposedKeySummary: Map[AwsAccount, Boolean])(implicit assets: AssetsFinder)
 
 @floatingNav() = {
 <div class="fixed-action-btn js-floating-nav iam-floating-nav">
@@ -35,6 +36,28 @@
 
 } { @* Main content *@
     <div class="container">
+
+        <div class="row iam-key-alert__wrapper">
+            @for((account, hasExposedKeys) <- exposedKeySummary) {
+                @if(hasExposedKeys) {
+
+                    <div class="col s12 m6">
+                        <div class="card red darken-1 white-text">
+                            <div class="card-content white-text valign-wrapper">
+                                <i class="material-icons large-icon white-text left">warning</i>
+                                <p>@account.name has exposed keys!</p>
+                            </div>
+                            <div class="card-action">
+                                <a href="/iam/@account.id">@account.name credentials report
+                                    <i class="material-icons right">chevron_right</i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
             @for((account, report) <- reports) {
