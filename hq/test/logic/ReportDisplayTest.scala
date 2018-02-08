@@ -4,7 +4,7 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import ReportDisplay._
-import utils.attempt.FailedAttempt
+import utils.attempt.{FailedAttempt, Failure}
 
 
 class ReportDisplayTest extends FreeSpec with Matchers {
@@ -290,6 +290,33 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       sortUsersByReportSummary(report).machineUsers shouldEqual Seq(machineAmberA, machineAmberB, machineGreenA, machineGreenB)
       sortUsersByReportSummary(report).humanUsers shouldEqual Seq(humanRedA, humanRedB, humanAmberA, humanAmberB, humanGreenA, humanGreenB)
 
+    }
+  }
+
+  "exposedKeysSummary" - {
+    val awsAccA = AwsAccount("awsAccA", "Account A", "roleArnA")
+    val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB")
+    val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC")
+
+    val failedAttempt = Failure.cacheServiceError("account id", "failure type").attempt
+    val exposedKeys = List(ExposedIAMKeyDetail("key-id", "username", "bad fraud", "2345671234", "2017-29-09T11:32:04Z", "the internet", "Soon", "EC2"))
+
+    "returns 'false' for all accounts when there are no exposed keys" in {
+      exposedKeysSummary(
+        Map(awsAccA -> Right(List.empty), awsAccB -> Right(List.empty), awsAccC -> Right(List.empty))
+      ) shouldEqual Map(awsAccA -> false, awsAccB -> false, awsAccC -> false)
+    }
+
+    "will identify accounts with exposed keys and set their value to 'true'" in {
+      exposedKeysSummary(
+        Map(awsAccA -> Right(exposedKeys), awsAccB -> Right(List.empty), awsAccC -> Right(exposedKeys))
+      ) shouldEqual Map(awsAccA -> true, awsAccB -> false, awsAccC -> true)
+    }
+
+    "returns 'false' for an account if the exposed key data is not available" in {
+      exposedKeysSummary(
+        Map(awsAccA -> Right(List.empty), awsAccB -> Left(failedAttempt), awsAccC -> Right(exposedKeys))
+      ) shouldEqual Map(awsAccA -> false, awsAccB -> false, awsAccC -> true)
     }
   }
 }
