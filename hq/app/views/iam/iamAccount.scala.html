@@ -3,20 +3,6 @@
 @(awsAccount: AwsAccount, exposedIamKeys: Either[FailedAttempt, List[ExposedIAMKeyDetail]], credentialsReport: Either[FailedAttempt, CredentialReportDisplay])(implicit assets: AssetsFinder)
 
 
-@errorMessage(fa: FailedAttempt) = {
-    <div class="row">
-        <div class="card-panel yellow black-text">
-            @for(err <- fa.failures) {
-            <p class="warning">
-                <i class="material-icons right">warning</i>
-                <b>WARNING:</b>
-                @err.friendlyMessage
-            </p>
-            }
-        </div>
-    </div>
-}
-
 @main(List(awsAccount.name, "IAM report")) { @* Header *@
 <div class="hq-sub-header">
     <div class="container hq-sub-header__row">
@@ -40,7 +26,7 @@
                 @views.html.iam.exposedKeys(exposedIamKeys)
             }
             case Left(fa) => {
-                @errorMessage(fa)
+                @views.html.fragments.warningMessage("exposed IAM keys", fa)
             }
         }
 
@@ -55,7 +41,7 @@
                 @views.html.fragments.credentialsHelp()
             }
             case Left(fa) => {
-                @errorMessage(fa)
+                @views.html.fragments.warningMessage("credential report", fa)
             }
         }
     </div>
