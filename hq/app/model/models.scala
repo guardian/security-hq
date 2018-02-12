@@ -18,6 +18,8 @@ case class IAMCredential(
   user: String,
   arn: String,
   creationTime: DateTime,
+  stackId : Option[String] = None,
+  stackName : Option[String] = None,
   passwordEnabled: Option[Boolean],
   passwordLastUsed: Option[DateTime],
   passwordLastChanged: Option[DateTime],
@@ -104,7 +106,7 @@ case object DEV extends Stage
 case object PROD extends Stage
 
 case class CredentialReportDisplay(
-  reportDate : DateTime,
+  reportDate: DateTime,
   machineUsers: Seq[MachineUser] = Seq.empty,
   humanUsers: Seq[HumanUser] = Seq.empty
 )
@@ -127,14 +129,18 @@ case class HumanUser(
   key1Status: KeyStatus,
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
-  lastActivityDay : Option[Long]
+  lastActivityDay : Option[Long],
+  stackId : Option[String] = None,
+  stackName : Option[String] = None,
 )
 case class MachineUser(
   username: String,
   key1Status: KeyStatus,
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
-  lastActivityDay: Option[Long]
+  lastActivityDay: Option[Long],
+  stackId : Option[String] = None,
+  stackName : Option[String] = None,
 )
 
 case class SnykToken(value: String) extends AnyVal
