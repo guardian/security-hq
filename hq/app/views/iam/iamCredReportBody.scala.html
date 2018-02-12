@@ -22,7 +22,14 @@
 
             @for(cred <- report.humanUsers) {
                 <tr>
-                    <td><i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i></td>
+                    <td>
+                        <i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i>
+                        @if(cred.stackId && cred.stackName) {
+                            <i class="material-icons left tooltipped" data-tooltip="cloudformed" data-position="bottom" data-delay="50">cloud</i>
+                        } else {
+                            <i class="material-icons left tooltipped" data-tooltip="not cloudformed" data-position="bottom" data-delay="50">cloud_off</i>
+                        }
+                    </td>
                     <td>
                         <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {
@@ -51,7 +58,14 @@
 
             @for(cred <- report.machineUsers) {
                 <tr>
-                    <td><i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i></td>
+                    <td>
+                        <i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i>
+                        @if(cred.stackId && cred.stackName) {
+                        <i class="material-icons left tooltipped" data-tooltip="cloudformed" data-position="bottom" data-delay="50">cloud</i>
+                        } else {
+                        <i class="material-icons left tooltipped" data-tooltip="cloudformed" data-position="bottom" data-delay="50">cloud_off</i>
+                        }
+                    </td>
                     <td>
                         <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {
