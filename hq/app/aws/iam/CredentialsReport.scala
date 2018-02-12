@@ -67,6 +67,8 @@ object CredentialsReport {
           user = row.getOrElse("user", "no username available"),
           arn = row.getOrElse("arn", "no ARN available"),
           creationTime = row.get("user_creation_time").flatMap(parseDateTimeOpt).get,
+          stackId = None,
+          stackName = None,
           passwordEnabled = row.get("password_enabled").flatMap(parseBoolean),
           passwordLastUsed = row.get("password_last_used").flatMap(parseDateTimeOpt),
           passwordLastChanged = row.get("password_last_changed").flatMap(parseDateTimeOpt),
