@@ -16,6 +16,8 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       "user-1",
       now,
       None,
+      None,
+      None,
       Some(now.minusDays(1)),
       Some(now.minusDays(2)),
       Some(now.minusDays(3)),
