@@ -233,6 +233,13 @@ class ReportDisplayTest extends FreeSpec with Matchers {
     }
   }
 
+  "linkForAwsConsole" - {
+    "returns the correct string from a stackId" in {
+      val stackId = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"
+      linkForAwsConsole(stackId) shouldEqual "https://console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?"
+    }
+  }
+
   "reportStatusSummary" - {
     val now = DateTime.now()
 
