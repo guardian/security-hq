@@ -50,6 +50,15 @@ object ReportDisplay {
     else Green
   }
 
+  def linkForAwsConsole(stackId: String): String = {
+    val regionOpt = stackId.stripPrefix("arn:aws:cloudformation:").split(":").headOption
+
+    regionOpt match {
+      case Some(region) => s"https://console.aws.amazon.com/cloudformation/home?$region#/stack/detail?"
+      case _ => ""
+    }
+  }
+
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
 
     report.entries.filterNot(_.rootUser).foldLeft(CredentialReportDisplay(report.generatedAt)) { (report, cred) =>
