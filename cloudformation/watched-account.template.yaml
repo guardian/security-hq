@@ -40,7 +40,6 @@ Resources:
             # IAM credentials overview
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport
-            - cloudformation:DescribeStacks
 
 Outputs:
   SecurityHQRole:
