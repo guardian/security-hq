@@ -3,6 +3,8 @@ package aws.iam
 import aws.AWS
 import aws.AwsAsyncHandler._
 import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.cloudformation.model.{DescribeStacksRequest, DescribeStacksResult}
+import com.amazonaws.services.cloudformation.{AmazonCloudFormationAsync, AmazonCloudFormationAsyncClient}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
 import logic.{ReportDisplay, Retry}
@@ -21,6 +23,13 @@ object IAMClient {
       .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName).build()
   }
 
+  private def cloudFormationClient(account: AwsAccount, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonCloudFormationAsync = {
+    val auth = AWS.credentialsProvider(account)
+    AmazonCloudFormationAsyncClient.asyncBuilder()
+      .withCredentials(auth)
+      .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName).build()
+  }
+
   private def generateCredentialsReport(client: AmazonIdentityManagementAsync)(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResult] = {
     val request = new GenerateCredentialReportRequest()
     handleAWSErrs(awsToScala(client.generateCredentialReportAsync)(request))
@@ -31,17 +40,20 @@ object IAMClient {
     handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
+  private def getStackDescriptions(client: AmazonCloudFormationAsync)(implicit ec: ExecutionContext): Attempt[DescribeStacksResult] = {
+    val request = new DescribeStacksRequest()
+    handleAWSErrs(awsToScala(client.describeStacksAsync)(request))
+  }
+
   def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val client = IAMClient.client(account)
-    val cloudClient = CloudFormation.client(account)
+    val cloudClient = IAMClient.cloudFormationClient(account)
     for {
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
-      stacks <- CloudFormation.getStackDescriptions(cloudClient)
-      userStacks = CloudFormation.getUserStacks(stacks)
-      enrichedReport = CredentialsReport.enrichReportDetails(report, userStacks)
-    } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
+      stacks <- getStackDescriptions(cloudClient)
+    } yield ReportDisplay.toCredentialReportDisplay(report, stacks)
   }
 
   def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
