@@ -18,7 +18,8 @@ object IAMClient {
     val auth = AWS.credentialsProvider(account)
     AmazonIdentityManagementAsyncClientBuilder.standard()
       .withCredentials(auth)
-      .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName).build()
+      .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName)
+      .build()
   }
 
   private def generateCredentialsReport(client: AmazonIdentityManagementAsync)(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResult] = {
@@ -38,8 +39,8 @@ object IAMClient {
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
       stacks <- CloudFormation.getStacksFromAllRegions(account)
-      userStacks = CloudFormation.getUserStacks(stacks)
-      enrichedReport = CredentialsReport.enrichReportDetails(report, userStacks)
+      userStacks = CloudFormation.extractUserStacks(stacks)
+      enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, userStacks)
     } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
   }
 
