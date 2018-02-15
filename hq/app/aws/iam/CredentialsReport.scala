@@ -2,29 +2,27 @@ package aws.iam
 
 import java.io.StringReader
 
-import model.{IAMCredential, IAMCredentialsReport}
+import model.{IAMCredential, IAMCredentialsReport, Stack}
 import com.github.tototoshi.csv._
 import org.joda.time.DateTime
 import com.amazonaws.regions.{Region, Regions}
-import com.amazonaws.services.cloudformation.model.Stack
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
 import logic.DateUtils
 import utils.attempt.Attempt
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
-import scala.collection.JavaConverters._
 
 
 object CredentialsReport {
 
   def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
 
-  private[iam] def enrichReportDetails(report: IAMCredentialsReport, stacks: List[Stack]): IAMCredentialsReport = {
+  private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[Stack]): IAMCredentialsReport = {
     report.copy(entries = report.entries.map { cred =>
       val enrichedCred = for {
-        output <- stacks.find(_.getOutputs.asScala.toList.exists(_.getOutputValue.contains(cred.arn)))
-      } yield cred.copy(stackId = Some(output.getStackId), stackName = Some(output.getStackName))
+        sourceStack <- stacks.find(_.output.contains(cred.arn))
+      } yield cred.copy(stackId = Some(sourceStack.id), stackName = Some(sourceStack.name))
       enrichedCred.getOrElse(cred)
     })
   }
