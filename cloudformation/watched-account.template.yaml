@@ -35,11 +35,13 @@ Resources:
             - trustedadvisor:Refresh*
             - support:*
             - ec2:DescribeNetworkInterfaces
+            - ec2:DescribeRegions
             - ec2:DescribeSecurityGroups
             - ec2:DescribeVpcs
             # IAM credentials overview
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport
+            - cloudformation:DescribeStacks
 
 Outputs:
   SecurityHQRole:
