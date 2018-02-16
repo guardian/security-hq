@@ -234,9 +234,16 @@ class ReportDisplayTest extends FreeSpec with Matchers {
   }
 
   "linkForAwsConsole" - {
-    "returns the correct string from a stackId" in {
+    "will return a valid URL from a valid stackId" in {
       val stackId = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"
-      linkForAwsConsole(stackId) shouldEqual "https://console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?"
+      linkForAwsConsole(stackId) shouldEqual Some("https://console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?stackId=arn%3Aaws%3Acloudformation%3Aeu-west-1%3A123456789123%3Astack%2Fstack-name%2F8a123bc0-222d-33e4-5fg6-77aa88b12345")
+    }
+
+    "returns None if it cannot extract a valid region from the stackId" in {
+      val entirelyWrong = "something terrible has gone wrong, why is this string here?"
+      val withFakeRegion = "arn:aws:cloudformation:am-hubwards-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"
+      linkForAwsConsole(entirelyWrong) shouldEqual None
+      linkForAwsConsole(withFakeRegion) shouldEqual None
     }
   }
 
