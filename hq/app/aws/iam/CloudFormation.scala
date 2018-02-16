@@ -14,15 +14,15 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 object CloudFormation {
-  private def cloudClient(auth: AWSCredentialsProviderChain, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonCloudFormationAsync = {
+  private def client(auth: AWSCredentialsProviderChain, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonCloudFormationAsync = {
     AmazonCloudFormationAsyncClientBuilder.standard()
       .withCredentials(auth)
       .withRegion(region.getName)
       .build()
   }
-  private[iam] def client(awsAccount: AwsAccount, region: Region): AmazonCloudFormationAsync = {
+  private def client(awsAccount: AwsAccount, region: Region): AmazonCloudFormationAsync = {
     val auth = AWS.credentialsProvider(awsAccount)
-    cloudClient(auth, region)
+    client(auth, region)
   }
 
   private[iam] def getStackDescriptions(client: AmazonCloudFormationAsync)(implicit ec: ExecutionContext): Attempt[DescribeStacksResult] = {
