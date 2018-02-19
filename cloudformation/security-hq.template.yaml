@@ -256,6 +256,94 @@ Resources:
           # Start application
           start security-hq
 
+  InspectorResourceGroup:
+    Type: "AWS::Inspector::ResourceGroup"
+    Properties:
+      ResourceGroupTags:
+        - Key: Stage
+          Value:
+            Ref: Stage
+        - Key: Stack
+          Value:
+            Fn::FindInMap: [ Constants, Stack, Value ]
+        - Key: App
+          Value:
+            Fn::FindInMap: [ Constants, App, Value ]
+
+  InspectorAssessmentTarget:
+    Type: "AWS::Inspector::AssessmentTarget"
+    Properties:
+      AssessmentTargetName:
+        Fn::Join:
+          - " -- "
+          -
+            - "Security HQ"
+            - Fn::FindInMap: [ Constants, App, Value ]
+            - Fn::FindInMap: [ Constants, Stack, Value ]
+            - Ref: Stage
+      ResourceGroupArn:
+        Fn::GetAtt: [ "InspectorResourceGroup", "Arn" ]
+
+  InspectorAssessmentTemplate:
+    Type: "AWS::Inspector::AssessmentTemplate"
+    Properties:
+      AssessmentTargetArn:
+        Fn::GetAtt:
+          - "InspectorAssessmentTarget"
+          - "Arn"
+      DurationInSeconds: 3600
+      RulesPackageArns:
+        # Security Best Practices
+        - arn:aws:inspector:eu-west-1:357557129151:rulespackage/0-SnojL3Z6
+        # Runtime Behavior Analysis
+        - arn:aws:inspector:eu-west-1:357557129151:rulespackage/0-lLmwe1zd
+      UserAttributesForFindings:
+        - Key: Stage
+          Value:
+            Ref: Stage
+        - Key: Stack
+          Value:
+            Fn::FindInMap: [ Constants, Stack, Value ]
+        - Key: App
+          Value:
+            Fn::FindInMap: [ Constants, App, Value ]
+
+  InspectorScheduleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - inspector.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: security-hq-inspector-policy
+        PolicyDocument:
+          Statement:
+          # needs to be able to start assessments only
+          - Effect: Allow
+            Resource:
+            - "*"
+            Action:
+            - inspector:StartAssessmentRun
+
+  InspectorScheduleEventRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "A schedule for triggering AWS Inspector runs every three days"
+      Name: "SecurityHQInspector"
+      ScheduleExpression: "rate(3 days)"
+      Targets:
+        - Arn:
+            Fn::GetAtt: [ "InspectorAssessmentTemplate", "Arn" ]
+          Id: "SecurityHQ"
+          RoleArn:
+            Fn::GetAtt: [ "InspectorScheduleRole", "Arn" ]
+
   AutoscalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
