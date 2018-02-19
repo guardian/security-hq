@@ -19,12 +19,13 @@ object CredentialsReport {
   def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
 
   private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[Stack]): IAMCredentialsReport = {
-    report.copy(entries = report.entries.map { cred =>
+    val updatedEntries = report.entries.map { cred =>
       val enrichedCred = for {
         sourceStack <- stacks.find(_.output.contains(cred.arn))
       } yield cred.copy(stackId = Some(sourceStack.id), stackName = Some(sourceStack.name))
       enrichedCred.getOrElse(cred)
-    })
+    }
+    report.copy(entries = updatedEntries)
   }
 
   private[iam] def tryParsingReport(content: String) = {
