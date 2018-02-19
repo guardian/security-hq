@@ -241,7 +241,7 @@ class ReportDisplayTest extends FreeSpec with Matchers {
         region = Some("eu-west-1")
       )
 
-      linkForAwsConsole(stack) shouldEqual Some("https://console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?stackId=arn%3Aaws%3Acloudformation%3Aeu-west-1%3A123456789123%3Astack%2Fstack-name%2F8a123bc0-222d-33e4-5fg6-77aa88b12345")
+      linkForAwsConsole(stack) shouldEqual Some("https://eu-west-1.console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?stackId=arn%3Aaws%3Acloudformation%3Aeu-west-1%3A123456789123%3Astack%2Fstack-name%2F8a123bc0-222d-33e4-5fg6-77aa88b12345")
     }
 
     "returns None if the region is missing from the stack" in {
