@@ -53,7 +53,7 @@ object ReportDisplay {
 
   def linkForAwsConsole(stack: Stack): Option[String] = {
     stack.region.map { region =>
-      s"https://console.aws.amazon.com/cloudformation/home?$region#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
+      s"https://$region.console.aws.amazon.com/cloudformation/home?$region#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
     }
   }
 
