@@ -12,7 +12,17 @@ case class AwsAccount(
 case class Stack(
   id: String,
   name: String,
-  output: String
+  output: String,
+  resources: Option[List[StackResource]]
+)
+
+case class StackResource(
+  StackId: String,
+  StackName: String,
+  PhysicalResourceId: String,
+  LogicalResourceId: String,
+  ResourceStatus: String,
+  ResourceType: String
 )
 
 case class IAMCredentialsReport(
