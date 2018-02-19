@@ -42,6 +42,7 @@ Resources:
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport
             - cloudformation:DescribeStacks
+            - cloudformation:DescribeStackResources
 
 Outputs:
   SecurityHQRole:
