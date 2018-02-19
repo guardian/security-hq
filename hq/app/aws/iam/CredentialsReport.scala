@@ -21,8 +21,8 @@ object CredentialsReport {
   private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[Stack]): IAMCredentialsReport = {
     val updatedEntries = report.entries.map { cred =>
       val enrichedCred = for {
-        sourceStack <- stacks.find(_.output.contains(cred.arn))
-      } yield cred.copy(stackId = Some(sourceStack.id), stackName = Some(sourceStack.name))
+        stack <- stacks.find(stack => stack.resources.exists(_.PhysicalResourceId.contains(cred.user)))
+      } yield cred.copy(stack = Some(stack))
       enrichedCred.getOrElse(cred)
     }
     report.copy(entries = updatedEntries)
@@ -77,8 +77,7 @@ object CredentialsReport {
           user = row.getOrElse("user", "no username available"),
           arn = row.getOrElse("arn", "no ARN available"),
           creationTime = row.get("user_creation_time").flatMap(parseDateTimeOpt).get,
-          stackId = None,
-          stackName = None,
+          stack = None,
           passwordEnabled = row.get("password_enabled").flatMap(parseBoolean),
           passwordLastUsed = row.get("password_last_used").flatMap(parseDateTimeOpt),
           passwordLastChanged = row.get("password_last_changed").flatMap(parseDateTimeOpt),

@@ -12,8 +12,8 @@ case class AwsAccount(
 case class Stack(
   id: String,
   name: String,
-  output: String,
-  resources: Option[List[StackResource]]
+  resources: List[StackResource],
+  region: Option[String]
 )
 
 case class StackResource(
@@ -34,8 +34,7 @@ case class IAMCredential(
   user: String,
   arn: String,
   creationTime: DateTime,
-  stackId: Option[String] = None,
-  stackName: Option[String] = None,
+  stack: Option[Stack] = None,
   passwordEnabled: Option[Boolean],
   passwordLastUsed: Option[DateTime],
   passwordLastChanged: Option[DateTime],
@@ -146,8 +145,7 @@ case class HumanUser(
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long],
-  stackId: Option[String] = None,
-  stackName: Option[String] = None,
+  stack: Option[Stack] = None
 )
 case class MachineUser(
   username: String,
@@ -155,8 +153,7 @@ case class MachineUser(
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
   lastActivityDay: Option[Long],
-  stackId: Option[String] = None,
-  stackName: Option[String] = None,
+  stack: Option[Stack] = None
 )
 
 case class SnykToken(value: String) extends AnyVal
