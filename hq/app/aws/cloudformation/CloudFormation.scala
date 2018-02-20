@@ -1,4 +1,4 @@
-package aws.iam
+package aws.cloudformation
 
 import aws.AWS
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
@@ -45,7 +45,7 @@ object CloudFormation {
     } yield parseStacksAndResources(updatedStacks, region)
   }
 
-  private[iam] def getStacksFromAllRegions(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
+  def getStacksFromAllRegions(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     val regionClient = EC2.client(account)
     for {
       availableRegions <- EC2.getAvailableRegions(regionClient)
@@ -54,7 +54,7 @@ object CloudFormation {
     } yield stacks
   }
 
-  private def parseResourcesResult(result: DescribeStackResourcesResult): List[StackResource] = {
+  private[cloudformation] def parseResourcesResult(result: DescribeStackResourcesResult): List[StackResource] = {
     for {
       resource <- result.getStackResources.asScala.toList
     } yield StackResource(
@@ -67,7 +67,7 @@ object CloudFormation {
     )
   }
 
-  private[iam] def parseStacksAndResources(results: List[(Stack, List[StackResource])], region: Region): List[AwsStack] = {
+  private[cloudformation] def parseStacksAndResources(results: List[(Stack, List[StackResource])], region: Region): List[AwsStack] = {
     results.map { case (stack, resources) =>
       AwsStack(
         stack.getStackId,
