@@ -1,7 +1,6 @@
 package aws.iam
 
 import com.amazonaws.regions.{Region, Regions}
-import model.{IAMCredential, IAMCredentialsReport, Stack, StackResource}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
 import utils.attempt.AttemptValues
@@ -109,53 +108,6 @@ class CredentialsReportTest extends FreeSpec with Matchers with OptionValues wit
           'passwordLastUsed (None)
         )
       }
-    }
-  }
-
-  "enrichReportWithStackDetails" - {
-    val now = DateTime.now()
-    val stackId = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"
-    val stackResourceA = StackResource(stackId, "example-key", "example-key-1ABC2D345EFG", "example", "CREATE_COMPLETE", "AWS::IAM::AccessKey")
-    val stackResourceB = StackResource(stackId, "example-user", "example-user-1ABC2D345EFG", "example", "CREATE_COMPLETE", "AWS::IAM::User")
-    val stackA = Stack(stackId, "stack-A", List(stackResourceA), Some("eu-west-1"))
-    val stackB = Stack(stackId, "stack-B", List(stackResourceB), Some("eu-west-1"))
-    val stackC = Stack(stackId, "stack-C", Nil, Some("eu-west-1"))
-    val cred = IAMCredential(
-      "example-user-1ABC2D345EFG",
-      "arn:xyz",
-      now,
-      None,
-      None,
-      Some(now.minusDays(1)),
-      Some(now.minusDays(2)),
-      Some(now.minusDays(3)),
-      mfaActive = true,
-      accessKey1Active = true,
-      Some(now.minusDays(4)),
-      Some(now.minusDays(5)),
-      None,
-      None,
-      accessKey2Active = true,
-      Some(now.minusDays(6)),
-      Some(now.minusDays(7)),
-      None,
-      None,
-      cert1Active = true,
-      Some(now.minusDays(8)),
-      cert2Active = true,
-      Some(now.minusDays(9))
-    )
-
-    "will discover the stack associated with the credential, and update the report" in {
-      val report = IAMCredentialsReport(now, List(cred.copy(user = "example-user-1ABC2D345EFG")))
-      val result = CredentialsReport.enrichReportWithStackDetails(report, List(stackA, stackB, stackC)).entries
-      result shouldEqual List(cred.copy(user = "example-user-1ABC2D345EFG", stack = Some(stackB)))
-    }
-
-    "will return the report unchanged if no associated stacks are found" in {
-      val report = IAMCredentialsReport(now, List(cred.copy(user = "custom-user")))
-      val result = CredentialsReport.enrichReportWithStackDetails(report, List(stackA, stackB, stackC)).entries
-      result shouldEqual List(cred.copy(user = "custom-user"))
     }
   }
 }
