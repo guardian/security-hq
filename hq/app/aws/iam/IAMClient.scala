@@ -32,7 +32,7 @@ object IAMClient {
     handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
-  def getCredentialReportDisplay(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
+  def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val client = IAMClient.client(account)
     for {
@@ -46,7 +46,7 @@ object IAMClient {
   def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        getCredentialReportDisplay(account).asFuture.map(account -> _)
+        getCredentialsReport(account).asFuture.map(account -> _)
       }
     }
   }

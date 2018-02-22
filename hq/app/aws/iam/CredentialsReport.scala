@@ -2,7 +2,7 @@ package aws.iam
 
 import java.io.StringReader
 
-import model.{IAMCredential, IAMCredentialsReport, AwsStack}
+import model.{IAMCredential, IAMCredentialsReport, Stack}
 import com.github.tototoshi.csv._
 import org.joda.time.DateTime
 import com.amazonaws.regions.{Region, Regions}
@@ -18,14 +18,12 @@ object CredentialsReport {
 
   def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
 
-  private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[AwsStack]): IAMCredentialsReport = {
+  private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[Stack]): IAMCredentialsReport = {
     val updatedEntries = report.entries.map { cred =>
       val enrichedCred = for {
-        stack <- stacks.find(_.resources.exists(_.physicalResourceId.contains(cred.user)))
+        stack <- stacks.find(stack => stack.resources.exists(_.PhysicalResourceId.contains(cred.user)))
       } yield cred.copy(stack = Some(stack))
       enrichedCred.getOrElse(cred)
-
-      stacks.find(_.resources.exists(_.physicalResourceId.contains(cred.user))).fold(cred)(s => cred.copy(stack = Some(s)))
     }
     report.copy(entries = updatedEntries)
   }

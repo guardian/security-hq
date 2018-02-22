@@ -1,7 +1,7 @@
 package aws.iam
 
 import com.amazonaws.regions.{Region, Regions}
-import model.{IAMCredential, IAMCredentialsReport, AwsStack, StackResource}
+import model.{IAMCredential, IAMCredentialsReport, Stack, StackResource}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
 import utils.attempt.AttemptValues
@@ -117,9 +117,9 @@ class CredentialsReportTest extends FreeSpec with Matchers with OptionValues wit
     val stackId = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"
     val stackResourceA = StackResource(stackId, "example-key", "example-key-1ABC2D345EFG", "example", "CREATE_COMPLETE", "AWS::IAM::AccessKey")
     val stackResourceB = StackResource(stackId, "example-user", "example-user-1ABC2D345EFG", "example", "CREATE_COMPLETE", "AWS::IAM::User")
-    val stackA = AwsStack(stackId, "stack-A", List(stackResourceA), "eu-west-1")
-    val stackB = AwsStack(stackId, "stack-B", List(stackResourceB), "eu-west-1")
-    val stackC = AwsStack(stackId, "stack-C", Nil, "eu-west-1")
+    val stackA = Stack(stackId, "stack-A", List(stackResourceA), Some("eu-west-1"))
+    val stackB = Stack(stackId, "stack-B", List(stackResourceB), Some("eu-west-1"))
+    val stackC = Stack(stackId, "stack-C", Nil, Some("eu-west-1"))
     val cred = IAMCredential(
       "example-user-1ABC2D345EFG",
       "arn:xyz",

@@ -51,8 +51,10 @@ object ReportDisplay {
     else Green
   }
 
-  def linkForAwsConsole(stack: AwsStack): String = {
-    s"https://${stack.region}.console.aws.amazon.com/cloudformation/home?${stack.region}#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
+  def linkForAwsConsole(stack: Stack): Option[String] = {
+    stack.region.map { region =>
+      s"https://$region.console.aws.amazon.com/cloudformation/home?$region#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
+    }
   }
 
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
