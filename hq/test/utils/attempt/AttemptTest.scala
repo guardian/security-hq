@@ -44,25 +44,7 @@ class AttemptTest extends FreeSpec with Matchers with EitherValues {
     "returns the successful result if there were no failures" in {
       Attempt.flatTraverse(List(1, 2, 3, 4))(a => Right(List(a))).awaitEither.right.value shouldEqual List(1, 2, 3, 4)
     }
-  }
 
-  "labelledTraverse" - {
-    "returns the first failure" in {
-      def failOnFourAndSix(i: Int): Attempt[List[Int]] = {
-        i match {
-          case 4 => expectedFailure("fails on four")
-          case 6 => expectedFailure("fails on six")
-          case n => Right(List(n))
-        }
-      }
-      val errors = Attempt.labelledTraverse(List(1, 2, 3, 4, 5, 6))(failOnFourAndSix).awaitEither.left.value
-      checkError(errors, "fails on four")
-    }
-
-    "returns the successful result if there were no failures" in {
-      val result = Attempt.labelledTraverse(List(1, 2, 3, 4))(a => Right(List(a))).awaitEither.right.value
-      result shouldEqual List((1, List(1)), (2, List(2)), (3, List(3)), (4, List(4)))
-    }
   }
 
   "successfulAttempts" - {

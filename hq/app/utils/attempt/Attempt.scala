@@ -67,13 +67,6 @@ object Attempt {
     as.foldRight[Attempt[List[B]]](Right(Nil))(f(_).map2(_)(_ :: _))
   }
 
-  /** Using the provided traversal function, sequence the resulting attempts
-    * to `Attempt[List[(A, B)]]` where the first element of each tuple is the
-    * value passed to the function f in order to to generate the second element
-    *
-    * This implementation returns the first failure in the resulting list,
-    * or the successful result.
-    */
   def labelledTraverse[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[(A, B)]] = {
     Attempt.traverse(as)(a => f(a).map((a, _)))
   }

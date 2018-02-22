@@ -2,7 +2,6 @@ package aws.iam
 
 import aws.AWS
 import aws.AwsAsyncHandler._
-import aws.cloudformation.CloudFormation
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}

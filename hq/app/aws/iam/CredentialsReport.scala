@@ -20,9 +20,12 @@ object CredentialsReport {
 
   private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[AwsStack]): IAMCredentialsReport = {
     val updatedEntries = report.entries.map { cred =>
-      stacks
-        .find(_.resources.exists(_.physicalResourceId.contains(cred.user)))
-        .fold(cred)(s => cred.copy(stack = Some(s)))
+      val enrichedCred = for {
+        stack <- stacks.find(_.resources.exists(_.physicalResourceId.contains(cred.user)))
+      } yield cred.copy(stack = Some(stack))
+      enrichedCred.getOrElse(cred)
+
+      stacks.find(_.resources.exists(_.physicalResourceId.contains(cred.user))).fold(cred)(s => cred.copy(stack = Some(s)))
     }
     report.copy(entries = updatedEntries)
   }
