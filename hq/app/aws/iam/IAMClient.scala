@@ -39,7 +39,8 @@ object IAMClient {
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
       stacks <- CloudFormation.getStacksFromAllRegions(account)
-      enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, stacks)
+      userStacks = CloudFormation.extractUserStacks(stacks)
+      enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, userStacks)
     } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
   }
 
