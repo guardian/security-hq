@@ -1,23 +1,5 @@
 # Snyk
 
-<!-- table of contents generated using markdown-toc:
-
-     https://github.com/jonschlinkert/markdown-toc
-     node node_modules/markdown-toc/cli.js -i --maxdepth 2 hq/markdown/snyk.md
-
- -->
-
-<!-- toc -->
-
-- [Introduction](#introduction)
-- [Installing](#installing)
-- [Build Server Invocation](#build-server-invocation)
-- [Usage](#usage)
-- [Eliminating Vulnerabilities](#eliminating-vulnerabilities)
-- [Exemptions](#exemptions)
-
-<!-- tocstop -->
-
 ## Introduction
 
 Snyk is a managed service which uses a dependency analysis tool and a vulnerability database to inform you of
