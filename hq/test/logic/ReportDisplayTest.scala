@@ -16,7 +16,6 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       "user-1",
       now,
       None,
-      None,
       Some(now.minusDays(1)),
       Some(now.minusDays(2)),
       Some(now.minusDays(3)),
@@ -114,23 +113,23 @@ class ReportDisplayTest extends FreeSpec with Matchers {
     "check credential display report for human user" in {
       val humanCred = cred.copy(passwordEnabled = Some(true))
       val iAMCredentialsReport = IAMCredentialsReport(now, List(humanCred))
-      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
+      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
       val displayReport = CredentialReportDisplay(now, humanUsers = Seq(humanUser) )
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
 
     "check credential display report for machine user" in {
       val iAMCredentialsReport = IAMCredentialsReport(now, List(cred))
-      val machineUser = MachineUser(cred.user, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+      val machineUser = MachineUser(cred.user, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
       val displayReport = CredentialReportDisplay(now, machineUsers = Seq(machineUser) )
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
 
     "check credential display report - machine user and human user" in {
       val humanCred = cred.copy(passwordEnabled = Some(true))
-      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
+      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
       val iAMCredentialsReport = IAMCredentialsReport(now, List(humanCred, cred))
-      val machineUser = MachineUser(cred.user, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+      val machineUser = MachineUser(cred.user, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
       val displayReport = CredentialReportDisplay(now, humanUsers = Seq(humanUser) , machineUsers = Seq(machineUser) )
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
@@ -140,11 +139,11 @@ class ReportDisplayTest extends FreeSpec with Matchers {
   "sortAccountsByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRed = HumanUser("humanRed", hasMFA = false, NoKey, NoKey, Red, Some(1), None)
-    val humanAmber = HumanUser("humanAmber", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-    val humanGreen = HumanUser("humanGreen", hasMFA = true, NoKey, NoKey, Green, Some(1), None)
-    val machineAmber = MachineUser("machineAmber", AccessKeyDisabled, NoKey, Amber, Some(1), None)
-    val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+    val humanRed = HumanUser("humanRed", hasMFA = false, NoKey, NoKey, Red, Some(1))
+    val humanAmber = HumanUser("humanAmber", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+    val humanGreen = HumanUser("humanGreen", hasMFA = true, NoKey, NoKey, Green, Some(1))
+    val machineAmber = MachineUser("machineAmber", AccessKeyDisabled, NoKey, Amber, Some(1))
+    val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
 
     val reportNoUsers = CredentialReportDisplay(now, humanUsers = Seq.empty, machineUsers = Seq.empty)
     val reportAllGreen = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanGreen), machineUsers = Seq(machineGreen, machineGreen))
@@ -232,19 +231,6 @@ class ReportDisplayTest extends FreeSpec with Matchers {
     }
   }
 
-  "linkForAwsConsole" - {
-    "will return a valid URL from a valid Stack" in {
-      val stack = AwsStack(
-        id = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345",
-        name = "stack-name",
-        resources = Nil,
-        region = "eu-west-1"
-      )
-
-      linkForAwsConsole(stack) shouldEqual "https://eu-west-1.console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?stackId=arn%3Aaws%3Acloudformation%3Aeu-west-1%3A123456789123%3Astack%2Fstack-name%2F8a123bc0-222d-33e4-5fg6-77aa88b12345"
-    }
-  }
-
   "reportStatusSummary" - {
     val now = DateTime.now()
 
@@ -256,11 +242,11 @@ class ReportDisplayTest extends FreeSpec with Matchers {
     }
 
     "returns individual counts for each report status" in {
-      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKeyEnabled, AccessKeyEnabled, Red, Some(1), None)
-      val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
-      val machineAmber = MachineUser("machineAmber", AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-      val machineBlue = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Blue, Some(1), None)
-      val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKeyEnabled, AccessKeyEnabled, Red, Some(1))
+      val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
+      val machineAmber = MachineUser("machineAmber", AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+      val machineBlue = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Blue, Some(1))
+      val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
       val report = CredentialReportDisplay(
         now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineBlue, machineGreen, machineAmber, machineBlue, machineBlue)
       )
@@ -273,17 +259,17 @@ class ReportDisplayTest extends FreeSpec with Matchers {
   "sortUsersByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRedA = HumanUser("humanRedA", hasMFA = false, NoKey, NoKey, Red, Some(1), None)
-    val humanRedB = HumanUser("humanRedB", hasMFA = false, NoKey, NoKey, Red, Some(1), None)
-    val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-    val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-    val humanGreenA = HumanUser("humanGreenA", hasMFA = true, NoKey, NoKey, Green, Some(1), None)
-    val humanGreenB = HumanUser("humanGreenB", hasMFA = true, NoKey, NoKey, Green, Some(1), None)
+    val humanRedA = HumanUser("humanRedA", hasMFA = false, NoKey, NoKey, Red, Some(1))
+    val humanRedB = HumanUser("humanRedB", hasMFA = false, NoKey, NoKey, Red, Some(1))
+    val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+    val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1))
+    val humanGreenA = HumanUser("humanGreenA", hasMFA = true, NoKey, NoKey, Green, Some(1))
+    val humanGreenB = HumanUser("humanGreenB", hasMFA = true, NoKey, NoKey, Green, Some(1))
 
-    val machineAmberA = MachineUser("machineAmberA", AccessKeyDisabled, NoKey, Amber, Some(1), None)
-    val machineAmberB = MachineUser("machineAmberB", AccessKeyDisabled, NoKey, Amber, Some(1), None)
-    val machineGreenA = MachineUser("machineGreenA", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
-    val machineGreenB = MachineUser("machineGreenB", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+    val machineAmberA = MachineUser("machineAmberA", AccessKeyDisabled, NoKey, Amber, Some(1))
+    val machineAmberB = MachineUser("machineAmberB", AccessKeyDisabled, NoKey, Amber, Some(1))
+    val machineGreenA = MachineUser("machineGreenA", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
+    val machineGreenB = MachineUser("machineGreenB", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1))
 
     "will sort according to username if the ReportStatuses are equal" in {
       val report = CredentialReportDisplay(now,

@@ -10,7 +10,7 @@
 </div>
 <div class="row">
     <div class="col s12">
-        <table class="striped responsive-table iam-report__table">
+        <table class="striped responsive-table iam-report__table" >
             <tr>
                 <th>Type</th>
                 <th>User name</th>
@@ -22,19 +22,7 @@
 
             @for(cred <- report.humanUsers) {
                 <tr>
-                    <td>
-                        <i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i>
-                        @cred.stack match {
-                            case Some(stack) => {
-                            <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stack)">
-                                <i class="material-icons left tooltipped" data-tooltip="@stack.name stack" data-position="bottom" data-delay="50">cloud_done</i>
-                            </a>
-                            }
-                            case _ => {
-                                <i class="material-icons left tooltipped" data-tooltip="no CloudFormation stack" data-position="bottom" data-delay="50">cloud_off</i>
-                            }
-                        }
-                    </td>
+                    <td><i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i></td>
                     <td>
                         <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {
@@ -63,19 +51,7 @@
 
             @for(cred <- report.machineUsers) {
                 <tr>
-                    <td>
-                        <i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i>
-                        @cred.stack match {
-                            case Some(stack) => {
-                                <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stack)">
-                                    <i class="material-icons left tooltipped" data-tooltip="@stack.name stack" data-position="bottom" data-delay="50">cloud_done</i>
-                                </a>
-                            }
-                            case _ => {
-                                <i class="material-icons left tooltipped" data-tooltip="no CloudFormation stack" data-position="bottom" data-delay="50">cloud_off</i>
-                            }
-                        }
-                    </td>
+                    <td><i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i></td>
                     <td>
                         <a target="_blank" rel="noopener noreferrer" href="https://console.aws.amazon.com/iam/home#/users/@{cred.username}">
                             @if(cred.username.length > 30) {

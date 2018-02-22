@@ -1,10 +1,9 @@
 package logic
 
-import logic.DateUtils.dayDiff
 import model._
+import DateUtils.dayDiff
 import org.joda.time.{DateTime, DateTimeZone, Days}
 import utils.attempt.FailedAttempt
-import java.net.URLEncoder
 
 
 object ReportDisplay {
@@ -51,36 +50,16 @@ object ReportDisplay {
     else Green
   }
 
-  def linkForAwsConsole(stack: AwsStack): String = {
-    s"https://${stack.region}.console.aws.amazon.com/cloudformation/home?${stack.region}#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
-  }
-
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
-
     report.entries.filterNot(_.rootUser).foldLeft(CredentialReportDisplay(report.generatedAt)) { (report, cred) =>
       val machineUser =
         if (!cred.passwordEnabled.getOrElse(false)) {
-          Some(MachineUser(
-            cred.user,
-            key1Status(cred),
-            key2Status(cred),
-            machineReportStatus(cred),
-            dayDiff(lastActivityDate(cred)),
-            stack = cred.stack
-          ))
+          Some(MachineUser(cred.user, key1Status(cred), key2Status(cred), machineReportStatus(cred), dayDiff(lastActivityDate(cred))))
         } else None
 
       val humanUser =
         if (cred.passwordEnabled.getOrElse(false)) {
-          Some(HumanUser(
-            cred.user,
-            cred.mfaActive,
-            key1Status(cred),
-            key2Status(cred),
-            humanReportStatus(cred),
-            dayDiff(lastActivityDate(cred)),
-            stack = cred.stack
-          ))
+          Some(HumanUser(cred.user, cred.mfaActive, key1Status(cred), key2Status(cred), humanReportStatus(cred), dayDiff(lastActivityDate(cred))))
         } else None
 
       report.copy(

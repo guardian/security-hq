@@ -2,13 +2,13 @@ package aws.iam
 
 import java.io.StringReader
 
-import model.{IAMCredential, IAMCredentialsReport, AwsStack}
+import model.{IAMCredential, IAMCredentialsReport}
 import com.github.tototoshi.csv._
 import org.joda.time.DateTime
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
 import logic.DateUtils
-import utils.attempt.Attempt
+import utils.attempt.{Attempt}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
@@ -16,16 +16,7 @@ import scala.util.{Failure, Success, Try}
 
 object CredentialsReport {
 
-  def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
-
-  private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[AwsStack]): IAMCredentialsReport = {
-    val updatedEntries = report.entries.map { cred =>
-      stacks
-        .find(_.resources.exists(_.physicalResourceId.contains(cred.user)))
-        .fold(cred)(s => cred.copy(stack = Some(s)))
-    }
-    report.copy(entries = updatedEntries)
-  }
+  def isComplete(report: GenerateCredentialReportResult) = report.getState == "COMPLETE"
 
   private[iam] def tryParsingReport(content: String) = {
     Try {
@@ -76,7 +67,6 @@ object CredentialsReport {
           user = row.getOrElse("user", "no username available"),
           arn = row.getOrElse("arn", "no ARN available"),
           creationTime = row.get("user_creation_time").flatMap(parseDateTimeOpt).get,
-          stack = None,
           passwordEnabled = row.get("password_enabled").flatMap(parseBoolean),
           passwordLastUsed = row.get("password_last_used").flatMap(parseDateTimeOpt),
           passwordLastChanged = row.get("password_last_changed").flatMap(parseDateTimeOpt),
