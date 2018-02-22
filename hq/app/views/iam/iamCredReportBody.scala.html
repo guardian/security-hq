@@ -24,11 +24,11 @@
                 <tr>
                     <td>
                         <i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i>
-                        @cred.stack match {
-                            case Some(stack) => {
-                            <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stack)">
-                                <i class="material-icons left tooltipped" data-tooltip="@stack.name stack" data-position="bottom" data-delay="50">cloud_done</i>
-                            </a>
+                        @(cred.stackId, cred.stackName) match {
+                            case (Some(stackId), Some(stackName)) => {
+                                <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stackId)">
+                                    <i class="material-icons left tooltipped" data-tooltip="@stackName stack" data-position="bottom" data-delay="50">cloud_done</i>
+                                </a>
                             }
                             case _ => {
                                 <i class="material-icons left tooltipped" data-tooltip="no CloudFormation stack" data-position="bottom" data-delay="50">cloud_off</i>
@@ -65,10 +65,10 @@
                 <tr>
                     <td>
                         <i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i>
-                        @cred.stack match {
-                            case Some(stack) => {
-                                <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stack)">
-                                    <i class="material-icons left tooltipped" data-tooltip="@stack.name stack" data-position="bottom" data-delay="50">cloud_done</i>
+                        @(cred.stackId, cred.stackName) match {
+                            case (Some(stackId), Some(stackName)) => {
+                                <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stackId)">
+                                    <i class="material-icons left tooltipped" data-tooltip="@stackName stack" data-position="bottom" data-delay="50">cloud_done</i>
                                 </a>
                             }
                             case _ => {

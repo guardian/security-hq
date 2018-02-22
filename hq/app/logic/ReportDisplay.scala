@@ -6,6 +6,9 @@ import org.joda.time.{DateTime, DateTimeZone, Days}
 import utils.attempt.FailedAttempt
 import java.net.URLEncoder
 
+import com.amazonaws.regions.Regions
+
+import scala.util.{Failure, Success, Try}
 
 object ReportDisplay {
 
@@ -51,9 +54,14 @@ object ReportDisplay {
     else Green
   }
 
-  def linkForAwsConsole(stack: Stack): Option[String] = {
-    stack.region.map { region =>
-      s"https://console.aws.amazon.com/cloudformation/home?$region#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
+  def linkForAwsConsole(stackId: String): Option[String] = {
+    val regionOpt = stackId.stripPrefix("arn:aws:cloudformation:").split(":").headOption
+
+    Try {
+      Regions.fromName(regionOpt.getOrElse("")).getName
+    } match {
+      case Success(region) => Some(s"https://console.aws.amazon.com/cloudformation/home?$region#/stack/detail?stackId=${URLEncoder.encode(stackId, "utf-8")}")
+      case Failure(_) => None
     }
   }
 
@@ -68,7 +76,8 @@ object ReportDisplay {
             key2Status(cred),
             machineReportStatus(cred),
             dayDiff(lastActivityDate(cred)),
-            stack = cred.stack
+            stackId = cred.stackId,
+            stackName = cred.stackName
           ))
         } else None
 
@@ -81,7 +90,8 @@ object ReportDisplay {
             key2Status(cred),
             humanReportStatus(cred),
             dayDiff(lastActivityDate(cred)),
-            stack = cred.stack
+            stackId = cred.stackId,
+            stackName = cred.stackName
           ))
         } else None
 

@@ -14,7 +14,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 object CloudFormation {
-  private def client(auth: AWSCredentialsProviderChain, region: Region): AmazonCloudFormationAsync = {
+  private def client(auth: AWSCredentialsProviderChain, region: Region = Region.getRegion(Regions.EU_WEST_1)): AmazonCloudFormationAsync = {
     AmazonCloudFormationAsyncClientBuilder.standard()
       .withCredentials(auth)
       .withRegion(region.getName)
@@ -42,7 +42,7 @@ object CloudFormation {
       updatedStacks <- Attempt.traverse(stacks) { stack =>
         for {
           resources <- getStackResources(stack.id, cloudClient)
-        } yield stack.copy(resources = resources, region = Some(region.getName))
+        } yield stack.copy(resources = Some(resources))
       }
     } yield updatedStacks
   }
@@ -70,13 +70,14 @@ object CloudFormation {
   }
 
   private[iam] def parseStacksResult(result: DescribeStacksResult): List[Stack] = {
-    result.getStacks.asScala.toList.map { stack =>
-      Stack(
-        stack.getStackId,
-        stack.getStackName,
-        Nil,
-        None
-      )
-    }
+    for {
+      stack <- result.getStacks.asScala.toList
+      output <- stack.getOutputs.asScala.toList
+    } yield Stack(
+      stack.getStackId,
+      stack.getStackName,
+      output.getOutputValue,
+      None
+    )
   }
 }
