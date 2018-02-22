@@ -1,12 +1,9 @@
 package logic
 
-import com.amazonaws.services.cloudformation.model.{DescribeStacksResult, Output, Stack}
-import logic.DateUtils.dayDiff
 import model._
+import DateUtils.dayDiff
 import org.joda.time.{DateTime, DateTimeZone, Days}
 import utils.attempt.FailedAttempt
-
-import scala.collection.JavaConverters._
 
 
 object ReportDisplay {
@@ -53,55 +50,16 @@ object ReportDisplay {
     else Green
   }
 
-  private[logic] def getUserStacks(stacks: List[Stack]): List[Stack] = {
-    def outputsUser(output: Output): Boolean = {
-      output.getOutputValue.contains(":user")
-    }
-    for {
-      stack <- stacks
-      output <- stack.getOutputs.asScala.toList
-      if outputsUser(output)
-    } yield stack
-  }
-
-  private[logic] def enrichUserDetails(credentials: Seq[IAMCredential], stacks: List[Stack]): Seq[IAMCredential] = {
-    credentials.map { cred =>
-      val enrichedCred = for {
-        output <- stacks.find(_.getOutputs.asScala.toList.exists(_.getOutputValue.contains(cred.arn)))
-      } yield cred.copy(stackId = Some(output.getStackId), stackName = Some(output.getStackName))
-      enrichedCred.getOrElse(cred)
-    }
-  }
-
-  def toCredentialReportDisplay(report: IAMCredentialsReport, stacks: DescribeStacksResult): CredentialReportDisplay = {
-    val userStacks = getUserStacks(stacks.getStacks.asScala.toList)
-
-    enrichUserDetails(report.entries, userStacks).filterNot(_.rootUser).foldLeft(CredentialReportDisplay(report.generatedAt)) { (report, cred) =>
+  def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
+    report.entries.filterNot(_.rootUser).foldLeft(CredentialReportDisplay(report.generatedAt)) { (report, cred) =>
       val machineUser =
         if (!cred.passwordEnabled.getOrElse(false)) {
-          Some(MachineUser(
-            cred.user,
-            key1Status(cred),
-            key2Status(cred),
-            machineReportStatus(cred),
-            dayDiff(lastActivityDate(cred)),
-            stackId = cred.stackId,
-            stackName = cred.stackName
-          ))
+          Some(MachineUser(cred.user, key1Status(cred), key2Status(cred), machineReportStatus(cred), dayDiff(lastActivityDate(cred))))
         } else None
 
       val humanUser =
         if (cred.passwordEnabled.getOrElse(false)) {
-          Some(HumanUser(
-            cred.user,
-            cred.mfaActive,
-            key1Status(cred),
-            key2Status(cred),
-            humanReportStatus(cred),
-            dayDiff(lastActivityDate(cred)),
-            stackId = cred.stackId,
-            stackName = cred.stackName
-          ))
+          Some(HumanUser(cred.user, cred.mfaActive, key1Status(cred), key2Status(cred), humanReportStatus(cred), dayDiff(lastActivityDate(cred))))
         } else None
 
       report.copy(
