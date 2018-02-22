@@ -30,21 +30,9 @@ object CloudFormation {
     handleAWSErrs(awsToScala(client.describeStacksAsync)(request)).map(parseStacksResult)
   }
 
-  private def getStackResources(stackName: String, client: AmazonCloudFormationAsync)(implicit ec: ExecutionContext): Attempt[List[StackResource]] = {
+  private def getStackResources(stackName: String)(client: AmazonCloudFormationAsync)(implicit ec: ExecutionContext): Attempt[List[StackResource]] = {
     val request = new DescribeStackResourcesRequest().withStackName(stackName)
     handleAWSErrs(awsToScala(client.describeStackResourcesAsync)(request)).map(parseResourcesResult)
-  }
-
-  private def getStacksAndResources(account: AwsAccount, region: Region)(implicit ec: ExecutionContext): Attempt[List[Stack]] = {
-    val cloudClient = CloudFormation.client(account, region)
-    for {
-      stacks <- getStackDescriptions(cloudClient)
-      updatedStacks <- Attempt.traverse(stacks) { stack =>
-        for {
-          resources <- getStackResources(stack.id, cloudClient)
-        } yield stack.copy(resources = Some(resources))
-      }
-    } yield updatedStacks
   }
 
   private[iam] def getStacksFromAllRegions(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[Stack]] = {
@@ -52,8 +40,9 @@ object CloudFormation {
     for {
       availableRegions <- EC2.getAvailableRegions(regionClient)
       regions = availableRegions.map(region => Region.getRegion(Regions.fromName(region.getRegionName)))
-      stacks <- Attempt.flatTraverse(regions)(region => getStacksAndResources(account, region))
-    } yield stacks
+      clients = regions.map(region => CloudFormation.client(account, region))
+      results <- Attempt.flatTraverse(clients)(getStackDescriptions)
+    } yield results
   }
 
   private def parseResourcesResult(result: DescribeStackResourcesResult): List[StackResource] = {
