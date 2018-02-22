@@ -34,10 +34,11 @@ object IAMClient {
   def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val client = IAMClient.client(account)
+    val cloudClient = CloudFormation.client(account)
     for {
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
-      stacks <- CloudFormation.getStacksFromAllRegions(account)
+      stacks <- CloudFormation.getStackDescriptions(cloudClient)
       userStacks = CloudFormation.getUserStacks(stacks)
       enrichedReport = CredentialsReport.enrichReportDetails(report, userStacks)
     } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
@@ -50,4 +51,6 @@ object IAMClient {
       }
     }
   }
+
+
 }
