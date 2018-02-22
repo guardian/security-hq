@@ -91,6 +91,7 @@ class CredentialsReportTest extends FreeSpec with Matchers with OptionValues wit
         )
       }
 
+
       "fails when parsing empty CSV" in {
         val testReport = ""
         CredentialsReport.tryParsingReport(testReport).isFailedAttempt() shouldBe true
@@ -107,7 +108,9 @@ class CredentialsReportTest extends FreeSpec with Matchers with OptionValues wit
         userWithCreds should have (
           'passwordLastUsed (None)
         )
+
       }
+
     }
   }
 }
