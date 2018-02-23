@@ -3,20 +3,33 @@
 ## Introduction
 
 Snyk is a managed service which uses a dependency analysis tool and a vulnerability database to inform you of
-vulnerabilities in your application.
+vulnerabilities in your application.  It is available in free (limited) and paid-for versions.
+
+When written, the current release of Snyk was 1.69.3 and this is reflected below.  You may choose to use a higher
+version.  See [here](https://www.npmjs.com/package/snyk) for updates.
 
 ## Installing
 
-Snyk requires node, and `npm`.
+Snyk requires `node.js`, and `npm` or `yarn`.
 
 ### Developer Install
 
 To install on a mac, please use:
 
+#### NPM
+
 ```
 brew install npm
 npm install -g snyk
 ```
+
+#### Yarn
+```
+brew install yarn
+yarn global add snyk
+```
+
+#### Developer Authentication
 
 Snyk then requires an authentication token to be set up.  Github auth is almost certainly most appropriate.
 
@@ -24,36 +37,15 @@ Snyk then requires an authentication token to be set up.  Github auth is almost 
 snyk auth
 ```
 
-## Build Server Install
+### Build Server Install
 
 Build servers will not have Snyk installed.  The project must declare it as a development dependency.
 
 This can be achieved by merging the entries from the following content into package.json:
 
-### Scala Builds
-
-As the invocation will be via an npm plugin (Snyk is a node tool), build servers may not expose the sbt executable
-on the PATH.  As a result it is necessary to pre-pend the sbt location onto the PATH so that Snyk can invoke it.
-
 ```
   "devDependencies": {
     "snyk": "1.69.3"
-  },
-  "scripts": {
-    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
-    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt",
-  }
-```
-
-### Node Builds
-
-```
-  "devDependencies": {
-    "snyk": "1.68.0"
-  },
-  "scripts": {
-    "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
-    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json"
   }
 ```
 
@@ -62,7 +54,9 @@ on the PATH.  As a result it is necessary to pre-pend the sbt location onto the 
 A SNYK_TOKEN environment variable will be exposed which will permit invocation of `snyk test` and `snyk monitor`,
 with the results being pushed to the `guardian` organisation on Snyk, and visible via security-hq.
 
-The build process will require a build step with the following:
+This example is for Team City, using npm.  Other build servers may support Yarn.
+
+The build process will require a `Node.js NPM` build step with the following:
 
 ```
 npm install --only=dev
@@ -70,25 +64,56 @@ npm run snyk-test
 npm run snyk-monitor
 ```
 
-# Usage
+### Scala Builds
 
-## Typical Usage for Applications
+As the invocation will be via an npm plugin (Snyk is a node tool), build servers may not expose the sbt executable
+on the PATH.  As a result it is necessary to pre-pend the sbt location onto the PATH so that Snyk can invoke it.  This
+can take the form of the build server sbt location, or a executable local wrapper file for `sbt-launch.jar`, called
+`sbt`.
 
-In the build process (eg TeamCity), you can add a build step to check with the Snyk database for vulnerabilities.
+This can be achieved by merging the entries from the following content into package.json, and populating the PATH
+addition `/path/to/sbt/executable/folder`:
+
+```
+  "scripts": {
+    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
+    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt",
+  }
+```
+
+Any additional parameters to sbt can be added after a `--` parameter delimiter at the end of the command and will be
+passed through to sbt by Snyk.
+
+### Node Builds
+
+Merge the entries from the following content into package.json:
+
+```
+  "scripts": {
+    "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
+    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json"
+  }
+```
+
+## Usage
+
+### Typical Usage for Applications
+
+In the build process, you can add a build step to check with the Snyk database for vulnerabilities.
 
 This information can be simply treated as reporting information, or can be used to fail a build if the return
 code is non-zero (ie at least one vulnerability found or error).
 
-## Use with Scala
+### Use with Scala
 
-### Pre-requisites
+#### Pre-requisites
 
 Snyk needs to first create a dependency tree for your project (based on the sbt dependencies), then check with the
 Snyk database.
 
 Dependency graph creation is via an sbt plugin.
 
-### Project
+#### Project
 
 To add directly to a project, add the following line to your project plugins (<projectroot>/project/plugins.sbt):
 
@@ -102,7 +127,7 @@ If you are using SBT 1.0, you will also need to add the following line to your b
 addCommandAlias("dependency-tree", "dependencyTree")
 ```
 
-### User
+#### User
 
 To add for your personal user, which will make snyk available for any project, add the following line to your
 .sbt plugins (~/.sbt/<sbt-version>/plugins/snyk.sbt):
@@ -118,7 +143,7 @@ If you are using SBT 1.0, you will also need to add the following line to your u
 addCommandAlias("dependency-tree", "dependencyTree")
 ```
 
-### Manual Invocation
+#### Manual Invocation
 
 It is recommended that `sbt` itself is invoked first, to confirm that the build file is good.  You
 can then invoke `snyk` as follows.  If you are working on a new snyk implementation, then it is often
@@ -136,17 +161,17 @@ build, then you should also add:
 snyk monitor
 ```
 
-### Gotchas
+#### Gotchas
 
-#### With bugs in build.sbt
+##### With bugs in build.sbt
 
 If there is a bug in build.sbt, snyk is likely to get stuck on the `Querying vulnerabilities database...` stage.  Therefore
 it is suggested that you always invoke `sbt test` or similar first.  If  you see the `Querying vulnerabilities database...`
 step for more than ten seconds or so, you should check your `build.sbt` is good.
 
-## Use with Nodejs
+### Use with Nodejs
 
-### Pre-requisites
+#### Pre-requisites
 
 Ensure your node packages are up to date.  For example:
 
@@ -158,7 +183,7 @@ or
 yarn upgrade
 ```
 
-### Manual Invocation
+#### Manual Invocation
 
 Scan for vulnerabilities with:
 
@@ -181,7 +206,7 @@ build, then you should also add:
 snyk monitor
 ```
 
-### Optional Magic
+#### Optional Magic
 
 Snyk provides a node-only `protect` command which will forcibly alter dependencies to remove vulnerabilities.  This
 requires setting up default locations for fetching libraries and rulesets for version changes, which is achieved using:
@@ -196,7 +221,7 @@ And then answering questions.  Protection can then be requested using:
 snyk protect
 ```
 
-# Eliminating Vulnerabilities
+## Eliminating Vulnerabilities
 
 Clearly the best way to remove a vulnerability is to use a version of the library which does not have the vulnerability.
 This is usually achieved by upversioning (or in rarer cases downversioning).
@@ -204,7 +229,7 @@ This is usually achieved by upversioning (or in rarer cases downversioning).
 Alternatively, if a secure version of a library is not available, and an alternative is not found, it is possible to
 ignore the vulnerability temporarily.  This approach should be used with caution!
 
-## Upversioning
+### Upversioning
 
 Note that examples are all for sbt projects, however nodejs and other projects will be similar.
 
@@ -227,7 +252,7 @@ index 434dbb2..d123098 100644
 
 ```
 
-## Alternatives
+### Alternatives
 
 If there is no non-vulnerable version of the library, consider using an alternative.  This, of course, is likely to mean more
 work altering the calling code, and so is not the preferred solution.
@@ -246,7 +271,7 @@ index 434dbb2..d123098 100644
 
 ```
 
-# Exemptions
+## Exemptions
 
 The worst case scenario is that the library is still vulnerable, has no alternatives, and cannot be removed.  You
 may wish to build and release anyway, ideally reporting the situation to a risk register. This is most likely to happen when
@@ -257,14 +282,14 @@ Please try to give meaningful reasons for allowing the exemption.
 
 The `.snyk` file can then be added to the repository and the build should continue.
 
-__However, for public repositories, this would mean that the vulnerability is effectively advertised right in
-the project!  This is therefore not an acceptable approach for public repositories.__
+__For public repositories, this would mean that the vulnerability is effectively advertised right in
+the project!__  This may be acceptable, as any attacker could equally scan the project for themselves.
 
 When an exemption expires, the build will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
 Therefore repeated exemptions of no more than a month or two are preferred over a single long exemption.
 
-## `.snyk` file format
+### `.snyk` file format
 
 See https://support.snyk.io/frequently-asked-questions/finding-vulnerabilities/how-can-i-ignore-a-vulnerability
 
@@ -292,9 +317,9 @@ version: v1.5.0
 Note that the entry includes an expiry date.  Good practice would suggest that this should be of reasonable short duration.
 Long expiry times will mask problems.
 
-## Reviewing Expired Exemptions
+### Reviewing Expired Exemptions
 
-When reviewing accepted risks, it would be prudent to examine the git history to discover how long a problem has existed.
+When reviewing previously accepted risks, it would be prudent to examine the git history to discover how long a problem has existed.
 If a problem is not fairly new, and still looks unlikely to be resolved, then reconsider both the _risk_ of exploitation and
 the _cost_ of exploitation before deciding if it is approprate to continue extending an exemption.  It may now be
 appropriate to consider alternatives.
