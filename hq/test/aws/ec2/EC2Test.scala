@@ -10,7 +10,6 @@ import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{Attempt, AttemptValues}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 import scala.util.Random
 import scala.concurrent.ExecutionContext.Implicits.global
