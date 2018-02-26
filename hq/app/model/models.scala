@@ -9,6 +9,22 @@ case class AwsAccount(
   roleArn: String
 )
 
+case class AwsStack(
+  id: String,
+  name: String,
+  resources: List[StackResource],
+  region: String
+)
+
+case class StackResource(
+  stackId: String,
+  stackName: String,
+  physicalResourceId: String,
+  logicalResourceId: String,
+  resourceStatus: String,
+  resourceType: String
+)
+
 case class IAMCredentialsReport(
   generatedAt: DateTime,
   entries: List[IAMCredential]
@@ -18,6 +34,7 @@ case class IAMCredential(
   user: String,
   arn: String,
   creationTime: DateTime,
+  stack: Option[AwsStack],
   passwordEnabled: Option[Boolean],
   passwordLastUsed: Option[DateTime],
   passwordLastChanged: Option[DateTime],
@@ -104,7 +121,7 @@ case object DEV extends Stage
 case object PROD extends Stage
 
 case class CredentialReportDisplay(
-  reportDate : DateTime,
+  reportDate: DateTime,
   machineUsers: Seq[MachineUser] = Seq.empty,
   humanUsers: Seq[HumanUser] = Seq.empty
 )
@@ -127,14 +144,16 @@ case class HumanUser(
   key1Status: KeyStatus,
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
-  lastActivityDay : Option[Long]
+  lastActivityDay : Option[Long],
+  stack: Option[AwsStack]
 )
 case class MachineUser(
   username: String,
   key1Status: KeyStatus,
   key2Status: KeyStatus,
   reportStatus: ReportStatus,
-  lastActivityDay: Option[Long]
+  lastActivityDay: Option[Long],
+  stack: Option[AwsStack]
 )
 
 case class SnykToken(value: String) extends AnyVal

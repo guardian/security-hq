@@ -28,9 +28,16 @@ object EC2 {
       .build()
   }
 
-  def client(awsAccount: AwsAccount, region: Regions): AmazonEC2Async = {
+  def client(awsAccount: AwsAccount, region: Regions = Regions.EU_WEST_1): AmazonEC2Async = {
     val auth = AWS.credentialsProvider(awsAccount)
     client(auth, region)
+  }
+
+  def getAvailableRegions(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[List[Region]] = {
+    val request = new DescribeRegionsRequest()
+    handleAWSErrs(awsToScala(client.describeRegionsAsync)(request)).map { result =>
+      result.getRegions.asScala.toList
+    }
   }
 
   /**

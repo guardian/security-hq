@@ -2,6 +2,7 @@ package aws.iam
 
 import aws.AWS
 import aws.AwsAsyncHandler._
+import aws.cloudformation.CloudFormation
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
@@ -9,8 +10,8 @@ import logic.{ReportDisplay, Retry}
 import model.{AwsAccount, CredentialReportDisplay, IAMCredentialsReport}
 import utils.attempt.{Attempt, FailedAttempt}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 
 object IAMClient {
@@ -18,7 +19,8 @@ object IAMClient {
     val auth = AWS.credentialsProvider(account)
     AmazonIdentityManagementAsyncClientBuilder.standard()
       .withCredentials(auth)
-      .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName).build()
+      .withRegion(Option(Regions.getCurrentRegion).getOrElse(region).getName)
+      .build()
   }
 
   private def generateCredentialsReport(client: AmazonIdentityManagementAsync)(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResult] = {
@@ -31,22 +33,22 @@ object IAMClient {
     handleAWSErrs(awsToScala(client.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
-  def getCredentialsReport(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
+  def getCredentialReportDisplay(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val client = IAMClient.client(account)
     for {
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
-    } yield ReportDisplay.toCredentialReportDisplay(report)
+      stacks <- CloudFormation.getStacksFromAllRegions(account)
+      enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, stacks)
+    } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
   }
 
   def getAllCredentialReports(accounts: Seq[AwsAccount])(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        getCredentialsReport(account).asFuture.map(account -> _)
+        getCredentialReportDisplay(account).asFuture.map(account -> _)
       }
     }
   }
-
-
 }
