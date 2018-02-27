@@ -33,6 +33,14 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
         .withAttachment(new NetworkInterfaceAttachment())
       EC2.parseNetworkInterface(ni) shouldEqual UnknownUsage("network-interface", "ni-123")
     }
+
+    "does not throw if network interface info is null" in {
+      val ni = new NetworkInterface()
+        .withDescription(null)
+        .withNetworkInterfaceId(null)
+        .withAttachment(null)
+      noException should be thrownBy EC2.parseNetworkInterface(ni)
+    }
   }
 
   "extractTagsForSecurityGroups" - {

@@ -152,14 +152,24 @@ object EC2 {
   }
 
   private[ec2] def parseNetworkInterface(ni: NetworkInterface): SGInUse = {
-    val elb = Option(ni.getAttachment.getInstanceOwnerId).find(_ == "amazon-elb")
-      .map(_ => ELB(ni.getDescription.stripPrefix("ELB ")))
-    val instance = Option(ni.getAttachment.getInstanceId).map(Ec2Instance)
+    val elb = for {
+      networkInterfaceAttachment  <- Option(ni.getAttachment)
+      instanceOwnerID <- Option(networkInterfaceAttachment.getInstanceOwnerId)
+      if instanceOwnerID == "amazon-elb"
+    } yield ELB(ni.getDescription.stripPrefix("ELB "))
+
+    val instance = for {
+      networkInterfaceAttachment <- Option(ni.getAttachment)
+      instanceID <- Option(networkInterfaceAttachment.getInstanceId)
+    } yield Ec2Instance(instanceID)
 
     elb
       .orElse(instance)
       .getOrElse(
-        UnknownUsage(ni.getDescription, ni.getNetworkInterfaceId)
+        UnknownUsage(
+          Option(ni.getDescription).getOrElse("No network interface description"),
+          Option(ni.getNetworkInterfaceId).getOrElse("No network interface ID")
+        )
       )
   }
 
