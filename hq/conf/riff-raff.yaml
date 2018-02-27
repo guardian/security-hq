@@ -18,6 +18,6 @@ deployments:
       cloudFormationStackName: security-hq
       templatePath: cfn.yaml
       amiTags:
-        Recipe: security-hq
+        Recipe: security-hq-xenial
         BuiltBy: amigo
         AmigoStage: PROD
