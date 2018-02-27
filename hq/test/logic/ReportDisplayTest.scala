@@ -237,7 +237,6 @@ class ReportDisplayTest extends FreeSpec with Matchers {
       val stack = AwsStack(
         id = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345",
         name = "stack-name",
-        resources = Nil,
         region = "eu-west-1"
       )
 
