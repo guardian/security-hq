@@ -1,0 +1,24 @@
+#!/bin/bash
+cd $(dirname $0)
+IF_64_BIT_OPTION=""
+if $(java -version 2>&1 | grep -q 64-Bit);
+then
+  IF_64_BIT_OPTIONS="-J-XX:+UseCompressedOops -J-XX:+UseConcMarkSweepGC"
+fi
+
+# Incremental mode if we are on 1 or 2 CPUs http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html#icms
+INCREMENTAL_MODE=""
+
+if [ $(nproc) -lt 3 ]
+then
+  INCREMENTAL_MODE="-J-XX:+CMSIncrementalMode";
+fi
+
+TOTAL_MEMORY=$(grep MemTotal /proc/meminfo | awk '{ print $2 }')
+HEAP_SIZE_IN_MB=$(python -c "print int(min($TOTAL_MEMORY * 0.8 / 1024, $TOTAL_MEMORY / 1024 - 400))")
+HEAP_SIZE_CMD="-J-Xmx${HEAP_SIZE_IN_MB}m"
+
+COMMAND="/security-hq/bin/security-hq $HEAP_SIZE_CMD $IF_64_BIT_OPTIONS $INCREMENTAL_MODE -J-XX:NativeMemoryTracking=detail -J-XX:+PrintGCDetails -J-XX:+PrintGCDateStamps -J-Xloggc:gc.log -Dconfig.file=/security-hq/security-hq.conf"
+
+echo "$COMMAND" >/security-hq/cmd.txt
+$COMMAND >/security-hq/stdout.log 2>&1
