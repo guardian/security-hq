@@ -12,7 +12,6 @@ case class AwsAccount(
 case class AwsStack(
   id: String,
   name: String,
-  resources: List[StackResource],
   region: String
 )
 

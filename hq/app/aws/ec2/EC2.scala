@@ -14,8 +14,6 @@ import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model._
 import utils.attempt.{Attempt, FailedAttempt}
 
-
-
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
