@@ -3,6 +3,18 @@ package utils.attempt
 
 case class FailedAttempt(failures: List[Failure]) {
   def statusCode: Int = failures.map(_.statusCode).max
+
+  def logMessage: String = failures.map { failure =>
+    val context = failure.context.fold("")(c => s" ($c)")
+    s"${failure.message}$context"
+  }.mkString(", ")
+
+  def firstException: Option[Throwable] = {
+    for {
+      exceptingFailure <- failures.find(_.throwable.isDefined)
+      throwable <- exceptingFailure.throwable
+    } yield throwable
+  }
 }
 object FailedAttempt {
   def apply(error: Failure): FailedAttempt = {
