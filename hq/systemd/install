@@ -4,3 +4,4 @@ cp /security-hq/systemd/service /lib/systemd/system/security-hq.service
 chown root /lib/systemd/system/security-hq.service 
 chmod 644 /lib/systemd/system/security-hq.service 
 
+chmod +x /security-hq/systemd/start

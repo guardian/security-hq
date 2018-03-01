@@ -249,6 +249,7 @@ Resources:
           # Give ownership of all the application files to the application user
           chown -R security-hq /security-hq
           # Start application
+          systemctl daemon-reload
           systemctl start security-hq.service
 
   AutoscalingGroup:
