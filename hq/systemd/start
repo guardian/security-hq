@@ -1,5 +1,5 @@
 #!/bin/bash
-cd $(dirname $0)
+cd $(dirname $0)/..
 IF_64_BIT_OPTION=""
 if $(java -version 2>&1 | grep -q 64-Bit);
 then
