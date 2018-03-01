@@ -51,6 +51,10 @@ lazy val hq = (project in file("hq")).
     mappings in Universal ++=
       (baseDirectory.value / "upstart" * "*" get)
         .map(f => f -> s"upstart/${f.getName}"),
+    // include systemd config files in the zip produced by `dist`
+    mappings in Universal ++=
+      (baseDirectory.value / "systemd" * "*" get)
+        .map(f => f -> s"systemd/${f.getName}"),
     unmanagedResourceDirectories in Compile += baseDirectory.value / "markdown",
     parallelExecution in Test := false,
     fork in Test := false,

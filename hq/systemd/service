@@ -1,0 +1,8 @@
+[Unit]
+Description=Security HQ
+[Service]
+User=security-hq
+WorkingDirectory=/security-hq
+ExecStart=/security-hq/systemd/start
+[Install]
+WantedBy=multi-user.target

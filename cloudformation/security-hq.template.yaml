@@ -244,14 +244,13 @@ Resources:
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.tgz /security-hq
           # Expand zipped tar file; remove base directory 
           tar -xzf /security-hq/security-hq.tgz --strip 1 --directory /security-hq/
-          # Put upstart file in correct location with correct ownership
-          mv /security-hq/upstart/security-hq.conf /etc/init
-          chown root /etc/init/security-hq.conf
-          chmod 700 /etc/init/security-hq.conf
+          # Put systemd file in correct location with correct ownership
+          /bin/bash /security-hq/systemd/install
           # Give ownership of all the application files to the application user
           chown -R security-hq /security-hq
           # Start application
-          start security-hq
+          systemctl daemon-reload
+          systemctl start security-hq.service
 
   AutoscalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
