@@ -1,7 +1,7 @@
 # AWS Inspector
 
-[AWS Inspector](https://aws.amazon.com/inspector/) is an automated scanning system to detect poor configuration, vulnerable OS modules and packages, and
-poor runtime behaviour.
+[AWS Inspector](https://aws.amazon.com/inspector/) is an automated scanning system to detect poor configuration, 
+vulnerable OS modules and packages, and poor runtime behaviour.
 
 It is provided as standard to all AWS accounts.
 
@@ -38,10 +38,10 @@ under /cloudformation
 
 ## Output
 
-An AWS Inspector run will be started for every combination of app, stack and stage present in the account, in the early
-hours of Mondays and Thursdays.
+An AWS Inspector run will be started for every combination of app, stack and stage present in the account, 
+including 'not present', in the early hours of Mondays and Thursdays.
 
-These can be inspected and mitigated by the teams responsible.
+The results can be inspected and mitigated by the teams responsible.
 
 ## Implementation Details
 
@@ -56,9 +56,13 @@ Alternatively see [here](https://docs.aws.amazon.com/inspector/latest/userguide/
 
 Instances are targeted based on tags.
 
-Currently, AWS have implemented a 'match any' strategy on tag filters, which is of course, insane.  
+Currently, AWS have implemented a 'match any' strategy on tag filters, which is of course, insane. As a result, including
+Stack=XXX, App=YYY, Stage==CODE will match all instances with Stage 'CODE' _even if they do not match the other tags_.
+
+As a result, the lambda will dynamically add another tag to each target instance with name `Inspection`, 
+and value 'AWSInspection-$stack-$app-$stage'. This is then used to target individual runs.
 
 ### Cost
 
-Currently, 30c per instance per scan.  This is relatively high, especially on highly scaled out services.
+Currently, 30c per instance per scan.  This is relatively high, especially on highly scaled out services.  For this reason, the lambda will choose up to five instances to scan.
 
