@@ -49,7 +49,17 @@ The results can be inspected and mitigated by the teams responsible.
 
 In order to track instance behaviour, an agent must be installed on the target instances.  
 
-Amigo will do this for you with the `aws-inspector` role.
+In theory, Amigo could do this for you with the `aws-inspector` role.  However, it appears that
+AWS Inspector's upgrade process does not cope with changing kernel versions (we have a support
+request to examine and resolve this problem).  Therefore it is currently necessary to install 
+AWS Inspector as part of the cloud-init process by adding the following lines:
+
+```
+/usr/bin/wget https://d1wk0tztpsntt1.cloudfront.net/linux/latest/install
+/bin/bash install
+```
+
+
 Alternatively see [here](https://docs.aws.amazon.com/inspector/latest/userguide/inspector_installing-uninstalling-agents.html#install-linux).
 
 ### Targeting
