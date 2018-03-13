@@ -60,8 +60,8 @@ The build process will require a `Node.js NPM` build step with the following:
 
 ```
 npm install --only=dev
-npm run snyk-test
-npm run snyk-monitor
+npm run snyk-test-master
+npm run snyk-monitor-master
 ```
 
 ### Scala Builds
@@ -76,8 +76,11 @@ addition `/path/to/sbt/executable/folder`:
 
 ```
   "scripts": {
-    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt",
-    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt",
+    "not-master": "test \"$BRANCH_NAME\" != \"master\" && echo \"BRANCH_NAME variable is '$BRANCH_NAME', not master\" ",
+    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt ",
+    "snyk-test-master": "npm run not-master --silent || npm run snyk-test --silent ",
+    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt ",
+    "snyk-monitor-master": "npm run not-master --silent || npm run snyk-monitor --silent "
   }
 ```
 
@@ -90,8 +93,11 @@ Merge the entries from the following content into package.json:
 
 ```
   "scripts": {
+    "not-master": "test \"$BRANCH_NAME\" != \"master\" && echo \"BRANCH_NAME variable is '$BRANCH_NAME', not master\" ",
     "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
-    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json"
+    "snyk-test-master": "npm run not-master --silent || npm run snyk-test --silent ",
+    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json",
+    "snyk-monitor-master": "npm run not-master --silent || npm run snyk-monitor --silent "
   }
 ```
 
