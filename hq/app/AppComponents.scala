@@ -1,3 +1,5 @@
+import java.util.concurrent.Executors
+
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
@@ -8,12 +10,14 @@ import filters.HstsFilter
 import play.api.ApplicationLoader.Context
 import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
-import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.libs.ws.ahc.{AhcWSClientProvider, AhcWSComponents, AsyncHttpClientProvider}
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.CacheService
+
+import scala.concurrent.ExecutionContext
 
 
 class AppComponents(context: Context)
@@ -22,6 +26,12 @@ class AppComponents(context: Context)
   with AhcWSComponents with AssetsComponents {
 
   implicit val impWsClient: WSClient = wsClient
+  val snykWsClient: WSClient = {
+    val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
+    val asyncHttpClient = new AsyncHttpClientProvider(environment, configuration, applicationLifecycle)(ec).get
+    new AhcWSClientProvider(asyncHttpClient).get
+  }
+
   implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
   implicit val impControllerComponents: ControllerComponents = controllerComponents
   implicit val impAssetsFinder: AssetsFinder = assetsFinder
@@ -60,7 +70,7 @@ class AppComponents(context: Context)
     httpErrorHandler,
     new HQController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
-    new SnykController(configuration, configraun, googleAuthConfig),
+    new SnykController(configuration, configraun, googleAuthConfig, snykWsClient),
     new AuthController(environment, configuration, googleAuthConfig),
     new UtilityController(),
     assets

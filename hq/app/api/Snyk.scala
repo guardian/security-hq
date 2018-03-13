@@ -10,7 +10,7 @@ import scala.util.control.NonFatal
 
 object Snyk {
 
-  def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
+  def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
     val futureResponse = wsClient.url(snykOrgUrl)
       .addHttpHeaders("Authorization" -> s"token ${token.value}")
@@ -21,21 +21,26 @@ object Snyk {
     }
   }
 
-  def getProjects(token: SnykToken, id: String, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[WSResponse] = {
-    val snykProjectsUrl = s"https://snyk.io/api/v1/org/$id/projects"
-    val a = wsClient.url(snykProjectsUrl)
+  def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, WSResponse)]] = {
+    Attempt.traverse(organisations) { organisation =>
+      val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
+      val b = wsClient.url(snykProjectsUrl)
         .addHttpHeaders("Authorization" -> s"token ${token.value}")
         .get()
-    Attempt.fromFuture(a) { case NonFatal(e) =>
-      val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
-      FailedAttempt(failure)
+        .transform(response => (organisation, response), f => f )
+      Attempt.fromFuture(b) {
+        case NonFatal(e) =>
+          val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
+          FailedAttempt(failure)
+        }
     }
   }
 
-  def getProjectVulnerabilities(id: String, projects: List[SnykProject], token: SnykToken, wsClient: WSClient)(implicit ec:ExecutionContext): Attempt[List[WSResponse]] = {
+  def getProjectVulnerabilities(projects: List[SnykProject], token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[WSResponse]] = {
+
     val projectVulnerabilityResponses = projects
       .map(project => {
-        val snykProjectUrl = s"https://snyk.io/api/v1/org/$id/project/${project.id}/issues"
+        val snykProjectUrl = s"https://snyk.io/api/v1/org/${project.organisation.get.id}/project/${project.id}/issues"
         val projectIssuesFilter = Json.obj(
           "filters" -> Json.obj(
             "severity" -> JsArray(List(

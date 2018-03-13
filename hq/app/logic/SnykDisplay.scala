@@ -2,7 +2,7 @@ package logic
 
 import com.fasterxml.jackson.core.JsonParseException
 import play.api.libs.json._
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.{Attempt, Failure}
 
 import scala.concurrent.ExecutionContext
 import model._
@@ -10,55 +10,71 @@ import model.Serializers._
 
 object SnykDisplay {
 
-  def getOrganisation(s: String, requiredOrganisation: SnykOrganisationName): Attempt[SnykOrganisation] = {
-    val organisation = for {
-      orglist <- parseJsonToOrganisationList(s)
-      org <- orglist.find(_.name == requiredOrganisation.value)
-    } yield org
-    val error = parseJsonToError(s)
-    val f = Failure(s"Unable to find organisation from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
-    Attempt.fromOption(organisation, FailedAttempt(f))
+  def parseOrganisations(s: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
+    for {
+      organisationList <- parseJsonToOrganisationList(s)
+      guardianOrganisationList = organisationList filter {
+        case SnykOrganisation(_, _, Some(group)) => group.id==snykGroupId.value
+        case _ => false
+      }
+    } yield guardianOrganisationList
+
   }
 
   private def parseJsonToError(s: String): SnykError = try {
     Json.parse(s).asOpt[SnykError].getOrElse(SnykError(s))
   } catch {
-    case _: JsonParseException => SnykError(s)
+    case e: JsonParseException => SnykError(e.getMessage)
   }
 
-  private def parseJsonToOrganisationList(s: String): Option[List[SnykOrganisation]] = try {
-    (Json.parse(s) \ "orgs").asOpt[List[SnykOrganisation]]
-  } catch {
-    case _: JsonParseException => None
-  }
-
-  def getProjectIdList(s: String): Attempt[List[SnykProject]] = {
-    val projects = parseJsonToProjectIdList(s)
-    val error = parseJsonToError(s)
-    val f = Failure(s"Unable to find project ids from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
-    Attempt.fromOption(projects, FailedAttempt(f))
-  }
-
-  private def parseJsonToProjectIdList(s: String) = try {
-    (Json.parse(s) \ "projects").asOpt[List[SnykProject]]
-  } catch {
-    case _: JsonParseException => None
-  }
-
-  def parseProjectVulnerabilities(projects: List[String])(implicit ec:ExecutionContext): Attempt[List[SnykProjectIssues]] = {
-    val projectVulnerabilitiesList = projects.map( s => {
-      val projectVulnerabilities = parseJsonToProjectVulnerabilities(s)
+  def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] = try {
+      Attempt.Right((Json.parse(s) \ "orgs").as[List[SnykOrganisation]])
+    } catch {
+    case e: JsonParseException =>
+      val f = Failure(s"Unable to find organisation from $s", s"Could not read Snyk response ($s)", 502, None, Some(e))
+      Attempt.Left(f)
+    case e: Exception =>
       val error = parseJsonToError(s)
-      val f = Failure(s"Unable to find project vulnerabilities from $s", s"Could not read Snyk response (${error.error})", 502, None, None)
-      Attempt.fromOption(projectVulnerabilities, FailedAttempt(f))
-    })
-    Attempt.traverse(projectVulnerabilitiesList)(a => a)
+      val f = Failure(s"Unable to find organisation from $s", s"Could not read Snyk response (${error.error})", 502, None, Some(e))
+      Attempt.Left(f)
+    }
+
+  def getProjectIdList(ss: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, List[SnykProject])]] = {
+    Attempt.traverse(ss) { s =>
+      val x = parseJsonToProjectIdList(s._2)
+      x.map2(Attempt.Right(s._1))((a,b) => (b,a))
+    }
   }
 
-  private def parseJsonToProjectVulnerabilities(s: String) = try {
-    Json.parse(s).asOpt[SnykProjectIssues]
+  def parseJsonToProjectIdList(body: String): Attempt[List[SnykProject]] = try {
+    Attempt.Right((Json.parse(body) \ "projects").as[List[SnykProject]])
   } catch {
-    case _: JsonParseException => None
+    case e: JsonParseException =>
+      val f = Failure(s"Unable to find project vulnerabilities from $body", s"Could not read Snyk response ($body)", 502, None, Some(e))
+      Attempt.Left(f)
+    case e: Exception =>
+      val error = parseJsonToError(body)
+      val f = Failure(s"Unable to find project vulnerabilities from $body", s"Could not read Snyk response (${error.error})", 502, None, Some(e))
+      Attempt.Left(f)
+  }
+
+  def parseProjectVulnerabilitiesBody(body: String): Attempt[SnykProjectIssues] = try {
+      Attempt.Right(Json.parse(body).as[SnykProjectIssues])
+    } catch {
+      case e: JsonParseException =>
+        val f = Failure(s"Unable to find project vulnerabilities from $body", s"Could not read Snyk response ($body)", 502, None, Some(e))
+        Attempt.Left(f)
+      case e: Exception =>
+        val error = parseJsonToError(body)
+        val f = Failure(
+          s"Unable to find project vulnerabilities from $body",
+          s"Could not read Snyk response (${error.error})",
+          502, None, Some(e))
+        Attempt.Left(f)
+    }
+
+  def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
+    Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
   }
 
   def linkToSnykProject(snykProjectIssues: SnykProjectIssues, queryString: Option[String]): String = {
@@ -69,9 +85,8 @@ object SnykDisplay {
     }
   }
 
-  def labelOrganisations(projects: List[SnykProject], snykOrg: SnykOrganisation): List[SnykProject] = {
-    projects.map(project => project.copy(organisation = Some(snykOrg)))
-  }
+  def labelOrganisations(orgAndProjects: List[(SnykOrganisation, List[SnykProject])]): List[SnykProject] =
+    orgAndProjects.flatMap{ case (organisation, projects) => projects.map(project => project.copy(organisation = Some(organisation)))}
 
   def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = {
     projects.zip(responses).map(a => a._2.copy(project = Some(a._1)))

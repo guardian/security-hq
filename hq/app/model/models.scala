@@ -159,7 +159,11 @@ case class SnykToken(value: String) extends AnyVal
 
 case class SnykOrganisationName(value: String) extends AnyVal
 
-case class SnykOrganisation(name: String, id: String)
+case class SnykGroupId(value: String) extends AnyVal
+
+case class SnykGroup(name: String, id: String)
+
+case class SnykOrganisation(name: String, id: String, groupOpt: Option[SnykGroup])
 
 case class SnykProject(name: String, id: String, organisation: Option[SnykOrganisation])
 
