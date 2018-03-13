@@ -26,11 +26,11 @@ class AppComponents(context: Context)
   with AhcWSComponents with AssetsComponents {
 
   implicit val impWsClient: WSClient = wsClient
-  val snykWsClient: WSClient = {
-    val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
-    val asyncHttpClient = new AsyncHttpClientProvider(environment, configuration, applicationLifecycle)(ec).get
-    new AhcWSClientProvider(asyncHttpClient).get
-  }
+//  val snykWsClient: WSClient = {
+//    val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
+//    val asyncHttpClient = new AsyncHttpClientProvider(environment, configuration, applicationLifecycle)(ec).get
+//    new AhcWSClientProvider(asyncHttpClient).get
+//  }
 
   implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
   implicit val impControllerComponents: ControllerComponents = controllerComponents
@@ -70,7 +70,8 @@ class AppComponents(context: Context)
     httpErrorHandler,
     new HQController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
-    new SnykController(configuration, configraun, googleAuthConfig, snykWsClient),
+    new SnykController(configuration, configraun, googleAuthConfig),
+//    new SnykController(configuration, configraun, googleAuthConfig, snykWsClient),
     new AuthController(environment, configuration, googleAuthConfig),
     new UtilityController(),
     assets

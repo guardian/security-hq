@@ -11,10 +11,11 @@ import model.Serializers._
 object SnykDisplay {
 
   def parseOrganisations(s: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
+    println(snykGroupId)
     for {
       organisationList <- parseJsonToOrganisationList(s)
       guardianOrganisationList = organisationList filter {
-        case SnykOrganisation(_, _, Some(group)) => group.id==snykGroupId.value
+        case SnykOrganisation(_, id, Some(group)) => group.id==snykGroupId.value && !id.equals("89877232-f84c-43af-9436-e9e0a61f640d")
         case _ => false
       }
     } yield guardianOrganisationList
@@ -27,51 +28,32 @@ object SnykDisplay {
     case e: JsonParseException => SnykError(e.getMessage)
   }
 
-  def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] = try {
-      Attempt.Right((Json.parse(s) \ "orgs").as[List[SnykOrganisation]])
-    } catch {
+  def parseJsonToObject[A](label: String, s: String, f: (String => A)): Attempt[A] = try {
+    Attempt.Right(f(s))
+  } catch {
     case e: JsonParseException =>
-      val f = Failure(s"Unable to find organisation from $s", s"Could not read Snyk response ($s)", 502, None, Some(e))
+      val f = Failure(s"Unable to find $label from $s", s"Could not read Snyk response ($s)", 502, None, Some(e))
       Attempt.Left(f)
     case e: Exception =>
       val error = parseJsonToError(s)
-      val f = Failure(s"Unable to find organisation from $s", s"Could not read Snyk response (${error.error})", 502, None, Some(e))
-      Attempt.Left(f)
-    }
-
-  def getProjectIdList(ss: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, List[SnykProject])]] = {
-    Attempt.traverse(ss) { s =>
-      val x = parseJsonToProjectIdList(s._2)
-      x.map2(Attempt.Right(s._1))((a,b) => (b,a))
-    }
-  }
-
-  def parseJsonToProjectIdList(body: String): Attempt[List[SnykProject]] = try {
-    Attempt.Right((Json.parse(body) \ "projects").as[List[SnykProject]])
-  } catch {
-    case e: JsonParseException =>
-      val f = Failure(s"Unable to find project vulnerabilities from $body", s"Could not read Snyk response ($body)", 502, None, Some(e))
-      Attempt.Left(f)
-    case e: Exception =>
-      val error = parseJsonToError(body)
-      val f = Failure(s"Unable to find project vulnerabilities from $body", s"Could not read Snyk response (${error.error})", 502, None, Some(e))
+      val f = Failure(s"Unable to find $label from $s", s"Could not read Snyk response (${error.error})", 502, None, Some(e))
       Attempt.Left(f)
   }
 
-  def parseProjectVulnerabilitiesBody(body: String): Attempt[SnykProjectIssues] = try {
-      Attempt.Right(Json.parse(body).as[SnykProjectIssues])
-    } catch {
-      case e: JsonParseException =>
-        val f = Failure(s"Unable to find project vulnerabilities from $body", s"Could not read Snyk response ($body)", 502, None, Some(e))
-        Attempt.Left(f)
-      case e: Exception =>
-        val error = parseJsonToError(body)
-        val f = Failure(
-          s"Unable to find project vulnerabilities from $body",
-          s"Could not read Snyk response (${error.error})",
-          502, None, Some(e))
-        Attempt.Left(f)
+  def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] =
+    parseJsonToObject("organisations", s, body => {(Json.parse(body) \ "orgs").as[List[SnykOrganisation]]} )
+
+  def getProjectIdList(ss: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] = {
+    Attempt.labelledTraverse(ss) { s =>
+      parseJsonToProjectIdList(s._2)
     }
+  }
+
+  def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]] =
+    parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").as[List[SnykProject]] )
+
+  def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
+  parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).as[SnykProjectIssues])
 
   def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
     Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
@@ -85,8 +67,8 @@ object SnykDisplay {
     }
   }
 
-  def labelOrganisations(orgAndProjects: List[(SnykOrganisation, List[SnykProject])]): List[SnykProject] =
-    orgAndProjects.flatMap{ case (organisation, projects) => projects.map(project => project.copy(organisation = Some(organisation)))}
+  def labelOrganisations(orgAndProjects: List[((SnykOrganisation, String), List[SnykProject])]): List[SnykProject] =
+    orgAndProjects.flatMap{ case ((organisation, _), projects) => projects.map(project => project.copy(organisation = Some(organisation)))}
 
   def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = {
     projects.zip(responses).map(a => a._2.copy(project = Some(a._1)))
