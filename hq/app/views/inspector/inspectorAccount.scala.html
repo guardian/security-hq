@@ -1,0 +1,38 @@
+@import model.{AwsAccount, InspectorAssessmentRun}
+
+@(assessmentRuns: List[((String, String, String), InspectorAssessmentRun)], awsAccount: AwsAccount)(implicit assets: AssetsFinder)
+
+
+@main(List(awsAccount.name)) { @* Header *@
+<div class="hq-sub-header">
+    <div class="container hq-sub-header__row">
+        <div class="hq-sub-header__name">
+            <h4 class="header light grey-text text-lighten-5">For @awsAccount.name</h4>
+        </div>
+        <div class="hq-sub-header__tabs">
+            <ul class="tabs tabs-transparent">
+                <li class="tab col s3"><a target="_self" href="/security-groups/@awsAccount.id"><i class="material-icons left">vpn_lock</i>Security Groups</a></li>
+                <li class="tab col s3"><a target="_self" href="/iam/@awsAccount.id"><i class="material-icons left">vpn_key</i>IAM Report</a></li>
+                <li class="tab col s3"><a target="_self" class="active" href="/inspector/@awsAccount.id"><i class="material-icons left">assignment</i>Inspector results</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+} { @* Main content *@
+    <div class="container">
+        <ul>
+            @for(((stack, app, stage), assessmentRun) <- assessmentRuns) {
+                <li>
+                    @stack @app @stage
+                    @for((key, count) <- assessmentRun.findingCounts) {
+                        <dl>
+                            <dt>@key</dt>
+                            <dd>@count</dd>
+                        </dl>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+}
