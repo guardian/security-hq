@@ -15,7 +15,6 @@ object Snyk {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
     val futureResponse = wsClient.url(snykOrgUrl)
       .addHttpHeaders("Authorization" -> s"token ${token.value}")
-        .addQueryStringParameters(("apple", "orange"))
       .get
     Attempt.fromFuture(futureResponse) { case NonFatal(e) =>
       val failure = Failure(e.getMessage, "Could not read organisations from Snyk", 502, None, Some(e))
