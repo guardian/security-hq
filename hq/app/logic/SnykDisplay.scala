@@ -42,23 +42,19 @@ object SnykDisplay {
 
   def getProjectIdList(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] =
     Attempt.labelledTraverse(organisationAndRequestList) { s => parseJsonToProjectIdList(s._2) }
-  
+
   def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]] =
     parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]] )
 
   def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
   parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
 
-  def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
-    Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
-  }
+  def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
 
-  def linkToSnykProject(snykProjectIssues: SnykProjectIssues, queryString: Option[String]): String = {
-    snykProjectIssues.project match {
-      case Some(project: SnykProject) if project.organisation.nonEmpty =>
-        s"https://snyk.io/org/${project.organisation.get.name}/project/${project.id}/${queryString.getOrElse("")}"
-      case _ => ""
-    }
+  def linkToSnykProject(snykProjectIssues: SnykProjectIssues, queryString: Option[String]): String = snykProjectIssues.project match {
+    case Some(project) if project.organisation.nonEmpty =>
+      s"https://snyk.io/org/${project.organisation.get.name}/project/${project.id}/${queryString.getOrElse("")}"
+    case _ => ""
   }
 
   def labelOrganisations(orgAndProjects: List[((SnykOrganisation, String), List[SnykProject])]): List[SnykProject] =
