@@ -11,7 +11,6 @@ import scala.util.control.NonFatal
 object Snyk {
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
-    println(token)
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
     val futureResponse = wsClient.url(snykOrgUrl)
       .addHttpHeaders("Authorization" -> s"token ${token.value}")
@@ -25,11 +24,11 @@ object Snyk {
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, WSResponse)]] = {
     Attempt.traverse(organisations) { organisation =>
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
-      val b = wsClient.url(snykProjectsUrl)
+      val futureResponse = wsClient.url(snykProjectsUrl)
         .addHttpHeaders("Authorization" -> s"token ${token.value}")
         .get()
         .transform(response => (organisation, response), f => f )
-      Attempt.fromFuture(b) {
+      Attempt.fromFuture(futureResponse) {
         case NonFatal(e) =>
           val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
           FailedAttempt(failure)

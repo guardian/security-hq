@@ -8,17 +8,19 @@ import scala.concurrent.ExecutionContext
 import model._
 import model.Serializers._
 
+import scala.util.{Success, Try}
+import scala.util.control.NonFatal
+
 object SnykDisplay {
 
   def parseOrganisations(s: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
     for {
       organisationList <- parseJsonToOrganisationList(s)
       guardianOrganisationList = organisationList filter {
-        case SnykOrganisation(_, id, Some(group)) => group.id==snykGroupId.value
+        case SnykOrganisation(_, _, Some(group)) => group.id==snykGroupId.value
         case _ => false
       }
     } yield guardianOrganisationList
-
   }
 
   private def parseJsonToError(s: String): SnykError = try {
@@ -27,32 +29,31 @@ object SnykDisplay {
     case e: JsonParseException => SnykError(e.getMessage)
   }
 
-  def parseJsonToObject[A](label: String, s: String, f: (String => A)): Attempt[A] = try {
-    Attempt.Right(f(s))
-  } catch {
-    case e: JsonParseException =>
-      val f = Failure(s"Unable to find $label from $s", s"Could not read Snyk response ($s)", 502, None, Some(e))
-      Attempt.Left(f)
-    case e: Exception =>
+  def parseJsonToObject[A](label: String, s: String, f: (String => JsResult[A])): Attempt[A] = Try(f(s)) match {
+    case Success(JsSuccess(parsedObject, _)) => Attempt.Right(parsedObject)
+    case Success(JsError(e)) =>
       val error = parseJsonToError(s)
-      val f = Failure(s"Unable to find $label from $s", s"Could not read Snyk response (${error.error})", 502, None, Some(e))
-      Attempt.Left(f)
+      val failure = Failure(s"Unable to find $label from $s: $e", s"Could not read Snyk response (${error.error})", 502, None, None)
+      Attempt.Left(failure)
+    case scala.util.Failure(e) =>
+      val failure = Failure(s"Unable to find $label from $s", s"Could not read Snyk response ($s)", 502, None, Some(e))
+      Attempt.Left(failure)
   }
 
   def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] =
-    parseJsonToObject("organisations", s, body => {(Json.parse(body) \ "orgs").as[List[SnykOrganisation]]} )
+    parseJsonToObject[List[SnykOrganisation]]("organisations", s, body => {(Json.parse(body) \ "orgs").validate[List[SnykOrganisation]]} )
 
-  def getProjectIdList(ss: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] = {
-    Attempt.labelledTraverse(ss) { s =>
+  def getProjectIdList(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] = {
+    Attempt.labelledTraverse(organisationAndRequestList) { s =>
       parseJsonToProjectIdList(s._2)
     }
   }
 
   def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]] =
-    parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").as[List[SnykProject]] )
+    parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]] )
 
   def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
-  parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).as[SnykProjectIssues])
+  parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
 
   def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
     Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)

@@ -32,7 +32,6 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
     Action.async {
       attempt {
         for {
-
           token <- getSnykToken
           requiredOrganisation <- getSnykOrganisation
 
@@ -59,17 +58,17 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
   }
 
   def getSnykToken: Attempt[SnykToken] = configraun.getAsString("/snyk/token") match {
-    case Left(a:ConfigraunError) =>
-      val failure = Failure(a.message, "Could not read Snyk token from aws parameter store", 500, None, Some(a.e))
+    case Left(error) =>
+      val failure = Failure(error.message, "Could not read Snyk token from aws parameter store", 500, None, Some(error.e))
       Attempt.Left(failure)
-    case Right(a:String) => Attempt.Right(SnykToken(a))
+    case Right(token) => Attempt.Right(SnykToken(token))
   }
 
   def getSnykOrganisation: Attempt[SnykGroupId] = configraun.getAsString("/snyk/organisation") match {
-    case Left(a:ConfigraunError) =>
-      val failure = Failure(a.message, "Could not read Snyk organisation from aws parameter store", 500, None, Some(a.e))
+    case Left(error) =>
+      val failure = Failure(error.message, "Could not read Snyk organisation from aws parameter store", 500, None, Some(error.e))
       Attempt.Left(failure)
-    case Right(a:String) => Attempt.Right(SnykGroupId(a))
+    case Right(groupId) => Attempt.Right(SnykGroupId(groupId))
   }
 
 }

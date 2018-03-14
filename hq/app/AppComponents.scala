@@ -1,5 +1,3 @@
-import java.util.concurrent.Executors
-
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
@@ -10,15 +8,12 @@ import filters.HstsFilter
 import play.api.ApplicationLoader.Context
 import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
-import play.api.libs.ws.ahc.{AhcWSClientProvider, AhcWSComponents, AsyncHttpClientProvider}
+import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.CacheService
-
-import scala.concurrent.ExecutionContext
-
 
 class AppComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
