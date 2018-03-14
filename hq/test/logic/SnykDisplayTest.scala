@@ -3,113 +3,35 @@ package logic
 import model.{SnykIssue, SnykOrganisation, _}
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
-
+import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
-  private val mockBadResponseWithMessage = s"""{"error": "some nice error"}"""
+  private def readFile(filename:String) = Source.fromResource(s"logic/SnykDisplayTest/$filename.json").getLines.mkString
 
-  private val mockBadResponseWithoutMessage =
-    s"""{"toughluck": "no use"}"""
-
+  private val mockBadResponseWithMessage = readFile("badResponseWithMessage")
+  private val mockBadResponseWithoutMessage = readFile("badResponseWithoutMessage")
 
   "parse single organisation" - {
     "null group" in {
-      val mockGoodOrganisationResponse =
-        s"""
-           |{
-           |  "orgs": [
-           |    {
-           |      "name": "guardian-org-1",
-           |      "id": "id1",
-           |      "group": null
-           |    }
-           |  ]
-           |}
-           |""".stripMargin
-
-      val organisationAttempt = SnykDisplay.parseJsonToOrganisationList(mockGoodOrganisationResponse)
+      val organisationAttempt = SnykDisplay.parseJsonToOrganisationList(readFile("nullgroup"))
       organisationAttempt.value() shouldBe List(SnykOrganisation("guardian-org-1", "id1", None))
-
     }
 
     "no group" in {
-      val mockGoodOrganisationResponse =
-        s"""
-           |{
-           |  "orgs": [
-           |    {
-           |      "name": "guardian-org-1",
-           |      "id": "id1"
-           |    }
-           |  ]
-           |}
-           |""".stripMargin
-
-      val organisationAttempt = SnykDisplay.parseJsonToOrganisationList(mockGoodOrganisationResponse)
+      val organisationAttempt = SnykDisplay.parseJsonToOrganisationList(readFile("nogroup"))
       organisationAttempt.value shouldBe List(SnykOrganisation("guardian-org-1", "id1", None))
     }
 
     "real group" in {
-      val mockGoodOrganisationResponse =
-        s"""
-           |{
-           |  "orgs": [
-           |    {
-           |      "name": "guardian-org-1",
-           |      "id": "id1",
-           |      "group": {
-           |        "name": "guardian-org-2",
-           |        "id": "id2"
-           |      }
-           |    }
-           |  ]
-           |}
-           |""".stripMargin
-
-      val organisationAttempt = SnykDisplay.parseJsonToOrganisationList(mockGoodOrganisationResponse)
+      val organisationAttempt = SnykDisplay.parseJsonToOrganisationList(readFile("realgroup"))
       organisationAttempt.value shouldBe List(SnykOrganisation("guardian-org-1", "id1", Some(SnykGroup("guardian-org-2", "id2"))))
     }
   }
 
   "find organisations" in {
-    val mockGoodOrganisationResponse = s"""
-      |{
-      |  "orgs": [
-      |    {
-      |      "name": "guardian-org-1",
-      |      "id": "id1",
-      |      "group": {
-      |        "name": "guardian",
-      |        "id": "id0"
-      |      }
-      |    },
-      |    {
-      |      "name": "guardian-org-2",
-      |      "id": "id2",
-      |      "group": {
-      |        "name": "guardian",
-      |        "id": "id0"
-      |      }
-      |    },
-      |    {
-      |      "name": "not-guardian-org-3",
-      |      "id": "id3",
-      |      "group": null
-      |    },
-      |    {
-      |      "name": "not-guardian-org-4",
-      |      "id": "id2",
-      |      "group": {
-      |        "name": "Someone Else",
-      |        "id": "id4"
-      |      }
-      |    }
-      |  ]
-      |}
-""".stripMargin
-    val organisation = SnykDisplay.parseOrganisations(mockGoodOrganisationResponse, SnykGroupId("id0"))
+    val organisation = SnykDisplay.parseOrganisations(readFile("goodOrganisationResponse"), SnykGroupId("id0"))
     organisation.value shouldBe List(
       SnykOrganisation("guardian-org-1", "id1", Some(SnykGroup("guardian", "id0"))),
       SnykOrganisation("guardian-org-2", "id2", Some(SnykGroup("guardian", "id0")))
@@ -135,25 +57,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
   }
 
   "find projects" - {
-    val mockGoodProjectResponse =
-      s"""
-         |{
-         |  "org": {
-         |    "name": "guardian",
-         |    "id": "1111111111"
-         |  },
-         |  "projects": [
-         |    {
-         |      "name": "project1",
-         |      "id": "2222222222"
-         |    },
-         |    {
-         |      "name": "project2",
-         |      "id": "3333333333"
-         |    }
-         |  ]
-         |}
-     """.stripMargin
+    val mockGoodProjectResponse = readFile("goodProjectResponse")
     val projects = SnykDisplay.getProjectIdList(
       List(
         (
@@ -196,95 +100,14 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
   "find vulnerability list" - {
     "find ok for empty list" in {
-      val mockGoodAndNotVulnerableResponse =
-        s"""
-           |{
-           |  "ok": true,
-           |  "issues": {
-           |    "vulnerabilities": [],
-           |    "licenses": []
-           |  },
-           |  "dependencyCount": 0,
-           |  "packageManager": "sbt"
-           |}
-     """.stripMargin
-      val projects = SnykDisplay.parseProjectVulnerabilities(List(mockGoodAndNotVulnerableResponse))
+      val projects = SnykDisplay.parseProjectVulnerabilities(List(readFile("goodAndNotVulnerableResponse")))
       projects.value().head.ok shouldBe true
     }
   }
 
   "find results from good vulnerability response" - {
 
-    val mockGoodButVulnerableResponse =
-      s"""
-         |{
-         |  "ok": false,
-         |  "issues": {
-         |    "vulnerabilities": [
-         |      {
-         |        "id": "4444444444",
-         |        "url": "https://snyk.io/vuln/4444444444",
-         |        "title": "The Title",
-         |        "type": "vuln",
-         |        "description": "The description",
-         |        "from": [
-         |          "from1",
-         |          "from2",
-         |          "from3"
-         |        ],
-         |        "package": "The package",
-         |        "version": "The version",
-         |        "severity": "high",
-         |        "language": "The language",
-         |        "packageManager": "the package manager",
-         |        "semver": {
-         |          "unaffected": ">=the version",
-         |          "vulnerable": "<the version"
-         |        },
-         |        "publicationTime": "2015-11-06T02:09:36.182Z",
-         |        "disclosureTime": "2015-11-03T07:15:12.900Z",
-         |        "isUpgradable": true,
-         |        "isPatchable": true,
-         |        "identifiers": {
-         |          "CVE": [],
-         |          "CWE": [],
-         |          "NSP": 57,
-         |          "ALTERNATIVE": [
-         |            "5555555555"
-         |          ]
-         |        },
-         |        "credit": [
-         |          "Mickey Mouse"
-         |        ],
-         |        "CVSSv3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
-         |        "cvssScore": 7.5,
-         |        "patches": [
-         |          {
-         |            "id": "6666666666",
-         |            "urls": [
-         |              "https://example.com/6666666666.patch"
-         |            ],
-         |            "version": "<the version >=minversion",
-         |            "comments": [
-         |              "https://example.com/7777777777.patch"
-         |            ],
-         |            "modificationTime": "2015-11-17T09:29:10.000Z"
-         |          }
-         |        ],
-         |        "upgradePath": [
-         |          true,
-         |          "the first upgrade",
-         |          "the second upgrade"
-         |        ]
-         |      }
-         |    ],
-         |    "licenses": []
-         |  },
-         |  "dependencyCount": 0,
-         |  "packageManager": "the package manager"
-         |}
-     """.stripMargin
-
+    val mockGoodButVulnerableResponse = readFile("goodButVulnerableResponse")
 
     "find ok for non-empty list" in {
       val projects = SnykDisplay.parseProjectVulnerabilities(List(mockGoodButVulnerableResponse))
@@ -331,7 +154,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
   "label organisation" - {
     val goodOrganisation = SnykOrganisation("name0", "id0", None)
     val goodProjects = List(
-      (goodOrganisation,
+      ((goodOrganisation, ""),
         List(
           SnykProject("name1", "id1", None),
           SnykProject("name2", "id2", None)
