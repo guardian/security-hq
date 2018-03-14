@@ -37,17 +37,14 @@ object SnykDisplay {
       Attempt.Left(failure)
   }
 
-  def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] =
-    parseJsonToObject[List[SnykOrganisation]]("organisations", s, body => {(Json.parse(body) \ "orgs").validate[List[SnykOrganisation]]} )
-
   def getProjectIdList(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] =
     Attempt.labelledTraverse(organisationAndRequestList) { s => parseJsonToProjectIdList(s._2) }
 
-  def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]] =
-    parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]] )
+  def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] = parseJsonToObject("organisations", s, body => {(Json.parse(body) \ "orgs").validate[List[SnykOrganisation]]} )
 
-  def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
-    parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
+  def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]]         = parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]] )
+
+  def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues]  = parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
 
   def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
 

@@ -2,7 +2,7 @@ package api
 
 import model._
 import play.api.libs.json._
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
@@ -15,10 +15,7 @@ object Snyk {
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
     val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get
-    Attempt.fromFuture(futureResponse) { case NonFatal(e) =>
-      val failure = Failure(e.getMessage, "Could not read organisations from Snyk", 502, None, Some(e))
-      FailedAttempt(failure)
-    }
+    handleFuture(futureResponse, "organisation")
   }
 
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
@@ -26,11 +23,7 @@ object Snyk {
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
       val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get
         .transform(response => (organisation, response.body), f => f )
-      Attempt.fromFuture(futureResponse) {
-        case NonFatal(e) =>
-          val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
-          FailedAttempt(failure)
-        }
+      handleFuture(futureResponse, "project")
     }
   }
 
@@ -54,12 +47,13 @@ object Snyk {
         snykRequest(token, snykProjectUrl, wsClient).post(projectIssuesFilter)
       })
     Attempt.traverse(projectVulnerabilityResponses) {
-      projectVulnerabilityResponse =>
-        Attempt.fromFuture(projectVulnerabilityResponse) {
-          case NonFatal(e) =>
-            val failure = Failure(e.getMessage, "Could not read project vulnerabilities from Snyk", 502, None, Some(e))
-            FailedAttempt(failure)
-        }
+      projectVulnerabilityResponse => handleFuture(projectVulnerabilityResponse, "project vulnerabilities")
     }
+  }
+
+  def handleFuture[A](future: scala.concurrent.Future[A], label: String)(implicit ec: ExecutionContext) = Attempt.fromFuture(future) {
+    case NonFatal(e) =>
+      val failure = Failure(e.getMessage, s"Could not read ${label} from Snyk", 502, None, Some(e))
+      FailedAttempt(failure)
   }
 }
