@@ -40,12 +40,9 @@ object SnykDisplay {
   def parseJsonToOrganisationList(s: String): Attempt[List[SnykOrganisation]] =
     parseJsonToObject[List[SnykOrganisation]]("organisations", s, body => {(Json.parse(body) \ "orgs").validate[List[SnykOrganisation]]} )
 
-  def getProjectIdList(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] = {
-    Attempt.labelledTraverse(organisationAndRequestList) { s =>
-      parseJsonToProjectIdList(s._2)
-    }
-  }
-
+  def getProjectIdList(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] =
+    Attempt.labelledTraverse(organisationAndRequestList) { s => parseJsonToProjectIdList(s._2) }
+  
   def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]] =
     parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]] )
 
