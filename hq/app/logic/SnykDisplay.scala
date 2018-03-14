@@ -47,7 +47,7 @@ object SnykDisplay {
     parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]] )
 
   def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
-  parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
+    parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
 
   def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
 
@@ -60,9 +60,7 @@ object SnykDisplay {
   def labelOrganisations(orgAndProjects: List[((SnykOrganisation, String), List[SnykProject])]): List[SnykProject] =
     orgAndProjects.flatMap{ case ((organisation, _), projects) => projects.map(project => project.copy(organisation = Some(organisation)))}
 
-  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = {
-    projects.zip(responses).map(a => a._2.copy(project = Some(a._1)))
-  }
+  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = projects.zip(responses).map(a => a._2.copy(project = Some(a._1)))
 
   def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
     projects.sortBy(spi => (-spi.high, -spi.medium, -spi.low, spi.project.get.name))

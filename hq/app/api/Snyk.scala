@@ -10,11 +10,11 @@ import scala.util.control.NonFatal
 
 object Snyk {
 
+  def snykRequest(token:SnykToken, url:String, wsClient: WSClient) = wsClient.url(url).addHttpHeaders("Authorization" -> s"token ${token.value}")
+
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
-    val futureResponse = wsClient.url(snykOrgUrl)
-      .addHttpHeaders("Authorization" -> s"token ${token.value}")
-      .get
+    val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get
     Attempt.fromFuture(futureResponse) { case NonFatal(e) =>
       val failure = Failure(e.getMessage, "Could not read organisations from Snyk", 502, None, Some(e))
       FailedAttempt(failure)
@@ -24,9 +24,7 @@ object Snyk {
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
     Attempt.traverse(organisations) { organisation =>
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
-      val futureResponse = wsClient.url(snykProjectsUrl)
-        .addHttpHeaders("Authorization" -> s"token ${token.value}")
-        .get()
+      val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get
         .transform(response => (organisation, response.body), f => f )
       Attempt.fromFuture(futureResponse) {
         case NonFatal(e) =>
@@ -53,10 +51,7 @@ object Snyk {
             "patched" -> "false"
           )
         )
-        wsClient.url(snykProjectUrl)
-          .addHttpHeaders("Authorization" -> s"token ${token.value}")
-          .post(projectIssuesFilter)
-
+        snykRequest(token, snykProjectUrl, wsClient).post(projectIssuesFilter)
       })
     Attempt.traverse(projectVulnerabilityResponses) {
       projectVulnerabilityResponse =>
