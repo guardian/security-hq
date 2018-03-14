@@ -13,9 +13,9 @@ import scala.util.control.NonFatal
 
 object SnykDisplay {
 
-  def parseOrganisations(s: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
+  def parseOrganisations(rawJson: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
     for {
-      organisationList <- parseJsonToOrganisationList(s)
+      organisationList <- parseJsonToOrganisationList(rawJson)
       guardianOrganisationList = organisationList filter {
         case SnykOrganisation(_, _, Some(group)) => group.id==snykGroupId.value
         case _ => false
@@ -23,20 +23,19 @@ object SnykDisplay {
     } yield guardianOrganisationList
   }
 
-  private def parseJsonToError(s: String): SnykError = try {
-    Json.parse(s).asOpt[SnykError].getOrElse(SnykError(s))
-  } catch {
-    case e: JsonParseException => SnykError(e.getMessage)
+  private def parseJsonToError(s: String): SnykError = Try(Json.parse(s).validateOpt[SnykError]) match {
+    case Success(JsSuccess(Some(error), _)) => error
+    case _ => SnykError(s)
   }
 
-  def parseJsonToObject[A](label: String, s: String, f: (String => JsResult[A])): Attempt[A] = Try(f(s)) match {
+  def parseJsonToObject[A](label: String, rawJson: String, f: (String => JsResult[A])): Attempt[A] = Try(f(rawJson)) match {
     case Success(JsSuccess(parsedObject, _)) => Attempt.Right(parsedObject)
     case Success(JsError(e)) =>
-      val error = parseJsonToError(s)
-      val failure = Failure(s"Unable to find $label from $s: $e", s"Could not read Snyk response (${error.error})", 502, None, None)
+      val error = parseJsonToError(rawJson)
+      val failure = Failure(s"Unable to find $label from $rawJson: $e", s"Could not read Snyk response (${error.error})", 502, None, None)
       Attempt.Left(failure)
     case scala.util.Failure(e) =>
-      val failure = Failure(s"Unable to find $label from $s", s"Could not read Snyk response ($s)", 502, None, Some(e))
+      val failure = Failure(s"Unable to find $label from $rawJson", s"Could not read Snyk response ($rawJson)", 502, None, Some(e))
       Attempt.Left(failure)
   }
 
