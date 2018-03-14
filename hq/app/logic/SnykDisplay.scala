@@ -14,7 +14,7 @@ object SnykDisplay {
     for {
       organisationList <- parseJsonToOrganisationList(s)
       guardianOrganisationList = organisationList filter {
-        case SnykOrganisation(_, id, Some(group)) => group.id==snykGroupId.value // && !id.equals("89877232-f84c-43af-9436-e9e0a61f640d")
+        case SnykOrganisation(_, id, Some(group)) => group.id==snykGroupId.value
         case _ => false
       }
     } yield guardianOrganisationList
