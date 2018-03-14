@@ -1,6 +1,5 @@
 package logic
 
-import com.fasterxml.jackson.core.JsonParseException
 import play.api.libs.json._
 import utils.attempt.{Attempt, Failure}
 
@@ -9,7 +8,6 @@ import model._
 import model.Serializers._
 
 import scala.util.{Success, Try}
-import scala.util.control.NonFatal
 
 object SnykDisplay {
 

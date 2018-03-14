@@ -39,7 +39,7 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
           organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, requiredOrganisation)
 
           projectResponses <- Snyk.getProjects(token, organisations, wsClient)
-          projectResponseBodies = projectResponses.map{ case (organisation,response) => (organisation, response.body)}
+          projectResponseBodies = projectResponses.map{ case (organisation,response) => (organisation, response)}
 
           organisationAndProjects <- SnykDisplay.getProjectIdList(projectResponseBodies)
           labelledProjects = SnykDisplay.labelOrganisations(organisationAndProjects)

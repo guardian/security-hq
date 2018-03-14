@@ -21,13 +21,13 @@ object Snyk {
     }
   }
 
-  def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, WSResponse)]] = {
+  def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
     Attempt.traverse(organisations) { organisation =>
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
       val futureResponse = wsClient.url(snykProjectsUrl)
         .addHttpHeaders("Authorization" -> s"token ${token.value}")
         .get()
-        .transform(response => (organisation, response), f => f )
+        .transform(response => (organisation, response.body), f => f )
       Attempt.fromFuture(futureResponse) {
         case NonFatal(e) =>
           val failure = Failure(e.getMessage, "Could not read projects from Snyk", 502, None, Some(e))
