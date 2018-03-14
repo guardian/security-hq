@@ -17,8 +17,6 @@ import model._
 
 class SnykController(val config: Configuration, val configraun: com.gu.configraun.models.Configuration,
                      val authConfig: GoogleAuthConfig
-//                     ,
-//                     val snykWsClient: WSClient
                      )
                     (implicit
                      val ec: ExecutionContext,
@@ -36,22 +34,18 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
         for {
 
           token <- getSnykToken
-
           requiredOrganisation <- getSnykOrganisation
 
           organisationResponse <- Snyk.getSnykOrganisations(token, wsClient)
-//          organisationResponse <- Snyk.getSnykOrganisations(token, snykWsClient)
           organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, requiredOrganisation)
 
           projectResponses <- Snyk.getProjects(token, organisations, wsClient)
-//          projectResponses <- Snyk.getProjects(token, organisations, snykWsClient)
           projectResponseBodies = projectResponses.map{ case (organisation,response) => (organisation, response.body)}
 
           organisationAndProjects <- SnykDisplay.getProjectIdList(projectResponseBodies)
           labelledProjects = SnykDisplay.labelOrganisations(organisationAndProjects)
 
           vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(labelledProjects, token, wsClient)
-//          vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(labelledProjects, token, snykWsClient)
           vulnerabilitiesResponseBodies = vulnerabilitiesResponse.map(a => a.body)
 
           parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)

@@ -25,7 +25,6 @@ object Snyk {
 
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, WSResponse)]] = {
     Attempt.traverse(organisations) { organisation =>
-      println(organisation)
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
       val b = wsClient.url(snykProjectsUrl)
         .addHttpHeaders("Authorization" -> s"token ${token.value}")
@@ -44,7 +43,6 @@ object Snyk {
     val projectVulnerabilityResponses = projects
       .map(project => {
         val snykProjectUrl = s"https://snyk.io/api/v1/org/${project.organisation.get.id}/project/${project.id}/issues"
-        println(snykProjectUrl)
         val projectIssuesFilter = Json.obj(
           "filters" -> Json.obj(
             "severity" -> JsArray(List(

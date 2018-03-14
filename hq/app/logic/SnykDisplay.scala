@@ -11,7 +11,6 @@ import model.Serializers._
 object SnykDisplay {
 
   def parseOrganisations(s: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
-    println(snykGroupId)
     for {
       organisationList <- parseJsonToOrganisationList(s)
       guardianOrganisationList = organisationList filter {

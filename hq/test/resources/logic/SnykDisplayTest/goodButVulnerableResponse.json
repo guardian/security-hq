@@ -1,0 +1,66 @@
+{
+  "ok": false,
+  "issues": {
+    "vulnerabilities": [
+      {
+        "id": "4444444444",
+        "url": "https://snyk.io/vuln/4444444444",
+        "title": "The Title",
+        "type": "vuln",
+        "description": "The description",
+        "from": [
+          "from1",
+          "from2",
+          "from3"
+        ],
+        "package": "The package",
+        "version": "The version",
+        "severity": "high",
+        "language": "The language",
+        "packageManager": "the package manager",
+        "semver": {
+          "unaffected": ">=the version",
+          "vulnerable": "<the version"
+        },
+        "publicationTime": "2015-11-06T02:09:36.182Z",
+        "disclosureTime": "2015-11-03T07:15:12.900Z",
+        "isUpgradable": true,
+        "isPatchable": true,
+        "identifiers": {
+          "CVE": [],
+          "CWE": [],
+          "NSP": 57,
+          "ALTERNATIVE": [
+            "5555555555"
+          ]
+        },
+        "credit": [
+          "Mickey Mouse"
+        ],
+        "CVSSv3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+        "cvssScore": 7.5,
+        "patches": [
+          {
+            "id": "6666666666",
+            "urls": [
+              "https://example.com/6666666666.patch"
+            ],
+            "version": "<the version >=minversion",
+            "comments": [
+              "https://example.com/7777777777.patch"
+            ],
+            "modificationTime": "2015-11-17T09:29:10.000Z"
+          }
+        ],
+        "upgradePath": [
+          true,
+          "the first upgrade",
+          "the second upgrade"
+        ]
+      }
+    ],
+    "licenses": []
+  },
+  "dependencyCount": 0,
+  "packageManager": "the package manager"
+}

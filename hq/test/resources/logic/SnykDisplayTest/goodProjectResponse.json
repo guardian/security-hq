@@ -1,0 +1,16 @@
+{
+  "org": {
+    "name": "guardian",
+    "id": "1111111111"
+  },
+  "projects": [
+    {
+      "name": "project1",
+      "id": "2222222222"
+    },
+    {
+      "name": "project2",
+      "id": "3333333333"
+    }
+  ]
+}
