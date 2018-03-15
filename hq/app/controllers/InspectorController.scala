@@ -6,7 +6,6 @@ import aws.inspector.Inspector
 import com.amazonaws.regions.Regions
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
-import logic.InspectorResults
 import play.api.Configuration
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -33,7 +32,7 @@ class InspectorController(val config: Configuration,
   def inspector = authAction.async {
     attempt {
       for {
-        accountAssessmentRuns <- Attempt.labelledTraverse(accounts)(Inspector.inspectorRuns)
+        accountAssessmentRuns <- Attempt.labelledTaverseWithFailures(accounts)(Inspector.inspectorRuns)
       } yield Ok(views.html.inspector.inspector(accountAssessmentRuns))
     }
   }

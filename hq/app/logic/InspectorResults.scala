@@ -83,4 +83,8 @@ object InspectorResults {
       findings.get("Informational").map("Informational" -> _)
     ).flatten ++ (findings - "High" - "Medium" - "Low" - "Informational").toList
   }
+
+  def totalFindings(key: String, assessmentRuns: List[InspectorAssessmentRun]): Int = {
+    assessmentRuns.map(_.findingCounts.getOrElse(key, 0)).sum
+  }
 }

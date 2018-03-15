@@ -4,6 +4,7 @@ import java.util.{Date, GregorianCalendar}
 
 import com.amazonaws.services.inspector.model.{AssessmentRun, ListAssessmentRunsResult}
 import logic.InspectorResults._
+import model.InspectorAssessmentRun
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 
@@ -134,6 +135,49 @@ class InspectorResultsTest extends FreeSpec with Matchers {
     "puts unexpected keys at the end" in {
       val result = sortedFindings(Map("Strange" -> 0, "High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1))
       result shouldEqual List("High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1, "Strange" -> 0)
+    }
+  }
+
+  "totalFindings" - {
+    "returns total high findings" in {
+      val results = List(
+        makeAR(1, 0, 0, 0), makeAR(2, 0, 0, 0), makeAR(3, 0, 0, 0)
+      )
+      totalFindings("High", results) shouldEqual 6
+    }
+
+    "returns total medium findings" in {
+      val results = List(
+        makeAR(0, 1, 0, 0), makeAR(0, 2, 0, 0), makeAR(0, 3, 0, 0)
+      )
+      totalFindings("Medium", results) shouldEqual 6
+    }
+
+    "returns total low findings" in {
+      val results = List(
+        makeAR(0, 0, 1, 0), makeAR(0, 0, 2, 0), makeAR(0, 0, 3, 0)
+      )
+      totalFindings("Low", results) shouldEqual 6
+    }
+
+    "returns total info findings" in {
+      val results = List(
+        makeAR(0, 0, 0, 1), makeAR(0, 0, 0, 2), makeAR(0, 0, 0, 3)
+      )
+      totalFindings("Informational", results) shouldEqual 6
+    }
+
+    def makeAR(high: Int, medium: Int, low: Int, info: Int): InspectorAssessmentRun = {
+      InspectorAssessmentRun(
+        "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
+        DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,
+        Map(
+          "High" -> high,
+          "Medium" -> medium,
+          "Low" -> low,
+          "Informational" -> info
+        )
+      )
     }
   }
 }

@@ -100,6 +100,18 @@ object Attempt {
   }
 
   /**
+    * Using the provided traversal function, sequence the resulting attempts
+    * into a list that:
+    * - preserves failures (by keeping the resulting Either)
+    * - creates a tuple who's first element is the value passed to the traversal function f
+    *
+    * Combines the behaviours of labelledTraverse and traverseWithFailures.
+    */
+  def labelledTaverseWithFailures[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[(A, Either[FailedAttempt, B])]] = {
+    Async.Right(Future.traverse(as)(a => f(a).asFuture.map(a -> _)))
+  }
+
+  /**
     * As with `Future.sequence`, changes `List[Attempt[A]]` to `Attempt[List[A]]`.
     *
     * This implementation returns the first failure in the list, or the successful result.

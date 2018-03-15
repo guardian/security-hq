@@ -1,6 +1,8 @@
 @import model.{AwsAccount, InspectorAssessmentRun}
+@import utils.attempt.FailedAttempt
+@import logic.InspectorResults.totalFindings
 
-@(accountAssessmentRuns: List[(AwsAccount, List[InspectorAssessmentRun])])(implicit assets: AssetsFinder)
+@(accountAssessmentRuns: List[(AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]])])(implicit assets: AssetsFinder)
 
 
 @main(List("AWS Inspector assessment runs")) { @* Header *@
@@ -30,27 +32,62 @@
 
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
-            @for((account, assessmentRuns) <- accountAssessmentRuns) {
+            @for((account, assessmentRunsAttempt) <- accountAssessmentRuns) {
                 <li>
                     <div class="collapsible-header" tabindex="22">
                         <i class="material-icons">keyboard_arrow_down</i>
                         <span class="iam-header__name">@account.name</span>
+                        @assessmentRunsAttempt match {
+                            case Right(assessmentRuns) => {
+                                @if(totalFindings("High", assessmentRuns) > 0) {
+                                    <span class="icon-count">@totalFindings("High", assessmentRuns)</span>
+                                    <i class="material-icons red-text">error</i>
+                                }
+                                @if(totalFindings("Medium", assessmentRuns) > 0) {
+                                    <span class="icon-count">@totalFindings("Medium", assessmentRuns)</span>
+                                    <i class="material-icons amber-text">warning</i>
+                                }
+                                @if(totalFindings("Low", assessmentRuns) > 0) {
+                                    <span class="icon-count">@totalFindings("Low", assessmentRuns)</span>
+                                    <i class="material-icons purple-text">watch_later</i>
+                                }
+                                @if(totalFindings("Informational", assessmentRuns) > 0) {
+                                    <span class="icon-count">@totalFindings("Informational", assessmentRuns)</span>
+                                    <i class="material-icons">info_outline</i>
+                                }
+                            }
+                            case Left(_) => {
+                                <i class="material-icons">warning</i>
+                            }
+                        }
                     </div>
                     <div class="collapsible-body">
-                    @if(assessmentRuns.isEmpty) {
-                        <div class="col s12">
-                            <div class="card-panel valign-wrapper">
-                                <i class="material-icons medium green-text left">verified_user</i>
-                                <h5>No inspector runs found</h5>
-                            </div>
-                        </div>
-                    } else {
-                        <div class="finding-container">
-                        @for(assessmentRun <- assessmentRuns) {
-                            @inspectorResult(assessmentRun)
+                        @assessmentRunsAttempt match {
+                            case Right(assessmentRuns) => {
+                                @if(assessmentRuns.isEmpty) {
+                                    <div class="col s12">
+                                        <div class="card-panel valign-wrapper">
+                                            <i class="material-icons medium green-text left">verified_user</i>
+                                            <h5>No inspector runs found</h5>
+                                        </div>
+                                    </div>
+                                } else {
+                                    <div class="finding-container">
+                                    @for(assessmentRun <- assessmentRuns) {
+                                        @inspectorResult(assessmentRun)
+                                    }
+                                    </div>
+                                }
+                            }
+                            case Left(fa) => {
+                                <p class="p--warning">
+                                @for(err <- fa.failures) {
+                                    @err.friendlyMessage
+                                }
+                                </p>
+                            }
                         }
-                        </div>
-                    }
+
                     </div>
                 </li>
             }
