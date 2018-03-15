@@ -12,6 +12,7 @@ GET        /security-groups/:accountId                controllers.SecurityGroups
 
 GET        /snyk                                      controllers.SnykController.snyk
 
+GET        /inspector                                 controllers.InspectorController.inspector
 GET        /inspector/:accountId                      controllers.InspectorController.inspectorAccount(accountId)
 
 GET        /login                                     controllers.AuthController.login

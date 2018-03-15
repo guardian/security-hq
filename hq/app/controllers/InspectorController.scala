@@ -10,6 +10,7 @@ import logic.InspectorResults
 import play.api.Configuration
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import utils.attempt.Attempt
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
@@ -29,15 +30,20 @@ class InspectorController(val config: Configuration,
 
   private val accounts = Config.getAwsAccounts(config)
 
+  def inspector = authAction.async {
+    attempt {
+      for {
+        accountAssessmentRuns <- Attempt.labelledTraverse(accounts)(Inspector.inspectorRuns)
+      } yield Ok(views.html.inspector.inspector(accountAssessmentRuns))
+    }
+  }
+
   def inspectorAccount(accountId: String) = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        inspectorClient = Inspector.client(account, Regions.EU_WEST_1)
-        inspectorRunArns <- Inspector.listInspectorRuns(inspectorClient)
-        assessmentRuns <- Inspector.describeInspectorRuns(inspectorRunArns, inspectorClient)
-        processedAssessmentRuns = InspectorResults.relevantRuns(assessmentRuns)
-      } yield Ok(views.html.inspector.inspectorAccount(processedAssessmentRuns, account))
+        assessmentRuns <- Inspector.inspectorRuns(account)
+      } yield Ok(views.html.inspector.inspectorAccount(assessmentRuns, account))
     }
   }
 }

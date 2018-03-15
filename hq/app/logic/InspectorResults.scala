@@ -26,9 +26,9 @@ object InspectorResults {
     * Sorts results descending by findings (first by High, then Medium, Low, Informational).
     * Breaks remaining ties on the total number of results.
     */
-  def relevantRuns(runs: List[InspectorAssessmentRun]): List[((String, String, String), InspectorAssessmentRun)] = {
-    val result = runs.groupBy(_.appId).mapValues(_.maxBy(_.completedAt.getMillis))
-    result.toList.sortBy { case (_, assessmentRun) =>
+  def relevantRuns(runs: List[InspectorAssessmentRun]): List[InspectorAssessmentRun] = {
+    val result = runs.groupBy(_.appId).mapValues(_.maxBy(_.completedAt.getMillis)).values
+    result.toList.sortBy { assessmentRun =>
       // descending
       ( assessmentRun.findingCounts.get("High").map(_ * -1)
       , assessmentRun.findingCounts.get("Medium").map(_ * -1)

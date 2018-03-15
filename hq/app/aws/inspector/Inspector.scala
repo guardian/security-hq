@@ -6,6 +6,7 @@ import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.inspector.model._
 import com.amazonaws.services.inspector.{AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder}
+import logic.InspectorResults
 import logic.InspectorResults._
 import model.{AwsAccount, InspectorAssessmentRun}
 import org.joda.time.DateTime
@@ -37,5 +38,15 @@ object Inspector {
     val request = new DescribeAssessmentRunsRequest()
       .withAssessmentRunArns(assessmentRunArns.asJava)
     handleAWSErrs(awsToScala(client.describeAssessmentRunsAsync)(request)).map(parseDescribeAssessmentRunsResult)
+  }
+
+  def inspectorRuns(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {
+    val region = Regions.EU_WEST_1  // for now
+    val inspectorClient = client(account, region)
+    for {
+      inspectorRunArns <- Inspector.listInspectorRuns(inspectorClient)
+      assessmentRuns <- Inspector.describeInspectorRuns(inspectorRunArns, inspectorClient)
+      processedAssessmentRuns = InspectorResults.relevantRuns(assessmentRuns)
+    } yield processedAssessmentRuns
   }
 }

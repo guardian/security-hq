@@ -1,7 +1,7 @@
 @import model.{AwsAccount, InspectorAssessmentRun}
 @import logic.InspectorResults.{levelColour, sortedFindings}
 
-@(assessmentRuns: List[((String, String, String), InspectorAssessmentRun)], awsAccount: AwsAccount)(implicit assets: AssetsFinder)
+@(assessmentRuns: List[InspectorAssessmentRun], awsAccount: AwsAccount)(implicit assets: AssetsFinder)
 
 
 @main(List(awsAccount.name)) { @* Header *@
@@ -39,34 +39,8 @@
                 </div>
             } else {
                 <div class="finding-container">
-                    @for(((stack, app, stage), assessmentRun) <- assessmentRuns) {
-                        <div class="finding-container__card">
-                            <div class="card">
-                                <div class="card-content card-content--title">
-                                    <span class="card-title">@stack @app @stage</span>
-                                </div>
-                                <div class="card-content--border @{
-                                    levelColour(assessmentRun.findingCounts)
-                                } darken-1"></div>
-                                <div class="card-content card-content--body">
-                                    <table class="finding-details__table">
-                                        <tbody>
-                                            @for((level, count) <- sortedFindings(assessmentRun.findingCounts)) {
-                                                <tr>
-                                                    <th>@level</th>
-                                                    <td>@count</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="card-action finding-card-action">
-                                    <a class="btn usage-cta" href='https://eu-west-1.console.aws.amazon.com/inspector/home?region=eu-west-1#/finding?filter={"assessmentTemplateArns":["@{assessmentRun.assessmentTemplateArn}"]}'>
-                                        AWS console
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                    @for(assessmentRun <- assessmentRuns) {
+                        @inspectorResult(assessmentRun)
                     }
                 </div>
             }
