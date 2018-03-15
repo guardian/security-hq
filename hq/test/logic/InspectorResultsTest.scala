@@ -70,4 +70,58 @@ class InspectorResultsTest extends FreeSpec with Matchers {
 
     "non-lambda runs are included with name as app, and sorted accordingly" ignore {}
   }
+
+  "levelColour" - {
+    "red if there is a high result" in {
+      levelColour(Map("High" -> 1)) shouldEqual "red"
+    }
+
+    "yellow if there is a medium result" in {
+      levelColour(Map("Medium" -> 1)) shouldEqual "yellow"
+    }
+
+    "blue if there is a low result" in {
+      levelColour(Map("Low" -> 1)) shouldEqual "blue"
+    }
+
+    "grey if there is an info result" in {
+      levelColour(Map("Informational" -> 1)) shouldEqual "grey"
+    }
+
+    "grey if there is are no results" in {
+      levelColour(Map()) shouldEqual "grey"
+    }
+
+    "does not show high with 0 results" in {
+      levelColour(Map("High" -> 0)) shouldEqual "grey"
+    }
+
+    "does not show medium with 0 results" in {
+      levelColour(Map("Medium" -> 0)) shouldEqual "grey"
+    }
+
+    "does not show low with 0 results" in {
+      levelColour(Map("Low" -> 0)) shouldEqual "grey"
+    }
+
+    "does not show info with 0 results" in {
+      levelColour(Map("Informational" -> 0)) shouldEqual "grey"
+    }
+
+    "does not high with 0 results" in {
+      levelColour(Map("High" -> 0)) shouldEqual "grey"
+    }
+
+    "high beats everything" in {
+      levelColour(Map("High" -> 1, "Medium" -> 1, "Low" -> 1, "Informational" -> 1)) shouldEqual "red"
+    }
+
+    "medium beats low and info" in {
+      levelColour(Map("High" -> 0, "Medium" -> 1, "Low" -> 1, "Informational" -> 1)) shouldEqual "yellow"
+    }
+
+    "info beats low" in {
+      levelColour(Map("High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1)) shouldEqual "blue"
+    }
+  }
 }

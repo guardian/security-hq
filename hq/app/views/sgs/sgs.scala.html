@@ -3,21 +3,21 @@
 @(flaggedSgsByAccount: List[(model.AwsAccount, Either[utils.attempt.FailedAttempt, List[(model.SGOpenPortsDetail, Set[model.SGInUse])]])])(implicit assets: AssetsFinder)
 
 @floatingNav(accountId: String) = {
-  <div class="fixed-action-btn js-floating-nav sg-floating-nav">
+  <div class="fixed-action-btn js-floating-nav finding-floating-nav">
       <a class="btn-floating btn-large">
         <i class="large material-icons">menu</i>
       </a>
       <ul>
-          <li><a class="btn-floating red js-sg-pin-close">
+          <li><a class="btn-floating red js-finding-pin-close">
             <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="close current">close</i>
           </a></li>
-          <li><a class="btn-floating btn-floating yellow darken-1 js-sg-pin-top">
+          <li><a class="btn-floating btn-floating yellow darken-1 js-finding-pin-top">
             <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to top">vertical_align_top</i>
           </a></li>
-          <li><a class="btn-floating blue js-sg-pin-end">
+          <li><a class="btn-floating blue js-finding-pin-end">
             <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to end">vertical_align_bottom</i>
           </a></li>
-          <li><a href="/security-groups/@accountId" class="btn-floating purple js-sg-pin-acc">
+          <li><a href="/security-groups/@accountId" class="btn-floating purple js-finding-pin-acc">
               <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="go to account page">pageview</i>
           </a></li>
       </ul>
@@ -49,13 +49,13 @@
         <div class="row">
             <div class="card-panel valign-wrapper">
                 <i class="material-icons left">visibility_off</i>
-                <span class="sg-header__name">Some Security Groups may be ignored due to settings in AWS Trusted Advisor</span>
+                <span class="finding-header__name">Some Security Groups may be ignored due to settings in AWS Trusted Advisor</span>
 
-                <form class="sg-filter" action="#">
-                    <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
-                    <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
-                    <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
-                    <label class="black-text sg-filter__label" for="show-ignored-sgs">Show ignored</label>
+                <form class="finding-filter" action="#">
+                    <input class="js-finding-filter" type="checkbox" id="show-flagged-findings" checked="checked" />
+                    <label class="black-text finding-filter__label" for="show-flagged-findings">Show flagged</label>
+                    <input class="js-finding-filter" type="checkbox" id="show-ignored-findings" />
+                    <label class="black-text finding-filter__label" for="show-ignored-findings">Show ignored</label>
                 </form>
             </div>
         </div>
@@ -63,12 +63,12 @@
         @views.html.fragments.securityGroupHelp()
 
         <div class="row">
-            <ul class="collapsible space-between js-sg-collapsible" data-collapsible="accordion">
+            <ul class="collapsible space-between js-finding-collapsible" data-collapsible="accordion">
             @for((account, flaggedSgsAttempt) <- flaggedSgsByAccount) {
-                <li class="js-sg-scroll">
-                    <div class="collapsible-header sg-header" tabindex="22">
+                <li class="js-finding-scroll">
+                    <div class="collapsible-header finding-header" tabindex="22">
                         <i class="material-icons">keyboard_arrow_down</i>
-                        <span class="sg-header__name">@account.name</span>
+                        <span class="finding-header__name">@account.name</span>
                         @flaggedSgsAttempt match {
                             case Left(_) => {
                                 <i class="material-icons">warning</i>
@@ -79,13 +79,13 @@
                             case Right(flaggedSgs) => {
                                 @defining(reportSummary(flaggedSgs)) { summary =>
                                     @if(summary.active > 0) {
-                                        <span class="new badge red darken-3 sg-header__badge" data-badge-caption="in use">@summary.active</span>
+                                        <span class="new badge red darken-3 finding-header__badge" data-badge-caption="in use">@summary.active</span>
                                     }
                                     @if((summary.flagged - summary.active) > 0) {
-                                        <span class="new badge sg-header__badge" data-badge-caption="not in use">@{summary.flagged - summary.active}</span>
+                                        <span class="new badge finding-header__badge" data-badge-caption="not in use">@{summary.flagged - summary.active}</span>
                                     }
                                     @if(summary.suppressed > 0) {
-                                        <span class="new badge grey sg-header__badge" data-badge-caption="ignored">@summary.suppressed</span>
+                                        <span class="new badge grey finding-header__badge" data-badge-caption="ignored">@summary.suppressed</span>
                                     }
                                 }
                             }

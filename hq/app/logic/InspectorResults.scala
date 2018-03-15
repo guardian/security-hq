@@ -23,13 +23,19 @@ object InspectorResults {
   /**
     * Take latest results for each App ID
     *
-    * Sorts results by findings. TODO: prioritize high importance findings when keys are known.
+    * Sorts results descending by findings (first by High, then Medium, Low, Informational).
+    * Breaks remaining ties on the total number of results.
     */
   def relevantRuns(runs: List[InspectorAssessmentRun]): List[((String, String, String), InspectorAssessmentRun)] = {
     val result = runs.groupBy(_.appId).mapValues(_.maxBy(_.completedAt.getMillis))
     result.toList.sortBy { case (_, assessmentRun) =>
       // descending
-      0 - assessmentRun.findingCounts.values.sum
+      ( assessmentRun.findingCounts.get("High").map(_ * -1)
+      , assessmentRun.findingCounts.get("Medium").map(_ * -1)
+      , assessmentRun.findingCounts.get("Low").map(_ * -1)
+      , assessmentRun.findingCounts.get("Informational").map(_ * -1)
+      , assessmentRun.findingCounts.values.sum * -1
+      )
     }
   }
 
@@ -58,5 +64,14 @@ object InspectorResults {
       dataCollected = assessmentRun.getDataCollected,
       findingCounts = assessmentRun.getFindingCounts.asScala.toMap.mapValues(_.toInt)
     )
+  }
+
+  def levelColour(assessmentFindings: Map[String, Int]): String = {
+    val high = assessmentFindings.get("High").filter(_ > 0).map(_ => "red")
+    val medium = assessmentFindings.get("Medium").filter(_ > 0).map(_ => "yellow")
+    val low = assessmentFindings.get("Low").filter(_ > 0).map(_ => "blue")
+    val info = assessmentFindings.get("Informational").filter(_ > 0).map(_ => "grey")
+
+    high.orElse(medium).orElse(low).orElse(info).getOrElse("grey")
   }
 }

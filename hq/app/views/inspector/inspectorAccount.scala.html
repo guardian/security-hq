@@ -1,4 +1,5 @@
 @import model.{AwsAccount, InspectorAssessmentRun}
+@import logic.InspectorResults.levelColour
 
 @(assessmentRuns: List[((String, String, String), InspectorAssessmentRun)], awsAccount: AwsAccount)(implicit assets: AssetsFinder)
 
@@ -21,18 +22,54 @@
 
 } { @* Main content *@
     <div class="container">
-        <ul>
-            @for(((stack, app, stage), assessmentRun) <- assessmentRuns) {
-                <li>
-                    @stack @app @stage
-                    @for((key, count) <- assessmentRun.findingCounts) {
-                        <dl>
-                            <dt>@key</dt>
-                            <dd>@count</dd>
-                        </dl>
+        <div class="row">
+            <h2>AWS Inspector results</h2>
+            <p>
+                These are the results of the last inspector runs for each stack, app, stage combination.
+            </p>
+        </div>
+
+        <div class="row">
+            @if(assessmentRuns.isEmpty) {
+                <div class="col s12">
+                    <div class="card-panel valign-wrapper">
+                        <i class="material-icons medium green-text left">verified_user</i>
+                        <h5>No inspector runs found</h5>
+                    </div>
+                </div>
+            } else {
+                <div class="finding-container">
+                    @for(((stack, app, stage), assessmentRun) <- assessmentRuns) {
+                        <div class="finding-container__card">
+                            <div class="card">
+                                <div class="card-content card-content--title">
+                                    <span class="card-title">@stack @app @stage</span>
+                                </div>
+                                <div class="card-content--border @{
+                                    levelColour(assessmentRun.findingCounts)
+                                } darken-1"></div>
+                                <div class="card-content card-content--body">
+                                    <table class="finding-details__table">
+                                        <tbody>
+                                            @for((level, count) <- assessmentRun.findingCounts) {
+                                                <tr>
+                                                    <th>@level</th>
+                                                    <td>@count</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="card-action finding-card-action">
+                                    <a class="btn usage-cta" href='https://eu-west-1.console.aws.amazon.com/inspector/home?region=eu-west-1#/finding?filter={"assessmentTemplateArns":["@{assessmentRun.assessmentTemplateArn}"]}'>
+                                        AWS console
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     }
-                </li>
+                </div>
             }
-        </ul>
+        </div>
     </div>
 }
