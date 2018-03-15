@@ -74,4 +74,13 @@ object InspectorResults {
 
     high.orElse(medium).orElse(low).orElse(info).getOrElse("grey")
   }
+
+  def sortedFindings(findings: Map[String, Int]): List[(String, Int)] = {
+    List(
+      findings.get("High").map("High" -> _),
+      findings.get("Medium").map("Medium" -> _),
+      findings.get("Low").map("Low" -> _),
+      findings.get("Informational").map("Informational" -> _)
+    ).flatten ++ (findings - "High" - "Medium" - "Low" - "Informational").toList
+  }
 }

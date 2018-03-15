@@ -124,4 +124,16 @@ class InspectorResultsTest extends FreeSpec with Matchers {
       levelColour(Map("High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1)) shouldEqual "blue"
     }
   }
+
+  "sortedFindings" - {
+    "sorts keys correctly" in {
+      val result = sortedFindings(Map("High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1))
+      result shouldEqual List("High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1)
+    }
+
+    "puts unexpected keys at the end" in {
+      val result = sortedFindings(Map("Strange" -> 0, "High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1))
+      result shouldEqual List("High" -> 0, "Medium" -> 0, "Low" -> 1, "Informational" -> 1, "Strange" -> 0)
+    }
+  }
 }

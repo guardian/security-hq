@@ -1,5 +1,5 @@
 @import model.{AwsAccount, InspectorAssessmentRun}
-@import logic.InspectorResults.levelColour
+@import logic.InspectorResults.{levelColour, sortedFindings}
 
 @(assessmentRuns: List[((String, String, String), InspectorAssessmentRun)], awsAccount: AwsAccount)(implicit assets: AssetsFinder)
 
@@ -51,7 +51,7 @@
                                 <div class="card-content card-content--body">
                                     <table class="finding-details__table">
                                         <tbody>
-                                            @for((level, count) <- assessmentRun.findingCounts) {
+                                            @for((level, count) <- sortedFindings(assessmentRun.findingCounts)) {
                                                 <tr>
                                                     <th>@level</th>
                                                     <td>@count</td>
