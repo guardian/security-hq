@@ -3,6 +3,7 @@ package logic
 import com.amazonaws.services.inspector.model.{AssessmentRun, DescribeAssessmentRunsResult, _}
 import model.InspectorAssessmentRun
 import org.joda.time.DateTime
+import utils.attempt.FailedAttempt
 
 import scala.collection.JavaConverters._
 
@@ -64,6 +65,19 @@ object InspectorResults {
       dataCollected = assessmentRun.getDataCollected,
       findingCounts = assessmentRun.getFindingCounts.asScala.toMap.mapValues(_.toInt)
     )
+  }
+
+  def sortAccountResults[A, B](accountResults: List[(A, scala.Either[B, List[InspectorAssessmentRun]])]): List[(A, scala.Either[B, List[InspectorAssessmentRun]])] = {
+    accountResults.sortBy {
+      case (_, Right(assessmentRuns)) =>
+        ( 0 - totalFindings("High", assessmentRuns)
+        , 0 - totalFindings("Medium", assessmentRuns)
+        , 0 - totalFindings("Low", assessmentRuns)
+        , 0 - totalFindings("Info", assessmentRuns)
+        )
+      case (_, Left(_)) =>
+        (1, 1, 1, 1)
+    }
   }
 
   def levelColour(assessmentFindings: Map[String, Int]): String = {

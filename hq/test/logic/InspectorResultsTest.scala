@@ -12,6 +12,11 @@ import scala.collection.JavaConverters._
 
 
 class InspectorResultsTest extends FreeSpec with Matchers {
+  val testAssessmentRun = InspectorAssessmentRun(
+    "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
+    DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,
+    Map("High" -> 0, "Medium" -> 0, "Low" -> 0, "Informational" -> 0)
+  )
 
   "parseListAssessmentRunsResult" - {
     "returns the ARNs in the result" in {
@@ -141,43 +146,80 @@ class InspectorResultsTest extends FreeSpec with Matchers {
   "totalFindings" - {
     "returns total high findings" in {
       val results = List(
-        makeAR(1, 0, 0, 0), makeAR(2, 0, 0, 0), makeAR(3, 0, 0, 0)
+        arWithFindings(1, 0, 0, 0), arWithFindings(2, 0, 0, 0), arWithFindings(3, 0, 0, 0)
       )
       totalFindings("High", results) shouldEqual 6
     }
 
     "returns total medium findings" in {
       val results = List(
-        makeAR(0, 1, 0, 0), makeAR(0, 2, 0, 0), makeAR(0, 3, 0, 0)
+        arWithFindings(0, 1, 0, 0), arWithFindings(0, 2, 0, 0), arWithFindings(0, 3, 0, 0)
       )
       totalFindings("Medium", results) shouldEqual 6
     }
 
     "returns total low findings" in {
       val results = List(
-        makeAR(0, 0, 1, 0), makeAR(0, 0, 2, 0), makeAR(0, 0, 3, 0)
+        arWithFindings(0, 0, 1, 0), arWithFindings(0, 0, 2, 0), arWithFindings(0, 0, 3, 0)
       )
       totalFindings("Low", results) shouldEqual 6
     }
 
     "returns total info findings" in {
       val results = List(
-        makeAR(0, 0, 0, 1), makeAR(0, 0, 0, 2), makeAR(0, 0, 0, 3)
+        arWithFindings(0, 0, 0, 1), arWithFindings(0, 0, 0, 2), arWithFindings(0, 0, 0, 3)
       )
       totalFindings("Informational", results) shouldEqual 6
     }
+  }
 
-    def makeAR(high: Int, medium: Int, low: Int, info: Int): InspectorAssessmentRun = {
-      InspectorAssessmentRun(
-        "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
-        DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,
-        Map(
-          "High" -> high,
-          "Medium" -> medium,
-          "Low" -> low,
-          "Informational" -> info
-        )
+  "sortAccountResults" - {
+    "puts failed results at the bottom" in {
+      val results = List(
+        () -> Left(()),
+        () -> Right(List(arWithFindings(1, 0, 0, 0)))
+      )
+      sortAccountResults(results) shouldEqual List(
+        () -> Right(List(arWithFindings(1, 0, 0, 0))),
+        () -> Left(())
       )
     }
+
+    "sorts by Highs before Mediums" in {
+      val results = List(
+        () -> Right(List(arWithFindings(1, 2, 0, 0))),
+        () -> Right(List(arWithFindings(2, 1, 0, 0)))
+      )
+      sortAccountResults(results) shouldEqual List(
+        () -> Right(List(arWithFindings(2, 1, 0, 0))),
+        () -> Right(List(arWithFindings(1, 2, 0, 0)))
+      )
+    }
+
+    "sorts by example correctly" in {
+      val results = List(
+        () -> Right(List(arWithFindings(2, 1, 1, 0))),
+        () -> Right(List(arWithFindings(1, 1, 0, 0))),
+        () -> Right(List(arWithFindings(3, 2, 0, 0))),
+        () -> Right(List(arWithFindings(2, 2, 0, 0)))
+      )
+      sortAccountResults(results) shouldEqual List(
+        () -> Right(List(arWithFindings(3, 2, 0, 0))),
+        () -> Right(List(arWithFindings(2, 2, 0, 0))),
+        () -> Right(List(arWithFindings(2, 1, 1, 0))),
+        () -> Right(List(arWithFindings(1, 1, 0, 0)))
+      )
+    }
+  }
+
+  def arWithFindings(high: Int, medium: Int, low: Int, info: Int): InspectorAssessmentRun = {
+    testAssessmentRun.copy(
+      findingCounts = Map(
+        "High" -> high,
+        "Medium" -> medium,
+        "Low" -> low,
+        "Informational" -> info
+      )
+    )
   }
 }

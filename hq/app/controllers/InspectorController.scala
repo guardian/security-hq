@@ -6,6 +6,7 @@ import aws.inspector.Inspector
 import com.amazonaws.regions.Regions
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
+import logic.InspectorResults
 import play.api.Configuration
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -33,7 +34,8 @@ class InspectorController(val config: Configuration,
     attempt {
       for {
         accountAssessmentRuns <- Attempt.labelledTaverseWithFailures(accounts)(Inspector.inspectorRuns)
-      } yield Ok(views.html.inspector.inspector(accountAssessmentRuns))
+        sorted = InspectorResults.sortAccountResults(accountAssessmentRuns)
+      } yield Ok(views.html.inspector.inspector(sorted))
     }
   }
 
