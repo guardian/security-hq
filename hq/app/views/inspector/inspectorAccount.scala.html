@@ -25,7 +25,7 @@
         <div class="row">
             <h2>AWS Inspector results</h2>
             <p>
-                These are the results of the last inspector runs for each stack, app, stage combination.
+                These are the results of the last inspector runs for each Stack, App, Stage combination.
             </p>
         </div>
 
@@ -33,14 +33,14 @@
             @if(assessmentRuns.isEmpty) {
                 <div class="col s12">
                     <div class="card-panel valign-wrapper">
-                        <i class="material-icons medium green-text left">verified_user</i>
+                        <i class="material-icons medium green-text left">highlight_off</i>
                         <h5>No inspector runs found</h5>
                     </div>
                 </div>
             } else {
                 <div class="finding-container">
                     @for(assessmentRun <- assessmentRuns) {
-                        @inspectorResult(assessmentRun)
+                        @views.html.fragments.inspectorResult(assessmentRun)
                     }
                 </div>
             }

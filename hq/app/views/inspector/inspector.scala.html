@@ -1,6 +1,6 @@
 @import model.{AwsAccount, InspectorAssessmentRun}
 @import utils.attempt.FailedAttempt
-@import logic.InspectorResults.totalFindings
+@import logic.InspectorResults.{levelFindings, totalFindings}
 
 @(accountAssessmentRuns: List[(AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]])])(implicit assets: AssetsFinder)
 
@@ -26,7 +26,7 @@
         <div class="row">
             <h2>AWS Inspector results</h2>
             <p>
-                These are the results of the last inspector runs for each stack, app, stage combination.
+                These are the results of the last inspector runs for each Stack, App, Stage combination.
             </p>
         </div>
 
@@ -39,25 +39,32 @@
                         <span class="iam-header__name">@account.name</span>
                         @assessmentRunsAttempt match {
                             case Right(assessmentRuns) => {
-                                @if(totalFindings("High", assessmentRuns) > 0) {
-                                    <span class="icon-count">@totalFindings("High", assessmentRuns)</span>
-                                    <i class="material-icons red-text">error</i>
-                                }
-                                @if(totalFindings("Medium", assessmentRuns) > 0) {
-                                    <span class="icon-count">@totalFindings("Medium", assessmentRuns)</span>
-                                    <i class="material-icons amber-text">warning</i>
-                                }
-                                @if(totalFindings("Low", assessmentRuns) > 0) {
-                                    <span class="icon-count">@totalFindings("Low", assessmentRuns)</span>
-                                    <i class="material-icons purple-text">watch_later</i>
-                                }
-                                @if(totalFindings("Informational", assessmentRuns) > 0) {
-                                    <span class="icon-count">@totalFindings("Informational", assessmentRuns)</span>
-                                    <i class="material-icons">info_outline</i>
+                                @if(assessmentRuns.isEmpty) {
+                                    <i class="material-icons green-text">highlight_off</i>
+                                } else {
+                                    @if(totalFindings(assessmentRuns) == 0) {
+                                        <i class="material-icons green-text">done</i>
+                                    }
+                                    @if(levelFindings("High", assessmentRuns) > 0) {
+                                        <span class="icon-count">@levelFindings("High", assessmentRuns)</span>
+                                        <i class="material-icons red-text">error</i>
+                                    }
+                                    @if(levelFindings("Medium", assessmentRuns) > 0) {
+                                        <span class="icon-count">@levelFindings("Medium", assessmentRuns)</span>
+                                        <i class="material-icons amber-text">warning</i>
+                                    }
+                                    @if(levelFindings("Low", assessmentRuns) > 0) {
+                                        <span class="icon-count">@levelFindings("Low", assessmentRuns)</span>
+                                        <i class="material-icons blue-text">watch_later</i>
+                                    }
+                                    @if(levelFindings("Informational", assessmentRuns) > 0) {
+                                        <span class="icon-count">@levelFindings("Informational", assessmentRuns)</span>
+                                        <i class="material-icons grey-text">info_outline</i>
+                                    }
                                 }
                             }
                             case Left(_) => {
-                                <i class="material-icons">warning</i>
+                                <i class="material-icons red-text">warning</i>
                             }
                         }
                     </div>
@@ -65,16 +72,11 @@
                         @assessmentRunsAttempt match {
                             case Right(assessmentRuns) => {
                                 @if(assessmentRuns.isEmpty) {
-                                    <div class="col s12">
-                                        <div class="card-panel valign-wrapper">
-                                            <i class="material-icons medium green-text left">verified_user</i>
-                                            <h5>No inspector runs found</h5>
-                                        </div>
-                                    </div>
+                                    No inspector runs found.
                                 } else {
                                     <div class="finding-container">
                                     @for(assessmentRun <- assessmentRuns) {
-                                        @inspectorResult(assessmentRun)
+                                        @views.html.fragments.inspectorResult(assessmentRun)
                                     }
                                     </div>
                                 }

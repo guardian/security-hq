@@ -70,10 +70,10 @@ object InspectorResults {
   def sortAccountResults[A, B](accountResults: List[(A, scala.Either[B, List[InspectorAssessmentRun]])]): List[(A, scala.Either[B, List[InspectorAssessmentRun]])] = {
     accountResults.sortBy {
       case (_, Right(assessmentRuns)) =>
-        ( 0 - totalFindings("High", assessmentRuns)
-        , 0 - totalFindings("Medium", assessmentRuns)
-        , 0 - totalFindings("Low", assessmentRuns)
-        , 0 - totalFindings("Info", assessmentRuns)
+        ( 0 - levelFindings("High", assessmentRuns)
+        , 0 - levelFindings("Medium", assessmentRuns)
+        , 0 - levelFindings("Low", assessmentRuns)
+        , 0 - levelFindings("Info", assessmentRuns)
         )
       case (_, Left(_)) =>
         (1, 1, 1, 1)
@@ -98,7 +98,11 @@ object InspectorResults {
     ).flatten ++ (findings - "High" - "Medium" - "Low" - "Informational").toList
   }
 
-  def totalFindings(key: String, assessmentRuns: List[InspectorAssessmentRun]): Int = {
-    assessmentRuns.map(_.findingCounts.getOrElse(key, 0)).sum
+  def levelFindings(level: String, assessmentRuns: List[InspectorAssessmentRun]): Int = {
+    assessmentRuns.map(_.findingCounts.getOrElse(level, 0)).sum
+  }
+
+  def totalFindings(assessmentRuns: List[InspectorAssessmentRun]): Int = {
+    assessmentRuns.flatMap(_.findingCounts.values).sum
   }
 }

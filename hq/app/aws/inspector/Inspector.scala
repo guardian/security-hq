@@ -35,9 +35,14 @@ object Inspector {
   }
 
   def describeInspectorRuns(assessmentRunArns: List[String], client: AmazonInspectorAsync)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {
-    val request = new DescribeAssessmentRunsRequest()
-      .withAssessmentRunArns(assessmentRunArns.asJava)
-    handleAWSErrs(awsToScala(client.describeAssessmentRunsAsync)(request)).map(parseDescribeAssessmentRunsResult)
+    if (assessmentRunArns.isEmpty) {
+      // empty assessmentRunArns throws an exception, so we handle that here
+      Attempt.Right(Nil)
+    } else {
+      val request = new DescribeAssessmentRunsRequest()
+        .withAssessmentRunArns(assessmentRunArns.asJava)
+      handleAWSErrs(awsToScala(client.describeAssessmentRunsAsync)(request)).map(parseDescribeAssessmentRunsResult)
+    }
   }
 
   def inspectorRuns(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {

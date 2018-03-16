@@ -143,33 +143,46 @@ class InspectorResultsTest extends FreeSpec with Matchers {
     }
   }
 
-  "totalFindings" - {
+  "levelFindings" - {
     "returns total high findings" in {
       val results = List(
         arWithFindings(1, 0, 0, 0), arWithFindings(2, 0, 0, 0), arWithFindings(3, 0, 0, 0)
       )
-      totalFindings("High", results) shouldEqual 6
+      levelFindings("High", results) shouldEqual 6
     }
 
     "returns total medium findings" in {
       val results = List(
         arWithFindings(0, 1, 0, 0), arWithFindings(0, 2, 0, 0), arWithFindings(0, 3, 0, 0)
       )
-      totalFindings("Medium", results) shouldEqual 6
+      levelFindings("Medium", results) shouldEqual 6
     }
 
     "returns total low findings" in {
       val results = List(
         arWithFindings(0, 0, 1, 0), arWithFindings(0, 0, 2, 0), arWithFindings(0, 0, 3, 0)
       )
-      totalFindings("Low", results) shouldEqual 6
+      levelFindings("Low", results) shouldEqual 6
     }
 
     "returns total info findings" in {
       val results = List(
         arWithFindings(0, 0, 0, 1), arWithFindings(0, 0, 0, 2), arWithFindings(0, 0, 0, 3)
       )
-      totalFindings("Informational", results) shouldEqual 6
+      levelFindings("Informational", results) shouldEqual 6
+    }
+  }
+
+  "totalFindings" - {
+    "returns 0 for empty runs list" in {
+      totalFindings(Nil) shouldEqual 0
+    }
+
+    "returns sum for a list of runs" in {
+      val results = List(
+        arWithFindings(1, 0, 0, 0), arWithFindings(0, 1, 0, 0), arWithFindings(0, 0, 1, 0), arWithFindings(0, 0, 0, 1)
+      )
+      totalFindings(results) shouldEqual 4
     }
   }
 
