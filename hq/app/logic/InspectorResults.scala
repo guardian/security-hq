@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 
 object InspectorResults {
   private val tagMatch = "[\\w\\-_\\.]"
-  val RunNameMatch = s"AWSInspection--($tagMatch+)--($tagMatch+)--($tagMatch+)--[\\d]+".r
+  val RunNameMatch = s"AWSInspection--($tagMatch*)--($tagMatch*)--($tagMatch*)--[\\d]+".r
 
   def appId(assessmentRunName: String): Option[(String, String, String)] = {
     assessmentRunName match {
