@@ -29,7 +29,7 @@ class InspectorResultsTest extends FreeSpec with Matchers {
     "correctly extracts some of the important fields" in {
       val assessmentRun = new AssessmentRun()
         .withArn("arn:123")
-        .withName("AWSInspection-stack-app-stage-1520873440000")
+        .withName("AWSInspection--stack--app--stage-1520873440000")
         .withAssessmentTemplateArn("arn:template")
         .withState("state")
         .withDurationInSeconds(123)
@@ -43,7 +43,7 @@ class InspectorResultsTest extends FreeSpec with Matchers {
         .withFindingCounts(Map("low" -> new Integer(1)).asJava)
       parseAssessmentRun(assessmentRun) should have(
         'arn ("arn:123"),
-        'name ("AWSInspection-stack-app-stage-1520873440000"),
+        'name ("AWSInspection--stack--app--stage-1520873440000"),
         'appId ("stack", "app", "stage"),
         'rulesPackageArns (List("arn:rules1", "arn:rules2")),
         'completedAt (new DateTime(2018, 3 , 13, 0, 0, 0)),
@@ -54,11 +54,11 @@ class InspectorResultsTest extends FreeSpec with Matchers {
 
   "appId" - {
     "parses a valid lambda inspector name" in {
-      appId("AWSInspection-stack-app-stage-1520873440000") shouldEqual ("stack", "app", "stage")
+      appId("AWSInspection--stack--app--stage-1520873440000") shouldEqual ("stack", "app", "stage")
     }
 
     "parses a valid lambda inspector name with funny chars in the tags" in {
-      val result = appId("AWSInspection-stack-with-hyphens-app_with_underscores-stage.with.dots-1520873440000")
+      val result = appId("AWSInspection--stack-with-hyphens--app_with_underscores--stage.with.dots-1520873440000")
       result shouldEqual ("stack-with-hyphens", "app_with_underscores", "stage.with.dots")
     }
 
