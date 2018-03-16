@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 
 
 class InspectorResultsTest extends FreeSpec with Matchers {
-  val testAssessmentRun = InspectorAssessmentRun(
+  val assessmentRun = InspectorAssessmentRun(
     "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
     DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,
     Map("High" -> 0, "Medium" -> 0, "Low" -> 0, "Informational" -> 0)
@@ -68,13 +68,63 @@ class InspectorResultsTest extends FreeSpec with Matchers {
   }
 
   "relevantRuns" - {
-    "takes latest run for an app id" ignore {}
+    "takes latest run for an app id" in {
+      val latest = assessmentRun
+        .withAppId("stack", "app", "stage")
+        .withCompletionAt(DateTime.now())
+      val older = latest
+        .withCompletionAt(DateTime.now().minusDays(1))
 
-    "takes latest run for multiple app ids" ignore {}
+      relevantRuns(List(latest, older)) shouldEqual List(latest)
+    }
 
-    "sorts multiple app ids by the total number of findings in latest runs" ignore {}
+    "takes latest run for multiple app ids" in {
+      val latest1 = assessmentRun
+        .withAppId("stack1", "app1", "stage1")
+        .withCompletionAt(DateTime.now())
+      val older1 = latest1
+        .withCompletionAt(DateTime.now().minusDays(1))
+      val latest2 = assessmentRun
+        .withAppId("stack2", "app2", "stage2")
+        .withCompletionAt(DateTime.now())
+      val older2 = latest2
+        .withCompletionAt(DateTime.now().minusDays(2))
 
-    "non-lambda runs are included with name as app, and sorted accordingly" ignore {}
+      relevantRuns(List(latest1, older1, latest2, older2)) should contain only(latest1, latest2)
+    }
+
+    "sorts on high before everything" in {
+      val app1 = assessmentRun
+        .withAppId("stack1", "app1", "stage1")
+        .withFindings(2, 0, 0, 0)
+      val app2 = assessmentRun
+        .withAppId("stack2", "app2", "stage2")
+        .withFindings(1, 10, 10, 10)
+
+      relevantRuns(List(app2, app1)) shouldEqual List(app1, app2)
+    }
+
+    "sorts on medium before low and info" in {
+      val app1 = assessmentRun
+        .withAppId("stack1", "app1", "stage1")
+        .withFindings(0, 2, 0, 0)
+      val app2 = assessmentRun
+        .withAppId("stack2", "app2", "stage2")
+        .withFindings(0, 1, 10, 10)
+
+      relevantRuns(List(app2, app1)) shouldEqual List(app1, app2)
+    }
+
+    "sorts on low before info" in {
+      val app1 = assessmentRun
+        .withAppId("stack1", "app1", "stage1")
+        .withFindings(0, 0, 2, 0)
+      val app2 = assessmentRun
+        .withAppId("stack2", "app2", "stage2")
+        .withFindings(0, 0, 1, 10)
+
+      relevantRuns(List(app2, app1)) shouldEqual List(app1, app2)
+    }
   }
 
   "levelColour" - {
@@ -146,28 +196,28 @@ class InspectorResultsTest extends FreeSpec with Matchers {
   "levelFindings" - {
     "returns total high findings" in {
       val results = List(
-        arWithFindings(1, 0, 0, 0), arWithFindings(2, 0, 0, 0), arWithFindings(3, 0, 0, 0)
+        assessmentRun.withFindings(1, 0, 0, 0), assessmentRun.withFindings(2, 0, 0, 0), assessmentRun.withFindings(3, 0, 0, 0)
       )
       levelFindings("High", results) shouldEqual 6
     }
 
     "returns total medium findings" in {
       val results = List(
-        arWithFindings(0, 1, 0, 0), arWithFindings(0, 2, 0, 0), arWithFindings(0, 3, 0, 0)
+        assessmentRun.withFindings(0, 1, 0, 0), assessmentRun.withFindings(0, 2, 0, 0), assessmentRun.withFindings(0, 3, 0, 0)
       )
       levelFindings("Medium", results) shouldEqual 6
     }
 
     "returns total low findings" in {
       val results = List(
-        arWithFindings(0, 0, 1, 0), arWithFindings(0, 0, 2, 0), arWithFindings(0, 0, 3, 0)
+        assessmentRun.withFindings(0, 0, 1, 0), assessmentRun.withFindings(0, 0, 2, 0), assessmentRun.withFindings(0, 0, 3, 0)
       )
       levelFindings("Low", results) shouldEqual 6
     }
 
     "returns total info findings" in {
       val results = List(
-        arWithFindings(0, 0, 0, 1), arWithFindings(0, 0, 0, 2), arWithFindings(0, 0, 0, 3)
+        assessmentRun.withFindings(0, 0, 0, 1), assessmentRun.withFindings(0, 0, 0, 2), assessmentRun.withFindings(0, 0, 0, 3)
       )
       levelFindings("Informational", results) shouldEqual 6
     }
@@ -180,7 +230,7 @@ class InspectorResultsTest extends FreeSpec with Matchers {
 
     "returns sum for a list of runs" in {
       val results = List(
-        arWithFindings(1, 0, 0, 0), arWithFindings(0, 1, 0, 0), arWithFindings(0, 0, 1, 0), arWithFindings(0, 0, 0, 1)
+        assessmentRun.withFindings(1, 0, 0, 0), assessmentRun.withFindings(0, 1, 0, 0), assessmentRun.withFindings(0, 0, 1, 0), assessmentRun.withFindings(0, 0, 0, 1)
       )
       totalFindings(results) shouldEqual 4
     }
@@ -190,49 +240,81 @@ class InspectorResultsTest extends FreeSpec with Matchers {
     "puts failed results at the bottom" in {
       val results = List(
         () -> Left(()),
-        () -> Right(List(arWithFindings(1, 0, 0, 0)))
+        () -> Right(List(assessmentRun.withFindings(1, 0, 0, 0)))
       )
       sortAccountResults(results) shouldEqual List(
-        () -> Right(List(arWithFindings(1, 0, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(1, 0, 0, 0))),
         () -> Left(())
       )
     }
 
-    "sorts by Highs before Mediums" in {
+    "sorts by Highs before everything" in {
       val results = List(
-        () -> Right(List(arWithFindings(1, 2, 0, 0))),
-        () -> Right(List(arWithFindings(2, 1, 0, 0)))
+        () -> Right(List(assessmentRun.withFindings(1, 10, 10, 10))),
+        () -> Right(List(assessmentRun.withFindings(2, 0, 0, 0)))
       )
       sortAccountResults(results) shouldEqual List(
-        () -> Right(List(arWithFindings(2, 1, 0, 0))),
-        () -> Right(List(arWithFindings(1, 2, 0, 0)))
+        () -> Right(List(assessmentRun.withFindings(2, 0, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(1, 10, 10, 10)))
+      )
+    }
+
+    "sorts by Mediums before Lows and Infos" in {
+      val results = List(
+        () -> Right(List(assessmentRun.withFindings(0, 1, 10, 10))),
+        () -> Right(List(assessmentRun.withFindings(0, 2, 0, 0)))
+      )
+      sortAccountResults(results) shouldEqual List(
+        () -> Right(List(assessmentRun.withFindings(0, 2, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(0, 1, 10, 10)))
+      )
+    }
+
+    "sorts by Lows before Infos" in {
+      val results = List(
+        () -> Right(List(assessmentRun.withFindings(0, 0, 1, 10))),
+        () -> Right(List(assessmentRun.withFindings(0, 0, 2, 0)))
+      )
+      sortAccountResults(results) shouldEqual List(
+        () -> Right(List(assessmentRun.withFindings(0, 0, 2, 0))),
+        () -> Right(List(assessmentRun.withFindings(0, 0, 1, 10)))
       )
     }
 
     "sorts by example correctly" in {
       val results = List(
-        () -> Right(List(arWithFindings(2, 1, 1, 0))),
-        () -> Right(List(arWithFindings(1, 1, 0, 0))),
-        () -> Right(List(arWithFindings(3, 2, 0, 0))),
-        () -> Right(List(arWithFindings(2, 2, 0, 0)))
+        () -> Right(List(assessmentRun.withFindings(2, 1, 1, 0))),
+        () -> Right(List(assessmentRun.withFindings(1, 1, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(3, 2, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(2, 2, 0, 0)))
       )
       sortAccountResults(results) shouldEqual List(
-        () -> Right(List(arWithFindings(3, 2, 0, 0))),
-        () -> Right(List(arWithFindings(2, 2, 0, 0))),
-        () -> Right(List(arWithFindings(2, 1, 1, 0))),
-        () -> Right(List(arWithFindings(1, 1, 0, 0)))
+        () -> Right(List(assessmentRun.withFindings(3, 2, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(2, 2, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(2, 1, 1, 0))),
+        () -> Right(List(assessmentRun.withFindings(1, 1, 0, 0)))
       )
     }
   }
 
-  def arWithFindings(high: Int, medium: Int, low: Int, info: Int): InspectorAssessmentRun = {
-    testAssessmentRun.copy(
-      findingCounts = Map(
-        "High" -> high,
-        "Medium" -> medium,
-        "Low" -> low,
-        "Informational" -> info
+  implicit class TestInspectorAssessmentRun(iar: InspectorAssessmentRun) {
+    def withFindings(high: Int, medium: Int, low: Int, info: Int): InspectorAssessmentRun = {
+      iar.copy(
+        findingCounts = Map(
+          "High" -> high,
+          "Medium" -> medium,
+          "Low" -> low,
+          "Informational" -> info
+        )
       )
-    )
+    }
+
+    def withCompletionAt(completionTime: DateTime): InspectorAssessmentRun = {
+      iar.copy(completedAt = completionTime)
+    }
+
+    def withAppId(stack: String, app: String, stage: String): InspectorAssessmentRun = {
+      iar.copy(appId = (stack, app, stage))
+    }
   }
 }
