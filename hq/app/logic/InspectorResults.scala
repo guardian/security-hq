@@ -10,14 +10,14 @@ import scala.collection.JavaConverters._
 
 object InspectorResults {
   private val tagMatch = "[\\w\\-_\\.]"
-  val RunNameMatch = s"AWSInspection-($tagMatch+)-($tagMatch+)-($tagMatch+)-[\\d]+".r
+  val RunNameMatch = s"AWSInspection--($tagMatch+)--($tagMatch+)--($tagMatch+)--[\\d]+".r
 
-  def appId(assessmentRunName: String): (String, String, String) = {
+  def appId(assessmentRunName: String): Option[(String, String, String)] = {
     assessmentRunName match {
       case RunNameMatch(stack, app, stage) =>
-        (stack, app, stage)
+        Some((stack, app, stage))
       case _ =>
-        ("", assessmentRunName, "")
+        None
     }
   }
 
@@ -45,26 +45,37 @@ object InspectorResults {
   }
 
   def parseDescribeAssessmentRunsResult(result: DescribeAssessmentRunsResult): List[InspectorAssessmentRun] = {
-    result.getAssessmentRuns.asScala.toList.map(parseAssessmentRun)
+    result.getAssessmentRuns.asScala.toList.flatMap(parseCompletedAssessmentRun)
   }
 
-  private[logic] def parseAssessmentRun(assessmentRun: AssessmentRun): InspectorAssessmentRun = {
-    InspectorAssessmentRun(
-      arn = assessmentRun.getArn,
-      name = assessmentRun.getName,
-      appId = InspectorResults.appId(assessmentRun.getName),
-      assessmentTemplateArn = assessmentRun.getAssessmentTemplateArn,
-      state = assessmentRun.getState,
-      durationInSeconds = assessmentRun.getDurationInSeconds,
-      rulesPackageArns = assessmentRun.getRulesPackageArns.asScala.toList,
-      userAttributesForFindings = assessmentRun.getUserAttributesForFindings.asScala.toList.map(attr => (attr.getKey, attr.getValue)),
-      createdAt = new DateTime(assessmentRun.getCreatedAt),
-      startedAt = new DateTime(assessmentRun.getStartedAt),
-      completedAt = new DateTime(assessmentRun.getCompletedAt),
-      stateChangedAt = new DateTime(assessmentRun.getStateChangedAt),
-      dataCollected = assessmentRun.getDataCollected,
-      findingCounts = assessmentRun.getFindingCounts.asScala.toMap.mapValues(_.toInt)
-    )
+  /**
+    * Parses a *completed* assessment, if it matches the format used by our automatic inspection service.
+    */
+  private[logic] def parseCompletedAssessmentRun(assessmentRun: AssessmentRun): Option[InspectorAssessmentRun] = {
+    if (assessmentRun.getState != "COMPLETED" || assessmentRun.getDataCollected != true) {
+      None
+    } else {
+      for {
+        appId <- InspectorResults.appId(assessmentRun.getName)
+      } yield {
+        InspectorAssessmentRun(
+          arn = assessmentRun.getArn,
+          name = assessmentRun.getName,
+          appId = appId,
+          assessmentTemplateArn = assessmentRun.getAssessmentTemplateArn,
+          state = assessmentRun.getState,
+          durationInSeconds = assessmentRun.getDurationInSeconds,
+          rulesPackageArns = assessmentRun.getRulesPackageArns.asScala.toList,
+          userAttributesForFindings = assessmentRun.getUserAttributesForFindings.asScala.toList.map(attr => (attr.getKey, attr.getValue)),
+          createdAt = new DateTime(assessmentRun.getCreatedAt),
+          startedAt = new DateTime(assessmentRun.getStartedAt),
+          completedAt = new DateTime(assessmentRun.getCompletedAt),
+          stateChangedAt = new DateTime(assessmentRun.getStateChangedAt),
+          dataCollected = assessmentRun.getDataCollected,
+          findingCounts = assessmentRun.getFindingCounts.asScala.toMap.mapValues(_.toInt)
+        )
+      }
+    }
   }
 
   def sortAccountResults[A, B](accountResults: List[(A, scala.Either[B, List[InspectorAssessmentRun]])]): List[(A, scala.Either[B, List[InspectorAssessmentRun]])] = {
