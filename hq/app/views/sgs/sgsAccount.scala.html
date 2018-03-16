@@ -15,6 +15,7 @@
             <ul class="tabs tabs-transparent">
                 <li class="tab col s3"><a target="_self" class="active" href="/security-groups/@awsAccount.id"><i class="material-icons left">vpn_lock</i>Security Groups</a></li>
                 <li class="tab col s3"><a target="_self" href="/iam/@awsAccount.id"><i class="material-icons left">vpn_key</i>IAM Report</a></li>
+                <li class="tab col s3"><a target="_self" href="/inspector/@awsAccount.id"><i class="material-icons left">assignment</i>Inspector</a></li>
             </ul>
         </div>
     </div>
@@ -36,13 +37,13 @@
                 <div class="row">
                     <div class="card-panel valign-wrapper">
                         <i class="material-icons left">visibility_off</i>
-                        <span class="sg-header__name">Some Security Groups have been ignored due to settings in AWS Trusted Advisor</span>
+                        <span class="finding-header__name">Some Security Groups have been ignored due to settings in AWS Trusted Advisor</span>
 
-                        <form class="sg-filter" action="#">
-                            <input class="js-sg-filter" type="checkbox" id="show-flagged-sgs" checked="checked" />
-                            <label class="black-text sg-filter__label" for="show-flagged-sgs">Show flagged</label>
-                            <input class="js-sg-filter" type="checkbox" id="show-ignored-sgs" />
-                            <label class="black-text sg-filter__label" for="show-ignored-sgs">Show ignored</label>
+                        <form class="finding-filter" action="#">
+                            <input class="js-finding-filter" type="checkbox" id="show-flagged-findings" checked="checked" />
+                            <label class="black-text finding-filter__label" for="show-flagged-findings">Show flagged</label>
+                            <input class="js-finding-filter" type="checkbox" id="show-ignored-findings" />
+                            <label class="black-text finding-filter__label" for="show-ignored-findings">Show ignored</label>
                         </form>
                     </div>
                 </div>

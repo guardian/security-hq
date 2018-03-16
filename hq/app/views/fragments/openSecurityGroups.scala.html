@@ -30,9 +30,9 @@
     }
 }
 
-<div class="sg-container">
+<div class="finding-container">
 @for((flaggedSg, usages) <- flaggedSgs) {
-    <div class="sg-container__card sg-suppressed--@flaggedSg.isSuppressed">
+    <div class="finding-container__card finding-suppressed--@flaggedSg.isSuppressed">
         <div class="card @if(!shadow){z-depth-0}">
             <div class="card-content card-content--title">
                 <span class="card-title">@flaggedSg.name
@@ -45,7 +45,7 @@
                 flaggedSg.alertLevel.toLowerCase
             } darken-1"></div>
             <div class="card-content card-content--body">
-                <table class="sg-details__table">
+                <table class="finding-details__table">
                     <tbody>
                         <tr>
                             <th>Port</th>
@@ -96,7 +96,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="card-action sg-card-action">
+            <div class="card-action finding-card-action">
 
             @if(usages.isEmpty) {
                 <a class="btn usage-cta" href="#" disabled>Not in use</a>
@@ -106,9 +106,9 @@
                     @resourceList(flaggedSg, usages)
 
                 } else {
-                    <ul class="collapsible sg-details js-sg-details" data-collapsible="expandable">
-                        <li class="sg-details__list">
-                            <div class="collapsible-header sg-details__header"><i class="material-icons">expand_more</i>
+                    <ul class="collapsible finding-details js-finding-details" data-collapsible="expandable">
+                        <li class="finding-details__list">
+                            <div class="collapsible-header finding-details__header"><i class="material-icons">expand_more</i>
 
                               @defining(resourceIcons(usages.toList)) { iconCounts =>
                                   @if(iconCounts.instances > 0) {
@@ -126,7 +126,7 @@
                               }
 
                             </div>
-                        <div class="collapsible-body sg-details__body">
+                        <div class="collapsible-body finding-details__body">
                             @resourceList(flaggedSg, usages)
                         </div>
                         </li>

@@ -27,7 +27,7 @@ $(document).ready(function() {
   });
 
   // Extra interactions for the dropdowns on the Security Groups page
-  $('.js-sg-details').hover(
+  $('.js-finding-details').hover(
     function() {
       $(this).collapsible('open', 0);
     },
@@ -36,16 +36,16 @@ $(document).ready(function() {
     }
   );
 
-  $('.js-sg-filter').change(function() {
-    $('#show-ignored-sgs')[0].checked
-      ? $('.sg-suppressed--true').show()
-      : $('.sg-suppressed--true').hide();
-    $('#show-flagged-sgs')[0].checked
-      ? $('.sg-suppressed--false').show()
-      : $('.sg-suppressed--false').hide();
+  $('.js-finding-filter').change(function() {
+    $('#show-ignored-findings')[0].checked
+      ? $('.finding-suppressed--true').show()
+      : $('.finding-suppressed--true').hide();
+    $('#show-flagged-findings')[0].checked
+      ? $('.finding-suppressed--false').show()
+      : $('.finding-suppressed--false').hide();
   });
 
-  $('.js-sg-details').click(function() {
+  $('.js-finding-details').click(function() {
     $(this).collapsible('destroy');
 
     var clicks = $(this).data('clicks') || false;
@@ -59,7 +59,7 @@ $(document).ready(function() {
   });
 
   // Functionality for the floating menus on the Security Groups page
-  $('.js-sg-pin-close').click(function() {
+  $('.js-finding-pin-close').click(function() {
     $('html, body')
       .stop()
       .animate(
@@ -75,8 +75,8 @@ $(document).ready(function() {
     $('.collapsible').collapsible({ accordion: false });
   });
 
-  $('.js-sg-pin-top').click(function() {
-    const scrollTarget = $(this).closest('.js-sg-scroll');
+  $('.js-finding-pin-top').click(function() {
+    const scrollTarget = $(this).closest('.js-finding-scroll');
     $('html, body')
       .stop()
       .animate(
@@ -87,8 +87,8 @@ $(document).ready(function() {
       );
   });
 
-  $('.js-sg-pin-end').click(function() {
-    const scrollTarget = $(this).closest('.js-sg-scroll');
+  $('.js-finding-pin-end').click(function() {
+    const scrollTarget = $(this).closest('.js-finding-scroll');
     $('html, body')
       .stop()
       .animate(

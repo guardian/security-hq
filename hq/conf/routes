@@ -4,20 +4,26 @@
 
 # An example controller showing a sample home page
 GET        /                                          controllers.HQController.index
-
 GET        /iam                                       controllers.HQController.iam
 GET        /iam/:accountId                            controllers.HQController.iamAccount(accountId)
+
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
+
 GET        /snyk                                      controllers.SnykController.snyk
+
+GET        /inspector                                 controllers.InspectorController.inspector
+GET        /inspector/:accountId                      controllers.InspectorController.inspectorAccount(accountId)
+
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback
 GET        /logout                                    controllers.AuthController.logout
+
 GET        /documentation/                            controllers.UtilityController.documentation(file = "index")
 GET        /documentation/:file                       controllers.UtilityController.documentation(file)
-
 GET        /healthcheck                               controllers.UtilityController.healthcheck
+
 GET        /build                                     controllers.Assets.at(path = "/public", file = "build.json")
 
 # Map static resources from the /public folder to the /assets URL path
