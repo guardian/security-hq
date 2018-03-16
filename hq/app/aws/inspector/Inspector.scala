@@ -9,8 +9,7 @@ import com.amazonaws.services.inspector.{AmazonInspectorAsync, AmazonInspectorAs
 import logic.InspectorResults
 import logic.InspectorResults._
 import model.{AwsAccount, InspectorAssessmentRun}
-import org.joda.time.DateTime
-import utils.attempt.Attempt
+import utils.attempt.{Attempt, FailedAttempt}
 
 import collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -45,8 +44,12 @@ object Inspector {
     }
   }
 
+  def allInspectorRuns(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]])]] = {
+    Attempt.labelledTaverseWithFailures(accounts)(Inspector.inspectorRuns)
+  }
+
   def inspectorRuns(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {
-    val region = Regions.EU_WEST_1  // for now
+    val region = Regions.EU_WEST_1  // we only automatically run inspections in Ireland
     val inspectorClient = client(account, region)
     for {
       inspectorRunArns <- Inspector.listInspectorRuns(inspectorClient)
