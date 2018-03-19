@@ -6,12 +6,12 @@ import com.amazonaws.services.inspector.model.{AssessmentRun, ListAssessmentRuns
 import logic.InspectorResults._
 import model.InspectorAssessmentRun
 import org.joda.time.DateTime
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.{FreeSpec, Matchers, OptionValues}
 
 import scala.collection.JavaConverters._
 
 
-class InspectorResultsTest extends FreeSpec with Matchers {
+class InspectorResultsTest extends FreeSpec with Matchers with OptionValues {
   val assessmentRun = InspectorAssessmentRun(
     "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
     DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,
@@ -26,22 +26,23 @@ class InspectorResultsTest extends FreeSpec with Matchers {
   }
 
   "parseAssessmentRun" - {
+    val assessmentRun = new AssessmentRun()
+      .withArn("arn:123")
+      .withName("AWSInspection--stack--app--stage--1520873440000")
+      .withAssessmentTemplateArn("arn:template")
+      .withState("COMPLETED")
+      .withDurationInSeconds(123)
+      .withRulesPackageArns("arn:rules1", "arn:rules2")
+      .withUserAttributesForFindings()
+      .withCreatedAt(new Date())
+      .withStartedAt(new Date())
+      .withCompletedAt(new GregorianCalendar(2018, 2, 13, 0, 0, 0).getTime)
+      .withStartedAt(new Date())
+      .withDataCollected(true)
+      .withFindingCounts(Map("low" -> new Integer(1)).asJava)
+
     "correctly extracts some of the important fields" in {
-      val assessmentRun = new AssessmentRun()
-        .withArn("arn:123")
-        .withName("AWSInspection--stack--app--stage--1520873440000")
-        .withAssessmentTemplateArn("arn:template")
-        .withState("state")
-        .withDurationInSeconds(123)
-        .withRulesPackageArns("arn:rules1", "arn:rules2")
-        .withUserAttributesForFindings()
-        .withCreatedAt(new Date())
-        .withStartedAt(new Date())
-        .withCompletedAt(new GregorianCalendar(2018, 2, 13, 0, 0, 0).getTime)
-        .withStartedAt(new Date())
-        .withDataCollected(true)
-        .withFindingCounts(Map("low" -> new Integer(1)).asJava)
-      parseAssessmentRun(assessmentRun) should have(
+      parseCompletedAssessmentRun(assessmentRun).value should have(
         'arn ("arn:123"),
         'name ("AWSInspection--stack--app--stage--1520873440000"),
         'appId ("stack", "app", "stage"),
@@ -50,20 +51,33 @@ class InspectorResultsTest extends FreeSpec with Matchers {
         'findingCounts (Map("low" -> 1))
       )
     }
+
+    "fails to parse an incomplete assessment run" in {
+      val runningAssessmentRun = assessmentRun
+        .withState("COLLECTING_DATA")
+        .withDataCollected(false)
+      parseCompletedAssessmentRun(runningAssessmentRun) shouldBe None
+    }
+
+    "fails to parse an assessment run that does not match the format used by our automated tool" in {
+      val runningAssessmentRun = assessmentRun
+        .withName("Not our tool")
+      parseCompletedAssessmentRun(runningAssessmentRun) shouldBe None
+    }
   }
 
   "appId" - {
     "parses a valid lambda inspector name" in {
-      appId("AWSInspection--stack--app--stage--1520873440000") shouldEqual ("stack", "app", "stage")
+      appId("AWSInspection--stack--app--stage--1520873440000").value shouldEqual ("stack", "app", "stage")
     }
 
     "parses a valid lambda inspector name with funny chars in the tags" in {
-      val result = appId("AWSInspection--stack-with-hyphens--app_with_underscores--stage.with.dots--1520873440000")
+      val result = appId("AWSInspection--stack-with-hyphens--app_with_underscores--stage.with.dots--1520873440000").value
       result shouldEqual ("stack-with-hyphens", "app_with_underscores", "stage.with.dots")
     }
 
-    "uses entire name as app if it does not match the expected format" in {
-      appId("something-else") shouldEqual ("", "something-else", "")
+    "returns None if it does not match the expected format" in {
+      appId("something-else") shouldBe None
     }
   }
 
