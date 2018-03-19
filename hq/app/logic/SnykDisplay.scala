@@ -26,7 +26,7 @@ object SnykDisplay {
     case _ => SnykError(s)
   }
 
-  def parseJsonToObject[A](label: String, rawJson: String, f: (String => JsResult[A])): Attempt[A] = Try(f(rawJson)) match {
+  def parseJsonToObject[A](label: String, rawJson: String, f: String => JsResult[A]): Attempt[A] = Try(f(rawJson)) match {
     case Success(JsSuccess(parsedObject, _)) => Attempt.Right(parsedObject)
     case Success(JsError(e)) =>
       val error = parseJsonToError(rawJson)
@@ -51,7 +51,8 @@ object SnykDisplay {
   def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
     parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
 
-  def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
+  def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] =
+    Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
 
   def linkToSnykProject(snykProjectIssues: SnykProjectIssues, queryString: Option[String]): String = snykProjectIssues.project match {
     case Some(project) if project.organisation.nonEmpty =>
@@ -60,7 +61,9 @@ object SnykDisplay {
   }
 
   def labelOrganisations(orgAndProjects: List[((SnykOrganisation, String), List[SnykProject])]): List[SnykProject] =
-    orgAndProjects.flatMap{ case ((organisation, _), projects) => projects.map(project => project.copy(organisation = Some(organisation)))}
+    orgAndProjects.flatMap { case ((organisation, _), projects) =>
+      projects.map(project => project.copy(organisation = Some(organisation)))
+    }
 
   def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] =
     projects.zip(responses).map { case (project, issues) =>

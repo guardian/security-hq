@@ -2,7 +2,7 @@ package api
 
 import model._
 import play.api.libs.json._
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{WSClient, WSResponse}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -10,7 +10,7 @@ import scala.util.control.NonFatal
 
 object Snyk {
 
-  def snykRequest(token:SnykToken, url:String, wsClient: WSClient) = 
+  private def snykRequest(token:SnykToken, url:String, wsClient: WSClient) =
     wsClient.url(url).addHttpHeaders("Authorization" -> s"token ${token.value}")
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
@@ -52,9 +52,9 @@ object Snyk {
     }
   }
 
-  def handleFuture[A](future: Future[A], label: String)(implicit ec: ExecutionContext) = Attempt.fromFuture(future) {
+  def handleFuture[A](future: Future[A], label: String)(implicit ec: ExecutionContext): Attempt[A] = Attempt.fromFuture(future) {
     case NonFatal(e) =>
-      val failure = Failure(e.getMessage, s"Could not read ${label} from Snyk", 502, None, Some(e))
+      val failure = Failure(e.getMessage, s"Could not read $label from Snyk", 502, None, Some(e))
       FailedAttempt(failure)
   }
 }

@@ -9,7 +9,6 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 import logic.SnykDisplay
 import api.Snyk
-import com.gu.configraun.Errors.ConfigraunError
 import com.gu.googleauth.GoogleAuthConfig
 import utils.attempt.{Attempt, Failure}
 import utils.attempt.PlayIntegration.attempt
