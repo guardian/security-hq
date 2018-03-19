@@ -57,7 +57,10 @@ object SnykDisplay {
   def labelOrganisations(orgAndProjects: List[((SnykOrganisation, String), List[SnykProject])]): List[SnykProject] =
     orgAndProjects.flatMap{ case ((organisation, _), projects) => projects.map(project => project.copy(organisation = Some(organisation)))}
 
-  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] = projects.zip(responses).map(a => a._2.copy(project = Some(a._1)))
+  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] =
+    projects.zip(responses).map { case (project, issues) =>
+      issues.copy(project = Some(project))
+    }
 
   def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
     projects.sortBy(spi => (-spi.high, -spi.medium, -spi.low, spi.project.get.name))
