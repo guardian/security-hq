@@ -52,9 +52,7 @@ object InspectorResults {
     * Parses a *completed* assessment, if it matches the format used by our automatic inspection service.
     */
   private[logic] def parseCompletedAssessmentRun(assessmentRun: AssessmentRun): Option[InspectorAssessmentRun] = {
-    if (assessmentRun.getState != "COMPLETED" || assessmentRun.getDataCollected != true) {
-      None
-    } else {
+    if (assessmentRun.getState == "COMPLETED" && assessmentRun.getDataCollected == true) {
       for {
         appId <- InspectorResults.appId(assessmentRun.getName)
       } yield {
@@ -75,6 +73,8 @@ object InspectorResults {
           findingCounts = assessmentRun.getFindingCounts.asScala.toMap.mapValues(_.toInt)
         )
       }
+    } else {
+      None
     }
   }
 
