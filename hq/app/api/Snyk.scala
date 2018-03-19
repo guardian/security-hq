@@ -20,10 +20,10 @@ object Snyk {
   }
 
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
-    Attempt.traverse(organisations) { organisation =>
+    Attempt.labelledTraverse(organisations) { organisation =>
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
       val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get
-        .transform(response => (organisation, response.body), f => f )
+        .map(response => response.body)
       handleFuture(futureResponse, "project")
     }
   }

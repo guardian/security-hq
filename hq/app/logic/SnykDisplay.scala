@@ -37,7 +37,7 @@ object SnykDisplay {
       Attempt.Left(failure)
   }
 
-  def getProjectIdList(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] =
+  def parseProjectResponses(organisationAndRequestList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[((SnykOrganisation, String), List[SnykProject])]] =
     Attempt.labelledTraverse(organisationAndRequestList) { case (_, body) =>
       parseJsonToProjectIdList(body)
     }

@@ -58,7 +58,7 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
   "find projects" - {
     val mockGoodProjectResponse = readFile("goodProjectResponse")
-    val projects = SnykDisplay.getProjectIdList(
+    val projects = SnykDisplay.parseProjectResponses(
       List(
         (
           SnykOrganisation("1111111111", "1111111111", None),
@@ -76,24 +76,24 @@ class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
   "fail to find project list" - {
     "bad response" in {
-      val projects = SnykDisplay.getProjectIdList(List((SnykOrganisation("dummy", "dummy", None), s"""response is not json!""")))
+      val projects = SnykDisplay.parseProjectResponses(List((SnykOrganisation("dummy", "dummy", None), s"""response is not json!""")))
       projects.isFailedAttempt shouldBe true
       projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (response is not json!)"
     }
     "fail to find project id list (nice) - fails" in {
-      val projects = SnykDisplay.getProjectIdList(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithMessage)))
+      val projects = SnykDisplay.parseProjectResponses(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithMessage)))
       projects.isFailedAttempt shouldBe true
     }
     "fail to find project id list (nice) - has message" in {
-      val projects = SnykDisplay.getProjectIdList(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithMessage)))
+      val projects = SnykDisplay.parseProjectResponses(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithMessage)))
       projects.getFailedAttempt.failures.head.friendlyMessage shouldBe "Could not read Snyk response (some nice error)"
     }
     "fail to find project id list (not nice) - fails" in {
-      val projects = SnykDisplay.getProjectIdList(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithoutMessage)))
+      val projects = SnykDisplay.parseProjectResponses(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithoutMessage)))
       projects.isFailedAttempt shouldBe true
     }
     "fail to find project id list (not nice) - has message" in {
-      val projects = SnykDisplay.getProjectIdList(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithoutMessage)))
+      val projects = SnykDisplay.parseProjectResponses(List((SnykOrganisation("dummy", "dummy", None), mockBadResponseWithoutMessage)))
       projects.getFailedAttempt.failures.head.friendlyMessage shouldBe """Could not read Snyk response ({"toughluck": "no use"})"""
     }
   }

@@ -39,7 +39,7 @@ class SnykController(val config: Configuration, val configraun: com.gu.configrau
           organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, requiredOrganisation)
 
           projectResponses <- Snyk.getProjects(token, organisations, wsClient)
-          organisationAndProjects <- SnykDisplay.getProjectIdList(projectResponses)
+          organisationAndProjects <- SnykDisplay.parseProjectResponses(projectResponses)
           labelledProjects = SnykDisplay.labelOrganisations(organisationAndProjects)
 
           vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(labelledProjects, token, wsClient)
