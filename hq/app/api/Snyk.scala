@@ -5,7 +5,7 @@ import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 object Snyk {
@@ -52,7 +52,7 @@ object Snyk {
     }
   }
 
-  def handleFuture[A](future: scala.concurrent.Future[A], label: String)(implicit ec: ExecutionContext) = Attempt.fromFuture(future) {
+  def handleFuture[A](future: Future[A], label: String)(implicit ec: ExecutionContext) = Attempt.fromFuture(future) {
     case NonFatal(e) =>
       val failure = Failure(e.getMessage, s"Could not read ${label} from Snyk", 502, None, Some(e))
       FailedAttempt(failure)
