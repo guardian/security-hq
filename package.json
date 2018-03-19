@@ -25,9 +25,9 @@
     "prettier": "prettier -o --write './**/*.{js,css}'",
     "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
     "not-master": "test \"$BRANCH_NAME\" != \"master\" && echo \"BRANCH_NAME variable is '$BRANCH_NAME', not master\" ",
-    "snyk-test": "PATH=$(pwd):$PATH snyk test --debug --org=guardian-cuu --json --file=build.sbt ",
+    "snyk-test": "PATH=$(pwd):$PATH snyk test --debug --org=guardian-security --json --file=build.sbt ",
     "snyk-test-master": "npm run not-master --silent || npm run snyk-test --silent ",
-    "snyk-monitor": "PATH=$(pwd):$PATH snyk monitor --debug --org=guardian-cuu --file=build.sbt ",
+    "snyk-monitor": "PATH=$(pwd):$PATH snyk monitor --debug --org=guardian-security --file=build.sbt ",
     "snyk-monitor-master": "npm run not-master --silent || npm run snyk-monitor --silent "
   }
 }
