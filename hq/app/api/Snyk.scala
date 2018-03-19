@@ -10,7 +10,8 @@ import scala.util.control.NonFatal
 
 object Snyk {
 
-  def snykRequest(token:SnykToken, url:String, wsClient: WSClient) = wsClient.url(url).addHttpHeaders("Authorization" -> s"token ${token.value}")
+  def snykRequest(token:SnykToken, url:String, wsClient: WSClient) = 
+    wsClient.url(url).addHttpHeaders("Authorization" -> s"token ${token.value}")
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
