@@ -2,6 +2,7 @@ package services
 
 import aws.ec2.EC2
 import aws.iam.IAMClient
+import aws.inspector.Inspector
 import aws.support.TrustedAdvisorExposedIAMKeys
 import com.gu.Box
 import config.Config
@@ -22,6 +23,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
+  private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
 
   def getAllCredentials(): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
 
@@ -47,6 +49,15 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
     sgsBox.get().getOrElse(
       awsAccount,
       Left(Failure.cacheServiceError(awsAccount.id, "security group").attempt)
+    )
+  }
+
+  def getAllInspectorResults(): Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]] = inspectorBox.get()
+
+  def getInspectorResultsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[InspectorAssessmentRun]] = {
+    inspectorBox.get().getOrElse(
+      awsAccount,
+      Left(Failure.cacheServiceError(awsAccount.id, "AWS Inspector results").attempt)
     )
   }
 
@@ -81,23 +92,38 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
     }
   }
 
+  def refreshInspectorBox(): Unit = {
+    Logger.info("Started refresh of the AWS Inspector data")
+    for {
+      allInspectorRuns <- Inspector.allInspectorRuns(accounts)
+    } yield {
+      Logger.info("Sending the refreshed data to the AWS Inspector Box")
+      inspectorBox.send(allInspectorRuns.toMap)
+    }
+  }
+
   if (environment.mode != Mode.Test) {
     val credentialsSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
       refreshCredentialsBox()
     }
 
-    val exposedKeysSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
+    val exposedKeysSubscription = Observable.interval(1000.millis, 5.minutes).subscribe { _ =>
       refreshExposedKeysBox()
     }
 
-    val sgSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
+    val sgSubscription = Observable.interval(1500.millis, 5.minutes).subscribe { _ =>
       refreshSgsBox()
+    }
+
+    val inspectorSubscription = Observable.interval(2000.millis, 6.hours).subscribe { _ =>
+      refreshInspectorBox()
     }
 
     lifecycle.addStopHook { () =>
       credentialsSubscription.unsubscribe()
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
+      inspectorSubscription.unsubscribe()
       Future.successful(())
     }
   }
