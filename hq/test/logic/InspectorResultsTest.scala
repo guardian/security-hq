@@ -76,6 +76,21 @@ class InspectorResultsTest extends FreeSpec with Matchers with OptionValues {
       result shouldEqual ("stack-with-hyphens", "app_with_underscores", "stage.with.dots")
     }
 
+    "parses a valid lambda inspector name with missing stack" in {
+      val result = appId("AWSInspection----app--stage--1520873440000").value
+      result shouldEqual ("", "app", "stage")
+    }
+
+    "parses a valid lambda inspector name with missing app" in {
+      val result = appId("AWSInspection--stack----stage--1520873440000").value
+      result shouldEqual ("stack", "", "stage")
+    }
+
+    "parses a valid lambda inspector name with missing stage" in {
+      val result = appId("AWSInspection--stack--app----1520873440000").value
+      result shouldEqual ("stack", "app", "")
+    }
+
     "returns None if it does not match the expected format" in {
       appId("something-else") shouldBe None
     }
