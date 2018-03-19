@@ -15,7 +15,6 @@ import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.CacheService
 
-
 class AppComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
   with CSRFComponents

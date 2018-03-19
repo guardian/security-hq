@@ -93,7 +93,7 @@ object EC2 {
   private [ec2] def sortSecurityGroupsByInUse(sgsPortFlags : List[SGOpenPortsDetail], sgUsage: Map[String, Set[SGInUse]]) = {
     sgsPortFlags
       .map(sgOpenPortsDetail => sgOpenPortsDetail -> sgUsage.getOrElse(sgOpenPortsDetail.id, Set.empty))
-      .sortWith{ case  ((_, s1), (_, s2)) => s1.size > s2.size }
+      .sortWith { case  ((_, s1), (_, s2)) => s1.size > s2.size }
   }
 
   def sortAccountByFlaggedSgs[L, R](accountsWithFlaggedSgs: List[(AwsAccount, Either[L, List[R]])]): List[(AwsAccount, Either[L, List[R]])] = {

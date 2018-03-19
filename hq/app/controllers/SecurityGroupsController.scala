@@ -26,7 +26,7 @@ class SecurityGroupsController(val config: Configuration, cacheService: CacheSer
     Ok(views.html.sgs.sgs(sortedFlaggedSgs))
   }
 
-  def securityGroupsAccount(accountId: String) = authAction.async {
+  def securityGroupsAccount(accountId: String): Action[AnyContent] = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)

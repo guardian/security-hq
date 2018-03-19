@@ -1,0 +1,12 @@
+{
+  "orgs": [
+    {
+      "name": "guardian-org-1",
+      "id": "id1",
+      "group": {
+        "name": "guardian-org-2",
+        "id": "id2"
+      }
+    }
+  ]
+}
