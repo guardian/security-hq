@@ -7,11 +7,7 @@ object Serializers {
 
   implicit val snykErrorFormat: Reads[SnykError] = Json.reads[SnykError]
 
-  implicit val snykGroupFormat: Reads[SnykGroup] = (
-    (JsPath \ "name").read[String]
-      and
-      (JsPath \ "id").read[String]
-    )(SnykGroup.apply _)
+  implicit val snykGroupFormat: Reads[SnykGroup] = Json.reads[SnykGroup]
 
   implicit val snykOrgFormat: Reads[SnykOrganisation] = (
     (JsPath \ "name").read[String]
