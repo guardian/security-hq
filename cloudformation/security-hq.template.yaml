@@ -236,9 +236,6 @@ Resources:
           apt-get -y update
           apt-get -y upgrade
           apt-get -y install ntp
-          # setup Amazon Inspector
-          /usr/bin/wget https://d1wk0tztpsntt1.cloudfront.net/linux/latest/install
-          /bin/bash install
           echo ${Stage} > /etc/stage
           # setup security-hq
           adduser --system --home /security-hq --disabled-password security-hq
