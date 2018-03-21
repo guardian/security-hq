@@ -13,6 +13,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.258"
 val playVersion = "2.6.7"
+val jacksonVersion = "2.8.11.1"
 
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin, SbtWeb)
@@ -37,7 +38,7 @@ lazy val hq = (project in file("hq"))
       "com.vladsch.flexmark" % "flexmark-all" % "0.28.20",
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.gu" %% "box" % "0.1.0",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
@@ -89,7 +90,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.typesafe.play" %% "play-json" % playVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
       "ch.qos.logback" %  "logback-classic" % "1.2.3",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11"
+      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
 
