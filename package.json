@@ -14,7 +14,7 @@
     "materialize-css": "0.100.2",
     "prettier": "1.8.0",
     "sass-lint": "1.12.1",
-    "snyk": "1.69.3"
+    "snyk": "1.70.2"
   },
   "prettier": {
     "singleQuote": true
