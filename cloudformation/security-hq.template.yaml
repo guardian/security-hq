@@ -83,36 +83,81 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
-      ManagedPolicyArns: [ "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM" ]
-      Policies:
-      - PolicyName: security-hq-instance-policy
-        PolicyDocument:
-          Statement:
-          # needs to be able to fetch artifacts and config from S3
-          - Effect: Allow
-            Resource:
-            - !Sub arn:aws:s3:::${SecurityHQSourceBundleBucket}
-            - !Sub arn:aws:s3:::${SecurityHQSourceBundleBucket}/*
-            Action:
-            - s3:ListBucketVersions
-            - s3:ListBucket
-            - s3:GetObjectVersion
-            - s3:GetObject
-          # Get parameters from SSM
-          - Effect: Allow
-            Resource: "*"
-            Action:
-            - ssm:GetParametersByPath
-          # Describe instance tags, to find out its own stack, app, stage.
-          - Effect: Allow
-            Resource: "*"
-            Action:
-            - ec2:DescribeTags
-          # allow security HQ to assume roles in watched accounts
-          - Effect: Allow
-            Resource: "*"
-            Action:
-            - sts:AssumeRole
+
+  SecurityHQInstallBucketPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: security-hq-install-bucket-policy
+      PolicyDocument:
+        Statement:
+        # needs to be able to fetch artifacts and config from S3
+        - Effect: Allow
+          Resource:
+          - !Sub arn:aws:s3:::${SecurityHQSourceBundleBucket}
+          - !Sub arn:aws:s3:::${SecurityHQSourceBundleBucket}/*
+          Action:
+          - s3:ListBucketVersions
+          - s3:ListBucket
+          - s3:GetObjectVersion
+          - s3:GetObject
+        # Get parameters from SSM
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - ssm:GetParametersByPath
+      Roles: 
+      - !Ref SecurityHQInstanceRole
+
+  SecurityHQDescribeTagsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: security-hq-describe-tags-policy
+      PolicyDocument:
+        Statement:
+        # Describe instance tags, to find out its own stack, app, stage.
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - ec2:DescribeTags
+      Roles: 
+      - !Ref SecurityHQInstanceRole
+
+  SecurityHQSSMRunCommandPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: security-hq-ssm-run-command-policy
+      PolicyDocument:
+        Statement:
+        # minimal policy to allow security HQ to (only) run commands via ssm
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - ec2messages:AcknowledgeMessage
+          - ec2messages:DeleteMessage
+          - ec2messages:FailMessage
+          - ec2messages:GetEndpoint
+          - ec2messages:GetMessages
+          - ec2messages:SendReply
+          - ssm:UpdateInstanceInformation
+          - ssm:ListInstanceAssociations
+          - ssm:DescribeInstanceProperties
+          - ssm:DescribeDocumentParameters
+      Roles: 
+      - !Ref SecurityHQInstanceRole
+
+  SecurityHQAssumeRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: security-hq-assume-role-policy
+      PolicyDocument:
+        Statement:
+        # allow security HQ to assume roles in watched accounts
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - sts:AssumeRole
+      Roles: 
+      - !Ref SecurityHQInstanceRole
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
