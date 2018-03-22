@@ -1,8 +1,6 @@
 @import model.InspectorAssessmentRun
-@import logic.InspectorResults.{levelColour, sortedFindings}
+@import logic.InspectorResults.{levelColour, sortedFindings, completedToday, completedDaysAgo, formatCompletedAtTimeOnly, formatCompletedAtDateAndTime}
 @import org.joda.time.format.DateTimeFormat
-@import org.joda.time.Days
-@import org.joda.time.DateTime
 
 @(assessmentRun: InspectorAssessmentRun)
 
@@ -10,19 +8,13 @@
     <div class="card">
         <div class="card-content card-content--title">
             <span class="card-title">@assessmentRun.appId._1 @assessmentRun.appId._2 @assessmentRun.appId._3</span>
-            @if(assessmentRun.completedAt.isAfter(DateTime.now().withTimeAtStartOfDay)) {
-                <span class="card-content">
-                    Completed today at @{DateTimeFormat.forPattern("HH:mm:ss").print(assessmentRun.completedAt)}
-                </span>
+            <span class="card-content">
+            @if(completedToday(assessmentRun)) {
+                Completed today at @formatCompletedAtTimeOnly(assessmentRun)
             } else {
-                @{
-                    val daysAgo = Days.daysBetween(new DateTime(), assessmentRun.completedAt).getDays
-                    val formattedDate = DateTimeFormat.forPattern("HH:mm:ss dd/MM/yyyy").print(assessmentRun.completedAt)
-                        <span class="card-content">
-                        {daysAgo} days ago at {formattedDate}
-                        </span>
-                }
+                @completedDaysAgo(assessmentRun) days ago at @formatCompletedAtDateAndTime(assessmentRun)
             }
+            </span>
         </div>
         <div class="card-content--border @{
             levelColour(assessmentRun.findingCounts)
