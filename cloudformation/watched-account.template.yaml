@@ -7,6 +7,16 @@ Parameters:
     Description: The ID of the AWS Account the Security HQ application runs in
     AllowedPattern: "[0-9]{12}"
     ConstraintDescription: AWS Account IDs are 12-digit numbers
+  AwsConfigBucketName:
+    Type: String
+    Description: Create an S3 bucket to store AWS Config data
+
+
+Mappings:
+  Constants:
+    BucketLambdaJarPath:
+      Value: /dist/PROD/security/security-hq/lambda/
+
 
 Resources:
   # role that security HQ can assume
@@ -45,6 +55,137 @@ Resources:
             # get AWS inspector results
             - inspector:List*
             - inspector:Describe*
+
+  # POLICIES
+  # shared policies for lambdas
+
+  # TODO:
+  # * enable AWS config? Or just make that a requirement for this stack like CloudTrail already is?
+  #   - DeliveryChannel
+  #   - ConfigurationRecorder
+
+  LambdaLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: Logging permissions for Lambda function
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Resource: arn:aws:logs:*:*:*
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+
+  LambdaConfigPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AWS Config integration for lambda function
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - config:Put*
+          - config:Get*
+          - config:List*
+          - config:Describe*
+        - Effect: Allow
+          Resource: arn:aws:s3:::*/AWSLogs/*/Config/*
+          Action:
+            - s3:GetObject
+
+  # SECURITY GROUPS LAMBDA
+  # with config rule and supporting roles
+
+  SecurityGroupsLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: security-hq
+      Description: Checks for SGs that are open to the world, excepting ELB groups
+      Handler: com.gu.hq.Lambda
+      Runtime: java8
+      MemorySize: 256
+      Timeout: 15
+      Role: !Ref SecurityGroupsLambdaRole
+      Code:
+        S3Bucket: !Ref SecurityHQDistBucket
+        S3Key: !Sub ${Constants.BucketLambdaJarPath.Value}/security-groups-lambda.jar
+
+  SecurityGroupsLambdaConfigInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - SecurityGroupsLambda
+          - Arn
+      Action: lambda:InvokeFunction
+      Principal: config.amazonaws.com
+
+  AwsConfigBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref AwsConfigBucketName
+      Tags:
+      - Key: Stack
+        Value: security
+      - Key: App
+        Value: security-hq
+      - Key: Stage
+        Value: PROD
+
+  AWSConfigDeliveryChannel:
+    Type: AWS::Config::DeliveryChannel
+    Properties:
+      S3BucketName: String
+      S3KeyPrefix: String
+      SnsTopicARN: String
+
+  SecurityGroupsConfigRule:
+    Type: AWS::Config::ConfigRule
+    DependsOn: SecurityGroupsLambdaConfigInvocationPermission
+    Properties:
+      ConfigRuleName: security-groups-ingress
+      Description: Watch SecurityGroup changes for insecure ingress rules
+      InputParameters:
+        hqDbRole: !Ref HQDbRole
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::SecurityGroup
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceIdentifier:
+          Fn::GetAtt:
+          - SecurityGroupsLambda
+          - Arn
+        SourceDetails:
+        - EventSource: aws.config
+          MessageType: ConfigurationItemChangeNotification
+
+  SecurityGroupsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+      Policies:
+      - !Ref LambdaLogsPolicy
+      - !Ref LambdaConfigPolicy
+      - PolicyName: SecurityGroupsLambdaExecutionPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - elasticloadbalancing:DescribeLoadBalancers
+            - ec2:DescribeSecurityGroups
+            Resource: "*"
+
 
 Outputs:
   SecurityHQRole:
