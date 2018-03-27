@@ -1,16 +1,11 @@
 package com.gu.hq
 
-import com.amazonaws.AmazonWebServiceRequest
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, EnvironmentVariableCredentialsProvider}
-import com.amazonaws.handlers.AsyncHandler
-import com.amazonaws.regions.Region
-import com.amazonaws.services.ec2.{AmazonEC2AsyncClient, AmazonEC2Client}
-import com.amazonaws.services.elasticloadbalancing.{AmazonElasticLoadBalancingAsyncClient, AmazonElasticLoadBalancingClient}
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.ec2._
+import com.amazonaws.services.elasticloadbalancing.{AmazonElasticLoadBalancingAsync, AmazonElasticLoadBalancingAsyncClient}
 import com.amazonaws.services.elasticloadbalancing.model.{DescribeLoadBalancersRequest, DescribeLoadBalancersResult}
-
-import scala.concurrent.{Future, Promise}
-
 
 object AWS {
   def credentialsProviderChain = new AWSCredentialsProviderChain(
@@ -19,22 +14,16 @@ object AWS {
   )
 
   // EC2
-
-  def ec2client(region: Region): AmazonEC2Client = {
-    val ec2Client = new AmazonEC2Client(credentialsProviderChain)
-    ec2Client.setRegion(region)
-    ec2Client
+  def ec2client(region: Regions): AmazonEC2 = {
+    AmazonEC2AsyncClientBuilder.standard().withRegion(region).build()
   }
 
   // ELBs
-
-  def elbClient(region: Region) = {
-    val elbClient = new AmazonElasticLoadBalancingClient(credentialsProviderChain)
-    elbClient.setRegion(region)
-    elbClient
+  def elbClient(region: Regions) = {
+    AmazonElasticLoadBalancingAsyncClient.asyncBuilder().withRegion(region).build()
   }
 
-  def describeLoadBalancers(elbClient: AmazonElasticLoadBalancingClient): DescribeLoadBalancersResult = {
+  def describeLoadBalancers(elbClient: AmazonElasticLoadBalancingAsync): DescribeLoadBalancersResult = {
     val request = new DescribeLoadBalancersRequest()
     elbClient.describeLoadBalancers(request)
   }

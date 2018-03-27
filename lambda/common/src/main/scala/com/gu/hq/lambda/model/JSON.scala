@@ -13,14 +13,14 @@ object JSON {
     )
   )
 
-  implicit val tagFormat = Json.format[Tag]
+  implicit val tagRead = Json.reads[Tag]
 
-  implicit val relationshipFormat = Json.format[Relationship]
-  implicit val configurationItemFormat = Json.format[ConfigurationItem]
-  implicit val configurationItemDiffFormat = Json.format[ConfigurationItemDiff]
-  implicit val invokingEventFormat = Json.format[InvokingEvent]
+  implicit val relationshipRead = Json.reads[Relationship]
+  implicit val configurationItemRead = Json.reads[ConfigurationItem]
+  implicit val configurationItemDiffRead = Json.reads[ConfigurationItemDiff]
+  implicit val invokingEventRead = Json.reads[InvokingEvent]
 
-  implicit val userIdGroupPairFormat = Json.format[UserIdGroupPair]
-  implicit val ipPermissionFormat = Json.format[IpPermission]
-  implicit val sgConfigurationFormat = Json.format[SGConfiguration]
+  implicit val userIdGroupPairRead = Json.reads[UserIdGroupPair]
+  implicit val ipPermissionRead = Json.reads[IpPermission]
+  implicit val sgConfigurationRead = Json.reads[SGConfiguration]
 }

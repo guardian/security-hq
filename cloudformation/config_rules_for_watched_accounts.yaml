@@ -1,0 +1,21 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources: 
+
+#2 Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
+  SecurityGroupsRule:
+    Type: "AWS::Config::ConfigRule"
+    Properties:
+      ConfigRuleName: SecurityGroupsRule
+      Description: Check that the security group is not world addressable
+      Scope:
+          ComplianceResourceTypes: 
+            - "AWS::EC2::SecurityGroup"
+      Source:
+        Owner: "CUSTOM_LAMBDA"
+        SourceDetails: 
+          - 
+            EventSource: "aws.config"
+            MessageType: "ConfigurationItemChangeNotification"
+# could be ScheduledNotification instead?
+        SourceIdentifier: arn of the lambda ?????????????????

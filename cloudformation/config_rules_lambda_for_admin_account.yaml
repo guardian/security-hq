@@ -1,0 +1,86 @@
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configrule.html
+
+#1 Create a Lambda function for a cross-account Config rule in the admin-account.
+#2 Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
+#3 Create an IAM role in the managed-account to pass to the Lambda function.
+#4 Add a policy and trust relationship to the IAM role in the managed-account.
+#5 Pass the IAM role from the managed-account to the Lambda function.
+
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: ConfigRules Lambda
+Resources:
+
+#1 Create a Lambda function for a cross-account Config rule in the admin-account.
+  LambdaConfigRulesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns: ["arn:aws:iam::aws:policy/AmazonConfigRulesFullAccess"]
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: inspector-policy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Resource:
+            - "*"
+            Action:
+            - logs:*
+
+#1 Create a Lambda function for a cross-account Config rule in the admin-account.
+  ConfigRulesLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: guardian-dist
+        S3Key: guardian/PROD/???????????????????????
+      Description: "???????????????????????"
+      FunctionName: ???????????????????????
+      Handler: com.gu.????????????????Lambda::handleRequest
+      Role:
+        Fn::GetAtt: [ "LambdaConfigRulesRole", "Arn" ]
+      Runtime: java8
+      MemorySize: 512
+      Timeout: 300
+
+#1 Create a Lambda function for a cross-account Config rule in the admin-account.
+  ConfigRulesLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: /aws/lambda/?????????lambda
+      RetentionInDays: 30
+
+#2 Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
+#aws lambda add-permission 
+#  --function-name ????????????
+#  --region <region> 
+#  --statement-id <id> 
+#  --action "lambda:InvokeFunction" 
+#  --principal config.amazonaws.com 
+#  --source-account <managed-account> 
+  ConfigRulesLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: ?????????lambda
+      Principal: config.amazonaws.com
+      SourceArn: ????? all the managed accounts ?????
+        Fn::GetAtt:
+          - "ConfigRulesScheduleRule"
+          - "Arn"
+
+Outputs:
+  "LambdaArnForInvokers":
+    Description: The ARN of the lambda the watched accounts should invoke
+    Value: 
+      Fn:GetAtt:
+        - "LambdaConfigRulesRole"
+        - "Arn"

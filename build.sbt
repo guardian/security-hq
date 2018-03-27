@@ -94,7 +94,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
     )
   )
 
-lazy val securityGroups = (project in file("lambda/security-groups")).
+lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
   settings(commonLambdaSettings: _*).
   dependsOn(lambdaCommon).
   settings(
@@ -103,7 +103,7 @@ lazy val securityGroups = (project in file("lambda/security-groups")).
   )
 
 lazy val root = (project in file(".")).
-  aggregate(hq, lambdaCommon).
+  aggregate(hq, lambdaCommon, lambdaSecurityGroups).
   settings(
     name := """security-hq"""
   )

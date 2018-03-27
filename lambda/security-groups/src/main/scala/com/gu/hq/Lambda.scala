@@ -9,7 +9,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 
 class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
-  val region = Region.getRegion(Regions.fromName(System.getenv("AWS_DEFAULT_REGION")))
+  val region = Regions.fromName(System.getenv("AWS_DEFAULT_REGION"))
   val ec2Client = AWS.ec2client(region)
   val elbClient = AWS.elbClient(region)
 
