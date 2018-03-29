@@ -55,8 +55,8 @@ class ConfigEventLogicTest extends FreeSpec with Matchers with OptionValues with
       val firstIpEntry = sgConf.ipPermissions.head
       firstIpEntry should have (
         'ipProtocol ("tcp"),
-        'fromPort (8888),
-        'toPort (8888),
+        'fromPort (Some(8888)),
+        'toPort (Some(8888)),
         'ipRanges (Nil),
         'prefixListIds (Nil)
       )
@@ -72,8 +72,8 @@ class ConfigEventLogicTest extends FreeSpec with Matchers with OptionValues with
       val secondIpEntry = sgConf.ipPermissions(1)
       secondIpEntry should have (
         'ipProtocol ("tcp"),
-        'fromPort (22),
-        'toPort (22),
+        'fromPort (Some(22)),
+        'toPort (Some(22)),
         'userIdGroupPairs (Nil),
         'ipRanges (List("1.2.3.4/28")),
         'prefixListIds (Nil)

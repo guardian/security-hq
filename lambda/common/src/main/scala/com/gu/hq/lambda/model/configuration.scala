@@ -11,8 +11,8 @@ case class UserIdGroupPair(
 
 case class IpPermission(
   ipProtocol: String,
-  fromPort: Int,
-  toPort: Int,
+  fromPort: Option[Int],
+  toPort: Option[Int],
   userIdGroupPairs: List[UserIdGroupPair],
   ipRanges: List[String],
   prefixListIds: List[String]

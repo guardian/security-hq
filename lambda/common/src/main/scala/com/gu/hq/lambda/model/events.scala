@@ -22,7 +22,7 @@ case class ConfigurationItem(
   accountId: Option[String],
   configurationItemCaptureTime: Option[DateTime],
   configurationItemStatus: Option[String],
-  configurationStateId: Option[Int],
+  configurationStateId: Option[Long],
   configurationItemMD5Hash: Option[String],
   ARN: Option[String],
   resourceType: Option[String],

@@ -8,7 +8,7 @@ class SecurityGroupsTest extends FreeSpec with Matchers {
   "openToWorld" - {
     "returns true for a SecurityGroup that is open" in {
       val openPermissions = List(
-        IpPermission("tcp", -1, -1, Nil, List("0.0.0.0/0"), Nil)
+        IpPermission("tcp", Some(-1), Some(-1), Nil, List("0.0.0.0/0"), Nil)
       )
       val sg = SGConfiguration("owner", "security-group", "sg-01234", "Test SecurityGroup", openPermissions, Nil, "vpc-id", Nil)
 
@@ -17,7 +17,7 @@ class SecurityGroupsTest extends FreeSpec with Matchers {
 
     "returns false for a SecurityGroup that has no rules" in {
       val ipPermsWithNoRules = List(
-        IpPermission("tcp", -1, -1, Nil, Nil, Nil)
+        IpPermission("tcp", Some(-1), Some(-1), Nil, Nil, Nil)
       )
       val sg = SGConfiguration("owner", "security-group", "sg-01234", "Test SecurityGroup", ipPermsWithNoRules, Nil, "vpc-id", Nil)
 
@@ -26,7 +26,7 @@ class SecurityGroupsTest extends FreeSpec with Matchers {
 
     "returns false for a SecurityGroup that is not open" in {
       val closedPermissions = List(
-        IpPermission("tcp", -1, -1, Nil, List("1.2.3.4/32"), Nil)
+        IpPermission("tcp", Some(-1), Some(-1), Nil, List("1.2.3.4/32"), Nil)
       )
       val sg = SGConfiguration("owner", "security-group", "sg-01234", "Test SecurityGroup", closedPermissions, Nil, "vpc-id", Nil)
 
@@ -35,7 +35,7 @@ class SecurityGroupsTest extends FreeSpec with Matchers {
 
     "returns false for a SecurityGroup that allowes traffic from a named group" in {
       val ipPerm = List(
-        IpPermission("tcp", -1, -1, List(UserIdGroupPair("uid", "gid", None, None, None, None)), Nil, Nil)
+        IpPermission("tcp", Some(-1), Some(-1), List(UserIdGroupPair("uid", "gid", None, None, None, None)), Nil, Nil)
       )
       val sg = SGConfiguration("owner", "security-group", "sg-01234", "Test SecurityGroup", ipPerm, Nil, "vpc-id", Nil)
 

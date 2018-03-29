@@ -18,4 +18,4 @@ Resources:
             EventSource: "aws.config"
             MessageType: "ConfigurationItemChangeNotification"
 # could be ScheduledNotification instead?
-        SourceIdentifier: arn of the lambda ?????????????????
+        SourceIdentifier: arn:aws:lambda:eu-west-1:100378408918:function:securitygroupscheck

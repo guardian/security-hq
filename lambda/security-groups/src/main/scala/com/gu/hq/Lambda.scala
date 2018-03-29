@@ -14,6 +14,7 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
   val elbClient = AWS.elbClient(region)
 
   override def handleRequest(input: ConfigEvent, context: Context): Unit = {
+    logger.debug(s"Starting check of ${input}")
     for {
       invokingEvent <- ConfigEventLogic.eventDetails(input)
       configurationItem <- invokingEvent.configurationItem
@@ -21,12 +22,12 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
       loadBalancers = AWS.describeLoadBalancers(elbClient)
     } SecurityGroups.status(sgConfiguration, loadBalancers) match {
       case NotOpen =>
-        logger.info(s"${sgConfiguration.groupId}: Security group")
+        logger.debug(s"${sgConfiguration.groupId}: Security group")
       case OpenELB =>
-        logger.info(s"${sgConfiguration.groupId}: Open Security Group attached to ELB")
+        logger.debug(s"${sgConfiguration.groupId}: Open Security Group attached to ELB")
       case Open =>
         // persist/alert a warning of some sort
-        logger.info(s"${sgConfiguration.groupId}: Open security group")
+        logger.warn(s"${sgConfiguration.groupId}: Open security group")
     }
   }
 }

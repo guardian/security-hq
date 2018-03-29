@@ -1,6 +1,7 @@
 import com.gu.riffraff.artifact.RiffRaffArtifact
 import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import play.sbt.PlayImport.PlayKeys._
+import sbt.Keys.libraryDependencies
 
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
@@ -87,6 +88,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-elasticloadbalancing" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
+      "org.scalatest" %% "scalatest" % "3.0.5" % Test,
       "com.typesafe.play" %% "play-json" % playVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
       "ch.qos.logback" %  "logback-classic" % "1.2.3",
@@ -96,7 +98,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
 
 lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
   settings(commonLambdaSettings: _*).
-  dependsOn(lambdaCommon).
+  dependsOn(lambdaCommon % "compile->compile;test->test").
   settings(
     name := """security-groups-lambda""",
     assemblyJarName in assembly := "security-groups-lambda.jar"

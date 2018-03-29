@@ -1,0 +1,171 @@
+{
+    "configurationItemDiff": {
+        "changedProperties": {
+            "Relationships.0": {
+                "previousValue": {
+                    "resourceId": "i-xxx",
+                    "resourceName": null,
+                    "resourceType": "AWS::EC2::Instance",
+                    "name": "Is associated with Instance"
+                },
+                "updatedValue": null,
+                "changeType": "DELETE"
+            }
+        },
+        "changeType": "UPDATE"
+    },
+    "configurationItem": {
+        "relatedEvents": [],
+        "relationships": [
+            {
+                "resourceId": "eni-xxx",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::NetworkInterface",
+                "name": "Is associated with NetworkInterface"
+            },
+            {
+                "resourceId": "eni-xxx",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::NetworkInterface",
+                "name": "Is associated with NetworkInterface"
+            },
+            {
+                "resourceId": "i-xxx",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::Instance",
+                "name": "Is associated with Instance"
+            },
+            {
+                "resourceId": "vpc-xxx",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::VPC",
+                "name": "Is contained in Vpc"
+            }
+        ],
+        "configuration": {
+            "description": "application instance",
+            "groupName": "xxx-xxx-xxx-InstanceSecurityGroup-XXX",
+            "ipPermissions": [
+                {
+                    "fromPort": 9000,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 9000,
+                    "userIdGroupPairs": [
+                        {
+                            "groupId": "sg-xxx",
+                            "userId": "xxxxxx"
+                        }
+                    ],
+                    "ipv4Ranges": [],
+                    "ipRanges": []
+                },
+                {
+                    "fromPort": 22,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 22,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "xxx.xxx.xxx.xx/21"
+                        }
+                    ],
+                    "ipRanges": [
+                        "xxx.xxx.xxx.xx/21"
+                    ]
+                }
+            ],
+            "ownerId": "xxxxxx",
+            "groupId": "sg-xxx",
+            "ipPermissionsEgress": [
+                {
+                    "fromPort": 80,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 80,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "ipRanges": [
+                        "0.0.0.0/0"
+                    ]
+                },
+                {
+                    "fromPort": 443,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 443,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "ipRanges": [
+                        "0.0.0.0/0"
+                    ]
+                }
+            ],
+            "tags": [
+                {
+                    "key": "Stack",
+                    "value": "xxx"
+                },
+                {
+                    "key": "App",
+                    "value": "xxxx"
+                },
+                {
+                    "key": "Stage",
+                    "value": "PROD"
+                },
+                {
+                    "key": "aws:cloudformation:logical-id",
+                    "value": "InstanceSecurityGroup"
+                },
+                {
+                    "key": "aws:cloudformation:stack-name",
+                    "value": "xxx-xxx-xxx"
+                },
+                {
+                    "key": "aws:cloudformation:stack-id",
+                    "value": "arn:aws:cloudformation:eu-west-1:xxxxxx:stack/xxx-xxx-xxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                }
+            ],
+            "vpcId": "vpc-xxx"
+        },
+        "supplementaryConfiguration": {},
+        "tags": {
+            "App": "xxxx",
+            "aws:cloudformation:stack-name": "xxx-xxx-xxx",
+            "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-west-1:xxxxxx:stack/xxx-xxx-xxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "Stage": "PROD",
+            "aws:cloudformation:logical-id": "InstanceSecurityGroup",
+            "Stack": "xxx"
+        },
+        "configurationItemVersion": "1.3",
+        "configurationItemCaptureTime": "2018-03-28T08:22:00.000Z",
+        "configurationStateId": 1222344444444,
+        "awsAccountId": "xxxxxx",
+        "configurationItemStatus": "OK",
+        "resourceType": "AWS::EC2::SecurityGroup",
+        "resourceId": "sg-xxx",
+        "resourceName": "xxx-xxx-xxx-InstanceSecurityGroup-XXX",
+        "ARN": "arn:aws:ec2:eu-west-1:xxxxxx:security-group/sg-xxx",
+        "awsRegion": "eu-west-1",
+        "availabilityZone": "Not Applicable",
+        "configurationStateMd5Hash": "",
+        "resourceCreationTime": null
+    },
+    "notificationCreationTime": "2018-03-28T09:00:00.000Z",
+    "messageType": "ConfigurationItemChangeNotification",
+    "recordVersion": "1.3"
+}
