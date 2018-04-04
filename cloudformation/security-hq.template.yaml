@@ -55,6 +55,9 @@ Parameters:
     - PROD
     - CODE
     - DEV
+  LaunchDate:
+    Description: Basically just a random string to force the change :)
+    Type: String
 
 Mappings:
   Constants:
@@ -105,7 +108,7 @@ Resources:
           Resource: "*"
           Action:
           - ssm:GetParametersByPath
-      Roles: 
+      Roles:
       - !Ref SecurityHQInstanceRole
 
   SecurityHQDescribeTagsPolicy:
@@ -119,7 +122,24 @@ Resources:
           Resource: "*"
           Action:
           - ec2:DescribeTags
-      Roles: 
+      Roles:
+      - !Ref SecurityHQInstanceRole
+
+  SecurityHQSignalAWSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: security-hq-signal-aws-policy
+      PolicyDocument:
+        Statement:
+        # minimal policy to allow security HQ to signal AWS autoscaling groups on success
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - cloudformation:DescribeStackResources
+          - cloudformation:SignalResource
+          - autoscaling:DescribeAutoScalingInstances
+          - autoscaling:DescribeAutoScalingGroups
+      Roles:
       - !Ref SecurityHQInstanceRole
 
   SecurityHQSSMRunCommandPolicy:
@@ -142,7 +162,7 @@ Resources:
           - ssm:ListInstanceAssociations
           - ssm:DescribeInstanceProperties
           - ssm:DescribeDocumentParameters
-      Roles: 
+      Roles:
       - !Ref SecurityHQInstanceRole
 
   SecurityHQAssumeRolePolicy:
@@ -156,7 +176,7 @@ Resources:
           Resource: "*"
           Action:
           - sts:AssumeRole
-      Roles: 
+      Roles:
       - !Ref SecurityHQInstanceRole
 
   LoadBalancerSecurityGroup:
@@ -287,7 +307,7 @@ Resources:
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.conf /security-hq
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq-service-account-cert.json /security-hq
           aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.tgz /security-hq
-          # Expand zipped tar file; remove base directory 
+          # Expand zipped tar file; remove base directory
           tar -xzf /security-hq/security-hq.tgz --strip 1 --directory /security-hq/
           # Put systemd file in correct location with correct ownership
           /bin/bash /security-hq/systemd/install
@@ -296,6 +316,10 @@ Resources:
           # Start application
           systemctl daemon-reload
           systemctl start security-hq.service
+          aws s3 cp s3://security-dist/saws .
+          /bin/chmod +x ./saws
+          echo ${LaunchDate} > /etc/launchdate
+          ./saws http200 -p 9000 -t 10 -s 5 -P healthcheck
 
   AutoscalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -330,6 +354,15 @@ Resources:
         Value:
           Fn::FindInMap: [ Constants, App, Value ]
         PropagateAtLaunch: true
+    CreationPolicy:
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+      ResourceSignal:
+        Timeout: PT10M
+        Count: 2
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
 
 Outputs:
   LoadBalancerUrl:
