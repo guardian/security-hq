@@ -5,16 +5,22 @@ vulnerable OS modules and packages, and poor runtime behaviour.
 
 It is provided as standard to all AWS accounts.
 
+## Usage
+
+Simply add the AWS Inspector agent to your boxes.
+
+The easiest way to do this is to add the `aws-inspector` role to your application's Amigo recipe.
+
 ## Implementation
 
 An application has been created, which will:
 
-  * Create a lambda to
-    * Search for App, Stack and Stage tags on instances in the target account
-    * Create a resource group, assessment target, and assessment template for each combination, unless they already exist
-    * Limit the resource group to a maximum of five instances
-    * Start an Assessment run of one hour for each target
-  * Schedule the lambda for 3am on Mondays and Thursdays.
+  1. Create a lambda to
+      1. Search for App, Stack and Stage tags on instances in the target account
+      2. Create a resource group, assessment target, and assessment template for each combination, unless they already exist
+      3. Limit the resource group to a maximum of five instances
+      4. Start an Assessment run of one hour for each target
+  2. Schedule the lambda for 3am on Mondays and Thursdays.
 
 ### Repo
 
