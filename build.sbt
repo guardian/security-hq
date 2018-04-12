@@ -103,7 +103,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
   dependsOn(lambdaCommon % "compile->compile;test->test").
   settings(
     name := """security-groups-lambda""",
-    assemblyJarName in assembly := "security-groups-lambda.jar",
+    assemblyJarName in assembly := s"${name.value}",
     libraryDependencies ++= Seq(
       "com.gu" % "anghammarad-client_2.12" % "1.0.4"
     )

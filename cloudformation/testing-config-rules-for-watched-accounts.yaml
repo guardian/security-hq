@@ -12,11 +12,6 @@ Parameters:
   ArtifactLocation:
     Description: S3 path to the Lambda's artifact
     Type: String
-  SecurityHQAccount:
-    Type: String
-    Description: The ID of the AWS Account the Security HQ application runs in
-    AllowedPattern: "[0-9]{12}"
-    ConstraintDescription: AWS Account IDs are 12-digit numbers
 
 Resources:
   LambdaConfigRulesRole:
@@ -69,32 +64,25 @@ Resources:
       LogGroupName: /aws/lambda/securitygroupscheck
       RetentionInDays: 30
 
-# Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
-# security account
-  ConfigRulesLambdaPermission:
+  SecurityGroupsLambdaConfigInvocationPermission:
     Type: AWS::Lambda::Permission
     Properties:
+      FunctionName: !GetAtt SecurityGroupsLambda.Arn
       Action: lambda:InvokeFunction
-      FunctionName: securitygroupscheck
       Principal: config.amazonaws.com
-      SourceAccount: 100378408918
-    DependsOn: ConfigRulesLambda
 
 # Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
   SecurityGroupsRule:
-    Type: "AWS::Config::ConfigRule"
+    Type: AWS::Config::ConfigRule
     Properties:
       ConfigRuleName: SecurityGroupsRule
       Description: Check that the security group is not world addressable
       Scope:
         ComplianceResourceTypes:
-        - "AWS::EC2::SecurityGroup"
+        - AWS::EC2::SecurityGroup
       Source:
-        Owner: "CUSTOM_LAMBDA"
-        SourceDetails: 
-        - EventSource: "aws.config"
-          MessageType: "ConfigurationItemChangeNotification"
-        SourceIdentifier:
-          Fn::GetAtt:
-          - "ConfigRulesLambda"
-          - "Arn"
+        Owner: CUSTOM_LAMBDA
+        SourceIdentifier: !GetAtt ConfigRulesLambda.Arn
+        SourceDetails:
+        - EventSource: aws.config
+          MessageType: ConfigurationItemChangeNotification
