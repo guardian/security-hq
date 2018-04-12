@@ -47,6 +47,7 @@ object Main extends StrictLogging {
             args(1),
             sgConfiguration.tags,
             args(2),
+            args(0),
             snsTopicArn,
             snsClient)
     }

@@ -19,6 +19,7 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
     for {
       invokingEvent <- ConfigEventLogic.eventDetails(input)
       configurationItem <- invokingEvent.configurationItem
+      regionName <- configurationItem.awsRegion
       sgConfiguration <- ConfigEventLogic.sgConfiguration(configurationItem.configuration)
       loadBalancers = AWS.describeLoadBalancers(elbClient)
       account = AWS.accountNumber(stsClient)
@@ -34,6 +35,7 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
           configurationItem.accountId getOrElse account,
           sgConfiguration.tags,
           account,
+          regionName,
           snsTopicArn,
           snsClient
         )

@@ -1,17 +1,29 @@
----
 # With help from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configrule.html
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Security Group Configuration Rules
+
 Parameters:
   SnsTopicArn:
     Type: String
     Description: Arn of SNS Topic for notifications
+  ArtifactBucket:
+    Description: S3 bucket containing the Lambda's artifact
+    Type: String
+  ArtifactLocation:
+    Description: S3 path to the Lambda's artifact
+    Type: String
+  SecurityHQAccount:
+    Type: String
+    Description: The ID of the AWS Account the Security HQ application runs in
+    AllowedPattern: "[0-9]{12}"
+    ConstraintDescription: AWS Account IDs are 12-digit numbers
 
 Resources:
   LambdaConfigRulesRole:
     Type: AWS::IAM::Role
     Properties:
-      ManagedPolicyArns: ["arn:aws:iam::aws:policy/AWSConfigUserAccess"]
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AWSConfigUserAccess
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -34,27 +46,25 @@ Resources:
             - sns:Publish
 
   ConfigRulesLambda:
-    Type: "AWS::Lambda::Function"
+    Type: AWS::Lambda::Function
     Properties:
       Code:
-        S3Bucket: guardian-dist
-        S3Key: guardian/PROD/securitygroups-lambda/securitygroups-lambda-0.0.1.jar
-      Description: "Check the configuration of the security groups"
+        S3Bucket: !Ref ArtifactBucket
+        S3Key: !Ref ArtifactLocation
+      Description: Check the configuration of the security groups
       Environment:
         Variables:
-          SnsTopicArn:
-            Ref: SnsTopicArn
-      FunctionName: securitygroupscheck
+          SnsTopicArn: !Ref SnsTopicArn
+      FunctionName: security-groups-check
       Handler: com.gu.hq.Lambda::handleRequest
-      Role:
-        Fn::GetAtt: [ "LambdaConfigRulesRole", "Arn" ]
+      Role: !GetAtt LambdaConfigRulesRole.Arn
       Runtime: java8
       MemorySize: 512
       Timeout: 300
     DependsOn: LambdaConfigRulesRole
 
   ConfigRulesLogGroup:
-    Type: "AWS::Logs::LogGroup"
+    Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /aws/lambda/securitygroupscheck
       RetentionInDays: 30
@@ -62,7 +72,7 @@ Resources:
 # Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
 # security account
   ConfigRulesLambdaPermission:
-    Type: "AWS::Lambda::Permission"
+    Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: securitygroupscheck

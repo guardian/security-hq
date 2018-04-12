@@ -1,5 +1,6 @@
 package com.gu.hq
 
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models._
@@ -22,10 +23,13 @@ object Notifier extends StrictLogging {
     accountName: String,
     targetTags: List[Tag],
     account: String,
-    arn: String,
+    regionName: String,
+    topicArn: String,
     client: AmazonSNSAsync): Unit = {
 
-    val actions = List(Action("View in Security HQ", s"https://security-hq.gutools.co.uk/security-groups/$accountName"))
+    val actions = List(
+      Action("View in AWS Console", s"https://eu-west-1.console.aws.amazon.com/ec2/v2/home?region=$regionName#SecurityGroups:search=$groupId")
+    )
     val message = s"Warning: Security group '$groupId' in account '$accountName' is open to the world"
     val targets = getTargetsFromTags(targetTags, account)
 
@@ -36,7 +40,7 @@ object Notifier extends StrictLogging {
       channel,
       targets,
       actions,
-      arn,
+      topicArn,
       client
     )
     try {
