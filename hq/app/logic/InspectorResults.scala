@@ -2,8 +2,8 @@ package logic
 
 import com.amazonaws.services.inspector.model.{AssessmentRun, DescribeAssessmentRunsResult, _}
 import model.InspectorAssessmentRun
-import org.joda.time.DateTime
-import utils.attempt.FailedAttempt
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, Days}
 
 import scala.collection.JavaConverters._
 
@@ -116,4 +116,12 @@ object InspectorResults {
   def totalFindings(assessmentRuns: List[InspectorAssessmentRun]): Int = {
     assessmentRuns.flatMap(_.findingCounts.values).sum
   }
+
+  def completedDaysAgo(assessmentRun: InspectorAssessmentRun): Int = Days.daysBetween(new DateTime(), assessmentRun.completedAt).getDays
+
+  def formatCompletedAtTimeOnly(assessmentRun: InspectorAssessmentRun): String = DateTimeFormat.forPattern("HH:mm:ss").print(assessmentRun.completedAt)
+
+  def formatCompletedAtDateAndTime(assessmentRun: InspectorAssessmentRun): String = DateTimeFormat.forPattern("HH:mm:ss dd/MM/yyyy").print(assessmentRun.completedAt)
+
+  def completedToday(assessmentRun: InspectorAssessmentRun): Boolean = assessmentRun.completedAt.isAfter(DateTime.now().withTimeAtStartOfDay)
 }
