@@ -1,34 +1,42 @@
+package com.gu.hq.lambda.model
 
-import com.amazonaws.services.lambda.runtime.events.ConfigEvent
-import com.gu.hq.lambda.ConfigEventLogic.logger
-import com.gu.hq.lambda.model
-import com.gu.hq.lambda.model.{InvokingEvent, JSON, SGConfiguration}
-import org.scalatest.{FreeSpec, Matchers}
-import play.api.libs.json.{JsValue, Json, Reads}
-import JSON._
+import com.gu.hq.lambda.model.JSON._
+import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import play.api.libs.json.Json
 
 import scala.io.Source
 
-class JSONTest extends FreeSpec with Matchers {
 
-  private def readFile(filename: String) = Source.fromResource(s"$filename.json").getLines.mkString
-
+class JSONTest extends FreeSpec with Matchers with OptionValues {
   "parse config event" - {
-    "Full Value" in {
-      val x = readFile("config_event")
-      val y = Json.parse(x).validate[InvokingEvent].fold(a => None, Some(_))
-      y.isDefined shouldBe (true)
-      val z = y.get.configurationItem.get.configuration.validate[SGConfiguration].fold(a => None, Some(_))
-      z.isDefined shouldBe (true)
+    "can parse an event triggered by a change" - {
+      val eventJson = loadJsonResource("config_event_with_update")
+
+      "parses event JSON" in {
+        Json.parse(eventJson).validate[InvokingEvent].isSuccess shouldBe true
+      }
+
+      "can parse configuration JSON out of the configuration item" in {
+        val event = Json.parse(eventJson).validate[InvokingEvent].asOpt.value
+        val configurationItem = event.configurationItem.value
+        configurationItem.configuration.validate[SGConfiguration].isSuccess shouldBe true
+      }
     }
 
-    "Missing ipPermissionsEgress toPort Value" in {
-      val x = readFile("config_event2")
-      val y = Json.parse(x).validate[InvokingEvent].fold(a => None, Some(_))
-      y.isDefined shouldBe (true)
-      val z = y.get.configurationItem.get.configuration.validate[SGConfiguration].fold(a => None, Some(_))
-      z.isDefined shouldBe (true)
+    "can parse an event triggered on a schedule (no change)" - {
+      val eventJson = loadJsonResource("config_event_no_change")
+
+      "parses event JSON" in {
+        Json.parse(eventJson).validate[InvokingEvent].isSuccess shouldBe true
+      }
+
+      "can parse configuration JSON out of the configuration item" in {
+        val event = Json.parse(eventJson).validate[InvokingEvent].asOpt.value
+        val configurationItem = event.configurationItem.value
+        configurationItem.configuration.validate[SGConfiguration].isSuccess shouldBe true
+      }
     }
   }
 
+  private def loadJsonResource(filename: String) = Source.fromResource(s"$filename.json").getLines.mkString
 }

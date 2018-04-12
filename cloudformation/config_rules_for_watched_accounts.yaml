@@ -77,15 +77,14 @@ Resources:
       ConfigRuleName: SecurityGroupsRule
       Description: Check that the security group is not world addressable
       Scope:
-          ComplianceResourceTypes: 
-            - "AWS::EC2::SecurityGroup"
+        ComplianceResourceTypes:
+        - "AWS::EC2::SecurityGroup"
       Source:
         Owner: "CUSTOM_LAMBDA"
         SourceDetails: 
-          - 
-            EventSource: "aws.config"
-            MessageType: "ConfigurationItemChangeNotification"
+        - EventSource: "aws.config"
+          MessageType: "ConfigurationItemChangeNotification"
         SourceIdentifier:
           Fn::GetAtt:
-            - "ConfigRulesLambda"
-            - "Arn"
+          - "ConfigRulesLambda"
+          - "Arn"

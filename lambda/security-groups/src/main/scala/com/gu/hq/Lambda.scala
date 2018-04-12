@@ -12,6 +12,7 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
   private val elbClient = AWS.elbClient(region)
   private val snsClient = AWS.snsClient(region)
   private val stsClient = AWS.stsClient(region)
+  private val snsTopicArn = sys.env("SnsTopicArn")
 
   override def handleRequest(input: ConfigEvent, context: Context): Unit = {
     logger.debug(s"Starting check of $input")
@@ -27,15 +28,15 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
       case OpenELB =>
         logger.debug(s"${sgConfiguration.groupId}: Open Security Group attached to ELB")
       case Open =>
-        logger.warn(s"${sgConfiguration.groupId}: Open security group")
+        logger.info(s"${sgConfiguration.groupId}: Open security group")
         Notifier.send(
           sgConfiguration.groupId,
           configurationItem.accountId getOrElse account,
           sgConfiguration.tags,
           account,
-          sys.env("SnsTopicArn"),
-          snsClient)
+          snsTopicArn,
+          snsClient
+        )
     }
   }
-
 }

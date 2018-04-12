@@ -3,7 +3,7 @@
         "changedProperties": {
             "Relationships.0": {
                 "previousValue": {
-                    "resourceId": "i-xxx",
+                    "resourceId": "i-0123456abcdef1234",
                     "resourceName": null,
                     "resourceType": "AWS::EC2::Instance",
                     "name": "Is associated with Instance"
@@ -18,25 +18,25 @@
         "relatedEvents": [],
         "relationships": [
             {
-                "resourceId": "eni-xxx",
+                "resourceId": "eni-01234567",
                 "resourceName": null,
                 "resourceType": "AWS::EC2::NetworkInterface",
                 "name": "Is associated with NetworkInterface"
             },
             {
-                "resourceId": "eni-xxx",
+                "resourceId": "eni-98765432",
                 "resourceName": null,
                 "resourceType": "AWS::EC2::NetworkInterface",
                 "name": "Is associated with NetworkInterface"
             },
             {
-                "resourceId": "i-xxx",
+                "resourceId": "i-987654321abcdef12",
                 "resourceName": null,
                 "resourceType": "AWS::EC2::Instance",
                 "name": "Is associated with Instance"
             },
             {
-                "resourceId": "vpc-xxx",
+                "resourceId": "vpc-01234567",
                 "resourceName": null,
                 "resourceType": "AWS::EC2::VPC",
                 "name": "Is contained in Vpc"
@@ -44,7 +44,7 @@
         ],
         "configuration": {
             "description": "application instance",
-            "groupName": "xxx-xxx-xxx-InstanceSecurityGroup-XXX",
+            "groupName": "cf-stack-name-InstanceSecurityGroup-1ABCD890ABCD",
             "ipPermissions": [
                 {
                     "fromPort": 9000,
@@ -54,8 +54,8 @@
                     "toPort": 9000,
                     "userIdGroupPairs": [
                         {
-                            "groupId": "sg-xxx",
-                            "userId": "xxxxxx"
+                            "groupId": "sg-bcdef123",
+                            "userId": "0123456789"
                         }
                     ],
                     "ipv4Ranges": [],
@@ -70,16 +70,16 @@
                     "userIdGroupPairs": [],
                     "ipv4Ranges": [
                         {
-                            "cidrIp": "xxx.xxx.xxx.xx/21"
+                            "cidrIp": "10.10.100.0/21"
                         }
                     ],
                     "ipRanges": [
-                        "xxx.xxx.xxx.xx/21"
+                        "10.10.100.0/21"
                     ]
                 }
             ],
-            "ownerId": "xxxxxx",
-            "groupId": "sg-xxx",
+            "ownerId": "0123456789",
+            "groupId": "sg-01234567",
             "ipPermissionsEgress": [
                 {
                     "fromPort": 80,
@@ -117,11 +117,11 @@
             "tags": [
                 {
                     "key": "Stack",
-                    "value": "xxx"
+                    "value": "stack"
                 },
                 {
                     "key": "App",
-                    "value": "xxxx"
+                    "value": "application"
                 },
                 {
                     "key": "Stage",
@@ -133,39 +133,39 @@
                 },
                 {
                     "key": "aws:cloudformation:stack-name",
-                    "value": "xxx-xxx-xxx"
+                    "value": "cf-stack-name"
                 },
                 {
                     "key": "aws:cloudformation:stack-id",
-                    "value": "arn:aws:cloudformation:eu-west-1:xxxxxx:stack/xxx-xxx-xxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    "value": "arn:aws:cloudformation:eu-west-1:0123456789:stack/cf-stack-name/65432123-abcd-efgh-8765-432123456789"
                 }
             ],
-            "vpcId": "vpc-xxx"
+            "vpcId": "vpc-01234567"
         },
         "supplementaryConfiguration": {},
         "tags": {
-            "App": "xxxx",
-            "aws:cloudformation:stack-name": "xxx-xxx-xxx",
-            "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-west-1:xxxxxx:stack/xxx-xxx-xxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "App": "application",
+            "aws:cloudformation:stack-name": "cf-stack-name",
+            "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-west-1:0123456789:stack/cf-stack-name/65432123-abcd-efgh-8765-432123456789",
             "Stage": "PROD",
             "aws:cloudformation:logical-id": "InstanceSecurityGroup",
-            "Stack": "xxx"
+            "Stack": "stack"
         },
         "configurationItemVersion": "1.3",
-        "configurationItemCaptureTime": "2018-03-28T08:22:00.000Z",
-        "configurationStateId": 1222344444444,
-        "awsAccountId": "xxxxxx",
+        "configurationItemCaptureTime": "2018-03-28T00:22:00.000Z",
+        "configurationStateId": 1222333444445,
+        "awsAccountId": "0123456789",
         "configurationItemStatus": "OK",
         "resourceType": "AWS::EC2::SecurityGroup",
-        "resourceId": "sg-xxx",
-        "resourceName": "xxx-xxx-xxx-InstanceSecurityGroup-XXX",
-        "ARN": "arn:aws:ec2:eu-west-1:xxxxxx:security-group/sg-xxx",
+        "resourceId": "sg-01234567",
+        "resourceName": "cf-stack-name-InstanceSecurityGroup-1ABCD890ABCD",
+        "ARN": "arn:aws:ec2:eu-west-1:0123456789:security-group/sg-01234567",
         "awsRegion": "eu-west-1",
         "availabilityZone": "Not Applicable",
         "configurationStateMd5Hash": "",
         "resourceCreationTime": null
     },
-    "notificationCreationTime": "2018-03-28T09:00:00.000Z",
+    "notificationCreationTime": "2018-03-28T00:23:00.000Z",
     "messageType": "ConfigurationItemChangeNotification",
     "recordVersion": "1.3"
 }

@@ -1,7 +1,5 @@
 package com.gu.hq
 
-import java.util.concurrent.TimeUnit
-
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models._
@@ -10,11 +8,11 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
+
 
 object Notifier extends StrictLogging {
-
   private val subject = "Open Security Group Notification"
   private val sourceSystem = "Security HQ - Security Groups Lambda"
   private val channel = HangoutsChat
@@ -22,29 +20,31 @@ object Notifier extends StrictLogging {
   def send(
     groupId: String,
     accountName: String,
-    target: List[Tag],
+    targetTags: List[Tag],
     account: String,
     arn: String,
     client: AmazonSNSAsync): Unit = {
-    val action = List(Action("View in Security HQ", s"https://security-hq.gutools.co.uk/security-groups/$accountName"))
+
+    val actions = List(Action("View in Security HQ", s"https://security-hq.gutools.co.uk/security-groups/$accountName"))
     val message = s"Warning: Security group '$groupId' in account '$accountName' is open to the world"
-    val targets = getTargetsFromTags(target, account)
-    val f = for {
-      id <- Anghammarad.notify(
-        subject,
-        message,
-        sourceSystem,
-        channel,
-        targets,
-        action,
-        arn,
-        client)
-    } yield id
-    val invocation = Await.ready(f, Duration(5, TimeUnit.SECONDS)).value
-    invocation match {
-      case Some(Success(id)) => logger.info(id)
-      case Some(Failure(e)) => logger.error(e.getMessage)
-      case None => logger.error("Message send Future did not complete")
+    val targets = getTargetsFromTags(targetTags, account)
+
+    val result = Anghammarad.notify(
+      subject,
+      message,
+      sourceSystem,
+      channel,
+      targets,
+      actions,
+      arn,
+      client
+    )
+    try {
+      val id = Await.result(result, 5.seconds)
+      logger.info(s"Sent notification to $targets: $id")
+    } catch {
+      case NonFatal(err) =>
+        logger.error("Failed to send notification", err)
     }
   }
 
@@ -54,5 +54,4 @@ object Notifier extends StrictLogging {
     val stage = tags.find(t => t.key.equals("Stage")).map(t => Stage(t.value))
     List(stack, app, stage, Some(AwsAccount(account))).flatten
   }
-
 }
