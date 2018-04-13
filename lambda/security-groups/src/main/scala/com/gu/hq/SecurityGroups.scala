@@ -1,7 +1,6 @@
 package com.gu.hq
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.{AmazonElasticLoadBalancingAsyncClient, AmazonElasticLoadBalancingClient}
 import com.gu.hq.lambda.model.SGConfiguration
 
 import scala.collection.JavaConverters._
