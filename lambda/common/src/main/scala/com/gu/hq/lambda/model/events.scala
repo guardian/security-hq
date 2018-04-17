@@ -44,3 +44,8 @@ case class Relationship(
   resourceName: Option[String],
   name: String
 )
+
+case class AccountMap(
+  accountNumber: String,
+  accountName:String,
+)
