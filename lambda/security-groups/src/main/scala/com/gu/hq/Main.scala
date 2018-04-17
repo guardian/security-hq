@@ -15,21 +15,27 @@ object Main extends StrictLogging {
     }
 
     val region = Regions.fromName(args(0))
-    val ec2Client = AWS.ec2client(region)
-    val elbClient = AWS.elbClient(region)
-    val snsClient = AWS.snsClient(region)
-    val sgConfiguration: SGConfiguration = new SGConfiguration(
-      "test",
-      "test",
-      args(2),
-      "test",
-      args(3).split(",").toList.map(s => IpPermission("test", None, None, List(), List(s), List())),
-      List(),
-      "test",
-      args(4).split(",").toList.map(s => {val kv = s.split("="); new Tag(key=kv(0), value=kv(1))})
-    )
+    val accountNumber = args(1)
+    val sgId = args(2)
+    val cidrs = args(3)
+    val tags = args(4)
     val notify = args(5).equals("true")
     val snsTopicArn = args(6)
+
+    val elbClient = AWS.elbClient(region)
+    val snsClient = AWS.snsClient(region)
+    val s3Client = AWS.s3Client(region)
+
+    val sgConfiguration: SGConfiguration = SGConfiguration(
+      "test",
+      "test",
+      sgId,
+      "test",
+      cidrs.split(",").toList.map(s => IpPermission("test", None, None, List(), List(s), List())),
+      List(),
+      "test",
+      tags.split(",").toList.map(s => {val kv = s.split("="); Tag(key=kv(0), value=kv(1))})
+    )
 
     val loadBalancers = AWS.describeLoadBalancers(elbClient)
 
@@ -44,11 +50,11 @@ object Main extends StrictLogging {
         if (notify)
           Notifier.send(
             sgConfiguration.groupId,
-            args(1),
             sgConfiguration.tags,
-            args(2),
-            args(0),
+            accountNumber,
+            region.getName,
             snsTopicArn,
+            s3Client,
             snsClient)
     }
   }

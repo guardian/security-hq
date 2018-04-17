@@ -12,6 +12,7 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
   private val elbClient = AWS.elbClient(region)
   private val snsClient = AWS.snsClient(region)
   private val stsClient = AWS.stsClient(region)
+  private val s3Client = AWS.s3Client(region)
   private val snsTopicArn = sys.env("SnsTopicArn")
 
   override def handleRequest(input: ConfigEvent, context: Context): Unit = {
@@ -32,11 +33,11 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
         logger.info(s"${sgConfiguration.groupId}: Open security group")
         Notifier.send(
           sgConfiguration.groupId,
-          configurationItem.accountId getOrElse account,
           sgConfiguration.tags,
           account,
           regionName,
           snsTopicArn,
+          s3Client,
           snsClient
         )
     }
