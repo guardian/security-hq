@@ -105,7 +105,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
     name := """security-groups-lambda""",
     assemblyJarName in assembly := s"${name.value}",
     libraryDependencies ++= Seq(
-      "com.gu" % "anghammarad-client_2.12" % "1.0.4"
+      "com.gu" % "anghammarad-client_2.12" % "1.0.5-SNAPSHOT"
     )
 )
 

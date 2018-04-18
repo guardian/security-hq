@@ -1,10 +1,10 @@
 package com.gu.hq
 
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models._
-import com.gu.hq.lambda.model.Tag
+import com.gu.hq.SecurityGroups.{NotOpen, Open, OpenELB, SgStatus}
+import com.gu.hq.lambda.model.{InvokingEvent, Tag}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Await
@@ -16,36 +16,43 @@ import scala.util.control.NonFatal
 object Notifier extends StrictLogging {
   private val subject = "Open Security Group Notification"
   private val sourceSystem = "Security HQ - Security Groups Lambda"
-  private val channel = HangoutsChat
+  private val channel = Preferred(HangoutsChat)  // use hangouts if available, but email is ok too
+
+  def shouldNotify(invokingEvent: InvokingEvent, status: SgStatus): Option[Unit] = {
+    status match {
+      case NotOpen =>
+        None
+      case OpenELB =>
+        None
+      case Open =>
+        val isRelevantChange = invokingEvent.configurationItemDiff.exists { diff =>
+          Set("CREATE", "UPDATE").contains(diff.changeType)
+        }
+        if (isRelevantChange) Some(())
+        else None
+    }
+  }
+
+  def createNotification(groupId: String, targetTags: List[Tag], accountId: String, regionName: String): Notification = {
+    val actions = List(
+      Action("View in AWS Console", s"https://$regionName.console.aws.amazon.com/ec2/v2/home?region=$regionName#SecurityGroups:search=$groupId")
+    )
+    val message = s"Warning: Security group '$groupId' is open to the world"
+    val targets = getTargetsFromTags(targetTags, accountId)
+
+    Notification(subject, message, actions, targets, channel, sourceSystem)
+  }
 
   def send(
-    groupId: String,
-    accountName: String,
-    targetTags: List[Tag],
-    account: String,
-    regionName: String,
+    notification: Notification,
     topicArn: String,
     client: AmazonSNSAsync): Unit = {
 
-    val actions = List(
-      Action("View in AWS Console", s"https://eu-west-1.console.aws.amazon.com/ec2/v2/home?region=$regionName#SecurityGroups:search=$groupId")
-    )
-    val message = s"Warning: Security group '$groupId' in account '$accountName' is open to the world"
-    val targets = getTargetsFromTags(targetTags, account)
+    val result = Anghammarad.notify(notification, topicArn, client)
 
-    val result = Anghammarad.notify(
-      subject,
-      message,
-      sourceSystem,
-      channel,
-      targets,
-      actions,
-      topicArn,
-      client
-    )
     try {
       val id = Await.result(result, 5.seconds)
-      logger.info(s"Sent notification to $targets: $id")
+      logger.info(s"Sent notification to ${notification.target}: $id")
     } catch {
       case NonFatal(err) =>
         logger.error("Failed to send notification", err)
