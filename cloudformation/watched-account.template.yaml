@@ -10,12 +10,15 @@ Parameters:
   SecurityHQDistBucket:
     Description: S3 bucket containing the Lambda artifacts
     Type: String
-
+    Default: guardian-dist
+  Version:
+    Description: Version of lambda artifact to deploy
+    Type: String
 
 Mappings:
   Constants:
     BucketLambdaJarPath:
-      Value: /dist/PROD/security/security-hq/lambda/
+      Value: guardian/PROD/securitygroups-lambda/
 
 
 Resources:
@@ -62,7 +65,7 @@ Resources:
   LambdaLogsPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: Logging permissions for Lambda function
+      PolicyName: Logging_permissions_for_Lambda_function
       PolicyDocument:
         Statement:
         - Effect: Allow
@@ -71,11 +74,13 @@ Resources:
           - logs:CreateLogGroup
           - logs:CreateLogStream
           - logs:PutLogEvents
+      Roles:
+      - !Ref SecurityGroupsLambdaRole
 
   LambdaConfigPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: AWS Config integration for lambda function
+      PolicyName: AWS_Config_integration_for_lambda_function
       PolicyDocument:
         Statement:
         - Effect: Allow
@@ -89,6 +94,8 @@ Resources:
           Resource: arn:aws:s3:::*/AWSLogs/*/Config/*
           Action:
             - s3:GetObject
+      Roles:
+      - !Ref SecurityGroupsLambdaRole
 
   # SECURITY GROUPS LAMBDA
 
@@ -101,10 +108,19 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Timeout: 300
-      Role: !Ref SecurityGroupsLambdaRole
+      Role: !GetAtt SecurityGroupsLambdaRole.Arn
       Code:
         S3Bucket: !Ref SecurityHQDistBucket
-        S3Key: !Sub ${Constants.BucketLambdaJarPath.Value}/security-groups-lambda.jar
+        S3Key:
+          Fn::Join:
+          - ""
+          - - !FindInMap
+              - Constants
+              - BucketLambdaJarPath
+              - Value
+            - securitygroups-lambda-
+            - !Ref Version
+            - .jar
 
   SecurityGroupsLambdaConfigInvocationPermission:
     Type: AWS::Lambda::Permission
@@ -141,8 +157,6 @@ Resources:
             Service:
             - lambda.amazonaws.com
       Policies:
-      - !Ref LambdaLogsPolicy
-      - !Ref LambdaConfigPolicy
       - PolicyName: SecurityGroupsLambdaExecutionPolicy
         PolicyDocument:
           Version: 2012-10-17
@@ -159,3 +173,15 @@ Outputs:
   SecurityHQRole:
     Description: The ARN of a role that Security HQ can assume to lookup details on this account
     Value: !GetAtt SecurityHQRole.Arn
+  Source:
+    Description: Source key for the lambda
+    Value:
+      Fn::Join:
+      - ""
+      - - !FindInMap
+          - Constants
+          - BucketLambdaJarPath
+          - Value
+        - securitygroups-lambda-
+        - !Ref Version
+        - .jar

@@ -5,7 +5,7 @@ import sbt.Keys.libraryDependencies
 
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
-version in ThisBuild := "0.0.1"
+version in ThisBuild := "0.1.0"
 scalaVersion in ThisBuild := "2.12.3"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
@@ -102,8 +102,8 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
   settings(commonLambdaSettings: _*).
   dependsOn(lambdaCommon % "compile->compile;test->test").
   settings(
-    name := """security-groups-lambda""",
-    assemblyJarName in assembly := s"${name.value}",
+    name := """securitygroups-lambda""",
+    assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
       "com.gu" % "anghammarad-client_2.12" % "1.1.0"
     )
