@@ -1,20 +1,18 @@
 package com.gu.hq.lambda
 
 import com.gu.hq.lambda.fixtures.Common
-import com.gu.hq.lambda.model.Relationship
+import com.gu.hq.lambda.fixtures.Events._
+import com.gu.hq.lambda.fixtures.SecurityGroups._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{EitherValues, FreeSpec, Matchers, OptionValues}
 import play.api.libs.json.JsNull
-import fixtures.Events._
-import fixtures.Diffs._
-import fixtures.SecurityGroups._
 
 
-class ConfigEventLogicTest extends FreeSpec with Matchers with OptionValues with EitherValues {
+class JsonParsingTest extends FreeSpec with Matchers with OptionValues with EitherValues {
 
   "eventDetails" - {
     "parses the JSON out of an example configEvent" in {
-      val invokingEvent = ConfigEventLogic.eventDetails(configEvent).value
+      val invokingEvent = JsonParsing.eventDetails(configEvent).value
       invokingEvent should have (
         'messageType ("ConfigurationItemChangeNotification"),
         'recordVersion ("1.2"),
@@ -29,7 +27,7 @@ class ConfigEventLogicTest extends FreeSpec with Matchers with OptionValues with
     }
 
     "the diff of an example config event is useful" in {
-      val configItemDiff = ConfigEventLogic.eventDetails(configEvent).value.configurationItemDiff.value
+      val configItemDiff = JsonParsing.eventDetails(configEvent).value.configurationItemDiff.value
 
       configItemDiff.changeType shouldEqual "UPDATE"
 
@@ -43,7 +41,7 @@ class ConfigEventLogicTest extends FreeSpec with Matchers with OptionValues with
 
   "sgConfiguration" - {
     "parses example configuration" in {
-      val sgConf = ConfigEventLogic.sgConfiguration(sgConfigurationJson).value
+      val sgConf = JsonParsing.sgConfiguration(sgConfigurationJson).value
       sgConf should have (
         'ownerId (Common.accountId),
         'groupName ("app-InstanceSecurityGroup-ABCDEFG"),
@@ -80,6 +78,17 @@ class ConfigEventLogicTest extends FreeSpec with Matchers with OptionValues with
       )
 
       sgConf.tags.map(t => t.key -> t.value) should contain allOf("Stack" -> "stack", "App" -> "app", "Stage" -> "PROD")
+    }
+  }
+
+  "account mapping configuration" - {
+    "account maps correctly" in {
+      val mapping = JsonParsing.accountMapping("""{ "a": "b", "c": "d" }""").get
+      mapping.get("c") should be (Some("d"))
+    }
+    "missing account doesn't map" in {
+      val mapping = JsonParsing.accountMapping("""{ "a": "b", "c": "d"  }""").get
+      mapping.get("e") should be (None)
     }
   }
 }

@@ -1,14 +1,14 @@
 package com.gu.hq
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain, EnvironmentVariableCredentialsProvider}
+import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.ec2._
-import com.amazonaws.services.elasticloadbalancing.{AmazonElasticLoadBalancingAsync, AmazonElasticLoadBalancingAsyncClient}
 import com.amazonaws.services.elasticloadbalancing.model.{DescribeLoadBalancersRequest, DescribeLoadBalancersResult}
-import com.amazonaws.services.sns.AmazonSNSAsyncClient
-import com.amazonaws.services.securitytoken.{AWSSecurityTokenServiceAsync, AWSSecurityTokenServiceAsyncClient}
+import com.amazonaws.services.elasticloadbalancing.{AmazonElasticLoadBalancingAsync, AmazonElasticLoadBalancingAsyncClient}
+import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest
+import com.amazonaws.services.securitytoken.{AWSSecurityTokenServiceAsync, AWSSecurityTokenServiceAsyncClient}
+import com.amazonaws.services.sns.{AmazonSNSAsync, AmazonSNSAsyncClient}
 
 
 object AWS {
@@ -27,23 +27,23 @@ object AWS {
     new ProfileCredentialsProvider("developerPlayground")
   )
 
-  // EC2
-  def ec2client(region: Regions): AmazonEC2 = {
-    AmazonEC2AsyncClientBuilder.standard().withRegion(region).withCredentials(securityCredentialsProviderChain).build()
-  }
-
   // ELBs
-  def elbClient(region: Regions) = {
+  def elbClient(region: Regions): AmazonElasticLoadBalancingAsync = {
     AmazonElasticLoadBalancingAsyncClient.asyncBuilder().withRegion(region).withCredentials(securityCredentialsProviderChain).build()
   }
 
   // SNSs
-  def snsClient(region: Regions) = {
-    AmazonSNSAsyncClient.asyncBuilder().withRegion(region).withCredentials(developerPlaygroundCredentialsProviderChain ).build()
+  def snsClient(region: Regions): AmazonSNSAsync = {
+    AmazonSNSAsyncClient.asyncBuilder().withRegion(region).withCredentials(securityCredentialsProviderChain ).build()
   }
   // STS
-  def stsClient(region: Regions) = {
+  def stsClient(region: Regions): AWSSecurityTokenServiceAsync = {
     AWSSecurityTokenServiceAsyncClient.asyncBuilder().withRegion(region).withCredentials(securityCredentialsProviderChain ).build()
+  }
+
+  // S3
+  def s3Client(region: Regions): AmazonS3 = {
+    AmazonS3ClientBuilder.standard().withRegion(region).withCredentials(securityCredentialsProviderChain).build()
   }
 
   def describeLoadBalancers(elbClient: AmazonElasticLoadBalancingAsync): DescribeLoadBalancersResult = {
@@ -51,7 +51,12 @@ object AWS {
     elbClient.describeLoadBalancers(request)
   }
 
-  def accountNumber(stsClient: AWSSecurityTokenServiceAsync) = {
+  def accountNumber(stsClient: AWSSecurityTokenServiceAsync): String = {
     stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount
   }
+
+  def accountsMappingJson(s3Client: AmazonS3): String = {
+    scala.io.Source.fromInputStream(s3Client.getObject("guardian-dist", "guardian/PROD/accounts").getObjectContent).mkString
+  }
+
 }

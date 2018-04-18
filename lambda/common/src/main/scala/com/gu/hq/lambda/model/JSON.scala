@@ -5,6 +5,7 @@ import org.joda.time.format.DateTimeFormat
 import play.api.libs.json.{Json, Reads}
 
 
+//noinspection TypeAnnotation
 object JSON {
   private val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
   implicit val jodaDateReads = Reads[DateTime](js =>
@@ -23,4 +24,5 @@ object JSON {
   implicit val userIdGroupPairRead = Json.reads[UserIdGroupPair]
   implicit val ipPermissionRead = Json.reads[IpPermission]
   implicit val sgConfigurationRead = Json.reads[SGConfiguration]
+  implicit val accountsRead = Json.reads[AccountMap]
 }

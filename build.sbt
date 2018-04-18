@@ -85,11 +85,11 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-lambda-java-core" % "1.1.0",
       "com.amazonaws" % "aws-java-sdk-lambda" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-elasticloadbalancing" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
+      "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "org.scalatest" %% "scalatest" % "3.0.5" % Test,
       "com.typesafe.play" %% "play-json" % playVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
@@ -105,7 +105,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
     name := """security-groups-lambda""",
     assemblyJarName in assembly := s"${name.value}",
     libraryDependencies ++= Seq(
-      "com.gu" % "anghammarad-client_2.12" % "1.0.5-SNAPSHOT"
+      "com.gu" % "anghammarad-client_2.12" % "1.1.0"
     )
 )
 

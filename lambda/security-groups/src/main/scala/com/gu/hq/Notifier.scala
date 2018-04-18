@@ -33,11 +33,11 @@ object Notifier extends StrictLogging {
     }
   }
 
-  def createNotification(groupId: String, targetTags: List[Tag], accountId: String, regionName: String): Notification = {
+  def createNotification(groupId: String, targetTags: List[Tag], accountId: String, accountName:String, regionName: String): Notification = {
     val actions = List(
       Action("View in AWS Console", s"https://$regionName.console.aws.amazon.com/ec2/v2/home?region=$regionName#SecurityGroups:search=$groupId")
     )
-    val message = s"Warning: Security group '$groupId' is open to the world"
+    val message = s"Warning: Security group **$groupId** in account **$accountName** is open to the world"
     val targets = getTargetsFromTags(targetTags, accountId)
 
     Notification(subject, message, actions, targets, channel, sourceSystem)
@@ -46,9 +46,9 @@ object Notifier extends StrictLogging {
   def send(
     notification: Notification,
     topicArn: String,
-    client: AmazonSNSAsync): Unit = {
+    snsClient: AmazonSNSAsync): Unit = {
 
-    val result = Anghammarad.notify(notification, topicArn, client)
+    val result = Anghammarad.notify(notification, topicArn, snsClient)
 
     try {
       val id = Await.result(result, 5.seconds)

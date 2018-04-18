@@ -58,28 +58,39 @@ class NotifierTest extends FreeSpec with Matchers with OptionValues {
     val groupId = "sg-213"
     val targetTags = List(Tag("Stack", "stack"), Tag("App", "app"), Tag("Stage", "PROD"), Tag("Irrelevant", "foo"))
     val accountId = "123456789"
+    val accountName = "abcdefg"
     val regionName = "eu-west-1"
 
     "adds AWS console CTA" - {
       "that links to AWS console" ignore {
-        val notfication = createNotification(groupId, targetTags, accountId, regionName)
+        val notfication = createNotification(groupId, targetTags, accountId, accountName, regionName)
         notfication.actions.exists(_.url.contains("console.aws.amazon.com"))
       }
 
       "that searches for the provided security group" in {
-        val notfication = createNotification(groupId, targetTags, accountId, regionName)
+        val notfication = createNotification(groupId, targetTags, accountId, accountName, regionName)
         val consoleCta = notfication.actions.find(_.url.contains("console.aws.amazon.com")).value
         consoleCta.url should include(s"search=$groupId")
       }
     }
 
     "adds Account ID to target" in {
-      val notification = createNotification(groupId, targetTags, accountId, regionName)
+      val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
       notification.target should contain(AwsAccount(accountId))
     }
 
+    "adds Account Name to message" in {
+      val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
+      notification.message should include(accountName)
+    }
+
+    "adds Group ID to message" in {
+      val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
+      notification.message should include(groupId)
+    }
+
     "adds stack stage and app to target" in {
-      val notification = createNotification(groupId, targetTags, accountId, regionName)
+      val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
       notification.target.toSet should contain allOf (Stack("stack"), App("app"), Stage("PROD"))
     }
   }
