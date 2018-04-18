@@ -1,6 +1,7 @@
 import com.gu.riffraff.artifact.RiffRaffArtifact
 import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import play.sbt.PlayImport.PlayKeys._
+import sbt.Keys.libraryDependencies
 
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
@@ -87,15 +88,29 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-elasticloadbalancing" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
+      "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
+      "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
+      "org.scalatest" %% "scalatest" % "3.0.5" % Test,
       "com.typesafe.play" %% "play-json" % playVersion,
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
       "ch.qos.logback" %  "logback-classic" % "1.2.3",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
 
+lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
+  settings(commonLambdaSettings: _*).
+  dependsOn(lambdaCommon % "compile->compile;test->test").
+  settings(
+    name := """security-groups-lambda""",
+    assemblyJarName in assembly := s"${name.value}",
+    libraryDependencies ++= Seq(
+      "com.gu" % "anghammarad-client_2.12" % "1.0.4"
+    )
+)
+
 lazy val root = (project in file(".")).
-  aggregate(hq, lambdaCommon).
+  aggregate(hq, lambdaCommon, lambdaSecurityGroups).
   settings(
     name := """security-hq"""
   )

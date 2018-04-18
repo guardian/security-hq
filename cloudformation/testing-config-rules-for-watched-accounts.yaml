@@ -1,0 +1,88 @@
+# With help from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configrule.html
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Security Group Configuration Rules
+
+Parameters:
+  SnsTopicArn:
+    Type: String
+    Description: Arn of SNS Topic for notifications
+  ArtifactBucket:
+    Description: S3 bucket containing the Lambda's artifact
+    Type: String
+  ArtifactLocation:
+    Description: S3 path to the Lambda's artifact
+    Type: String
+
+Resources:
+  LambdaConfigRulesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AWSConfigUserAccess
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: lambda-config-policy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Resource:
+            - "*"
+            Action:
+            - logs:*
+            - elasticloadbalancing:DescribeLoadBalancers
+            - sns:Publish
+
+  ConfigRulesLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucket
+        S3Key: !Ref ArtifactLocation
+      Description: Check the configuration of the security groups
+      Environment:
+        Variables:
+          SnsTopicArn: !Ref SnsTopicArn
+      FunctionName: security-groups-check
+      Handler: com.gu.hq.Lambda::handleRequest
+      Role: !GetAtt LambdaConfigRulesRole.Arn
+      Runtime: java8
+      MemorySize: 512
+      Timeout: 300
+    DependsOn: LambdaConfigRulesRole
+
+  ConfigRulesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/securitygroupscheck
+      RetentionInDays: 30
+
+  SecurityGroupsLambdaConfigInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt SecurityGroupsLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: config.amazonaws.com
+
+# Authorize Config Rules in the managed-account to invoke a Lambda function in the admin-account.
+  SecurityGroupsRule:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: SecurityGroupsRule
+      Description: Check that the security group is not world addressable
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::SecurityGroup
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceIdentifier: !GetAtt ConfigRulesLambda.Arn
+        SourceDetails:
+        - EventSource: aws.config
+          MessageType: ConfigurationItemChangeNotification
