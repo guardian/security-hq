@@ -103,26 +103,30 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   }
 
   if (environment.mode != Mode.Test) {
-    val credentialsSubscription = Observable.interval(500.millis, 5.minutes).subscribe { _ =>
-      refreshCredentialsBox()
-    }
+    val initialDelay =
+      if (environment.mode == Mode.Prod) 10.seconds
+      else Duration.Zero
 
-    val exposedKeysSubscription = Observable.interval(1000.millis, 5.minutes).subscribe { _ =>
+    val exposedKeysSubscription = Observable.interval(initialDelay + 2000.millis, 5.minutes).subscribe { _ =>
       refreshExposedKeysBox()
     }
 
-    val sgSubscription = Observable.interval(1500.millis, 5.minutes).subscribe { _ =>
+    val sgSubscription = Observable.interval(initialDelay + 3000.millis, 5.minutes).subscribe { _ =>
       refreshSgsBox()
     }
 
-    val inspectorSubscription = Observable.interval(2000.millis, 6.hours).subscribe { _ =>
+    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 15.minutes).subscribe { _ =>
+      refreshCredentialsBox()
+    }
+
+    val inspectorSubscription = Observable.interval(initialDelay + 5000.millis, 6.hours).subscribe { _ =>
       refreshInspectorBox()
     }
 
     lifecycle.addStopHook { () =>
-      credentialsSubscription.unsubscribe()
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
+      credentialsSubscription.unsubscribe()
       inspectorSubscription.unsubscribe()
       Future.successful(())
     }
