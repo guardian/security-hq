@@ -9,7 +9,6 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest
 import com.amazonaws.services.securitytoken.{AWSSecurityTokenServiceAsync, AWSSecurityTokenServiceAsyncClient}
 import com.amazonaws.services.sns.{AmazonSNSAsync, AmazonSNSAsyncClient}
-import play.api.libs.json.Json
 
 
 object AWS {
@@ -56,9 +55,8 @@ object AWS {
     stsClient.getCallerIdentity(new GetCallerIdentityRequest()).getAccount
   }
 
-  def accountName(s3Client: AmazonS3, accountNumber: String):String = {
-    def accountsJson = scala.io.Source.fromInputStream(s3Client.getObject("guardian-dist", "guardian/PROD/accounts").getObjectContent).mkString
-    def accounts = Json.parse(accountsJson).validate[Map[String, String]].asOpt getOrElse Map()
-    accounts.getOrElse(accountNumber, s"Unidentified account ($accountNumber)")
+  def accountsMappingJson(s3Client: AmazonS3): String = {
+    scala.io.Source.fromInputStream(s3Client.getObject("guardian-dist", "guardian/PROD/accounts").getObjectContent).mkString
   }
+
 }

@@ -6,10 +6,13 @@ import play.api.libs.json.{JsValue, Json, Reads}
 import com.typesafe.scalalogging.StrictLogging
 
 
-object ConfigEventLogic extends StrictLogging {
+object JsonParsing extends StrictLogging {
   import JSON._
 
   def eventDetails(event: ConfigEvent): Option[InvokingEvent] = extract[InvokingEvent](Json.parse(event.getInvokingEvent))
+
+  def accountMapping(accountsMappingJson: String): Option[Map[String, String]] =
+    extract[Map[String, String]](Json.parse(accountsMappingJson))
 
   def sgConfiguration(configurationJson: JsValue): Option[SGConfiguration] = extract[SGConfiguration](configurationJson)
 

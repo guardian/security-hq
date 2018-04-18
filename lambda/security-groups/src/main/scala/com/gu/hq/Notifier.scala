@@ -37,7 +37,7 @@ object Notifier extends StrictLogging {
     val actions = List(
       Action("View in AWS Console", s"https://$regionName.console.aws.amazon.com/ec2/v2/home?region=$regionName#SecurityGroups:search=$groupId")
     )
-    val message = s"Warning: Security group '$groupId' in account '$accountName' is open to the world"
+    val message = s"Warning: Security group **$groupId** in account **$accountName** is open to the world"
     val targets = getTargetsFromTags(targetTags, accountId)
 
     Notification(subject, message, actions, targets, channel, sourceSystem)
