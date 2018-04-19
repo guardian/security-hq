@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Sets up an AWS account for monitoring via Security HQ
+Description: Sets up a role for monitoring via Security HQ and a Security Group lambda for real time alerting
 
 Parameters:
   SecurityHQAccount:
@@ -10,9 +10,11 @@ Parameters:
   SecurityHQDistBucket:
     Description: S3 bucket containing the Lambda artifacts
     Type: String
-    Default: guardian-dist
   Version:
     Description: Version of lambda artifact to deploy
+    Type: String
+  SnsTopicArn:
+    Description: Arn of Anghammarad SNS topic
     Type: String
 
 Mappings:
@@ -77,6 +79,27 @@ Resources:
       Roles:
       - !Ref SecurityGroupsLambdaRole
 
+  LambdaS3AccountMappingPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: read_s3_to_get_account_mapping_file
+    Properties:
+      PolicyName: security-hq-install-bucket-policy
+      PolicyDocument:
+        Statement:
+        # needs to be able to fetch artifacts and config from S3
+        - Effect: Allow
+          Resource:
+          - !Sub arn:aws:s3:::${SecurityHQDistBucket}
+          - !Sub arn:aws:s3:::${SecurityHQDistBucket}/*
+          Action:
+          - s3:ListBucketVersions
+          - s3:ListBucket
+          - s3:GetObjectVersion
+          - s3:GetObject
+      Roles:
+      - !Ref SecurityGroupsLambdaRole
+
   LambdaConfigPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -112,15 +135,13 @@ Resources:
       Code:
         S3Bucket: !Ref SecurityHQDistBucket
         S3Key:
-          Fn::Join:
-          - ""
-          - - !FindInMap
-              - Constants
-              - BucketLambdaJarPath
-              - Value
-            - securitygroups-lambda-
-            - !Ref Version
-            - .jar
+          Fn::Sub:
+          - ${path}securitygroups-lambda-${version}.jar
+          - path: !FindInMap [Constants, BucketLambdaJarPath, Value]
+            version: !Ref Version
+      Environment:
+        Variables:
+          SnsTopicArn: !Ref SnsTopicArn
 
   SecurityGroupsLambdaConfigInvocationPermission:
     Type: AWS::Lambda::Permission
@@ -173,15 +194,3 @@ Outputs:
   SecurityHQRole:
     Description: The ARN of a role that Security HQ can assume to lookup details on this account
     Value: !GetAtt SecurityHQRole.Arn
-  Source:
-    Description: Source key for the lambda
-    Value:
-      Fn::Join:
-      - ""
-      - - !FindInMap
-          - Constants
-          - BucketLambdaJarPath
-          - Value
-        - securitygroups-lambda-
-        - !Ref Version
-        - .jar
