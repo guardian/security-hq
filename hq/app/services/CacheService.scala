@@ -9,15 +9,15 @@ import config.Config
 import model._
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Logger, Mode}
+import rx.lang.scala.Observable
 import utils.attempt.{FailedAttempt, Failure}
 
-import org.quartz._
-import org.quartz.impl.StdSchedulerFactory
-import org.quartz.spi.{JobFactory, TriggerFiredBundle}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
-import scala.concurrent.ExecutionContext
 
-class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, environment: Environment)(implicit ec: ExecutionContext) extends JobFactory {
+
+class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, environment: Environment)(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceError(acc.id, "cache").attempt))).toMap
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
@@ -103,58 +103,32 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   }
 
   if (environment.mode != Mode.Test) {
-    // Frequent jobs are staggered over two minutes, giving one every 40 seconds
-    setUpQuartzScheduleJob(Cache.Credentials, "0 0-59/2 * * * ?")
-    setUpQuartzScheduleJob(Cache.ExposedKeys, "40 0-59/2 * * * ?")
-    setUpQuartzScheduleJob(Cache.SecurityGroups, "20 1-59/2 * * * ?")
-    // AWS Inspector Runs are only scheduled for the early hours of Mon & Thu at the time of writing, so
-    // less frequent updates in Security HQ are fine.  7am is the earliest people are likely to be at work.
-    setUpQuartzScheduleJob(Cache.AWSInspector, "45 20 1,7,13,19 * * ?")
-  }
+    val initialDelay =
+      if (environment.mode == Mode.Prod) 10.seconds
+      else Duration.Zero
 
-  private def setUpQuartzScheduleJob(cache: Cache.EnumVal, cronString: String) = {
-    val jobKey = JobKey.jobKey(cache.toString, "refresh")
-    val schedule = CronScheduleBuilder.cronSchedule(cronString)
-
-    val jobDetail = JobBuilder
-      .newJob(classOf[Job])
-      .withIdentity(jobKey)
-      .build()
-
-    val trigger = TriggerBuilder
-      .newTrigger()
-      .withIdentity(s"cron-${cache.toString}")
-      .withSchedule(schedule)
-      .build()
-
-    val scheduler = new StdSchedulerFactory().getScheduler()
-    scheduler.setJobFactory(this)
-    scheduler.scheduleJob(jobDetail, trigger)
-    // Run once straight away, so that we don't have a delay on initial boot
-    scheduler.triggerJob(jobKey)
-    scheduler.start()
-  }
-
-  def refresh(cache: Cache.EnumVal): Unit = {
-    cache match {
-      case Cache.Credentials => refreshCredentialsBox()
-      case Cache.AWSInspector => refreshInspectorBox()
-      case Cache.ExposedKeys => refreshExposedKeysBox()
-      case Cache.SecurityGroups => refreshSgsBox()
+    val exposedKeysSubscription = Observable.interval(initialDelay + 2000.millis, 5.minutes).subscribe { _ =>
+      refreshExposedKeysBox()
     }
-  }
 
-  // Turns this class into a scheduler job factory.
-  override def newJob(bundle: TriggerFiredBundle, scheduler: Scheduler): Job =
-    (context: JobExecutionContext) => refresh(Cache.find(context.getJobDetail.getKey.getName))
+    val sgSubscription = Observable.interval(initialDelay + 3000.millis, 5.minutes).subscribe { _ =>
+      refreshSgsBox()
+    }
 
-  object Cache {
-    sealed trait EnumVal
-    case object AWSInspector extends EnumVal
-    case object Credentials extends EnumVal
-    case object ExposedKeys extends EnumVal
-    case object SecurityGroups extends EnumVal
-    def find(name: String) = Set(AWSInspector, Credentials, ExposedKeys, SecurityGroups)
-      .find(c => c.toString.equals(name)).get
+    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 15.minutes).subscribe { _ =>
+      refreshCredentialsBox()
+    }
+
+    val inspectorSubscription = Observable.interval(initialDelay + 5000.millis, 6.hours).subscribe { _ =>
+      refreshInspectorBox()
+    }
+
+    lifecycle.addStopHook { () =>
+      exposedKeysSubscription.unsubscribe()
+      sgSubscription.unsubscribe()
+      credentialsSubscription.unsubscribe()
+      inspectorSubscription.unsubscribe()
+      Future.successful(())
+    }
   }
 }
