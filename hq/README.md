@@ -63,14 +63,12 @@ See `watched-account` template under `cloudformation` folder for the security po
 At this step we configure nginx.
 
 1. Install nginx:
-  > *Linux:*   ```sudo apt-get install nginx```
-  >
-  > *Mac OSX:* ```brew install nginx```
+	- Linux: `sudo apt-get install nginx`
+	- Mac OSX: `brew install nginx`
 
 2. Make sure you have a sites-enabled folder under your nginx home. This should be:
-  > *Linux:* ```/etc/nginx/sites-enabled```
-  >
-  > *Mac OSX:* ```/usr/local/etc/nginx/sites-enabled```
+	- Linux: `/etc/nginx/sites-enabled`
+	- Mac OSX: `/usr/local/etc/nginx/sites-enabled`
 
 3. Ensure that your nginx.conf (found in the same location as the sites-enabled folder) contains the line `include sites-enabled/*` within the http block, for example:
 
@@ -102,14 +100,13 @@ At this step we configure nginx.
 ### Running project
 From the root of the project:
 
-1. Run sbt and ensure that it will have access to the application configuration:
-`$ ./sbt`
+1. Get Security Janus credentials. 
 
-2. Select the project that you want to run:
-`sbt:security-hq> project hq`
+1. Run sbt: `$ ./sbt`
 
-3. Start the application:
-`sbt:security-hq> run`
+1. Select the project that you want to run: `sbt:security-hq> project hq`
+
+1. Start the application: `sbt:security-hq> run`
 
 Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
@@ -122,9 +119,8 @@ Security HQ uses [Prettier](https://prettier.io) and [ESLint](https://eslint.org
 Before beginning, you may want to install a node version manager, such as [nvm](https://github.com/creationix/nvm).
 
 1. You will need to install [Yarn](https://yarnpkg.com) to handle the project dependencies:
-  > *Linux:* Instructions can be found here: https://yarnpkg.com/lang/en/docs/install/#linux-tab
-  >
-  > *Mac OSX:* `$ brew install yarn`
+	- Linux: Instructions can be found here: [https://yarnpkg.com/lang/en/docs/install/#linux-tab](https://yarnpkg.com/lang/en/docs/install/#linux-tab)
+	- Mac OSX: `$ brew install yarn`
 
 2. Then install all the dependencies by running:
 
