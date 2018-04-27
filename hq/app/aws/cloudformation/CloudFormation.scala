@@ -26,7 +26,7 @@ object CloudFormation {
     handleAWSErrs(awsToScala(client.describeStacksAsync)(request)).map(_.getStacks.asScala.toList)
   }
 
-  private def getStacks(account: AwsAccount, region: Regions, cfnClients: Map[(String, Regions),AmazonCloudFormationAsync])(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
+  private def getStacks(account: AwsAccount, region: Regions, cfnClients: Map[(String, Regions), AmazonCloudFormationAsync])(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     for {
       cloudClient <- client(cfnClients, account, region)
       stacks <- getStackDescriptions(cloudClient)

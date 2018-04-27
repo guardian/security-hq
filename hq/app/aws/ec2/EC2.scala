@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object EC2 {
 
-  def client(ec2Clients: Map[(String, Regions),AmazonEC2Async], awsAccount: AwsAccount, region: Regions): Attempt[AmazonEC2Async] = Attempt.fromOption(ec2Clients.get((awsAccount.id, region)), FailedAttempt(Failure(
+  def client(ec2Clients: Map[(String, Regions), AmazonEC2Async], awsAccount: AwsAccount, region: Regions): Attempt[AmazonEC2Async] = Attempt.fromOption(ec2Clients.get((awsAccount.id, region)), FailedAttempt(Failure(
     s"No AWS EC2 Client exists for ${awsAccount.id} and $region",
     s"Cannot find EC2 Client",
     500
