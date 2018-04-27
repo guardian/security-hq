@@ -16,7 +16,7 @@ import utils.attempt.{Attempt, Failure}
 
 
 object AWS {
-  def credentialsProvider(account: AwsAccount): AWSCredentialsProviderChain = {
+  private def credentialsProvider(account: AwsAccount): AWSCredentialsProviderChain = {
     new AWSCredentialsProviderChain(
       new STSAssumeRoleSessionCredentialsProvider.Builder(account.roleArn, "security-hq").build(),
       new ProfileCredentialsProvider(account.id)
