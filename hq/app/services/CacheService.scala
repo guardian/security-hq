@@ -126,7 +126,7 @@ class CacheService(
     setUpQuartzScheduleJob(Cache.AWSInspector, "45 20 1,7,13,19 * * ?")
   }
 
-  private def setUpQuartzScheduleJob(cache: Cache.EnumVal, cronString: String) = {
+  private def setUpQuartzScheduleJob(cache: Cache.EnumVal, cronString: String): Unit = {
     val jobKey = JobKey.jobKey(cache.toString, "refresh")
     val schedule = CronScheduleBuilder.cronSchedule(cronString)
 
@@ -168,7 +168,7 @@ class CacheService(
     case object Credentials extends EnumVal
     case object ExposedKeys extends EnumVal
     case object SecurityGroups extends EnumVal
-    def find(name: String) = Set(AWSInspector, Credentials, ExposedKeys, SecurityGroups)
+    def find(name: String): Cache.EnumVal = Set(AWSInspector, Credentials, ExposedKeys, SecurityGroups)
       .find(c => c.toString.equals(name)).get
   }
 }
