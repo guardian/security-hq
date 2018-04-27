@@ -1,32 +1,19 @@
 package aws.inspector
 
-import aws.AWS
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.inspector.AmazonInspectorAsync
 import com.amazonaws.services.inspector.model._
-import com.amazonaws.services.inspector.{AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder}
 import logic.InspectorResults
 import logic.InspectorResults._
 import model.{AwsAccount, InspectorAssessmentRun}
-import utils.attempt.{Attempt, FailedAttempt}
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 
 object Inspector {
-  def client(auth: AWSCredentialsProviderChain, region: Regions): AmazonInspectorAsync = {
-    AmazonInspectorAsyncClientBuilder.standard()
-      .withCredentials(auth)
-      .withRegion(region)
-      .build()
-  }
-
-  def client(awsAccount: AwsAccount, region: Regions): AmazonInspectorAsync = {
-    val auth = AWS.credentialsProvider(awsAccount)
-    client(auth, region)
-  }
 
   def listInspectorRuns(client: AmazonInspectorAsync)(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val request = new ListAssessmentRunsRequest()
@@ -44,14 +31,19 @@ object Inspector {
     }
   }
 
-  def allInspectorRuns(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]])]] = {
-    Attempt.labelledTaverseWithFailures(accounts)(Inspector.inspectorRuns)
+  def allInspectorRuns(accounts: List[AwsAccount], inspectorClients: Map[(String, Regions), AmazonInspectorAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]])]] = {
+    Attempt.labelledTraverseWithFailures(accounts)(Inspector.inspectorRuns(inspectorClients))
   }
 
-  def inspectorRuns(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {
+  def inspectorRuns(inspectorClients: Map[(String, Regions), AmazonInspectorAsync])(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {
     val region = Regions.EU_WEST_1  // we only automatically run inspections in Ireland
-    val inspectorClient = client(account, region)
+
     for {
+      inspectorClient <- Attempt.fromOption(inspectorClients.get((account.id, region)), FailedAttempt(Failure(
+          s"No AWS Inspector Client exists for ${account.id} and $region",
+          s"Cannot find Inspector Client",
+          500
+      )))
       inspectorRunArns <- Inspector.listInspectorRuns(inspectorClient)
       assessmentRuns <- Inspector.describeInspectorRuns(inspectorRunArns, inspectorClient)
       processedAssessmentRuns = InspectorResults.relevantRuns(assessmentRuns)

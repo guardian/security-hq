@@ -4,20 +4,34 @@ import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.inspector.Inspector
 import aws.support.TrustedAdvisorExposedIAMKeys
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
+import com.amazonaws.services.ec2.AmazonEC2Async
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
+import com.amazonaws.services.inspector.AmazonInspectorAsync
+import com.amazonaws.services.support.AWSSupportAsync
 import com.gu.Box
 import config.Config
 import model._
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Logger, Mode}
 import utils.attempt.{FailedAttempt, Failure}
-
 import org.quartz._
 import org.quartz.impl.StdSchedulerFactory
 import org.quartz.spi.{JobFactory, TriggerFiredBundle}
 
 import scala.concurrent.ExecutionContext
 
-class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, environment: Environment)(implicit ec: ExecutionContext) extends JobFactory {
+class CacheService(
+    config: Configuration,
+    lifecycle: ApplicationLifecycle,
+    environment: Environment,
+    inspectorClients: Map[(String, Regions), AmazonInspectorAsync],
+    ec2Clients: Map[(String, Regions), AmazonEC2Async],
+    cfnClients: Map[(String, Regions), AmazonCloudFormationAsync],
+    taClients: Map[(String, Regions), AWSSupportAsync],
+    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync]
+  )(implicit ec: ExecutionContext) extends JobFactory {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceError(acc.id, "cache").attempt))).toMap
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
@@ -25,7 +39,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
 
-  def getAllCredentials(): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
+  def getAllCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
 
   def getCredentialsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] = {
     credentialsBox.get().getOrElse(
@@ -34,7 +48,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
     )
   }
 
-  def getAllExposedKeys(): Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]] = exposedKeysBox.get()
+  def getAllExposedKeys: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]] = exposedKeysBox.get()
 
   def getExposedKeysForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[ExposedIAMKeyDetail]] = {
     exposedKeysBox.get().getOrElse(
@@ -43,7 +57,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
     )
   }
 
-  def getAllSgs(): Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = sgsBox.get()
+  def getAllSgs: Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = sgsBox.get()
 
   def getSgsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     sgsBox.get().getOrElse(
@@ -52,7 +66,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
     )
   }
 
-  def getAllInspectorResults(): Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]] = inspectorBox.get()
+  def getAllInspectorResults: Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]] = inspectorBox.get()
 
   def getInspectorResultsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[InspectorAssessmentRun]] = {
     inspectorBox.get().getOrElse(
@@ -64,7 +78,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   private def refreshCredentialsBox(): Unit = {
     Logger.info("Started refresh of the Credentials data")
     for {
-      allCredentialReports <- IAMClient.getAllCredentialReports(accounts)
+      allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, ec2Clients, iamClients)
     } yield {
       Logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
@@ -74,7 +88,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   private def refreshExposedKeysBox(): Unit = {
     Logger.info("Started refresh of the Exposed Keys data")
     for {
-      allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(accounts)
+      allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(accounts, taClients)
     } yield {
       Logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
@@ -84,8 +98,8 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   private def refreshSgsBox(): Unit = {
     Logger.info("Started refresh of the Security Groups data")
     for {
-      _ <- EC2.refreshSGSReports(accounts)
-      allFlaggedSgs <- EC2.allFlaggedSgs(accounts)
+      _ <- EC2.refreshSGSReports(accounts, taClients)
+      allFlaggedSgs <- EC2.allFlaggedSgs(accounts, ec2Clients, taClients)
     } yield {
       Logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
@@ -95,7 +109,7 @@ class CacheService(config: Configuration, lifecycle: ApplicationLifecycle, envir
   def refreshInspectorBox(): Unit = {
     Logger.info("Started refresh of the AWS Inspector data")
     for {
-      allInspectorRuns <- Inspector.allInspectorRuns(accounts)
+      allInspectorRuns <- Inspector.allInspectorRuns(accounts, inspectorClients)
     } yield {
       Logger.info("Sending the refreshed data to the AWS Inspector Box")
       inspectorBox.send(allInspectorRuns.toMap)

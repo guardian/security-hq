@@ -2,8 +2,8 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
-import aws.inspector.Inspector
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.inspector.AmazonInspectorAsync
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import logic.InspectorResults
@@ -16,7 +16,8 @@ import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class InspectorController(val config: Configuration,
+class InspectorController(val inspectorClients: Map[(String, Regions), AmazonInspectorAsync],
+                          val config: Configuration,
                           val cacheService: CacheService,
                           val authConfig: GoogleAuthConfig)
                          (implicit
@@ -33,7 +34,7 @@ class InspectorController(val config: Configuration,
   private val accounts = Config.getAwsAccounts(config)
 
   def inspector = authAction {
-    val accountAssessmentRuns = cacheService.getAllInspectorResults()
+    val accountAssessmentRuns = cacheService.getAllInspectorResults
     val sorted = InspectorResults.sortAccountResults(accountAssessmentRuns.toList)
     Ok(views.html.inspector.inspector(sorted))
   }

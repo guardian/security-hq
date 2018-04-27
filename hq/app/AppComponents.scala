@@ -1,3 +1,4 @@
+import aws.AWS
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
@@ -52,15 +53,29 @@ class AppComponents(context: Context)
     }
   }
 
-  private val cacheService = new CacheService(configuration, applicationLifecycle, environment)
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
+  private val inspectorClients = AWS.inspectorClients(configuration)
+  private val ec2Clients = AWS.ec2Clients(configuration)
+  private val cfnClients = AWS.cfnClients(configuration)
+  private val taClients = AWS.taClients(configuration)
+  private val iamClients = AWS.iamClients(configuration)
+
+  private val cacheService = new CacheService(
+    configuration,
+    applicationLifecycle,
+    environment,
+    inspectorClients,
+    ec2Clients,
+    cfnClients,
+    taClients,
+    iamClients)
 
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, configraun, googleAuthConfig),
-    new InspectorController(configuration, cacheService, googleAuthConfig),
+    new InspectorController(inspectorClients, configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
     new UtilityController(),
     assets

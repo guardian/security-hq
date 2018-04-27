@@ -21,7 +21,7 @@ class SecurityGroupsController(val config: Configuration, cacheService: CacheSer
   private val accounts = Config.getAwsAccounts(config)
 
   def securityGroups = authAction {
-    val allFlaggedSgs = cacheService.getAllSgs()
+    val allFlaggedSgs = cacheService.getAllSgs
     val sortedFlaggedSgs = EC2.sortAccountByFlaggedSgs(allFlaggedSgs.toList)
     Ok(views.html.sgs.sgs(sortedFlaggedSgs))
   }
