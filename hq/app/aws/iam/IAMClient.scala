@@ -20,8 +20,8 @@ object IAMClient {
   def client(iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync], awsAccount: AwsAccount): Attempt[ AmazonIdentityManagementAsync] = {
     val region = Regions.US_EAST_1
     Attempt.fromOption(iamClients.get((awsAccount.id, region)), FailedAttempt(Failure(
-      s"No AWS Trusted Advisor Client exists for ${awsAccount.id} and $region",
-      s"Cannot find Trusted Advisor Client",
+      s"No AWS IAM Client exists for ${awsAccount.id} and $region",
+      s"Cannot find IAM Client",
       500
     )))
   }
