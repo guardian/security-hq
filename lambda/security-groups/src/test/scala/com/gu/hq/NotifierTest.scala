@@ -89,9 +89,9 @@ class NotifierTest extends FreeSpec with Matchers with OptionValues {
       notification.message should include(groupId)
     }
 
-    "adds stack stage and app to target" in {
+    "adds stack and app to target" in {
       val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
-      notification.target.toSet should contain allOf (Stack("stack"), App("app"), Stage("PROD"))
+      notification.target.toSet should contain allOf (Stack("stack"), App("app"))
     }
   }
 }
