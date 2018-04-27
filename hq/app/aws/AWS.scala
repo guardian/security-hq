@@ -30,14 +30,13 @@ object AWS {
     )
   }
 
-  private def client[T, S <: AwsClientBuilder[S, T]](
+  private def clientMapping[T, S <: AwsClientBuilder[S, T]](
     account: AwsAccount,
     region: Regions,
     builder: AwsClientBuilder[S, T]
   ): ((String, Regions), T) = {
-    val auth = credentialsProvider(account)
     val client = builder
-      .withCredentials(auth)
+      .withCredentials(credentialsProvider(account))
       .withRegion(region)
       .build()
     (account.id, region) -> client
@@ -51,7 +50,7 @@ object AWS {
     val list = for {
       account <- Config.getAwsAccounts(configuration)
       region <- regionList
-    } yield client[T, S](account, region, builder)
+    } yield clientMapping[T, S](account, region, builder)
     Map(list: _*)
   }
 
