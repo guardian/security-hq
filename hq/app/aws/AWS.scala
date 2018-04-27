@@ -29,6 +29,7 @@ object AWS {
     )
   }
 
+  // Only needs Regions.EU_WEST_1
   def inspectorClients(configuration: Configuration): Map[(String, Regions), AmazonInspectorAsync] = Config.getAwsAccounts(configuration).flatMap(account => Regions.values().map(
     region => {
       val auth = credentialsProvider(account)
@@ -63,6 +64,7 @@ object AWS {
     }
   )).toMap
 
+  // Only needs Regions.US_EAST_1
   def taClients(configuration: Configuration): Map[(String, Regions), AWSSupportAsync] = Config.getAwsAccounts(configuration).flatMap(account => List(Regions.US_EAST_1).map(
     region => {
       val auth = credentialsProvider(account)

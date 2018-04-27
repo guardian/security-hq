@@ -75,7 +75,7 @@ class AppComponents(context: Context)
     new HQController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, configraun, googleAuthConfig),
-    new InspectorController(inspectorClients, configuration, cacheService, googleAuthConfig),
+    new InspectorController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
     new UtilityController(),
     assets

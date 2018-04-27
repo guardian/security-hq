@@ -3,7 +3,6 @@ package controllers
 import auth.SecurityHQAuthActions
 import aws.AWS
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.inspector.AmazonInspectorAsync
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import logic.InspectorResults
@@ -16,8 +15,7 @@ import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class InspectorController(val inspectorClients: Map[(String, Regions), AmazonInspectorAsync],
-                          val config: Configuration,
+class InspectorController(val config: Configuration,
                           val cacheService: CacheService,
                           val authConfig: GoogleAuthConfig)
                          (implicit
