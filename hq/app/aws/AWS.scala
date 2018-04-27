@@ -56,32 +56,32 @@ object AWS {
   }
 
   // Only needs Regions.EU_WEST_1
-  def inspectorClients(configuration: Configuration) =
+  def inspectorClients(configuration: Configuration): Map[(String, Regions), AmazonInspectorAsync] =
     clients[AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder](
       configuration,
       List(Regions.EU_WEST_1),
       AmazonInspectorAsyncClientBuilder.standard())
 
-  def ec2Clients(configuration: Configuration) =
+  def ec2Clients(configuration: Configuration): Map[(String, Regions), AmazonEC2Async] =
     clients[AmazonEC2Async, AmazonEC2AsyncClientBuilder](
       configuration,
       Regions.values().toList,
       AmazonEC2AsyncClientBuilder.standard())
 
-  def cfnClients(configuration: Configuration) =
+  def cfnClients(configuration: Configuration): Map[(String, Regions), AmazonCloudFormationAsync] =
     clients[AmazonCloudFormationAsync, AmazonCloudFormationAsyncClientBuilder](
       configuration,
       Regions.values().toList,
       AmazonCloudFormationAsyncClientBuilder.standard())
 
   // Only needs Regions.US_EAST_1
-  def taClients(configuration: Configuration) =
+  def taClients(configuration: Configuration): Map[(String, Regions), AWSSupportAsync] =
     clients[AWSSupportAsync, AWSSupportAsyncClientBuilder](
       configuration,
       List(Regions.US_EAST_1),
       AWSSupportAsyncClientBuilder.standard())
 
-  def iamClients(configuration: Configuration) =
+  def iamClients(configuration: Configuration): Map[(String, Regions), AmazonIdentityManagementAsync] =
     clients[AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder](
       configuration,
       Regions.values().toList,
