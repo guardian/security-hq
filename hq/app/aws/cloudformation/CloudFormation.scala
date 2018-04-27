@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 
 object CloudFormation {
 
-  def client(cfnClients: Map[(String, Regions),AmazonCloudFormationAsync], awsAccount: AwsAccount, region: Regions): Attempt[AmazonCloudFormationAsync] =
+  def client(cfnClients: Map[(String, Regions), AmazonCloudFormationAsync], awsAccount: AwsAccount, region: Regions): Attempt[AmazonCloudFormationAsync] =
     Attempt.fromOption(cfnClients.get((awsAccount.id, region)), FailedAttempt(Failure(
       s"No AWS Cloudformation Client exists for ${awsAccount.id} and $region",
       s"Cannot find Cloudformation Client",
