@@ -31,7 +31,7 @@ object AWS {
 
   def inspectorClients(configuration: Configuration): Map[(String, Regions), AmazonInspectorAsync] = Config.getAwsAccounts(configuration).flatMap(account => Regions.values().map(
     region => {
-      val auth = AWS.credentialsProvider(account)
+      val auth = credentialsProvider(account)
       val inspectorClient = AmazonInspectorAsyncClientBuilder.standard()
         .withCredentials(auth)
         .withRegion(region)
@@ -43,7 +43,7 @@ object AWS {
 
   def ec2Clients(configuration: Configuration): Map[(String, Regions), AmazonEC2Async] = Config.getAwsAccounts(configuration).flatMap(account => Regions.values().map(
     region => {
-      val auth = AWS.credentialsProvider(account)
+      val auth = credentialsProvider(account)
       val inspectorClient = AmazonEC2AsyncClientBuilder.standard()
         .withCredentials(auth)
         .withRegion(region)
@@ -54,7 +54,7 @@ object AWS {
 
   def cfnClients(configuration: Configuration): Map[(String, Regions), AmazonCloudFormationAsync] = Config.getAwsAccounts(configuration).flatMap(account => Regions.values().map(
     region => {
-      val auth = AWS.credentialsProvider(account)
+      val auth = credentialsProvider(account)
       val cloudFormationClient = AmazonCloudFormationAsyncClientBuilder.standard()
         .withCredentials(auth)
         .withRegion(region)
@@ -65,7 +65,7 @@ object AWS {
 
   def taClients(configuration: Configuration): Map[(String, Regions), AWSSupportAsync] = Config.getAwsAccounts(configuration).flatMap(account => List(Regions.US_EAST_1).map(
     region => {
-      val auth = AWS.credentialsProvider(account)
+      val auth = credentialsProvider(account)
       val cloudFormationClient = AWSSupportAsyncClientBuilder.standard()
         .withCredentials(auth)
         .withRegion(region)
@@ -76,7 +76,7 @@ object AWS {
 
   def iamClients(configuration: Configuration): Map[(String, Regions), AmazonIdentityManagementAsync] = Config.getAwsAccounts(configuration).flatMap(account => List(Regions.US_EAST_1).map(
     region => {
-      val auth = AWS.credentialsProvider(account)
+      val auth = credentialsProvider(account)
       val cloudFormationClient = AmazonIdentityManagementAsyncClientBuilder.standard()
         .withCredentials(auth)
         .withRegion(region)
