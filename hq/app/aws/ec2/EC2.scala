@@ -196,11 +196,7 @@ object EC2 {
     Attempt.traverse(flaggedSgs.map(_.region).distinct) { region =>
       val awsRegion = Regions.fromName(region)
       for {
-        ec2Client <- Attempt.fromOption(ec2Clients.get((account.id, awsRegion)), FailedAttempt(Failure(
-          s"No AWS EC2 Client exists for ${account.id} and $region",
-          s"Cannot find EC2 Client",
-          500
-        )))
+        ec2Client <- client(ec2Clients, account, awsRegion)
         vpcDetails <- vpcsDetailsF(ec2Client)
       } yield vpcDetails
 
