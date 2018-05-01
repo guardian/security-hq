@@ -15,6 +15,12 @@ import scala.concurrent.ExecutionContext
 
 object Inspector {
 
+  def client(inspectorClients: Map[(String, Regions), AmazonInspectorAsync], awsAccount: AwsAccount, region: Regions): Attempt[AmazonInspectorAsync] = Attempt.fromOption(inspectorClients.get((awsAccount.id, region)), FailedAttempt(Failure(
+    s"No AWS Inspector Client exists for ${awsAccount.id} and $region",
+    s"Cannot find Inspector Client",
+    500
+  )))
+
   def listInspectorRuns(client: AmazonInspectorAsync)(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val request = new ListAssessmentRunsRequest()
     handleAWSErrs(awsToScala(client.listAssessmentRunsAsync)(request)).map(parseListAssessmentRunsResult)
@@ -39,11 +45,7 @@ object Inspector {
     val region = Regions.EU_WEST_1  // we only automatically run inspections in Ireland
 
     for {
-      inspectorClient <- Attempt.fromOption(inspectorClients.get((account.id, region)), FailedAttempt(Failure(
-          s"No AWS Inspector Client exists for ${account.id} and $region",
-          s"Cannot find Inspector Client",
-          500
-      )))
+      inspectorClient <- client(inspectorClients, account, region)
       inspectorRunArns <- Inspector.listInspectorRuns(inspectorClient)
       assessmentRuns <- Inspector.describeInspectorRuns(inspectorRunArns, inspectorClient)
       processedAssessmentRuns = InspectorResults.relevantRuns(assessmentRuns)
