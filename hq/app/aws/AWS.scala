@@ -32,7 +32,7 @@ object AWS {
     )
   }
 
-  private def clients[A, B <: AwsClientBuilder[B, A]](
+  private[aws] def clients[A, B <: AwsClientBuilder[B, A]](
     builder: AwsClientBuilder[B, A],
     configuration: Configuration,
     regionList: Regions*

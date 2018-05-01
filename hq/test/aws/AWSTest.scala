@@ -1,6 +1,7 @@
 package aws
 
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.inspector.AmazonInspectorAsyncClientBuilder
 import com.typesafe.config.ConfigFactory
 import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
@@ -9,7 +10,7 @@ import utils.attempt.AttemptValues
 
 class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
 
-  "clients" - {
+  "real clients" - {
 
     val config = ConfigFactory.parseString(
       s"""
@@ -58,4 +59,30 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     }
 
   }
+
+  "mock clients" - {
+
+    val config = ConfigFactory.parseString(
+      s"""
+         | {
+         |   "hq": {
+         |     "accounts" : [
+         |       {
+         |         "name": "Mock"
+         |         "id": "mock"
+         |         "roleArn": ""
+         |       }
+         |     ]
+         |   }
+         | }
+       """.stripMargin
+    )
+    val configuration = Configuration(config)
+
+    "correct account and region" in {
+      val keys = AWS.clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1).keys
+      keys should contain (("mock", Regions.EU_WEST_1))
+    }
+  }
+
 }
