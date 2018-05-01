@@ -62,7 +62,6 @@ object Notifier extends StrictLogging {
   private def getTargetsFromTags(tags: List[Tag], account: String):List[Target] = {
     val stack = tags.find(t => t.key.equals("Stack")).map(t => Stack(t.value))
     val app = tags.find(t => t.key.equals("App")).map(t => App(t.value))
-    val stage = tags.find(t => t.key.equals("Stage")).map(t => Stage(t.value))
-    List(stack, app, stage, Some(AwsAccount(account))).flatten
+    List(stack, app, Some(AwsAccount(account))).flatten
   }
 }
