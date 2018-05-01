@@ -32,7 +32,7 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
        """.stripMargin
     )
     val configuration = Configuration(config)
-    
+
     //Two accounts, all regions.
     val allRegionsSize = Regions.values().size * 2
     // Only in one region.

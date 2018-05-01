@@ -18,8 +18,6 @@ import utils.attempt.{Attempt, Failure}
 
 object AWS {
 
-  //  availableRegions <- EC2.getAvailableRegions(regionClient)
-
   private def credentialsProvider(account: AwsAccount): AWSCredentialsProviderChain = {
     new AWSCredentialsProviderChain(
       new STSAssumeRoleSessionCredentialsProvider.Builder(account.roleArn, "security-hq").build(),
