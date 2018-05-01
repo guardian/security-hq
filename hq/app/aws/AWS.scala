@@ -1,5 +1,6 @@
 package aws
 
+import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, STSAssumeRoleSessionCredentialsProvider}
 import com.amazonaws.client.builder.AwsClientBuilder
@@ -16,6 +17,9 @@ import utils.attempt.{Attempt, Failure}
 
 
 object AWS {
+
+  //  availableRegions <- EC2.getAvailableRegions(regionClient)
+
   private def credentialsProvider(account: AwsAccount): AWSCredentialsProviderChain = {
     new AWSCredentialsProviderChain(
       new STSAssumeRoleSessionCredentialsProvider.Builder(account.roleArn, "security-hq").build(),
@@ -30,60 +34,38 @@ object AWS {
     )
   }
 
-  private def clientMapping[T, S <: AwsClientBuilder[S, T]](
-    account: AwsAccount,
-    region: Regions,
-    builder: AwsClientBuilder[S, T]
-  ): ((String, Regions), T) = {
-    val client = builder
-      .withCredentials(credentialsProvider(account))
-      .withRegion(region)
-      .build()
-    (account.id, region) -> client
-  }
-
   private def clients[T, S <: AwsClientBuilder[S, T]](
+    builder: AwsClientBuilder[S, T],
     configuration: Configuration,
-    regionList: List[Regions],
-    builder: AwsClientBuilder[S, T]
+    regionList: Regions*
   ): Map[(String, Regions), T] = {
     val list = for {
       account <- Config.getAwsAccounts(configuration)
       region <- regionList
-    } yield clientMapping[T, S](account, region, builder)
-    Map(list: _*)
+      client = builder
+        .withCredentials(credentialsProvider(account))
+        .withRegion(region)
+        .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
+        .build()
+    } yield (account.id, region) -> client
+    list.toMap
   }
 
   // Only needs Regions.EU_WEST_1
   def inspectorClients(configuration: Configuration): Map[(String, Regions), AmazonInspectorAsync] =
-    clients[AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder](
-      configuration,
-      List(Regions.EU_WEST_1),
-      AmazonInspectorAsyncClientBuilder.standard())
+    clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1)
 
   def ec2Clients(configuration: Configuration): Map[(String, Regions), AmazonEC2Async] =
-    clients[AmazonEC2Async, AmazonEC2AsyncClientBuilder](
-      configuration,
-      Regions.values().toList,
-      AmazonEC2AsyncClientBuilder.standard())
+    clients(AmazonEC2AsyncClientBuilder.standard(), configuration, Regions.values():_*)
 
   def cfnClients(configuration: Configuration): Map[(String, Regions), AmazonCloudFormationAsync] =
-    clients[AmazonCloudFormationAsync, AmazonCloudFormationAsyncClientBuilder](
-      configuration,
-      Regions.values().toList,
-      AmazonCloudFormationAsyncClientBuilder.standard())
+    clients(AmazonCloudFormationAsyncClientBuilder.standard(), configuration, Regions.values():_*)
 
   // Only needs Regions.US_EAST_1
   def taClients(configuration: Configuration): Map[(String, Regions), AWSSupportAsync] =
-    clients[AWSSupportAsync, AWSSupportAsyncClientBuilder](
-      configuration,
-      List(Regions.US_EAST_1),
-      AWSSupportAsyncClientBuilder.standard())
+    clients(AWSSupportAsyncClientBuilder.standard(), configuration, Regions.US_EAST_1)
 
   def iamClients(configuration: Configuration): Map[(String, Regions), AmazonIdentityManagementAsync] =
-    clients[AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder](
-      configuration,
-      Regions.values().toList,
-      AmazonIdentityManagementAsyncClientBuilder.standard())
+    clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, Regions.values():_*)
 
 }
