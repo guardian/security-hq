@@ -125,7 +125,7 @@ Resources:
   SecurityGroupsLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: security-hq
+      FunctionName: SHQ-security-groups-notifier
       Description: Checks for SGs that are open to the world, excepting ELB groups
       Handler: com.gu.hq.Lambda
       Runtime: java8
