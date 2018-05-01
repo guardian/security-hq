@@ -1,5 +1,7 @@
 package aws.ec2
 
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.ec2.model._
 import model._
 import org.scalacheck.Gen
@@ -11,8 +13,8 @@ import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{Attempt, AttemptValues}
 
 import scala.collection.JavaConverters._
-import scala.util.Random
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Random
 
 
 class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
@@ -244,15 +246,26 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
       "vpc-3" -> new Vpc().withVpcId("vpc-3")
     )
     val vpcsResult = Attempt.Right(vpcsMap)
+    val clients = Map(
+      ("security-test", Regions.EU_WEST_1) -> AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build(),
+      ("security-test", Regions.EU_WEST_2) -> AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build()
+    )
 
     "getVpcs" - {
 
       "returns vpc details in a map" in {
-        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)( _ => vpcsResult).value shouldBe vpcsMap
+        EC2.getVpcs(
+          AwsAccount("security-test", "security", "security-test"),
+          sgsList,
+          clients
+        )( _ => vpcsResult).value shouldBe vpcsMap
       }
 
       "returns empty vpc details" in {
-        EC2.getVpcs(AwsAccount("security-test", "security", "security-test"), sgsList)( _ => Attempt.Right(Map.empty)).value shouldBe Map.empty
+        EC2.getVpcs(
+          AwsAccount("security-test", "security", "security-test"),
+          sgsList,
+          clients)( _ => Attempt.Right(Map.empty)).value shouldBe Map.empty
       }
     }
 

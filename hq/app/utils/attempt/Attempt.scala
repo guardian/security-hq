@@ -107,7 +107,7 @@ object Attempt {
     *
     * Combines the behaviours of labelledTraverse and traverseWithFailures.
     */
-  def labelledTaverseWithFailures[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[(A, Either[FailedAttempt, B])]] = {
+  def labelledTraverseWithFailures[A, B](as: List[A])(f: A => Attempt[B])(implicit ec: ExecutionContext): Attempt[List[(A, Either[FailedAttempt, B])]] = {
     Async.Right(Future.traverse(as)(a => f(a).asFuture.map(a -> _)))
   }
 

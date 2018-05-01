@@ -1,6 +1,7 @@
 package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{AwsAccount, ExposedIAMKeyDetail, TrustedAdvisorDetailsResult}
@@ -13,10 +14,10 @@ import scala.concurrent.{ExecutionContext, Future}
 object TrustedAdvisorExposedIAMKeys {
   val AWS_EXPOSED_ACCESS_KEYS_IDENTIFIER = "12Fnkpl8Y5"
 
-  def getAllExposedKeys(accounts: List[AwsAccount])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])]] = {
+  def getAllExposedKeys(accounts: List[AwsAccount], taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        exposedKeysForAccount(account).asFuture.map(account -> _)
+        exposedKeysForAccount(account, taClients).asFuture.map(account -> _)
       }
     }
   }
@@ -26,11 +27,11 @@ object TrustedAdvisorExposedIAMKeys {
       .flatMap(parseTrustedAdvisorCheckResult(parseExposedIamKeyDetail, ec))
   }
 
-  private def exposedKeysForAccount(account: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[ExposedIAMKeyDetail]] = {
-    val supportClient = TrustedAdvisor.client(account)
+  private def exposedKeysForAccount(account: AwsAccount, taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[ExposedIAMKeyDetail]] = {
     for {
-        exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(supportClient)
-        exposedIamKeys = exposedIamKeysResult.flaggedResources
+      supportClient <- TrustedAdvisor.client(taClients, account)
+      exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(supportClient)
+      exposedIamKeys = exposedIamKeysResult.flaggedResources
     } yield exposedIamKeys
   }
 

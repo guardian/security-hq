@@ -1,14 +1,12 @@
 package aws.support
 
-import aws.AWS
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model._
-import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
-import model._
 import logic.DateUtils.fromISOString
-import utils.attempt.Attempt
+import model._
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -22,7 +20,7 @@ object TrustedAdvisor {
       "MySQL" -> Set(3306),
       "Redshift" -> Set(5439),
       "MongoDB" -> Set(27017, 27018, 27019),
-      "Redis" ->  Set(6379, 6380),
+      "Redis" -> Set(6379, 6380),
       "MSQL" -> Set(4333),
       "Oracle DB" -> Set(5500),
       "SQL Server" -> Set(1433, 1434),
@@ -40,16 +38,13 @@ object TrustedAdvisor {
 
   val alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
 
-  def client(auth: AWSCredentialsProviderChain): AWSSupportAsync = {
-    AWSSupportAsyncClientBuilder.standard()
-      .withCredentials(auth)
-      .withRegion(Regions.US_EAST_1) // Support's a global service, needs to be set to US_EAST_1
-      .build()
-  }
-
-  def client(awsAccount: AwsAccount): AWSSupportAsync = {
-    val auth = AWS.credentialsProvider(awsAccount)
-    client(auth)
+  def client(taClients: Map[(String, Regions), AWSSupportAsync], awsAccount: AwsAccount): Attempt[AWSSupportAsync] = {
+    val region = Regions.US_EAST_1
+    Attempt.fromOption(taClients.get((awsAccount.id, region)), FailedAttempt(Failure(
+      s"No AWS Trusted Advisor Client exists for ${awsAccount.id} and $region",
+      s"Cannot find Trusted Advisor Client",
+      500
+    )))
   }
 
   // SHOW ALL TRUSTED ADVISOR CHECKS
