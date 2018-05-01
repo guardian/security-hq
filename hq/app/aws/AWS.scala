@@ -32,11 +32,11 @@ object AWS {
     )
   }
 
-  private def clients[T, S <: AwsClientBuilder[S, T]](
-    builder: AwsClientBuilder[S, T],
+  private def clients[A, B <: AwsClientBuilder[B, A]](
+    builder: AwsClientBuilder[B, A],
     configuration: Configuration,
     regionList: Regions*
-  ): Map[(String, Regions), T] = {
+  ): Map[(String, Regions), A] = {
     val list = for {
       account <- Config.getAwsAccounts(configuration)
       region <- regionList
