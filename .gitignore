@@ -141,3 +141,6 @@ yarn-error.log*
 
 # Dependency directories
 node_modules/
+
+# Local notes directory
+notes

@@ -117,7 +117,7 @@ object InspectorResults {
     assessmentRuns.flatMap(_.findingCounts.values).sum
   }
 
-  def completedDaysAgo(assessmentRun: InspectorAssessmentRun): Int = Days.daysBetween(new DateTime(), assessmentRun.completedAt).getDays
+  def completedDaysAgo(assessmentRun: InspectorAssessmentRun): Int = Days.daysBetween(assessmentRun.completedAt, new DateTime()).getDays
 
   def formatCompletedAtTimeOnly(assessmentRun: InspectorAssessmentRun): String = DateTimeFormat.forPattern("HH:mm:ss").print(assessmentRun.completedAt)
 

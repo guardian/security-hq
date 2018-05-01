@@ -2,7 +2,6 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
-import aws.inspector.Inspector
 import com.amazonaws.regions.Regions
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
@@ -33,7 +32,7 @@ class InspectorController(val config: Configuration,
   private val accounts = Config.getAwsAccounts(config)
 
   def inspector = authAction {
-    val accountAssessmentRuns = cacheService.getAllInspectorResults()
+    val accountAssessmentRuns = cacheService.getAllInspectorResults
     val sorted = InspectorResults.sortAccountResults(accountAssessmentRuns.toList)
     Ok(views.html.inspector.inspector(sorted))
   }
