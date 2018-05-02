@@ -270,7 +270,7 @@ Resources:
         Ref: AMI
       SecurityGroups:
       - Ref: InstanceSecurityGroup
-      InstanceType: t2.small
+      InstanceType: t2.micro
       IamInstanceProfile:
         Ref: SecurityHQInstanceProfile
       AssociatePublicIpAddress: true
@@ -306,9 +306,9 @@ Resources:
         Ref: Subnets
       LaunchConfigurationName:
         Ref: LaunchConfig
-      MinSize: 2
-      MaxSize: 4
-      DesiredCapacity: 2
+      MinSize: 1
+      MaxSize: 2
+      DesiredCapacity: 1
       HealthCheckType: ELB
       HealthCheckGracePeriod: 120
       LoadBalancerNames:
