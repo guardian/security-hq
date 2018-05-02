@@ -1,0 +1,205 @@
+{
+    "configurationItemDiff": {
+        "changedProperties": {
+            "Configuration.IpPermissions.1": {
+                "previousValue": null,
+                "updatedValue": {
+                    "fromPort": 22,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [
+                        {
+                            "cidrIpv6": "::/0"
+                        }
+                    ],
+                    "prefixListIds": [],
+                    "toPort": 22,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "ipRanges": [
+                        "0.0.0.0/0"
+                    ]
+                },
+                "changeType": "CREATE"
+            },
+            "Configuration.IpPermissions.0": {
+                "previousValue": {
+                    "fromPort": 22,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 22,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "77.91.250.235/32"
+                        }
+                    ],
+                    "ipRanges": [
+                        "77.91.250.235/32"
+                    ]
+                },
+                "updatedValue": null,
+                "changeType": "DELETE"
+            }
+        },
+        "changeType": "UPDATE"
+    },
+    "configurationItem": {
+        "relatedEvents": [],
+        "relationships": [
+            {
+                "resourceId": "eni-01234567",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::NetworkInterface",
+                "name": "Is associated with NetworkInterface"
+            },
+            {
+                "resourceId": "eni-98765432",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::NetworkInterface",
+                "name": "Is associated with NetworkInterface"
+            },
+            {
+                "resourceId": "i-987654321abcdef12",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::Instance",
+                "name": "Is associated with Instance"
+            },
+            {
+                "resourceId": "vpc-01234567",
+                "resourceName": null,
+                "resourceType": "AWS::EC2::VPC",
+                "name": "Is contained in Vpc"
+            }
+        ],
+        "configuration": {
+            "description": "application instance",
+            "groupName": "cf-stack-name-InstanceSecurityGroup-1ABCD890ABCD",
+            "ipPermissions": [
+                {
+                    "fromPort": 9000,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 9000,
+                    "userIdGroupPairs": [
+                        {
+                            "groupId": "sg-bcdef123",
+                            "userId": "0123456789"
+                        }
+                    ],
+                    "ipv4Ranges": [],
+                    "ipRanges": []
+                },
+                {
+                    "fromPort": 22,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 22,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "10.10.100.0/21"
+                        }
+                    ],
+                    "ipRanges": [
+                        "10.10.100.0/21"
+                    ]
+                }
+            ],
+            "ownerId": "0123456789",
+            "groupId": "sg-01234567",
+            "ipPermissionsEgress": [
+                {
+                    "fromPort": 80,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 80,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "ipRanges": [
+                        "0.0.0.0/0"
+                    ]
+                },
+                {
+                    "fromPort": 443,
+                    "ipProtocol": "tcp",
+                    "ipv6Ranges": [],
+                    "prefixListIds": [],
+                    "toPort": 443,
+                    "userIdGroupPairs": [],
+                    "ipv4Ranges": [
+                        {
+                            "cidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "ipRanges": [
+                        "0.0.0.0/0"
+                    ]
+                }
+            ],
+            "tags": [
+                {
+                    "key": "Stack",
+                    "value": "stack"
+                },
+                {
+                    "key": "App",
+                    "value": "application"
+                },
+                {
+                    "key": "Stage",
+                    "value": "PROD"
+                },
+                {
+                    "key": "aws:cloudformation:logical-id",
+                    "value": "InstanceSecurityGroup"
+                },
+                {
+                    "key": "aws:cloudformation:stack-name",
+                    "value": "cf-stack-name"
+                },
+                {
+                    "key": "aws:cloudformation:stack-id",
+                    "value": "arn:aws:cloudformation:eu-west-1:0123456789:stack/cf-stack-name/65432123-abcd-efgh-8765-432123456789"
+                }
+            ],
+            "vpcId": "vpc-01234567"
+        },
+        "supplementaryConfiguration": {},
+        "tags": {
+            "App": "application",
+            "aws:cloudformation:stack-name": "cf-stack-name",
+            "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-west-1:0123456789:stack/cf-stack-name/65432123-abcd-efgh-8765-432123456789",
+            "Stage": "PROD",
+            "aws:cloudformation:logical-id": "InstanceSecurityGroup",
+            "Stack": "stack"
+        },
+        "configurationItemVersion": "1.3",
+        "configurationItemCaptureTime": "2018-03-28T00:22:00.000Z",
+        "configurationStateId": 1222333444445,
+        "awsAccountId": "0123456789",
+        "configurationItemStatus": "OK",
+        "resourceType": "AWS::EC2::SecurityGroup",
+        "resourceId": "sg-01234567",
+        "resourceName": "cf-stack-name-InstanceSecurityGroup-1ABCD890ABCD",
+        "ARN": "arn:aws:ec2:eu-west-1:0123456789:security-group/sg-01234567",
+        "awsRegion": "eu-west-1",
+        "availabilityZone": "Not Applicable",
+        "configurationStateMd5Hash": "",
+        "resourceCreationTime": null
+    },
+    "notificationCreationTime": "2018-03-28T00:23:00.000Z",
+    "messageType": "ConfigurationItemChangeNotification",
+    "recordVersion": "1.3"
+}

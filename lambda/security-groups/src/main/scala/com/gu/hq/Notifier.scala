@@ -3,8 +3,9 @@ package com.gu.hq
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models._
-import com.gu.hq.SecurityGroups.{NotOpen, Open, OpenELB, SgStatus}
-import com.gu.hq.lambda.model.{InvokingEvent, Tag}
+import com.gu.hq.Events.{NotRelevant, Relevance, Relevant}
+import com.gu.hq.SecurityGroups._
+import com.gu.hq.lambda.model.Tag
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Await
@@ -18,18 +19,15 @@ object Notifier extends StrictLogging {
   private val sourceSystem = "Security HQ - Security Groups Lambda"
   private val channel = Preferred(HangoutsChat)  // use hangouts if available, but email is ok too
 
-  def shouldNotify(invokingEvent: InvokingEvent, status: SgStatus): Option[Unit] = {
-    status match {
-      case NotOpen =>
-        None
-      case OpenELB =>
-        None
-      case Open =>
-        val isRelevantChange = invokingEvent.configurationItemDiff.exists { diff =>
-          Set("CREATE", "UPDATE").contains(diff.changeType)
+  def shouldNotify(relevance: Relevance, status: SgStatus): Option[Unit] = {
+    relevance match {
+      case NotRelevant => None
+      case Relevant =>
+        status match {
+          case NotOpen => None
+          case OpenELB => None
+          case Open => Some(())
         }
-        if (isRelevantChange) Some(())
-        else None
     }
   }
 
