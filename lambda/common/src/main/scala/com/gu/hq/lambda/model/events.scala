@@ -14,7 +14,7 @@ case class InvokingEvent(
 
 case class ConfigurationItemDiff(
   changeType: String,
-  changedProperties: JsValue
+  changedProperties: Map[String, JsValue]
 )
 
 case class ConfigurationItem(

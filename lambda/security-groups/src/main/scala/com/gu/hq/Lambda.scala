@@ -27,7 +27,8 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
       accountMapping = JsonParsing.accountMapping(AWS.accountsMappingJson(s3Client)) getOrElse Map()
       accountName = accountMapping.getOrElse(account, s"Unidentified account ($account)")
       status = SecurityGroups.status(sgConfiguration, loadBalancers)
-      _ <- Notifier.shouldNotify(invokingEvent, status)
+      relevance = Events.relevance(invokingEvent)
+      _ <- Notifier.shouldNotify(relevance, status)
       notification = Notifier.createNotification(sgConfiguration.groupId, sgConfiguration.tags, account, accountName, regionName)
     } Notifier.send(notification, snsTopicArn, snsClient)
   }

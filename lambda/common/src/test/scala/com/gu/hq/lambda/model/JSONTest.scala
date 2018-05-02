@@ -10,14 +10,19 @@ import scala.io.Source
 class JSONTest extends FreeSpec with Matchers with OptionValues {
   "parse config event" - {
     "can parse an event triggered by a change" - {
-      val eventJson = loadJsonResource("config_event_with_update")
+      val irrelevantEventJson = loadJsonResource("config_event_with_irrelevant_update")
+      val relevantEventJson = loadJsonResource("config_event_with_relevant_update")
 
-      "parses event JSON" in {
-        Json.parse(eventJson).validate[InvokingEvent].isSuccess shouldBe true
+      "parse irrelevant event JSON" in {
+        Json.parse(irrelevantEventJson).validate[InvokingEvent].isSuccess shouldBe true
+      }
+
+      "parse relevant event JSON" in {
+        Json.parse(relevantEventJson).validate[InvokingEvent].isSuccess shouldBe true
       }
 
       "can parse configuration JSON out of the configuration item" in {
-        val event = Json.parse(eventJson).validate[InvokingEvent].asOpt.value
+        val event = Json.parse(irrelevantEventJson).validate[InvokingEvent].asOpt.value
         val configurationItem = event.configurationItem.value
         configurationItem.configuration.validate[SGConfiguration].isSuccess shouldBe true
       }

@@ -1,13 +1,10 @@
 package com.gu.hq
 
-import com.gu.anghammarad.models.{App, AwsAccount, Stack, Stage}
-import com.gu.hq.SecurityGroups.{NotOpen, Open, OpenELB}
-import com.gu.hq.lambda.model.JSON._
-import com.gu.hq.lambda.model.{InvokingEvent, Tag}
+import com.gu.anghammarad.models.{App, AwsAccount, Stack}
+import com.gu.hq.Events.{NotRelevant, Relevant}
+import com.gu.hq.SecurityGroups._
+import com.gu.hq.lambda.model.Tag
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
-import play.api.libs.json.Json
-
-import scala.io.Source
 
 
 class NotifierTest extends FreeSpec with Matchers with OptionValues {
@@ -16,41 +13,32 @@ class NotifierTest extends FreeSpec with Matchers with OptionValues {
   "shouldNotify" - {
     "if the SG status is 'not open'" - {
       "returns None for update event" in {
-        shouldNotify(updateEvent, NotOpen) shouldBe None
+        shouldNotify(Relevant, NotOpen) shouldBe None
       }
 
       "returns None for non-update event" in {
-        shouldNotify(noChangeEvent, NotOpen) shouldBe None
+        shouldNotify(NotRelevant, NotOpen) shouldBe None
       }
     }
 
     "if the SG status is 'open ELB'" - {
       "returns None for update event" in {
-        shouldNotify(updateEvent, OpenELB) shouldBe None
+        shouldNotify(Relevant, OpenELB) shouldBe None
       }
 
       "returns None for non-update event" in {
-        shouldNotify(noChangeEvent, OpenELB) shouldBe None
+        shouldNotify(NotRelevant, OpenELB) shouldBe None
       }
     }
 
     "if the SG status is 'open'" - {
       "returns Some for update event" in {
-        shouldNotify(updateEvent, Open) should not be empty
+        shouldNotify(Relevant, Open) should not be empty
       }
 
       "returns None for non-update event" in {
-        shouldNotify(noChangeEvent, Open) shouldBe None
+        shouldNotify(NotRelevant, Open) shouldBe None
       }
-    }
-
-    def updateEvent: InvokingEvent = {
-      val jsonStr = Source.fromResource("config_event_with_update.json").getLines.mkString
-      Json.parse(jsonStr).validate[InvokingEvent].asOpt.value
-    }
-    def noChangeEvent: InvokingEvent = {
-      val jsonStr = Source.fromResource("config_event_no_change.json").getLines.mkString
-      Json.parse(jsonStr).validate[InvokingEvent].asOpt.value
     }
   }
 

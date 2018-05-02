@@ -31,10 +31,12 @@ class JsonParsingTest extends FreeSpec with Matchers with OptionValues with Eith
 
       configItemDiff.changeType shouldEqual "UPDATE"
 
-      val prevVal = configItemDiff.changedProperties \ "Configuration.IpPermissions.0" \ "previousValue"
+      val prevValEntry = configItemDiff.changedProperties.find(p => p._1 == "Configuration.IpPermissions.0").get._2
+      val prevVal = prevValEntry \ "previousValue"
       prevVal.get shouldEqual JsNull
 
-      val ipRanges = configItemDiff.changedProperties \ "Configuration.IpPermissions.0" \ "updatedValue" \ "ipRanges"
+      val ipRangesEntry = configItemDiff.changedProperties.find(p => p._1 == "Configuration.IpPermissions.0").get._2
+      val ipRanges = ipRangesEntry \ "updatedValue" \ "ipRanges"
       ipRanges.as[List[String]].head shouldEqual "1.2.3.4/32"
     }
   }
