@@ -311,7 +311,7 @@ class ReportDisplayTest extends FreeSpec with Matchers {
     val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB")
     val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC")
 
-    val failedAttempt = Failure.cacheServiceError("account id", "failure type").attempt
+    val failedAttempt = Failure.cacheServiceErrorPerAccount("account id", "failure type").attempt
     val exposedKeys = List(ExposedIAMKeyDetail("key-id", "username", "bad fraud", "2345671234", "2017-29-09T11:32:04Z", "the internet", "Soon", "EC2"))
 
     "returns 'false' for all accounts when there are no exposed keys" in {
