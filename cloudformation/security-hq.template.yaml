@@ -270,7 +270,7 @@ Resources:
         Ref: AMI
       SecurityGroups:
       - Ref: InstanceSecurityGroup
-      InstanceType: t2.micro
+      InstanceType: t2.small
       IamInstanceProfile:
         Ref: SecurityHQInstanceProfile
       AssociatePublicIpAddress: true
