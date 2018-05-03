@@ -1,5 +1,6 @@
 package services
 
+import api.Snyk
 import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.inspector.Inspector
@@ -14,17 +15,20 @@ import com.gu.Box
 import config.Config
 import model._
 import play.api.inject.ApplicationLifecycle
+import play.api.libs.ws.WSClient
 import play.api.{Configuration, Environment, Logger, Mode}
 import rx.lang.scala.Observable
-import utils.attempt.{FailedAttempt, Failure}
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 class CacheService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
+    configraun: com.gu.configraun.models.Configuration,
+    wsClient: WSClient,
     inspectorClients: Map[(String, Regions), AmazonInspectorAsync],
     ec2Clients: Map[(String, Regions), AmazonEC2Async],
     cfnClients: Map[(String, Regions), AmazonCloudFormationAsync],
@@ -32,18 +36,19 @@ class CacheService(
     iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
-  private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceError(acc.id, "cache").attempt))).toMap
+  private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceErrorPerAccount(acc.id, "cache").attempt))).toMap
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
+  private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
 
   def getAllCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
 
   def getCredentialsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] = {
     credentialsBox.get().getOrElse(
       awsAccount,
-      Left(Failure.cacheServiceError(awsAccount.id, "credentials").attempt)
+      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "credentials").attempt)
     )
   }
 
@@ -52,7 +57,7 @@ class CacheService(
   def getExposedKeysForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[ExposedIAMKeyDetail]] = {
     exposedKeysBox.get().getOrElse(
       awsAccount,
-      Left(Failure.cacheServiceError(awsAccount.id, "exposed keys").attempt)
+      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "exposed keys").attempt)
     )
   }
 
@@ -61,7 +66,7 @@ class CacheService(
   def getSgsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     sgsBox.get().getOrElse(
       awsAccount,
-      Left(Failure.cacheServiceError(awsAccount.id, "security group").attempt)
+      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "security group").attempt)
     )
   }
 
@@ -70,9 +75,11 @@ class CacheService(
   def getInspectorResultsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[InspectorAssessmentRun]] = {
     inspectorBox.get().getOrElse(
       awsAccount,
-      Left(Failure.cacheServiceError(awsAccount.id, "AWS Inspector results").attempt)
+      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "AWS Inspector results").attempt)
     )
   }
+
+  def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
 
   private def refreshCredentialsBox(): Unit = {
     Logger.info("Started refresh of the Credentials data")
@@ -115,6 +122,16 @@ class CacheService(
     }
   }
 
+  def refreshSnykBox(): Unit = {
+    Logger.info("Started refresh of the Snyk data")
+    for {
+      allSnykRuns <- Snyk.allSnykRuns(configraun, wsClient)
+    } yield {
+      Logger.info("Sending the refreshed data to the Snyk Box")
+      snykBox.send(Attempt.Right(allSnykRuns))
+    }
+  }
+
   if (environment.mode != Mode.Test) {
     val initialDelay =
       if (environment.mode == Mode.Prod) 10.seconds
@@ -136,11 +153,16 @@ class CacheService(
       refreshInspectorBox()
     }
 
+    val snykSubscription = Observable.interval(initialDelay + 6000.millis, 30.minutes).subscribe { _ =>
+      refreshSnykBox()
+    }
+
     lifecycle.addStopHook { () =>
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
       inspectorSubscription.unsubscribe()
+      snykSubscription.unsubscribe()
       Future.successful(())
     }
   }

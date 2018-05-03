@@ -47,9 +47,15 @@ object Failure {
     Failure(details, friendlyMessage, 500)
   }
 
-  def cacheServiceError(accountId: String, cacheContent: String): Failure = {
+  def cacheServiceErrorPerAccount(accountId: String, cacheContent: String): Failure = {
     val details = s"Cache service error; unable to retrieve $cacheContent for $accountId"
     val friendlyMessage = s"Missing $cacheContent data for $accountId"
+    Failure(details, friendlyMessage, 500)
+  }
+
+  def cacheServiceErrorAllAccounts(cacheContent: String): Failure = {
+    val details = s"Cache service error; unable to retrieve $cacheContent"
+    val friendlyMessage = s"Missing $cacheContent data"
     Failure(details, friendlyMessage, 500)
   }
 
