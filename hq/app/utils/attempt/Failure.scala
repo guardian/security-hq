@@ -83,6 +83,16 @@ object Failure {
     Failure(details, friendlyMessage, 403)
   }
 
+  def rateLimitExceeded(serviceNameOpt: Option[String]): Failure = {
+    val details = serviceNameOpt.fold("rate limit exceeded while calling an AWS service") { serviceName =>
+      s"rate limit exceeded while calling service: $serviceName"
+    }
+    val friendlyMessage = serviceNameOpt.fold("Rate limit exceeded") { serviceName =>
+      s"Rate limit exceeded for service: $serviceName"
+    }
+    Failure(details, friendlyMessage, 429)
+  }
+
   def awsAccountNotFound(accountId: String): Failure = {
     Failure(
       s"Unknown account $accountId",
