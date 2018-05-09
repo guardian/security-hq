@@ -38,6 +38,8 @@ object AwsAsyncHandler {
         Failure.noCredentials(serviceNameOpt).attempt
       } else if (e.getMessage.contains("not authorized to perform")) {
         Failure.insufficientPermissions(serviceNameOpt).attempt
+      } else if (e.getMessage.contains("Rate exceeded")) {
+        Failure.rateLimitExceeded(serviceNameOpt).attempt
       } else {
         Failure.awsError(serviceNameOpt).attempt
       }
