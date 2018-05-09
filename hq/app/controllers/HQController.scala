@@ -13,8 +13,8 @@ import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class HQController (val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig)
-                   (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
+class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
+                  (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 
   private val accounts = Config.getAwsAccounts(config)
@@ -23,23 +23,10 @@ class HQController (val config: Configuration, cacheService: CacheService, val a
     Ok(views.html.index(accounts))
   }
 
-  def iam = authAction {
-    val exposedKeys = cacheService.getAllExposedKeys
-    val keysSummary = exposedKeysSummary(exposedKeys)
-    val accountsAndReports = cacheService.getAllCredentials
-    val sortedAccountsAndReports = sortAccountsByReportSummary(accountsAndReports.toList)
-    Ok(views.html.iam.iam(sortedAccountsAndReports, keysSummary))
+  def healthcheck() = Action {
+    Ok("ok")
   }
-
-  def iamAccount(accountId: String) = authAction.async {
-    attempt {
-      for {
-        account <- AWS.lookupAccount(accountId, accounts)
-        exposedIamKeys = cacheService.getExposedKeysForAccount(account)
-        credReport = cacheService.getCredentialsForAccount(account)
-      } yield Ok(views.html.iam.iamAccount(account, exposedIamKeys, credReport))
-    }
+  def documentation(file: String) = Action {
+    Ok(views.html.doc(file))
   }
-
 }
-

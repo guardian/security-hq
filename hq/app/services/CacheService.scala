@@ -81,7 +81,7 @@ class CacheService(
 
   def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
 
-  private def refreshCredentialsBox(): Unit = {
+  def refreshCredentialsBox(): Unit = {
     Logger.info("Started refresh of the Credentials data")
     for {
       allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, ec2Clients, iamClients)

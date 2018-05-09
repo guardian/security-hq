@@ -4,8 +4,11 @@
 
 # An example controller showing a sample home page
 GET        /                                          controllers.HQController.index
-GET        /iam                                       controllers.HQController.iam
-GET        /iam/:accountId                            controllers.HQController.iamAccount(accountId)
+GET        /healthcheck                               controllers.HQController.healthcheck
+
+GET        /iam                                       controllers.CredentialsController.iam
+GET        /iam/:accountId                            controllers.CredentialsController.iamAccount(accountId)
+GET        /iam/refresh/all                           controllers.CredentialsController.refresh
 
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
@@ -21,9 +24,8 @@ GET        /loginError                                controllers.AuthController
 GET        /oauthCallback                             controllers.AuthController.oauthCallback
 GET        /logout                                    controllers.AuthController.logout
 
-GET        /documentation/                            controllers.UtilityController.documentation(file = "index")
-GET        /documentation/:file                       controllers.UtilityController.documentation(file)
-GET        /healthcheck                               controllers.UtilityController.healthcheck
+GET        /documentation/                            controllers.HQController.documentation(file = "index")
+GET        /documentation/:file                       controllers.HQController.documentation(file)
 
 GET        /build                                     controllers.Assets.at(path = "/public", file = "build.json")
 

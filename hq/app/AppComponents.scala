@@ -74,12 +74,12 @@ class AppComponents(context: Context)
 
   override def router: Router = new Routes(
     httpErrorHandler,
-    new HQController(configuration, cacheService, googleAuthConfig),
+    new HQController(configuration, googleAuthConfig),
+    new CredentialsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),
     new InspectorController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
-    new UtilityController(),
     assets
   )
 }
