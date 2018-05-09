@@ -145,7 +145,7 @@ class CacheService(
       refreshSgsBox()
     }
 
-    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 15.minutes).subscribe { _ =>
+    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 90.minutes).subscribe { _ =>
       refreshCredentialsBox()
     }
 
