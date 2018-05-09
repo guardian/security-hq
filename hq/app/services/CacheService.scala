@@ -81,7 +81,7 @@ class CacheService(
 
   def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
 
-  private def refreshCredentialsBox(): Unit = {
+  def refreshCredentialsBox(): Unit = {
     Logger.info("Started refresh of the Credentials data")
     for {
       allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, ec2Clients, iamClients)
@@ -145,7 +145,7 @@ class CacheService(
       refreshSgsBox()
     }
 
-    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 15.minutes).subscribe { _ =>
+    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 90.minutes).subscribe { _ =>
       refreshCredentialsBox()
     }
 
