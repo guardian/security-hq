@@ -130,7 +130,13 @@ nav {
 .hp-reports {
   display: grid;
   grid-column-gap: 20px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 500px) {
+  .hp-reports {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .hp__link {
@@ -153,7 +159,13 @@ nav {
 .accounts__list {
   display: grid;
   grid-gap: 20px;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 455px) {
+  .accounts__list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (min-width: 740px) {
