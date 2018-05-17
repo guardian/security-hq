@@ -78,16 +78,17 @@ object InspectorResults {
     }
   }
 
-  def sortAccountResults[A, B](accountResults: List[(A, scala.Either[B, List[InspectorAssessmentRun]])]): List[(A, scala.Either[B, List[InspectorAssessmentRun]])] = {
+  def sortAccountResults[A, B](accountResults: List[(A, Either[B, List[InspectorAssessmentRun]])]): List[(A, Either[B, List[InspectorAssessmentRun]])] = {
     accountResults.sortBy {
       case (_, Right(assessmentRuns)) =>
         ( 0 - levelFindings("High", assessmentRuns)
         , 0 - levelFindings("Medium", assessmentRuns)
         , 0 - levelFindings("Low", assessmentRuns)
         , 0 - levelFindings("Info", assessmentRuns)
+        , 0 - assessmentRuns.size
         )
       case (_, Left(_)) =>
-        (1, 1, 1, 1)
+        (1, 1, 1, 1, 1)
     }
   }
 
