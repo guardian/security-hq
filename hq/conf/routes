@@ -24,7 +24,7 @@ GET        /loginError                                controllers.AuthController
 GET        /oauthCallback                             controllers.AuthController.oauthCallback
 GET        /logout                                    controllers.AuthController.logout
 
-GET        /documentation/                            controllers.HQController.documentation(file = "index")
+GET        /documentation                             controllers.HQController.documentationHome
 GET        /documentation/:file                       controllers.HQController.documentation(file)
 
 GET        /build                                     controllers.Assets.at(path = "/public", file = "build.json")

@@ -26,6 +26,11 @@ class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
   def healthcheck() = Action {
     Ok("ok")
   }
+
+  def documentationHome = Action {
+    Ok(views.html.documentationHome())
+  }
+
   def documentation(file: String) = Action {
     Ok(views.html.doc(file))
   }
