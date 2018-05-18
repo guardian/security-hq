@@ -80,4 +80,8 @@ object Config {
       roleArn <- config.getOptional[String]("roleArn")
     } yield AwsAccount(id, name, roleArn)
   }
+
+  def getSnykSSOUrl(implicit config: Configuration): Option[String] = {
+    config.getOptional[String]("snykSSOUrl")
+  }
 }

@@ -3,229 +3,32 @@
 ## Introduction
 
 Snyk is a managed service which uses a dependency analysis tool and a vulnerability database to inform you of
-vulnerabilities in your application.  It is available in free (limited) and paid-for versions.
+vulnerabilities in your application.
 
-When written, the current release of Snyk was 1.69.3 and this is reflected below.  You may choose to use a higher
-version.  See [here](https://www.npmjs.com/package/snyk) for updates.
+## Getting set up
 
-## Installing
+We use Enterprise SSO to get into Snyk, tied to our office email accounts. This requires entering via a special link:
 
-Snyk requires `node.js`, and `npm` or `yarn`.
+    %SNYK_SSO_LINK%
 
-### Developer Install
+This may not work if you are already signed into another Snyk account, so you may need to logout first.
 
-To install on a mac, please use:
+We have an enterprise group called 'The Guardian'. Everyone will get added to the organisation `guardian-people`
+(under our enterprise group) when they first log in. Once team members have signed in, they can be added
+to other organisations for each team. However, other organisations will not appear in the dropdown menu until
+you have been added to them.
 
-#### NPM
+This needs to be done by a group admin (a few individuals or the InfoSec team) or an admin of the desired
+organisation. You will probably also want to upgrade team members from collaborators to admins (in the members
+section of the dashboard).
 
-```
-brew install npm
-npm install -g snyk
-```
+## Integrating Snyk with your project(s)
 
-#### Yarn
-```
-brew install yarn
-yarn global add snyk
-```
+By far the easiest way to use Snyk to test a project is to use their Github integration. 
 
-#### Developer Authentication
-
-Snyk then requires an authentication token to be set up.  Github auth is almost certainly most appropriate.
-
-```
-snyk auth
-```
-
-### Build Server Install
-
-Build servers will not have Snyk installed.  The project must declare it as a development dependency.
-
-This can be achieved by merging the entries from the following content into package.json:
-
-```
-  "devDependencies": {
-    "snyk": "1.69.3"
-  }
-```
-
-## Build Server Invocation
-
-A SNYK_TOKEN environment variable will be exposed which will permit invocation of `snyk test` and `snyk monitor`,
-with the results being pushed to the `guardian` organisation on Snyk, and visible via security-hq.
-
-This example is for Team City, using npm.  Other build servers may support Yarn.
-
-The build process will require a `Node.js NPM` build step with the following:
-
-```
-npm install --only=dev
-npm run snyk-test-master
-npm run snyk-monitor-master
-```
-
-### Scala Builds
-
-As the invocation will be via an npm plugin (Snyk is a node tool), build servers may not expose the sbt executable
-on the PATH.  As a result it is necessary to pre-pend the sbt location onto the PATH so that Snyk can invoke it.  This
-can take the form of the build server sbt location, or a executable local wrapper file for `sbt-launch.jar`, called
-`sbt`.
-
-This can be achieved by merging the entries from the following content into package.json, and populating the PATH
-addition `/path/to/sbt/executable/folder`:
-
-```
-  "scripts": {
-    "not-master": "test \"$BRANCH_NAME\" != \"master\" && echo \"BRANCH_NAME variable is '$BRANCH_NAME', not master\" ",
-    "snyk-test": "PATH=/path/to/sbt/executable/folder:$PATH snyk test --debug --org=guardian --json --file=build.sbt ",
-    "snyk-test-master": "npm run not-master --silent || npm run snyk-test --silent ",
-    "snyk-monitor": "PATH=/path/to/sbt/executable/folder:$PATH snyk monitor --debug --org=guardian --file=build.sbt ",
-    "snyk-monitor-master": "npm run not-master --silent || npm run snyk-monitor --silent "
-  }
-```
-
-Any additional parameters to sbt can be added after a `--` parameter delimiter at the end of the command and will be
-passed through to sbt by Snyk.
-
-### Node Builds
-
-Merge the entries from the following content into package.json:
-
-```
-  "scripts": {
-    "not-master": "test \"$BRANCH_NAME\" != \"master\" && echo \"BRANCH_NAME variable is '$BRANCH_NAME', not master\" ",
-    "snyk-test": "snyk test --debug --org=guardian --json --file=package.json",
-    "snyk-test-master": "npm run not-master --silent || npm run snyk-test --silent ",
-    "snyk-monitor": "snyk monitor --debug --org=guardian --file=package.json",
-    "snyk-monitor-master": "npm run not-master --silent || npm run snyk-monitor --silent "
-  }
-```
-
-## Usage
-
-### Typical Usage for Applications
-
-In the build process, you can add a build step to check with the Snyk database for vulnerabilities.
-
-This information can be simply treated as reporting information, or can be used to fail a build if the return
-code is non-zero (ie at least one vulnerability found or error).
-
-### Use with Scala
-
-#### Pre-requisites
-
-Snyk needs to first create a dependency tree for your project (based on the sbt dependencies), then check with the
-Snyk database.
-
-Dependency graph creation is via an sbt plugin.
-
-#### Project
-
-To add directly to a project, add the following line to your project plugins (<projectroot>/project/plugins.sbt):
-
-```
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
-```
-
-If you are using SBT 1.0, you will also need to add the following line to your build.sbt:
-
-```
-addCommandAlias("dependency-tree", "dependencyTree")
-```
-
-#### User
-
-To add for your personal user, which will make snyk available for any project, add the following line to your
-.sbt plugins (~/.sbt/<sbt-version>/plugins/snyk.sbt):
-
-
-```
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.0")
-```
-
-If you are using SBT 1.0, you will also need to add the following line to your user.sbt (~/.sbt/1.0/user.sbt):
-
-```
-addCommandAlias("dependency-tree", "dependencyTree")
-```
-
-#### Manual Invocation
-
-It is recommended that `sbt` itself is invoked first, to confirm that the build file is good.  You
-can then invoke `snyk` as follows.  If you are working on a new snyk implementation, then it is often
-worth cutting down the on-screen noise by using `--show-vulnerable-paths=false`.
-
-```
-sbt test
-snyk test --file=build.sbt [--show-vulnerable-paths=(true|false)]
-```
-
-If you also wish to send your dependencies to Snyk, where they will be monitored for new vulnerabilities, found after the
-build, then you should also add:
-
-```
-snyk monitor
-```
-
-#### Gotchas
-
-##### With bugs in build.sbt
-
-If there is a bug in build.sbt, snyk is likely to get stuck on the `Querying vulnerabilities database...` stage.  Therefore
-it is suggested that you always invoke `sbt test` or similar first.  If  you see the `Querying vulnerabilities database...`
-step for more than ten seconds or so, you should check your `build.sbt` is good.
-
-### Use with Nodejs
-
-#### Pre-requisites
-
-Ensure your node packages are up to date.  For example:
-
-```
-npm install
-```
-or
-```
-yarn upgrade
-```
-
-#### Manual Invocation
-
-Scan for vulnerabilities with:
-
-```
-snyk test --file=package.json
-```
-
-Note that by default, Snyk will only scan for the dependencies found in the `dependencies` section.  It may be relevant
-to you to check for dependencies in development, which will only happen if you scan the `devDependencies` section using
-the `--dev` flag:
-
-```
-snyk test --file=package.json --dev
-```
-
-If you also wish to send your dependencies to Snyk, where they will be monitored for new vulnerabilities, found after the
-build, then you should also add:
-
-```
-snyk monitor
-```
-
-#### Optional Magic
-
-Snyk provides a node-only `protect` command which will forcibly alter dependencies to remove vulnerabilities.  This
-requires setting up default locations for fetching libraries and rulesets for version changes, which is achieved using:
-
-```
-snyk wizard
-```
-
-And then answering questions.  Protection can then be requested using:
-
-```
-snyk protect
-```
+In [the Snyk dashboard](https://snyk.io/) choose the organisation that the project should be part of,
+you can add a new project from there. You will need to be an administrator of the Github repository to integrate
+Snyk so that it can create a webhook to re-test the project for each Pull Requests.
 
 ## Eliminating Vulnerabilities
 
@@ -233,7 +36,8 @@ Clearly the best way to remove a vulnerability is to use a version of the librar
 This is usually achieved by upversioning (or in rarer cases downversioning).
 
 Alternatively, if a secure version of a library is not available, and an alternative is not found, it is possible to
-ignore the vulnerability temporarily.  This approach should be used with caution!
+ignore the vulnerability temporarily.  This approach should be used with caution. Never ignore a vulnerability forever -
+at least make sure you will be told when a fix is available.
 
 ### Upversioning
 

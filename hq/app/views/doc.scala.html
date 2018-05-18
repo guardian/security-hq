@@ -1,6 +1,4 @@
-@import logic.DocumentUtil
-
-@(file: String)(implicit assets: AssetsFinder)
+@(source: Html)(implicit assets: AssetsFinder)
 
 @main(List("Documentation")) { @* Header *@
   <div class="hq-sub-header">
@@ -17,7 +15,7 @@
     <div class="container">
         <div class="row">
             <div class="doc-content col s12 flow-text">
-                @{DocumentUtil.convert(file) getOrElse views.html.documentation.unknown(file)}
+                @source
             </div>
         </div>
     </div>
