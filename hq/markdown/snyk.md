@@ -33,14 +33,14 @@ Snyk so that it can create a webhook to re-test the project for each Pull Reques
 
 ## Eliminating Vulnerabilities
 
-Clearly the best way to remove a vulnerability is to use a version of the library which does not have the vulnerability.
+The best way to remove a vulnerability is to use a version of the library which does not have the vulnerability.
 This is usually achieved by upversioning (or in rarer cases downversioning).
 
-Alternatively, if a secure version of a library is not available, and an alternative is not found, it is possible to
-ignore the vulnerability temporarily.  This approach should be used with caution. Never ignore a vulnerability forever -
-at least make sure you will be told when a fix is available.
+If a secure version of a library is not available and an alternative is not found it is possible to
+ignore the vulnerability temporarily. This approach should be used with caution!
+Never ignore a vulnerability forever - at least make sure you will be told when a fix is available.
 
-### Upversioning
+### Examples
 
 Note that examples are all for sbt projects, however nodejs and other projects will be similar.
 
@@ -63,10 +63,7 @@ index 434dbb2..d123098 100644
 
 ```
 
-### Alternatives
-
-If there is no non-vulnerable version of the library, consider using an alternative.  This, of course, is likely to mean more
-work altering the calling code, and so is not the preferred solution.
+If there is no non-vulnerable version of the library, consider using an alternative.
 
 ```
 $ git diff build.sbt
@@ -82,55 +79,23 @@ index 434dbb2..d123098 100644
 
 ```
 
-## Exemptions
+### Ignoring vulnerabilities
 
 The worst case scenario is that the library is still vulnerable, has no alternatives, and cannot be removed.  You
 may wish to build and release anyway, ideally reporting the situation to a risk register. This is most likely to happen when
 a new vulnerability is discovered and the library publisher has not had chance to respond.
 
-For private repositories, this is cleanly achieved by creating a `.snyk` file which can act both as an exemption and the risk register itself.
-Please try to give meaningful reasons for allowing the exemption.
+In this case you can create an exemption by ignoring the vulnerability. The easiest way to do this is to ignore it
+from the Snyk dashboard. Do not ignore vulnerabilities forever, and ideally make sure you will be told when a fix
+is available.
 
-The `.snyk` file can then be added to the repository and the build should continue.
-
-__For public repositories, this would mean that the vulnerability is effectively advertised right in
-the project!__  This may be acceptable, as any attacker could equally scan the project for themselves.
-
-When an exemption expires, the build will start to fail again (see Reviewing Expired Exemptions below).
+When an exemption expires, the test will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
 Therefore repeated exemptions of no more than a month or two are preferred over a single long exemption.
 
-### `.snyk` file format
-
-See https://support.snyk.io/frequently-asked-questions/finding-vulnerabilities/how-can-i-ignore-a-vulnerability
-
-```
-version: v1.5.0
-ignore:
-  VULNERABILITY-LABEL:
-    - '* > PACKAGE-PROVIDER:PACKAGE':
-      reason: REASON
-      expires: ISO8601-DATE
-```
-eg
-```
-version: v1.5.0
-  'SNYK-JAVA-XERCES-31497':
-    - '* > xerces:xercesImpl':
-      reason: 'Vulnerability requires local access, and this is an internal service'
-      expires: 2018-01-11T00:00:00Z
-  'SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-31517':
-    - '* > org.apache.httpcomponents:httpclient':
-      reason: 'No remediation available; moving to HTTPS anyway'
-      expires: 2018-01-11T00:00:00Z
-```
-
-Note that the entry includes an expiry date.  Good practice would suggest that this should be of reasonable short duration.
-Long expiry times will mask problems.
-
 ### Reviewing Expired Exemptions
 
-When reviewing previously accepted risks, it would be prudent to examine the git history to discover how long a problem has existed.
+When reviewing previously accepted risks, it would be prudent to examine how long the problem has existed.
 If a problem is not fairly new, and still looks unlikely to be resolved, then reconsider both the _risk_ of exploitation and
-the _cost_ of exploitation before deciding if it is approprate to continue extending an exemption.  It may now be
+the _cost_ of exploitation before deciding whether to continue extending an exemption.  It may now be
 appropriate to consider alternatives.
