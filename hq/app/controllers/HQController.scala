@@ -30,7 +30,10 @@ class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
   }
 
   def documentation(file: String) = Action {
-    DocumentUtil.convert(file) match {
+    // not required to run the app!
+    val snykSSOUrl = Config.getSnykSSOUrl(config).getOrElse("No SSO link configured")
+
+    DocumentUtil.convert(file, DocumentUtil.replaceSnykSSOUrl(snykSSOUrl)) match {
       case Some(rendered) =>
         Ok(views.html.doc(rendered))
       case None =>

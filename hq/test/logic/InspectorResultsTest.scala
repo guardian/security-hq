@@ -3,7 +3,6 @@ package logic
 import java.util.{Date, GregorianCalendar}
 
 import com.amazonaws.services.inspector.model.{AssessmentRun, ListAssessmentRunsResult}
-import logic.InspectorResults._
 import model.InspectorAssessmentRun
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
@@ -12,6 +11,8 @@ import scala.collection.JavaConverters._
 
 
 class InspectorResultsTest extends FreeSpec with Matchers with OptionValues {
+  import logic.InspectorResults._
+
   val assessmentRun = InspectorAssessmentRun(
     "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
     DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,

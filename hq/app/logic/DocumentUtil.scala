@@ -13,17 +13,23 @@ object DocumentUtil {
   private val parser = Parser.builder(options).build()
   private val renderer = HtmlRenderer.builder(options).build
 
-  def convert(markdownfile: String): Option[Html] = {
+  def convert(markdownfile: String, sourceTransformation: String => String = identity): Option[Html] = {
     getClass getResourceAsStream s"/$markdownfile.md" match {
-      case is:InputStream => Some(renderInputAsHtml(is))
-      case _ => None
+      case is: InputStream =>
+        val sourceString = Source.fromInputStream(is).mkString
+        val transformed = sourceTransformation(sourceString)
+        Some(renderInputAsHtml(transformed))
+      case _ =>
+        None
     }
   }
 
-  private def renderInputAsHtml(is: InputStream) = {
-    val content = Source.fromInputStream(is).mkString
+  private def renderInputAsHtml(content: String) = {
     val document = parser.parse(content)
     new Html(renderer.render(document))
   }
 
+  def replaceSnykSSOUrl(snykSSOUrl: String)(source: String): String = {
+    source.replaceAllLiterally("%SNYK_SSO_LINK%", snykSSOUrl)
+  }
 }

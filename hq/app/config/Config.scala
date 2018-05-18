@@ -81,7 +81,7 @@ object Config {
     } yield AwsAccount(id, name, roleArn)
   }
 
-  def getSnykSSOUrl(implicit config: Configuration): Option[String] = {
+  def getSnykSSOUrl(config: Configuration): Option[String] = {
     config.getOptional[String]("snykSSOUrl")
   }
 }
