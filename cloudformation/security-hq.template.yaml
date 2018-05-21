@@ -277,10 +277,6 @@ Resources:
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -ev
-          locale-gen en_GB.UTF-8
-          apt-get -y update
-          apt-get -y upgrade
-          apt-get -y install ntp
           echo ${Stage} > /etc/stage
           # setup security-hq
           adduser --system --home /security-hq --disabled-password security-hq
