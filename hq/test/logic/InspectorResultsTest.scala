@@ -3,7 +3,6 @@ package logic
 import java.util.{Date, GregorianCalendar}
 
 import com.amazonaws.services.inspector.model.{AssessmentRun, ListAssessmentRunsResult}
-import logic.InspectorResults._
 import model.InspectorAssessmentRun
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
@@ -12,6 +11,8 @@ import scala.collection.JavaConverters._
 
 
 class InspectorResultsTest extends FreeSpec with Matchers with OptionValues {
+  import logic.InspectorResults._
+
   val assessmentRun = InspectorAssessmentRun(
     "arn:run", "name", ("stack", "app", "stage"), "arn:template", "state", 1, Nil, Nil,
     DateTime.now(), DateTime.now(), DateTime.now(), DateTime.now(), true,
@@ -322,6 +323,19 @@ class InspectorResultsTest extends FreeSpec with Matchers with OptionValues {
         () -> Right(List(assessmentRun.withFindings(2, 2, 0, 0))),
         () -> Right(List(assessmentRun.withFindings(2, 1, 1, 0))),
         () -> Right(List(assessmentRun.withFindings(1, 1, 0, 0)))
+      )
+    }
+
+    "if there are no results, sorts by number of inspection runs to put empty after 'clean" in {
+      val results = List(
+        () -> Right(List(assessmentRun.withFindings(0, 0, 0, 0))),
+        () -> Right(Nil),
+        () -> Right(List(assessmentRun.withFindings(0, 0, 0, 0), assessmentRun.withFindings(0, 0, 0, 0)))
+      )
+      sortAccountResults(results) shouldEqual List(
+        () -> Right(List(assessmentRun.withFindings(0, 0, 0, 0), assessmentRun.withFindings(0, 0, 0, 0))),
+        () -> Right(List(assessmentRun.withFindings(0, 0, 0, 0))),
+        () -> Right(Nil)
       )
     }
   }
