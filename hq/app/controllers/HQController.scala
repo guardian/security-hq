@@ -1,17 +1,15 @@
 package controllers
 
 import auth.SecurityHQAuthActions
-import aws.AWS
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
-import logic.ReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
+import logic.DocumentUtil
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import services.CacheService
-import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
+
 
 class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
                   (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
@@ -26,7 +24,20 @@ class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
   def healthcheck() = Action {
     Ok("ok")
   }
+
+  def documentationHome = Action {
+    Ok(views.html.documentationHome())
+  }
+
   def documentation(file: String) = Action {
-    Ok(views.html.doc(file))
+    // not required to run the app!
+    val snykSSOUrl = Config.getSnykSSOUrl(config).getOrElse("No SSO link configured")
+
+    DocumentUtil.convert(file, DocumentUtil.replaceSnykSSOUrl(snykSSOUrl)) match {
+      case Some(rendered) =>
+        Ok(views.html.doc(rendered))
+      case None =>
+        NotFound(views.html.documentation.unknown())
+    }
   }
 }

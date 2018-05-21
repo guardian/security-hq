@@ -1,9 +1,28 @@
-@(file: String)(implicit assets: AssetsFinder)
+@()(implicit assets: AssetsFinder)
 
-<h2>Not found</h2>
-<p>No documentation found on "@file".</p>
-<p>Consider searching on
-    <a href="https://www.google.com/search?q=@file">Google</a> or
-    <a href="https://stackoverflow.com/search?q=@file">Stack Overflow</a>.
-</p>
 
+@main(List("Documentation")) { @* Header *@
+    <div class="hq-sub-header">
+        <div class="container hq-sub-header__row">
+            <div class="hq-sub-header__name">
+                <h4 class="header light grey-text text-lighten-5">
+                    <a href="/documentation" class="grey-text text-lighten-5">Documentation</a>
+                </h4>
+            </div>
+        </div>
+    </div>
+
+} { @* Main content *@
+    <div class="container">
+        <div class="row">
+            <div class="doc-content col s12 flow-text">
+                <h2>Not found</h2>
+                <p>No documentation found</p>
+                <p>Consider searching on
+                    <a href="https://www.google.com/search">Google</a> or
+                    <a href="https://stackoverflow.com/search">Stack Overflow</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+}

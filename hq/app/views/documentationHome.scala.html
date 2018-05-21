@@ -1,0 +1,53 @@
+@()(implicit assets: AssetsFinder)
+
+
+@main(List("Documentation")) { @* Header *@
+    <div class="hq-sub-header">
+        <div class="container hq-sub-header__row">
+            <div class="hq-sub-header__name">
+                <h4 class="header light grey-text text-lighten-5">
+                    Documentation
+                </h4>
+            </div>
+        </div>
+    </div>
+
+} { @* Main content *@
+    <div class="container">
+        <div class="row docs-reports">
+            <div class="card">
+                <div class="card-content">
+                    <a class="docs__link" href="/documentation/ssh-access">
+                        <i class="right material-icons">code</i>
+                        <span class="card-title">SSH</span>
+                        <p>
+                            Use SSM-Scala for SSH access.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <a class="docs__link" href="/documentation/aws-inspector">
+                        <i class="right material-icons">assignment</i>
+                        <span class="card-title">Vulnerability scanning</span>
+                        <p>
+                            Scan your EC2 instances with AWS Inspector.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <a class="docs__link" href="/documentation/snyk">
+                        <i class="right material-icons">lock_open</i>
+                        <span class="card-title">Software dependency checks</span>
+                        <p>
+                            Integrate Snyk for software vulnerability reports.
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
