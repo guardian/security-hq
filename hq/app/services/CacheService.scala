@@ -4,7 +4,7 @@ import api.Snyk
 import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.inspector.Inspector
-import aws.support.TrustedAdvisorExposedIAMKeys
+import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.ec2.AmazonEC2Async
@@ -37,11 +37,21 @@ class CacheService(
   )(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceErrorPerAccount(acc.id, "cache").attempt))).toMap
+  private val publicBucketsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]]]] = Box(startingCache)
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
   private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
+
+  def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]]] = publicBucketsBox.get()
+
+  def getPublicBucketsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[PublicS3BucketDetail]] = {
+    publicBucketsBox.get().getOrElse(
+      awsAccount,
+      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "public buckets").attempt)
+    )
+  }
 
   def getAllCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
 
@@ -91,6 +101,16 @@ class CacheService(
     }
   }
 
+  private def refreshPublicBucketsBox(): Unit = {
+    Logger.info("Started refresh of the public S3 buckets data")
+    for {
+      allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(accounts, taClients)
+    } yield {
+      Logger.info("Sending the refreshed data to the Public Buckets Box")
+      publicBucketsBox.send(allPublicBuckets.toMap)
+    }
+  }
+
   private def refreshExposedKeysBox(): Unit = {
     Logger.info("Started refresh of the Exposed Keys data")
     for {
@@ -137,6 +157,10 @@ class CacheService(
       if (environment.mode == Mode.Prod) 10.seconds
       else Duration.Zero
 
+    val publicBucketsSubscription = Observable.interval(initialDelay + 1000.millis, 5.minutes).subscribe { _ =>
+      refreshPublicBucketsBox()
+    }
+
     val exposedKeysSubscription = Observable.interval(initialDelay + 2000.millis, 5.minutes).subscribe { _ =>
       refreshExposedKeysBox()
     }
@@ -158,6 +182,7 @@ class CacheService(
     }
 
     lifecycle.addStopHook { () =>
+      publicBucketsSubscription.unsubscribe()
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()

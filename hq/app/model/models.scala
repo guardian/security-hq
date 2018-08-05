@@ -106,6 +106,15 @@ case class ExposedIAMKeyDetail(
   deadline: String,
   usage: String
 ) extends TrustedAdvisorCheckDetails
+case class PublicS3BucketDetail(
+  region: String,
+  bucketName: String,
+  aclAllowsRead: String,
+  aclAllowsWrite: String,
+  status: String,
+  policyAllowsAccess: String,
+  isSuppressed: Boolean
+) extends TrustedAdvisorCheckDetails
 
 sealed trait SGInUse
 case class Ec2Instance(instanceId: String) extends SGInUse
