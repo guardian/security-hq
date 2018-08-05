@@ -39,11 +39,11 @@
             </div>
             <div class="card">
                 <div class="card-content">
-                    <a class="hp__link" href="/snyk">
-                        <i class="right material-icons">lock_open</i>
-                        <span class="card-title">Snyk audits</span>
+                    <a class="hp__link" href="/buckets">
+                        <i class="right material-icons">storage</i>
+                        <span class="card-title">S3 Buckets</span>
                         <p>
-                            Snyk vulnerability reports.
+                            Analysis of S3 bucket settings.
                         </p>
                     </a>
                 </div>
@@ -55,6 +55,28 @@
                         <span class="card-title">AWS Inspector</span>
                         <p>
                             Assessment run results.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <a class="hp__link" href="/snyk">
+                        <i class="right material-icons">security</i>
+                        <span class="card-title">Snyk audits</span>
+                        <p>
+                            Snyk vulnerability reports.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <a class="hp__link" href="/documentation">
+                        <i class="right material-icons">description</i>
+                        <span class="card-title">Documentation</span>
+                        <p>
+                            Read the docs.
                         </p>
                     </a>
                 </div>
@@ -80,8 +102,11 @@
                                 <a href="/iam/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Credentials audits">
                                     <i class="material-icons">vpn_key</i>
                                 </a>
+                                <a href="/buckets/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="S3 Bucket report">
+                                    <i class="material-icons">storage</i>
+                                </a>
                                 <a href="/inspector/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Inspector results">
-                                    <i class="material-icons left">assignment</i>
+                                    <i class="material-icons">assignment</i>
                                 </a>
                             </div>
                         </div>
