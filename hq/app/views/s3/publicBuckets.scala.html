@@ -1,3 +1,4 @@
+@import logic.PublicBucketsDisplay._
 @import model._
 
 @(reports: List[(AwsAccount, Either[utils.attempt.FailedAttempt, List[PublicS3BucketDetail]])])(implicit assets: AssetsFinder)
@@ -37,6 +38,9 @@
 
 } { @* Main content *@
     <div class="container">
+        <div class="row flow-text">
+            <h3>Public S3 Buckets</h3>
+        </div>
 
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
@@ -45,17 +49,48 @@
                     <div class="collapsible-header" tabindex="22">
                         <i class="material-icons">keyboard_arrow_down</i>
                         <span class="iam-header__name">@account.name</span>
-
-                    </div>
-                    <div class="collapsible-body">
-                    @report match {
-                        case Right(re) => {
-
+                        @report match {
+                            case Right(re) => {
+                                @defining(reportSummary(re)) { statusCounts =>
+                                    @if(statusCounts.errors > 0) {
+                                        <span class="icon-count">@statusCounts.errors</span>
+                                        <i class="material-icons red-text">error</i>
+                                    }
+                                    @if(statusCounts.warnings > 0) {
+                                        <span class="icon-count">@statusCounts.warnings</span>
+                                        <i class="material-icons amber-text">warning</i>
+                                    }
+                                    @if(statusCounts.suppressed > 0) {
+                                        <span class="icon-count">@statusCounts.suppressed</span>
+                                        <i class="material-icons purple-text">watch_later</i>
+                                    }
+                                    @if(statusCounts.errors == 0 && statusCounts.warnings == 0) {
+                                        <i class="material-icons green-text">check</i>
+                                    }
+                            }
                         }
-                        case Left(fa) => {
-                            @views.html.fragments.warningMessage("s3 buckets", fa)
+                        case Left(_) => {
+                            <i class="material-icons">warning</i>
                         }
                     }
+                    </div>
+
+                    <div class="collapsible-body">
+                        @report match {
+                            case Left(errs) => {
+                                <p class="p--warning">
+                                @for(err <- errs.failures) {
+                                    @err.friendlyMessage
+                                }
+                                </p>
+                            }
+                            case Right(Nil) => {
+                                <p>No open S3 buckets</p>
+                            }
+                            case Right(openBuckets) => {
+                                @views.html.fragments.publicBucketsBody(openBuckets, shadow=false)
+                            }
+                        }
                     </div>
                 </li>
             }

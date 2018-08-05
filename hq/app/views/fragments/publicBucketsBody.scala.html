@@ -1,0 +1,66 @@
+@import logic.PublicBucketsDisplay._
+@import model.PublicS3BucketDetail
+@(buckets: List[PublicS3BucketDetail], shadow: Boolean)
+
+<div class="finding-container">
+    @for(bucket <- buckets) {
+        <div class="finding-container__card finding-suppressed--@bucket.isSuppressed">
+            <div class="card @if(!shadow){z-depth-0}">
+                <div class="card-content card-content--title">
+                    <span class="card-title">
+                        @if(bucket.bucketName.length > 30) {
+                            <span class="tooltipped" data-tooltip="@bucket.bucketName">@bucket.bucketName.slice(0, 30)&hellip;</span>
+                        } else {
+                            <span>@bucket.bucketName</span>
+                        }
+                        @if(bucket.isSuppressed) {
+                            <i class="material-icons right tooltipped" data-position="top" data-tooltip="Suppressed alert">
+                                alarm_off</i>
+                        }
+                    </span>
+                </div>
+                <div class="card-content--border @{
+                    bucket.status.toLowerCase
+                } darken-1"></div>
+                <div class="card-content card-content--body">
+                    <table class="finding-details__table">
+                        <tbody>
+                            <tr>
+                                <th>Region</th>
+                                <td>
+                                @bucket.region
+                                </td>
+                            </tr>
+                                <tr>
+                                    <th>ACL Allows Write</th>
+                                    <td>
+                                    @bucket.aclAllowsWrite
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>ACL allows Read</th>
+                                    <td>
+                                    @bucket.aclAllowsRead
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>Policy Allows Access</th>
+                                    <td>
+                                    @bucket.policyAllowsAccess
+                                    </td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-action finding-card-action">
+                    <a target="_blank" rel="noopener noreferrer" class="btn usage-cta truncate" href="@linkForAwsConsole(bucket)">
+                        <i class="material-icons link_new_tab right" >open_in_new</i>
+                        open in AWS console
+                        <i class="material-icons left">storage</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
