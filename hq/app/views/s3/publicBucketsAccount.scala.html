@@ -1,0 +1,54 @@
+@import model._
+
+@(awsAccount: AwsAccount, report: Either[utils.attempt.FailedAttempt, List[PublicS3BucketDetail]])(implicit assets: AssetsFinder)
+
+@floatingNav() = {
+    <div class="fixed-action-btn js-floating-nav iam-floating-nav">
+        <a class="btn-floating btn-large">
+            <i class="large material-icons">menu</i>
+        </a>
+        <ul>
+            <li><a class="btn-floating red js-iam-collapse">
+                <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="collapse all">fullscreen_exit</i>
+            </a></li>
+            <li><a class="btn-floating yellow darken-1 js-iam-expand">
+                <i class="material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="expand all">fullscreen</i>
+            </a></li>
+        </ul>
+    </div>
+}
+
+@main(List("S3 Buckets")) { @* Header *@
+    <div class="hq-sub-header">
+        <div class="container hq-sub-header__row">
+            <div class="hq-sub-header__name">
+                <h4 class="header light grey-text text-lighten-5">For @awsAccount.name</h4>
+            </div>
+            <div class="hq-sub-header__tabs">
+                <ul class="tabs tabs-transparent">
+                    <li class="tab col s3"><a target="_self" href="/security-groups/@awsAccount.id"><i class="material-icons left">vpn_lock</i>Security Groups</a></li>
+                    <li class="tab col s3"><a target="_self" href="/iam/@awsAccount.id"><i class="material-icons left">vpn_key</i>IAM Report</a></li>
+                    <li class="tab col s3"><a target="_self" class="active" href="/buckets/@awsAccount.id"><i class="material-icons left">storage</i>S3 Buckets</a></li>
+                    <li class="tab col s3"><a target="_self" href="/inspector/@awsAccount.id"><i class="material-icons left">assignment</i>Inspector</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+} { @* Main content *@
+    <div class="container">
+
+        @report match {
+            case Right(re) => {
+                <div class="row">
+                    <h2>Public S3 Buckets</h2>
+                </div>
+
+            }
+            case Left(fa) => {
+                @views.html.fragments.warningMessage("s3 buckets", fa)
+            }
+        }
+
+    </div>
+}
