@@ -76,6 +76,7 @@ class AppComponents(context: Context)
     httpErrorHandler,
     new HQController(configuration, googleAuthConfig),
     new CredentialsController(configuration, cacheService, googleAuthConfig),
+    new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),
     new InspectorController(configuration, cacheService, googleAuthConfig),
