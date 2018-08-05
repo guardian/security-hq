@@ -327,8 +327,7 @@
                 .children()
                 .index(t);
             if ($.inArray(col, settings.ignoreColumns) === -1) {
-              t
-                .addClass(settings.highlightClass)
+              t.addClass(settings.highlightClass)
                 .closest('tr')
                 .show()
                 .addClass(settings.visibleClass);
