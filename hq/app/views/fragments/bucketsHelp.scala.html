@@ -1,0 +1,35 @@
+@aclUsage = {
+    <li class="collection-item avatar">
+        <i class="material-icons circle large-icon white purple-text">warning</i>
+        <span class="title">Bucket ACL Present</span>
+        <p>The only recommended use case for the bucket ACL is to grant write permission to the Amazon S3 Log Delivery group to write access log objects to a bucket.</p>
+        <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/access-policy-alternatives-guidelines.html" class="secondary-content">Read more in the AWS docs</a>
+    </li>
+}
+
+<div id="buckets-help" class="modal bottom-sheet bucket-modal">
+    <div class="modal-content">
+        <h4><i class="material-icons large-icon left">storage</i>S3 Bucket Help</h4>
+        <p>If a bucket allows open access, determine if open access is truly needed. If not, update the bucket permissions to restrict access to the owner or specific users. The following issues may apply:</p>
+        <ul class="collection">
+            <li class="collection-item avatar">
+                <i class="material-icons circle large-icon white red-text">error</i>
+                <span class="title">Global Write Access</span>
+                <p>Bucket permissions that grant Upload/Delete access create potential security vulnerabilities by allowing users that to add, modify, or remove items in a bucket!</p>
+                <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/access-policy-alternatives-guidelines.html" class="secondary-content">Read more in the AWS docs</a>
+            </li>
+            <li class="collection-item avatar">
+                <i class="material-icons circle large-icon white amber-text">warning</i>
+                <span class="title">ACL Allows List</span>
+                <p>Bucket permissions that grant List access can result in higher than expected charges if objects in the bucket are listed by unintended users at a high frequency.</p>
+                <a href="https://docs.aws.amazon.com/AmazonS3/latest/user-guide/set-bucket-permissions.html" class="secondary-content">Read more in the AWS docs</a>
+            </li>
+            <li class="collection-item avatar">
+                <i class="material-icons circle large-icon white purple-text">public</i>
+                <span class="title">Policy Allows Access</span>
+                <p>A bucket is publicly accessible by either everyone in the world or by any authenticated AWS user, should this bucket be public?</p>
+                <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html" class="secondary-content">Read more in the AWS docs</a>
+            </li>
+        </ul>
+    </div>
+</div>

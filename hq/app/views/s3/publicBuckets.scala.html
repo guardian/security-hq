@@ -88,7 +88,7 @@
                                 <p>No open S3 buckets</p>
                             }
                             case Right(openBuckets) => {
-                                @views.html.fragments.publicBucketsBody(openBuckets, shadow=false)
+                                @views.html.s3.publicBucketsBody(openBuckets, shadow=false)
                             }
                         }
                     </div>
@@ -96,6 +96,8 @@
             }
             </ul>
         </div>
+
+        @views.html.fragments.bucketsHelp()
 
     </div>
 }
