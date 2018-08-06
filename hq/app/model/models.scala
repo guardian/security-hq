@@ -109,11 +109,12 @@ case class ExposedIAMKeyDetail(
 case class PublicS3BucketDetail(
   region: String,
   bucketName: String,
-  aclAllowsRead: String,
-  aclAllowsWrite: String,
   status: String,
-  policyAllowsAccess: String,
-  isSuppressed: Boolean
+  aclAllowsRead: Boolean,
+  aclAllowsWrite: Boolean,
+  policyAllowsAccess: Boolean,
+  isSuppressed: Boolean,
+  reportStatus: Option[ReportStatus],
 ) extends TrustedAdvisorCheckDetails
 
 sealed trait SGInUse

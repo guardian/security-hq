@@ -2,6 +2,10 @@
 @import model.PublicS3BucketDetail
 @(buckets: List[PublicS3BucketDetail], shadow: Boolean)
 
+@helpIcon = {
+    <a class="modal-trigger buckets-modal__trigger right" href="#buckets-help"><i class="material-icons black-text">help_outline</i></a>
+}
+
 <div class="finding-container">
     @for(bucket <- buckets) {
         <div class="finding-container__card finding-suppressed--@bucket.isSuppressed">
@@ -35,12 +39,14 @@
                                     <th>ACL Allows Write</th>
                                     <td>
                                     @bucket.aclAllowsWrite
+                                    @if(bucket.aclAllowsWrite) { @helpIcon }
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>ACL allows Read</th>
                                     <td>
                                     @bucket.aclAllowsRead
+                                    @if(bucket.aclAllowsRead) { @helpIcon }
                                     </td>
                                 </tr>
 
@@ -48,6 +54,7 @@
                                     <th>Policy Allows Access</th>
                                     <td>
                                     @bucket.policyAllowsAccess
+                                    @if(bucket.policyAllowsAccess) { @helpIcon }
                                     </td>
                                 </tr>
                         </tbody>
@@ -56,7 +63,7 @@
                 <div class="card-action finding-card-action">
                     <a target="_blank" rel="noopener noreferrer" class="btn usage-cta truncate" href="@linkForAwsConsole(bucket)">
                         <i class="material-icons link_new_tab right" >open_in_new</i>
-                        open in AWS console
+                        AWS console
                         <i class="material-icons left">storage</i>
                     </a>
                 </div>

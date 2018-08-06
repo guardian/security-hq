@@ -29,10 +29,10 @@ object PublicBucketsDisplay {
   private[logic] def bucketReportStatus(bucket: PublicS3BucketDetail): ReportStatus = {
     // permission properties that grant global access
     // The bucket ACL allows Upload/Delete access to anyone
-    if (bucket.aclAllowsWrite == "Yes")
+    if (bucket.aclAllowsWrite)
       Red
     // The bucket ACL allows List access to anyone, or a bucket policy allows any kind of open access
-    else if (bucket.aclAllowsRead == "Yes" || bucket.policyAllowsAccess == "Yes")
+    else if (bucket.aclAllowsRead || bucket.policyAllowsAccess)
       Amber
     else Green
   }

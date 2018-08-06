@@ -4,7 +4,7 @@ import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAd
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
-import model.{AwsAccount, PublicS3BucketDetail, TrustedAdvisorDetailsResult}
+import model._
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.collection.JavaConverters._
@@ -29,23 +29,26 @@ object TrustedAdvisorS3 {
   private def publicBucketsForAccount(account: AwsAccount, taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[PublicS3BucketDetail]] = {
     for {
       supportClient <- TrustedAdvisor.client(taClients, account)
-      exposedIamKeysResult <- getPublicS3Buckets(supportClient)
-      exposedIamKeys = exposedIamKeysResult.flaggedResources
-    } yield exposedIamKeys
+      publicBucketsResult <- getPublicS3Buckets(supportClient)
+      publicBuckets = publicBucketsResult.flaggedResources
+    } yield publicBuckets
   }
 
   private[support] def parsePublicS3BucketDetail(detail: TrustedAdvisorResourceDetail): Attempt[PublicS3BucketDetail] = {
+    def toBoolean(str: String): Boolean = str.toLowerCase.contentEquals("yes")
+
     detail.getMetadata.asScala.toList match {
       case region :: _ :: bucketName :: aclAllowsRead :: aclAllowsWrite :: status :: policyAllowsAccess ::  _ =>
         Attempt.Right {
           PublicS3BucketDetail(
             region,
             bucketName,
-            aclAllowsRead,
-            aclAllowsWrite,
             status,
-            policyAllowsAccess,
-            isSuppressed = detail.getIsSuppressed
+            toBoolean(aclAllowsRead),
+            toBoolean(aclAllowsWrite),
+            toBoolean(policyAllowsAccess),
+            isSuppressed = detail.getIsSuppressed,
+            None
           )
         }
       case metadata =>
@@ -54,5 +57,4 @@ object TrustedAdvisorS3 {
         }
     }
   }
-
 }
