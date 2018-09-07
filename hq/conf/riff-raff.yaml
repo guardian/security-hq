@@ -17,6 +17,7 @@ deployments:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: security-hq
       templatePath: cfn.yaml
+      amiEncrypted: true
       amiTags:
         Recipe: security-java-lts
         BuiltBy: amigo
