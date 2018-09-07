@@ -21,4 +21,3 @@ deployments:
         Recipe: security-java-lts
         BuiltBy: amigo
         AmigoStage: PROD
-        amiEncrypted: true
