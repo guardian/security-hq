@@ -2,6 +2,8 @@ package aws
 
 import com.amazonaws.AmazonWebServiceRequest
 import com.amazonaws.handlers.AsyncHandler
+import com.amazonaws.regions.Regions
+import model.AwsAccount
 import play.api.Logger
 import utils.attempt.{Attempt, Failure}
 
@@ -26,22 +28,22 @@ object AwsAsyncHandler {
     p.future
   }
 
-  def handleAWSErrs[T](f: Future[T])(implicit ec: ExecutionContext): Attempt[T] = {
+  def handleAWSErrs[T](account: Option[AwsAccount] = None, region: Option[Regions] = None)(f: Future[T])(implicit ec: ExecutionContext): Attempt[T] = {
     Attempt.fromFuture(f) { case e =>
       val serviceNameOpt = e.getMessage match {
         case ServiceName(serviceName) => Some(serviceName)
         case _ => None
       }
       if (e.getMessage.contains("The security token included in the request is expired")) {
-        Failure.expiredCredentials(serviceNameOpt).attempt
+        Failure.expiredCredentials(serviceNameOpt, account, region).attempt
       } else if (e.getMessage.contains("Unable to load AWS credentials from any provider in the chain")) {
-        Failure.noCredentials(serviceNameOpt).attempt
+        Failure.noCredentials(serviceNameOpt, account, region).attempt
       } else if (e.getMessage.contains("not authorized to perform")) {
-        Failure.insufficientPermissions(serviceNameOpt).attempt
+        Failure.insufficientPermissions(serviceNameOpt, account, region).attempt
       } else if (e.getMessage.contains("Rate exceeded")) {
-        Failure.rateLimitExceeded(serviceNameOpt).attempt
+        Failure.rateLimitExceeded(serviceNameOpt, account, region).attempt
       } else {
-        Failure.awsError(serviceNameOpt).attempt
+        Failure.awsError(serviceNameOpt, account, region).attempt
       }
     }
   }

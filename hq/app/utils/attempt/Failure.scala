@@ -1,5 +1,8 @@
 package utils.attempt
 
+import com.amazonaws.regions.Regions
+import model.AwsAccount
+
 
 case class FailedAttempt(failures: List[Failure]) {
   def statusCode: Int = failures.map(_.statusCode).max
@@ -37,9 +40,10 @@ case class Failure(
 object Failure {
   // Pre-defined "common" failures
 
-  def awsError(serviceNameOpt: Option[String]): Failure = {
-    val details = serviceNameOpt.fold("AWS unknown error, unknown service (check logs for stacktrace)") { serviceName =>
-      s"AWS unknown error, service: $serviceName (check logs for stacktrace)"
+  def awsError(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
+    val context = contextString(account, region)
+    val details = serviceNameOpt.fold(s"AWS unknown error, unknown service (check logs for stacktrace), $context") { serviceName =>
+      s"AWS unknown error, service: $serviceName (check logs for stacktrace), $context"
     }
     val friendlyMessage = serviceNameOpt.fold("Unknown error while making API calls to AWS.") { serviceName =>
       s"Unknown error while making an API call to AWS' $serviceName service"
@@ -59,23 +63,32 @@ object Failure {
     Failure(details, friendlyMessage, 500)
   }
 
-  def expiredCredentials(serviceNameOpt: Option[String]): Failure = {
-    val details = serviceNameOpt.fold("expired AWS credentials, unknown service") { serviceName =>
-      s"expired AWS credentials, service: $serviceName"
+  def contextString(account: Option[AwsAccount], region: Option[Regions]): String = {
+    val acc = account.fold("unknown account")(a => s"account: ${a.name}")
+    val reg = region.fold("unknown region")(r => s"region: ${r.name}")
+    s"$acc, $reg"
+  }
+
+  def expiredCredentials(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
+    val context = contextString(account, region)
+    val details = serviceNameOpt.fold(s"expired AWS credentials, unknown service, $context") { serviceName =>
+      s"expired AWS credentials, service: $serviceName, $context"
     }
     Failure(details, "Failed to request data from AWS, the temporary credentials have expired.", 401)
   }
 
-  def noCredentials(serviceNameOpt: Option[String]): Failure = {
-    val details = serviceNameOpt.fold("no AWS credentials available, unknown service") { serviceName =>
-      s"no credentials found, service: $serviceName"
+  def noCredentials(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
+    val context = contextString(account, region)
+    val details = serviceNameOpt.fold(s"no AWS credentials available, unknown service, $context") { serviceName =>
+      s"no credentials found, service: $serviceName, $context"
     }
     Failure(details, "Failed to request data from AWS, no credentials found.", 401)
   }
 
-  def insufficientPermissions(serviceNameOpt: Option[String]): Failure = {
-    val details = serviceNameOpt.fold("application is not authorized to perform actions for a service") { serviceName =>
-      s"application is not authorized to perform actions for service: $serviceName"
+  def insufficientPermissions(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
+    val context = contextString(account, region)
+    val details = serviceNameOpt.fold(s"application is not authorized to perform actions for a service, $context") { serviceName =>
+      s"application is not authorized to perform actions for service: $serviceName, $context"
     }
     val friendlyMessage = serviceNameOpt.fold("Application is not authorized to perform actions for a service") { serviceName =>
       s"Application is not authorized to perform actions for service: $serviceName by the current access policies"
@@ -83,9 +96,10 @@ object Failure {
     Failure(details, friendlyMessage, 403)
   }
 
-  def rateLimitExceeded(serviceNameOpt: Option[String]): Failure = {
-    val details = serviceNameOpt.fold("rate limit exceeded while calling an AWS service") { serviceName =>
-      s"rate limit exceeded while calling service: $serviceName"
+  def rateLimitExceeded(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
+    val context = contextString(account, region)
+    val details = serviceNameOpt.fold(s"rate limit exceeded while calling an AWS service, $context") { serviceName =>
+      s"rate limit exceeded while calling service: $serviceName, $context"
     }
     val friendlyMessage = serviceNameOpt.fold("Rate limit exceeded") { serviceName =>
       s"Rate limit exceeded for service: $serviceName"

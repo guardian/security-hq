@@ -51,13 +51,13 @@ object TrustedAdvisor {
 
   def getTrustedAdvisorChecks(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[List[TrustedAdvisorCheck]] = {
     val request = new DescribeTrustedAdvisorChecksRequest().withLanguage("en")
-    handleAWSErrs(awsToScala(client.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult))
+    handleAWSErrs()(awsToScala(client.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult))
   }
 
   def refreshTrustedAdvisorChecks(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
     val request = new RefreshTrustedAdvisorCheckRequest()
       .withCheckId(checkId)
-    handleAWSErrs(awsToScala(client.refreshTrustedAdvisorCheckAsync)(request))
+    handleAWSErrs()(awsToScala(client.refreshTrustedAdvisorCheckAsync)(request))
   }
 
   def parseTrustedAdvisorChecksResult(result: DescribeTrustedAdvisorChecksResult): List[TrustedAdvisorCheck] = {
@@ -77,7 +77,7 @@ object TrustedAdvisor {
     val request = new DescribeTrustedAdvisorCheckResultRequest()
       .withLanguage("en")
       .withCheckId(checkId)
-    handleAWSErrs(awsToScala(client.describeTrustedAdvisorCheckResultAsync)(request))
+    handleAWSErrs()(awsToScala(client.describeTrustedAdvisorCheckResultAsync)(request))
   }
 
   private[support] def findPortPriorityIndex(port: String) = {
