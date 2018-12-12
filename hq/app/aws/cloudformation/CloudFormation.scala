@@ -1,5 +1,6 @@
 package aws.cloudformation
 
+import aws.AWS
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import aws.ec2.EC2
 import com.amazonaws.regions.Regions
@@ -39,7 +40,7 @@ object CloudFormation {
     ec2Clients: Map[(String, Regions), AmazonEC2Async]
   )(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     for {
-      stacks <- Attempt.flatTraverse(Regions.values().toList)(region => getStacks(account, region, cfnClients))
+      stacks <- Attempt.flatTraverse(AWS.regions)(region => getStacks(account, region, cfnClients))
     } yield stacks
   }
 

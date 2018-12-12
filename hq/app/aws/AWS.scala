@@ -32,6 +32,8 @@ object AWS {
     )
   }
 
+  def regions: List[Regions] = Regions.values().filterNot(r => r.getName.startsWith("CN_") || r.getName == "GovCloud").toList
+
   private[aws] def clients[A, B <: AwsClientBuilder[B, A]](
     builder: AwsClientBuilder[B, A],
     configuration: Configuration,
@@ -54,16 +56,16 @@ object AWS {
     clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1)
 
   def ec2Clients(configuration: Configuration): Map[(String, Regions), AmazonEC2Async] =
-    clients(AmazonEC2AsyncClientBuilder.standard(), configuration, Regions.values():_*)
+    clients(AmazonEC2AsyncClientBuilder.standard(), configuration, regions:_*)
 
   def cfnClients(configuration: Configuration): Map[(String, Regions), AmazonCloudFormationAsync] =
-    clients(AmazonCloudFormationAsyncClientBuilder.standard(), configuration, Regions.values():_*)
+    clients(AmazonCloudFormationAsyncClientBuilder.standard(), configuration, regions:_*)
 
   // Only needs Regions.US_EAST_1
   def taClients(configuration: Configuration): Map[(String, Regions), AWSSupportAsync] =
     clients(AWSSupportAsyncClientBuilder.standard(), configuration, Regions.US_EAST_1)
 
   def iamClients(configuration: Configuration): Map[(String, Regions), AmazonIdentityManagementAsync] =
-    clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, Regions.values():_*)
+    clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, regions:_*)
 
 }
