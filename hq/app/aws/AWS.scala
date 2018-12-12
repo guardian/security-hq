@@ -32,7 +32,11 @@ object AWS {
     )
   }
 
-  def regions: List[Regions] = Regions.values().filterNot(r => r.getName.startsWith("CN_") || r.getName == "GovCloud").toList
+  private val continentBlacklist = List("cn-", "us-gov-")
+
+  def isRegionBlacklisted(region: Regions): Boolean = continentBlacklist.exists(region.getName.startsWith)
+
+  def regions: List[Regions] = Regions.values().filterNot(isRegionBlacklisted).toList
 
   private[aws] def clients[A, B <: AwsClientBuilder[B, A]](
     builder: AwsClientBuilder[B, A],
