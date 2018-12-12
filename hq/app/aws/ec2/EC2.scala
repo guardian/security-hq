@@ -27,7 +27,7 @@ object EC2 {
 
   def getAvailableRegions(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[List[Region]] = {
     val request = new DescribeRegionsRequest()
-    handleAWSErrs()(awsToScala(client.describeRegionsAsync)(request)).map { result =>
+    handleAWSErrs()(awsToScala()(client.describeRegionsAsync)(request)).map { result =>
       result.getRegions.asScala.toList
     }
   }
@@ -121,7 +121,7 @@ object EC2 {
   private def describeSecurityGroups(sgIds: List[String])(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[DescribeSecurityGroupsResult] = {
     val request = new DescribeSecurityGroupsRequest()
       .withFilters(new Filter("group-id", sgIds.asJava))
-    handleAWSErrs()(awsToScala(client.describeSecurityGroupsAsync)(request))
+    handleAWSErrs()(awsToScala()(client.describeSecurityGroupsAsync)(request))
   }
 
   private[ec2] def extractTagsForSecurityGroups(describeSecurityGroupsResult: DescribeSecurityGroupsResult): Map[String, List[Tag]] = {
@@ -145,7 +145,7 @@ object EC2 {
   private[ec2] def getSgsUsageForRegion(sgIds: List[String], client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[DescribeNetworkInterfacesResult] = {
     val request = new DescribeNetworkInterfacesRequest()
         .withFilters(new Filter("group-id", sgIds.asJava))
-    handleAWSErrs()(awsToScala(client.describeNetworkInterfacesAsync)(request))
+    handleAWSErrs()(awsToScala()(client.describeNetworkInterfacesAsync)(request))
   }
 
   private[ec2] def parseDescribeNetworkInterfacesResults(dnir: DescribeNetworkInterfacesResult, sgIds: List[String]): Map[String, Set[SGInUse]] = {
@@ -205,7 +205,7 @@ object EC2 {
 
   private def getVpcsDetails(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
     val request = new DescribeVpcsRequest()
-    val vpcsResult = handleAWSErrs()(awsToScala(client.describeVpcsAsync)(request))
+    val vpcsResult = handleAWSErrs()(awsToScala()(client.describeVpcsAsync)(request))
     vpcsResult.map { result =>
       result.getVpcs.asScala.map(vpc => vpc.getVpcId -> vpc).toMap
     }

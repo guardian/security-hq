@@ -10,9 +10,10 @@ import utils.attempt.{Attempt, Failure}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
-class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T]) extends AsyncHandler[R, T] {
+class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T], account: Option[AwsAccount], region: Option[Regions]) extends AsyncHandler[R, T] {
   def onError(e: Exception): Unit = {
-    Logger.warn("Failed to execute AWS SDK operation", e)
+    val context = Failure.contextString(account, region)
+    Logger.warn(s"Failed to execute AWS SDK operation, $context", e)
     promise failure e
   }
   def onSuccess(r: R, t: T): Unit = {
@@ -22,9 +23,9 @@ class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T
 
 object AwsAsyncHandler {
   private val ServiceName = ".*Service: ([^;]+);.*".r
-  def awsToScala[R <: AmazonWebServiceRequest, T](sdkMethod: ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
+  def awsToScala[R <: AmazonWebServiceRequest, T](account: Option[AwsAccount] = None, region: Option[Regions] = None)(sdkMethod: ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
     val p = Promise[T]
-    sdkMethod(req, new AwsAsyncPromiseHandler(p))
+    sdkMethod(req, new AwsAsyncPromiseHandler(p, account, region))
     p.future
   }
 

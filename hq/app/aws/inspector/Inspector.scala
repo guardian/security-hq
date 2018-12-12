@@ -23,7 +23,7 @@ object Inspector {
 
   def listInspectorRuns(client: AmazonInspectorAsync)(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val request = new ListAssessmentRunsRequest()
-    handleAWSErrs()(awsToScala(client.listAssessmentRunsAsync)(request)).map(parseListAssessmentRunsResult)
+    handleAWSErrs()(awsToScala()(client.listAssessmentRunsAsync)(request)).map(parseListAssessmentRunsResult)
   }
 
   def describeInspectorRuns(assessmentRunArns: List[String], client: AmazonInspectorAsync)(implicit ec: ExecutionContext): Attempt[List[InspectorAssessmentRun]] = {
@@ -33,7 +33,7 @@ object Inspector {
     } else {
       val request = new DescribeAssessmentRunsRequest()
         .withAssessmentRunArns(assessmentRunArns.asJava)
-      handleAWSErrs()(awsToScala(client.describeAssessmentRunsAsync)(request)).map(parseDescribeAssessmentRunsResult)
+      handleAWSErrs()(awsToScala()(client.describeAssessmentRunsAsync)(request)).map(parseDescribeAssessmentRunsResult)
     }
   }
 

@@ -23,7 +23,7 @@ object CloudFormation {
   ))
   private def getStackDescriptions(client: AmazonCloudFormationAsync, account: AwsAccount, region: Regions)(implicit ec: ExecutionContext): Attempt[List[Stack]] = {
     val request = new DescribeStacksRequest()
-    handleAWSErrs(Some(account), Some(region))(awsToScala(client.describeStacksAsync)(request)).map(_.getStacks.asScala.toList)
+    handleAWSErrs(Some(account), Some(region))(awsToScala(Some(account), Some(region))(client.describeStacksAsync)(request)).map(_.getStacks.asScala.toList)
   }
 
   private def getStacks(account: AwsAccount, region: Regions, cfnClients: Map[(String, Regions), AmazonCloudFormationAsync])(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
