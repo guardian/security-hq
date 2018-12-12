@@ -39,10 +39,7 @@ object CloudFormation {
     ec2Clients: Map[(String, Regions), AmazonEC2Async]
   )(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     for {
-      regionClient <- EC2.client(ec2Clients, account, Regions.EU_WEST_1)
-      availableRegions <- EC2.getAvailableRegions(regionClient)
-      regions = availableRegions.map(region => Regions.fromName(region.getRegionName))
-      stacks <- Attempt.flatTraverse(regions)(region => getStacks(account, region, cfnClients))
+      stacks <- Attempt.flatTraverse(Regions.values().toList)(region => getStacks(account, region, cfnClients))
     } yield stacks
   }
 
