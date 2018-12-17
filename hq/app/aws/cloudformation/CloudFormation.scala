@@ -37,10 +37,10 @@ object CloudFormation {
   def getStacksFromAllRegions(
     account: AwsAccount,
     cfnClients: Map[(String, Regions), AmazonCloudFormationAsync],
-    ec2Clients: Map[(String, Regions), AmazonEC2Async]
+    regions: List[Regions]
   )(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     for {
-      stacks <- Attempt.flatTraverse(AWS.regions)(region => getStacks(account, region, cfnClients))
+      stacks <- Attempt.flatTraverse(regions)(region => getStacks(account, region, cfnClients))
     } yield stacks
   }
 

@@ -1,4 +1,7 @@
 import aws.AWS
+import aws.ec2.EC2
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
@@ -15,6 +18,11 @@ import play.api.routing.Router
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.CacheService
+import utils.attempt.Attempt
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class AppComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
@@ -29,7 +37,8 @@ class AppComponents(context: Context)
     csrfFilter,
     new HstsFilter()
   )
-  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory("eu-west-1", "security")
+  private val region = "eu-west-1"
+  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(region, "security")
 
   val configraun: Configuration = {
 
@@ -53,12 +62,25 @@ class AppComponents(context: Context)
     }
   }
 
+  private val availableRegions = {
+    val ec2Client: AmazonEC2Async = AmazonEC2AsyncClientBuilder.standard().withRegion(region).build()
+    try {
+      val availableRegionsAttempt: Attempt[List[Regions]] = for {
+        regionList <- EC2.getAvailableRegions(ec2Client)
+        regionStringSet = regionList.map(_.toString).toSet
+      } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
+      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.get
+    } finally {
+      ec2Client.shutdown()
+    }
+  }
+
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
   private val inspectorClients = AWS.inspectorClients(configuration)
-  private val ec2Clients = AWS.ec2Clients(configuration)
-  private val cfnClients = AWS.cfnClients(configuration)
+  private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
+  private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
-  private val iamClients = AWS.iamClients(configuration)
+  private val iamClients = AWS.iamClients(configuration, availableRegions)
 
   private val cacheService = new CacheService(
     configuration,
@@ -70,7 +92,8 @@ class AppComponents(context: Context)
     ec2Clients,
     cfnClients,
     taClients,
-    iamClients)
+    iamClients,
+    availableRegions)
 
   override def router: Router = new Routes(
     httpErrorHandler,

@@ -40,8 +40,8 @@ object IAMClient {
   def getCredentialReportDisplay(
     account: AwsAccount,
     cfnClients: Map[(String, Regions), AmazonCloudFormationAsync],
-    ec2Clients: Map[(String, Regions), AmazonEC2Async],
-    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync]
+    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync],
+    regions: List[Regions]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
 
@@ -49,7 +49,7 @@ object IAMClient {
       client <- IAMClient.client(iamClients, account)
       _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
       report <- getCredentialsReport(client)
-      stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, ec2Clients)
+      stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
       enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, stacks)
     } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
   }
@@ -57,12 +57,12 @@ object IAMClient {
   def getAllCredentialReports(
     accounts: Seq[AwsAccount],
     cfnClients: Map[(String, Regions), AmazonCloudFormationAsync],
-    ec2Clients: Map[(String, Regions), AmazonEC2Async],
-    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync]
+    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync],
+    regions: List[Regions]
   )(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        getCredentialReportDisplay(account, cfnClients, ec2Clients, iamClients).asFuture.map(account -> _)
+        getCredentialReportDisplay(account, cfnClients, iamClients, regions).asFuture.map(account -> _)
       }
     }
   }

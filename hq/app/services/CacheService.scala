@@ -33,7 +33,8 @@ class CacheService(
     ec2Clients: Map[(String, Regions), AmazonEC2Async],
     cfnClients: Map[(String, Regions), AmazonCloudFormationAsync],
     taClients: Map[(String, Regions), AWSSupportAsync],
-    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync]
+    iamClients: Map[(String, Regions),  AmazonIdentityManagementAsync],
+    regions: List[Regions]
   )(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceErrorPerAccount(acc.id, "cache").attempt))).toMap
@@ -94,7 +95,7 @@ class CacheService(
   def refreshCredentialsBox(): Unit = {
     Logger.info("Started refresh of the Credentials data")
     for {
-      allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, ec2Clients, iamClients)
+      allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, iamClients, regions)
     } yield {
       Logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
