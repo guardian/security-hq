@@ -59,7 +59,7 @@ object AWS {
     clients(AmazonCloudFormationAsyncClientBuilder.standard(), configuration, regions:_*)
 
   // Only needs Regions.US_EAST_1
-  def taClients(configuration: Configuration, region: Regions = Regions.EU_WEST_1): AwsClients[AWSSupportAsync] =
+  def taClients(configuration: Configuration, region: Regions = Regions.US_EAST_1): AwsClients[AWSSupportAsync] =
     clients(AWSSupportAsyncClientBuilder.standard(), configuration, region)
 
   def iamClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonIdentityManagementAsync] =
