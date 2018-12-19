@@ -73,13 +73,16 @@ class AppComponents(context: Context)
     try {
       val availableRegionsAttempt: Attempt[List[Regions]] = for {
         regionList <- EC2.getAvailableRegions(ec2Client)
-        regionStringSet = regionList.map(_.toString).toSet
+        regionStringSet = regionList.map(_.getRegionName).toSet
       } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
       Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.get
     } finally {
       ec2Client.client.shutdown()
     }
   }
+
+  Logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
+
   val regionsNotInSdk: Set[String] = Regions.values().map(_.getName).toSet -- availableRegions.map(_.getName).toSet
   if (regionsNotInSdk.nonEmpty) {
     Logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
