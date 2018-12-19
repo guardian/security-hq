@@ -105,6 +105,11 @@ Resources:
           Resource: "*"
           Action:
           - ssm:GetParametersByPath
+        # Get the list of regions
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - ec2:DescribeRegions
       Roles:
       - !Ref SecurityHQInstanceRole
 
