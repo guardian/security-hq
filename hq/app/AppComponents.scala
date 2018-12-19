@@ -83,7 +83,7 @@ class AppComponents(context: Context)
 
   Logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
 
-  val regionsNotInSdk: Set[String] = Regions.values().map(_.getName).toSet -- availableRegions.map(_.getName).toSet
+  val regionsNotInSdk: Set[String] = availableRegions.map(_.getName).toSet -- Regions.values().map(_.getName).toSet
   if (regionsNotInSdk.nonEmpty) {
     Logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
