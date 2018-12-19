@@ -1,7 +1,7 @@
-import aws.AWS
+import aws.{AWS, AwsClient}
 import aws.ec2.EC2
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
+import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
@@ -9,6 +9,7 @@ import com.gu.configraun.models._
 import config.Config
 import controllers._
 import filters.HstsFilter
+import model.AwsAccount
 import play.api.ApplicationLoader.Context
 import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
@@ -37,14 +38,14 @@ class AppComponents(context: Context)
     csrfFilter,
     new HstsFilter()
   )
-  private val region = "eu-west-1"
-  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(region, "security")
+  private val region = Regions.EU_WEST_1
+  private val stack = configuration.get[String]("stack")
+  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(region.getName, stack)
 
   val configraun: Configuration = {
 
     configuration.getOptional[String]("stage") match {
       case Some("DEV") =>
-        val stack = configuration.get[String]("stack")
         val app = configuration.get[String]("app")
         val stage = "DEV"
         Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
@@ -63,7 +64,7 @@ class AppComponents(context: Context)
   }
 
   private val availableRegions = {
-    val ec2Client: AmazonEC2Async = AmazonEC2AsyncClientBuilder.standard().withRegion(region).build()
+    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(region).build(), AwsAccount(stack, stack, stack), region)
     try {
       val availableRegionsAttempt: Attempt[List[Regions]] = for {
         regionList <- EC2.getAvailableRegions(ec2Client)
@@ -71,7 +72,7 @@ class AppComponents(context: Context)
       } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
       Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.get
     } finally {
-      ec2Client.shutdown()
+      ec2Client.client.shutdown()
     }
   }
 

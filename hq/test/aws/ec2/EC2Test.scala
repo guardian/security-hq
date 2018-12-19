@@ -1,5 +1,7 @@
 package aws.ec2
 
+import akka.actor.FSM.->
+import aws.AwsClient
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.ec2.model._
@@ -246,9 +248,9 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
       "vpc-3" -> new Vpc().withVpcId("vpc-3")
     )
     val vpcsResult = Attempt.Right(vpcsMap)
-    val clients = Map(
-      ("security-test", Regions.EU_WEST_1) -> AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build(),
-      ("security-test", Regions.EU_WEST_2) -> AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build()
+    val clients = List(
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build(), AwsAccount("security-test", "security", "security-test"), Regions.EU_WEST_1),
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build(), AwsAccount("security-test", "security", "security-test"), Regions.EU_WEST_2)
     )
 
     "getVpcs" - {

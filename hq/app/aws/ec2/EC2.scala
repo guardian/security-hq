@@ -1,7 +1,8 @@
 package aws.ec2
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import aws.support.{TrustedAdvisor, TrustedAdvisorSGOpenPorts}
+import aws.support.TrustedAdvisorSGOpenPorts
+import aws.{AwsClient, AwsClients}
 import cats.instances.map._
 import cats.instances.set._
 import cats.syntax.semigroup._
@@ -19,15 +20,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object EC2 {
 
-  def client(ec2Clients: Map[(String, Regions), AmazonEC2Async], awsAccount: AwsAccount, region: Regions): Attempt[AmazonEC2Async] = Attempt.fromOption(ec2Clients.get((awsAccount.id, region)), FailedAttempt(Failure(
-    s"No AWS EC2 Client exists for ${awsAccount.id} and $region",
-    s"Cannot find EC2 Client",
-    500
-  )))
-
-  def getAvailableRegions(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[List[Region]] = {
+  def getAvailableRegions(client: AwsClient[AmazonEC2Async])(implicit ec: ExecutionContext): Attempt[List[Region]] = {
     val request = new DescribeRegionsRequest()
-    handleAWSErrs()(awsToScala()(client.describeRegionsAsync)(request)).map { result =>
+    handleAWSErrs(client)(awsToScala(client)(_.describeRegionsAsync)(request)).map { result =>
       result.getRegions.asScala.toList
     }
   }
@@ -40,7 +35,7 @@ object EC2 {
   def getSgsUsage(
       sgReport: TrustedAdvisorDetailsResult[SGOpenPortsDetail],
       awsAccount: AwsAccount,
-      ec2Clients: Map[(String, Regions), AmazonEC2Async]
+      ec2Clients: AwsClients[AmazonEC2Async]
     )(implicit ec: ExecutionContext): Attempt[Map[String, Set[SGInUse]]] = {
     val allSgIds = TrustedAdvisorSGOpenPorts.sgIds(sgReport)
     val activeRegions = sgReport.flaggedResources.map(sgInfo => Regions.fromName(sgInfo.region)).distinct
@@ -49,7 +44,7 @@ object EC2 {
 
       dnirs <- Attempt.traverse(activeRegions){ region =>
         for {
-          ec2Client <- client(ec2Clients, awsAccount, region)
+          ec2Client <- ec2Clients.get(awsAccount, region)
           usage <- getSgsUsageForRegion(allSgIds, ec2Client)
         } yield usage
 
@@ -61,15 +56,15 @@ object EC2 {
     }
   }
 
-  def flaggedSgsForAccount(account: AwsAccount, ec2Clients: Map[(String, Regions), AmazonEC2Async], taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
+  def flaggedSgsForAccount(account: AwsAccount, ec2Clients: AwsClients[AmazonEC2Async], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     for {
-      supportClient <- TrustedAdvisor.client(taClients, account)
+      supportClient <- taClients.get(account)
       sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
       sgUsage <- getSgsUsage(sgResult, account, ec2Clients)
       flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
       flaggedSgsIds = flaggedSgs.map(_.id)
       regions = flaggedSgs.map(sg => Regions.fromName(sg.region)).distinct
-      clients <- Attempt.traverse(regions)(region => client(ec2Clients, account, region))
+      clients <- Attempt.traverse(regions)(region => ec2Clients.get(account, region))
       describeSecurityGroupsResults <- Attempt.traverse(clients)(EC2.describeSecurityGroups(flaggedSgsIds))
       sgTagDetails = describeSecurityGroupsResults.flatMap(extractTagsForSecurityGroups).toMap
       enrichedFlaggedSgs = enrichSecurityGroups(flaggedSgs, sgTagDetails)
@@ -78,16 +73,16 @@ object EC2 {
     } yield sortSecurityGroupsByInUse(flaggedSgsWithVpc, sgUsage)
   }
 
-  def refreshSGSReports(accounts: List[AwsAccount], taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, RefreshTrustedAdvisorCheckResult]]] = {
+  def refreshSGSReports(accounts: List[AwsAccount], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[Either[FailedAttempt, RefreshTrustedAdvisorCheckResult]]] = {
     Attempt.traverseWithFailures(accounts) { account =>
       for {
-        supportClient <- TrustedAdvisor.client(taClients, account)
+        supportClient <- taClients.get(account)
         result <- TrustedAdvisorSGOpenPorts.refreshSGOpenPorts(supportClient)
       } yield result
     }
   }
 
-  def allFlaggedSgs(accounts: List[AwsAccount], ec2Clients: Map[(String, Regions), AmazonEC2Async], taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
+  def allFlaggedSgs(accounts: List[AwsAccount], ec2Clients: AwsClients[AmazonEC2Async], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
         flaggedSgsForAccount(account, ec2Clients, taClients).asFuture.map(account -> _)
@@ -118,10 +113,10 @@ object EC2 {
     }
   }
 
-  private def describeSecurityGroups(sgIds: List[String])(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[DescribeSecurityGroupsResult] = {
+  private def describeSecurityGroups(sgIds: List[String])(client: AwsClient[AmazonEC2Async])(implicit ec: ExecutionContext): Attempt[DescribeSecurityGroupsResult] = {
     val request = new DescribeSecurityGroupsRequest()
       .withFilters(new Filter("group-id", sgIds.asJava))
-    handleAWSErrs()(awsToScala()(client.describeSecurityGroupsAsync)(request))
+    handleAWSErrs(client)(awsToScala(client)(_.describeSecurityGroupsAsync)(request))
   }
 
   private[ec2] def extractTagsForSecurityGroups(describeSecurityGroupsResult: DescribeSecurityGroupsResult): Map[String, List[Tag]] = {
@@ -142,10 +137,10 @@ object EC2 {
     }
   }
 
-  private[ec2] def getSgsUsageForRegion(sgIds: List[String], client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[DescribeNetworkInterfacesResult] = {
+  private[ec2] def getSgsUsageForRegion(sgIds: List[String], client: AwsClient[AmazonEC2Async])(implicit ec: ExecutionContext): Attempt[DescribeNetworkInterfacesResult] = {
     val request = new DescribeNetworkInterfacesRequest()
         .withFilters(new Filter("group-id", sgIds.asJava))
-    handleAWSErrs()(awsToScala()(client.describeNetworkInterfacesAsync)(request))
+    handleAWSErrs(client)(awsToScala(client)(_.describeNetworkInterfacesAsync)(request))
   }
 
   private[ec2] def parseDescribeNetworkInterfacesResults(dnir: DescribeNetworkInterfacesResult, sgIds: List[String]): Map[String, Set[SGInUse]] = {
@@ -192,20 +187,20 @@ object EC2 {
     }
   }
 
-  private[ec2] def getVpcs(account: AwsAccount, flaggedSgs: List[SGOpenPortsDetail], ec2Clients: Map[(String, Regions), AmazonEC2Async])(vpcsDetailsF: AmazonEC2Async => Attempt[Map[String, Vpc]])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
+  private[ec2] def getVpcs(account: AwsAccount, flaggedSgs: List[SGOpenPortsDetail], ec2Clients: AwsClients[AmazonEC2Async])(vpcsDetailsF: AwsClient[AmazonEC2Async] => Attempt[Map[String, Vpc]])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
     Attempt.traverse(flaggedSgs.map(_.region).distinct) { region =>
       val awsRegion = Regions.fromName(region)
       for {
-        ec2Client <- client(ec2Clients, account, awsRegion)
+        ec2Client <- ec2Clients.get(account, awsRegion)
         vpcDetails <- vpcsDetailsF(ec2Client)
       } yield vpcDetails
 
     }.map(_.fold(Map.empty)(_ ++ _))
   }
 
-  private def getVpcsDetails(client: AmazonEC2Async)(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
+  private def getVpcsDetails(client: AwsClient[AmazonEC2Async])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
     val request = new DescribeVpcsRequest()
-    val vpcsResult = handleAWSErrs()(awsToScala()(client.describeVpcsAsync)(request))
+    val vpcsResult = handleAWSErrs(client)(awsToScala(client)(_.describeVpcsAsync)(request))
     vpcsResult.map { result =>
       result.getVpcs.asScala.map(vpc => vpc.getVpcId -> vpc).toMap
     }

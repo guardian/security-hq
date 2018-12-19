@@ -1,6 +1,6 @@
 package model
 
-import com.amazonaws.regions.Region
+import com.amazonaws.regions.{Region, Regions}
 import org.joda.time.DateTime
 
 case class AwsAccount(

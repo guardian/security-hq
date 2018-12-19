@@ -1,5 +1,6 @@
 package utils.attempt
 
+import aws.AwsClient
 import com.amazonaws.regions.Regions
 import model.AwsAccount
 
@@ -40,8 +41,8 @@ case class Failure(
 object Failure {
   // Pre-defined "common" failures
 
-  def awsError(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
-    val context = contextString(account, region)
+  def awsError(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+    val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"AWS unknown error, unknown service (check logs for stacktrace), $context") { serviceName =>
       s"AWS unknown error, service: $serviceName (check logs for stacktrace), $context"
     }
@@ -63,30 +64,30 @@ object Failure {
     Failure(details, friendlyMessage, 500)
   }
 
-  def contextString(account: Option[AwsAccount], region: Option[Regions]): String = {
-    val acc = account.fold("unknown account")(a => s"account: ${a.name}")
-    val reg = region.fold("unknown region")(r => s"region: ${r.name}")
+  def contextString(clientContext: AwsClient[_]): String = {
+    val acc = s"account: ${clientContext.account.name}"
+    val reg = s"region: ${clientContext.region.name}"
     s"$acc, $reg"
   }
 
-  def expiredCredentials(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
-    val context = contextString(account, region)
+  def expiredCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+    val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"expired AWS credentials, unknown service, $context") { serviceName =>
       s"expired AWS credentials, service: $serviceName, $context"
     }
     Failure(details, "Failed to request data from AWS, the temporary credentials have expired.", 401)
   }
 
-  def noCredentials(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
-    val context = contextString(account, region)
+  def noCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+    val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"no AWS credentials available, unknown service, $context") { serviceName =>
       s"no credentials found, service: $serviceName, $context"
     }
     Failure(details, "Failed to request data from AWS, no credentials found.", 401)
   }
 
-  def insufficientPermissions(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
-    val context = contextString(account, region)
+  def insufficientPermissions(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+    val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"application is not authorized to perform actions for a service, $context") { serviceName =>
       s"application is not authorized to perform actions for service: $serviceName, $context"
     }
@@ -96,8 +97,8 @@ object Failure {
     Failure(details, friendlyMessage, 403)
   }
 
-  def rateLimitExceeded(serviceNameOpt: Option[String], account: Option[AwsAccount], region: Option[Regions]): Failure = {
-    val context = contextString(account, region)
+  def rateLimitExceeded(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+    val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"rate limit exceeded while calling an AWS service, $context") { serviceName =>
       s"rate limit exceeded while calling service: $serviceName, $context"
     }

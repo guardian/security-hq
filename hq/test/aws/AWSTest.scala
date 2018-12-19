@@ -82,8 +82,8 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     val configuration = Configuration(config)
 
     "correct account and region" in {
-      val keys = AWS.clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1).keys
-      keys should contain (("mock", Regions.EU_WEST_1))
+      val clients = AWS.clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1).map(c => c.account.id -> c.region)
+      clients should contain (("mock", Regions.EU_WEST_1))
     }
   }
 

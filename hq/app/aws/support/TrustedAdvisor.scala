@@ -1,6 +1,7 @@
 package aws.support
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
+import aws.{AwsClient, AwsClients}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model._
@@ -38,26 +39,17 @@ object TrustedAdvisor {
 
   val alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
 
-  def client(taClients: Map[(String, Regions), AWSSupportAsync], awsAccount: AwsAccount): Attempt[AWSSupportAsync] = {
-    val region = Regions.US_EAST_1
-    Attempt.fromOption(taClients.get((awsAccount.id, region)), FailedAttempt(Failure(
-      s"No AWS Trusted Advisor Client exists for ${awsAccount.id} and $region",
-      s"Cannot find Trusted Advisor Client",
-      500
-    )))
-  }
-
   // SHOW ALL TRUSTED ADVISOR CHECKS
 
-  def getTrustedAdvisorChecks(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[List[TrustedAdvisorCheck]] = {
+  def getTrustedAdvisorChecks(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[TrustedAdvisorCheck]] = {
     val request = new DescribeTrustedAdvisorChecksRequest().withLanguage("en")
-    handleAWSErrs()(awsToScala()(client.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult))
+    handleAWSErrs(client)(awsToScala(client)(_.describeTrustedAdvisorChecksAsync)(request).map(parseTrustedAdvisorChecksResult))
   }
 
-  def refreshTrustedAdvisorChecks(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
+  def refreshTrustedAdvisorChecks(client: AwsClient[AWSSupportAsync], checkId: String)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
     val request = new RefreshTrustedAdvisorCheckRequest()
       .withCheckId(checkId)
-    handleAWSErrs()(awsToScala()(client.refreshTrustedAdvisorCheckAsync)(request))
+    handleAWSErrs(client)(awsToScala(client)(_.refreshTrustedAdvisorCheckAsync)(request))
   }
 
   def parseTrustedAdvisorChecksResult(result: DescribeTrustedAdvisorChecksResult): List[TrustedAdvisorCheck] = {
@@ -73,11 +65,11 @@ object TrustedAdvisor {
 
   // GENERIC FUNCTIONALITY FOR DETAILED CHECK RESULTS
 
-  def getTrustedAdvisorCheckDetails(client: AWSSupportAsync, checkId: String)(implicit ec: ExecutionContext): Attempt[DescribeTrustedAdvisorCheckResultResult] = {
+  def getTrustedAdvisorCheckDetails(client: AwsClient[AWSSupportAsync], checkId: String)(implicit ec: ExecutionContext): Attempt[DescribeTrustedAdvisorCheckResultResult] = {
     val request = new DescribeTrustedAdvisorCheckResultRequest()
       .withLanguage("en")
       .withCheckId(checkId)
-    handleAWSErrs()(awsToScala()(client.describeTrustedAdvisorCheckResultAsync)(request))
+    handleAWSErrs(client)(awsToScala(client)(_.describeTrustedAdvisorCheckResultAsync)(request))
   }
 
   private[support] def findPortPriorityIndex(port: String) = {
