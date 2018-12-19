@@ -63,6 +63,11 @@ class AppComponents(context: Context)
     }
   }
 
+  // the aim of this is to get a list of available regions that we are able to access
+  // note that:
+  //  - Regions.values() returns Chinese and US government regions that are not accessible with the same AWS account
+  //  - available regions can return regions that are not in the SDK and so Regions.findName will fail
+  // to solve these we return the intersection of available regions and regions.values()
   private val availableRegions = {
     val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(region).build(), AwsAccount(stack, stack, stack), region)
     try {
@@ -74,6 +79,10 @@ class AppComponents(context: Context)
     } finally {
       ec2Client.client.shutdown()
     }
+  }
+  val regionsNotInSdk: Set[String] = Regions.values().map(_.getName).toSet -- availableRegions.map(_.getName).toSet
+  if (regionsNotInSdk.nonEmpty) {
+    Logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
