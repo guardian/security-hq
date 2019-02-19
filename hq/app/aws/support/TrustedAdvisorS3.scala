@@ -1,6 +1,7 @@
 package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
+import aws.{AwsClient, AwsClients}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
@@ -13,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object TrustedAdvisorS3 {
   private val S3_Bucket_Permissions = "Pfx0RwqBli"
 
-  def getAllPublicBuckets(accounts: List[AwsAccount], taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])]] = {
+  def getAllPublicBuckets(accounts: List[AwsAccount], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
         publicBucketsForAccount(account, taClients).asFuture.map(account -> _)
@@ -21,14 +22,14 @@ object TrustedAdvisorS3 {
     }
   }
 
-  private def getPublicS3Buckets(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[PublicS3BucketDetail]] = {
+  private def getPublicS3Buckets(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[PublicS3BucketDetail]] = {
     getTrustedAdvisorCheckDetails(client, S3_Bucket_Permissions)
       .flatMap(parseTrustedAdvisorCheckResult(parsePublicS3BucketDetail, ec))
   }
 
-  private def publicBucketsForAccount(account: AwsAccount, taClients: Map[(String, Regions), AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[PublicS3BucketDetail]] = {
+  private def publicBucketsForAccount(account: AwsAccount, taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[PublicS3BucketDetail]] = {
     for {
-      supportClient <- TrustedAdvisor.client(taClients, account)
+      supportClient <- taClients.get(account)
       publicBucketsResult <- getPublicS3Buckets(supportClient)
       publicBuckets = publicBucketsResult.flaggedResources
     } yield publicBuckets

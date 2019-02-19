@@ -36,8 +36,8 @@ object AWS {
     builder: AwsClientBuilder[B, A],
     configuration: Configuration,
     regionList: Regions*
-  ): Map[(String, Regions), A] = {
-    val list = for {
+  ): AwsClients[A] = {
+    for {
       account <- Config.getAwsAccounts(configuration)
       region <- regionList
       client = builder
@@ -45,25 +45,24 @@ object AWS {
         .withRegion(region)
         .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
         .build()
-    } yield (account.id, region) -> client
-    list.toMap
+    } yield AwsClient(client, account, region)
   }
 
   // Only needs Regions.EU_WEST_1
-  def inspectorClients(configuration: Configuration): Map[(String, Regions), AmazonInspectorAsync] =
-    clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1)
+  def inspectorClients(configuration: Configuration, region: Regions = Regions.EU_WEST_1): AwsClients[AmazonInspectorAsync] =
+    clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, region)
 
-  def ec2Clients(configuration: Configuration): Map[(String, Regions), AmazonEC2Async] =
-    clients(AmazonEC2AsyncClientBuilder.standard(), configuration, Regions.values():_*)
+  def ec2Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonEC2Async] =
+    clients(AmazonEC2AsyncClientBuilder.standard(), configuration, regions:_*)
 
-  def cfnClients(configuration: Configuration): Map[(String, Regions), AmazonCloudFormationAsync] =
-    clients(AmazonCloudFormationAsyncClientBuilder.standard(), configuration, Regions.values():_*)
+  def cfnClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonCloudFormationAsync] =
+    clients(AmazonCloudFormationAsyncClientBuilder.standard(), configuration, regions:_*)
 
   // Only needs Regions.US_EAST_1
-  def taClients(configuration: Configuration): Map[(String, Regions), AWSSupportAsync] =
-    clients(AWSSupportAsyncClientBuilder.standard(), configuration, Regions.US_EAST_1)
+  def taClients(configuration: Configuration, region: Regions = Regions.US_EAST_1): AwsClients[AWSSupportAsync] =
+    clients(AWSSupportAsyncClientBuilder.standard(), configuration, region)
 
-  def iamClients(configuration: Configuration): Map[(String, Regions), AmazonIdentityManagementAsync] =
-    clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, Regions.values():_*)
+  def iamClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonIdentityManagementAsync] =
+    clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, regions:_*)
 
 }

@@ -1,6 +1,7 @@
 package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
+import aws.AwsClient
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{RDSSGsDetail, TrustedAdvisorDetailsResult}
@@ -13,7 +14,7 @@ import scala.concurrent.ExecutionContext
 object TrustedAdvisorRDSSGs {
   val AWS_RDS_SECURITY_GROUP_ACCESS_RISK_IDENTIFIER = "nNauJisYIT"
 
-  def getRDSSecurityGroupDetail(client: AWSSupportAsync)(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[RDSSGsDetail]] = {
+  def getRDSSecurityGroupDetail(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[RDSSGsDetail]] = {
     getTrustedAdvisorCheckDetails(client, AWS_RDS_SECURITY_GROUP_ACCESS_RISK_IDENTIFIER)
       .flatMap(parseTrustedAdvisorCheckResult(parseRDSSGDetail, ec))
   }

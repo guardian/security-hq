@@ -105,6 +105,11 @@ Resources:
           Resource: "*"
           Action:
           - ssm:GetParametersByPath
+        # Get the list of regions
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - ec2:DescribeRegions
       Roles:
       - !Ref SecurityHQInstanceRole
 
@@ -270,7 +275,7 @@ Resources:
         Ref: AMI
       SecurityGroups:
       - Ref: InstanceSecurityGroup
-      InstanceType: t2.small
+      InstanceType: t2.medium
       IamInstanceProfile:
         Ref: SecurityHQInstanceProfile
       AssociatePublicIpAddress: true

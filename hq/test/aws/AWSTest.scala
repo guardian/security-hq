@@ -34,8 +34,10 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     )
     val configuration = Configuration(config)
 
-    //Two accounts, all regions.
-    val allRegionsSize = Regions.values().size * 2
+    val regions = List(Regions.EU_WEST_1, Regions.EU_WEST_2, Regions.EU_WEST_3, Regions.EU_CENTRAL_1)
+
+    //Two accounts, three regions.
+    val allRegionsSize = regions.size * 2
     // Only in one region.
     val singleRegionSize = 2
 
@@ -43,11 +45,11 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
       AWS.inspectorClients(configuration) should have size(singleRegionSize)
     }
     "ec2" in {
-      AWS.ec2Clients(configuration) should have size(allRegionsSize)
+      AWS.ec2Clients(configuration, regions) should have size(allRegionsSize)
     }
 
     "cloudformation" in {
-      AWS.cfnClients(configuration) should have size(allRegionsSize)
+      AWS.cfnClients(configuration, regions) should have size(allRegionsSize)
     }
 
     "trusted advisor" in {
@@ -55,7 +57,7 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     }
 
     "iam" in {
-      AWS.iamClients(configuration) should have size(allRegionsSize)
+      AWS.iamClients(configuration, regions) should have size(allRegionsSize)
     }
 
   }
@@ -80,8 +82,8 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     val configuration = Configuration(config)
 
     "correct account and region" in {
-      val keys = AWS.clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1).keys
-      keys should contain (("mock", Regions.EU_WEST_1))
+      val clients = AWS.clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1).map(c => c.account.id -> c.region)
+      clients should contain (("mock", Regions.EU_WEST_1))
     }
   }
 

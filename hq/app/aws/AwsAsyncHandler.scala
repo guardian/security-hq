@@ -8,9 +8,10 @@ import utils.attempt.{Attempt, Failure}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
-class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T]) extends AsyncHandler[R, T] {
+class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T], clientContext: AwsClient[_]) extends AsyncHandler[R, T] {
   def onError(e: Exception): Unit = {
-    Logger.warn("Failed to execute AWS SDK operation", e)
+    val context = Failure.contextString(clientContext)
+    Logger.warn(s"Failed to execute AWS SDK operation (${clientContext.client.getClass.getSimpleName}), $context", e)
     promise failure e
   }
   def onSuccess(r: R, t: T): Unit = {
@@ -20,28 +21,28 @@ class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T
 
 object AwsAsyncHandler {
   private val ServiceName = ".*Service: ([^;]+);.*".r
-  def awsToScala[R <: AmazonWebServiceRequest, T](sdkMethod: ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
+  def awsToScala[R <: AmazonWebServiceRequest, T, Client](client: AwsClient[Client])(sdkMethod: Client => ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
     val p = Promise[T]
-    sdkMethod(req, new AwsAsyncPromiseHandler(p))
+    sdkMethod(client.client)(req, new AwsAsyncPromiseHandler(p, client))
     p.future
   }
 
-  def handleAWSErrs[T](f: Future[T])(implicit ec: ExecutionContext): Attempt[T] = {
+  def handleAWSErrs[T, Client](awsClient: AwsClient[Client])(f: => Future[T])(implicit ec: ExecutionContext): Attempt[T] = {
     Attempt.fromFuture(f) { case e =>
       val serviceNameOpt = e.getMessage match {
         case ServiceName(serviceName) => Some(serviceName)
         case _ => None
       }
       if (e.getMessage.contains("The security token included in the request is expired")) {
-        Failure.expiredCredentials(serviceNameOpt).attempt
+        Failure.expiredCredentials(serviceNameOpt, awsClient).attempt
       } else if (e.getMessage.contains("Unable to load AWS credentials from any provider in the chain")) {
-        Failure.noCredentials(serviceNameOpt).attempt
+        Failure.noCredentials(serviceNameOpt, awsClient).attempt
       } else if (e.getMessage.contains("not authorized to perform")) {
-        Failure.insufficientPermissions(serviceNameOpt).attempt
+        Failure.insufficientPermissions(serviceNameOpt, awsClient).attempt
       } else if (e.getMessage.contains("Rate exceeded")) {
-        Failure.rateLimitExceeded(serviceNameOpt).attempt
+        Failure.rateLimitExceeded(serviceNameOpt, awsClient).attempt
       } else {
-        Failure.awsError(serviceNameOpt).attempt
+        Failure.awsError(serviceNameOpt, awsClient).attempt
       }
     }
   }
