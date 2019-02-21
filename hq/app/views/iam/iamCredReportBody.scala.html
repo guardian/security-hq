@@ -1,6 +1,6 @@
 @import logic.DateUtils
 @import model._
-@import logic.ReportDisplay
+@import logic.CredentialsReportDisplay
 @(report: CredentialReportDisplay)
 
 <div class="row">
@@ -26,7 +26,7 @@
                         <i class="material-icons left tooltipped" data-tooltip="human user" data-position="bottom" data-delay="50">person</i>
                         @cred.stack match {
                             case Some(stack) => {
-                            <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stack)">
+                            <a target="_blank" rel="noopener noreferrer" href="@CredentialsReportDisplay.linkForAwsConsole(stack)">
                                 <i class="material-icons left tooltipped" data-tooltip="@stack.name stack" data-position="bottom" data-delay="50">cloud_done</i>
                             </a>
                             }
@@ -55,7 +55,7 @@
                         }
                     </td>
                     <td>
-                        <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
+                        <span>@CredentialsReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
                     <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
                 </tr>
@@ -67,7 +67,7 @@
                         <i class="material-icons left tooltipped" data-tooltip="machine user" data-position="bottom" data-delay="50">computer</i>
                         @cred.stack match {
                             case Some(stack) => {
-                                <a target="_blank" rel="noopener noreferrer" href="@ReportDisplay.linkForAwsConsole(stack)">
+                                <a target="_blank" rel="noopener noreferrer" href="@CredentialsReportDisplay.linkForAwsConsole(stack)">
                                     <i class="material-icons left tooltipped" data-tooltip="@stack.name stack" data-position="bottom" data-delay="50">cloud_done</i>
                                 </a>
                             }
@@ -89,7 +89,7 @@
                     <td>@views.html.fragments.allKeyStatus(cred.key1Status, cred.key2Status)</td>
                     <td><span>-</span></td>
                     <td>
-                        <span>@ReportDisplay.toDayString(cred.lastActivityDay)</span>
+                        <span>@CredentialsReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
                     <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
                 </tr>

@@ -7,7 +7,7 @@ import utils.attempt.FailedAttempt
 import java.net.URLEncoder
 
 
-object ReportDisplay {
+object CredentialsReportDisplay {
 
   case class ReportSummary(warnings: Int, errors: Int, other: Int)
 

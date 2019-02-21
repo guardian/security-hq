@@ -1,7 +1,7 @@
 @import model.KeyStatus
 @import model.AccessKeyDisabled
 @import model.AccessKeyEnabled
-@import logic.ReportDisplay
+@import logic.CredentialsReportDisplay
 @(key1Status: KeyStatus, key2Status: KeyStatus)
 
 
@@ -14,7 +14,7 @@
     }
 }
 
-@if(ReportDisplay.checkNoKeyExists(key1Status, key2Status)) {
+@if(CredentialsReportDisplay.checkNoKeyExists(key1Status, key2Status)) {
   <span>-</span>
 } else {
     @keyStatus(key1Status)

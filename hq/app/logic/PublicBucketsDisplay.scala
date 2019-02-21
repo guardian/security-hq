@@ -3,6 +3,7 @@ package logic
 import java.net.URLEncoder
 
 import model._
+import utils.attempt.FailedAttempt
 
 object PublicBucketsDisplay {
 
@@ -35,5 +36,38 @@ object PublicBucketsDisplay {
     else if (bucket.aclAllowsRead || bucket.policyAllowsAccess)
       Amber
     else Green
+  }
+
+  private def bucketDetailsSort(bucketDetail: PublicS3BucketDetail): (Int, String) = {
+    val severity = bucketDetail.reportStatus.getOrElse(10) match {
+      case Red => 0
+      case Amber => 1
+      case Green => 2
+      case Blue => 3
+    }
+    (severity, bucketDetail.bucketName)
+  }
+
+  private def accountsSort(accountInfo: (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])])): (Int, Int, Int, String) = {
+    accountInfo match {
+      case (account, Right((bucketReportSummary, _))) =>
+        (-bucketReportSummary.errors, -bucketReportSummary.warnings, -bucketReportSummary.suppressed, account.name)
+      case (account, _) =>
+        (0, 0, 0, account.name)
+    }
+  }
+
+  def accountsBucketData(reports: List[(AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])]):
+      List[(AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])])] = {
+    reports.map(accountBucketData).sortBy(accountsSort)
+  }
+
+  def accountBucketData(accountInfo: (AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])):
+      (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])]) = {
+    accountInfo match {
+      case (account, Right(bucketDetails)) =>
+        (account, Right(reportSummary(bucketDetails), bucketDetails.sortBy(bucketDetailsSort)))
+      case (account, Left(failure)) => (account, Left(failure))
+    }
   }
 }

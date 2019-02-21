@@ -1,7 +1,8 @@
 @import logic.PublicBucketsDisplay._
 @import model._
+@import utils.attempt.FailedAttempt
 
-@(reports: List[(AwsAccount, Either[utils.attempt.FailedAttempt, List[PublicS3BucketDetail]])])(implicit assets: AssetsFinder)
+@(reports: List[(AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])])])(implicit assets: AssetsFinder)
 
 @floatingNav() = {
     <div class="fixed-action-btn js-floating-nav iam-floating-nav">
@@ -44,39 +45,37 @@
 
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
-            @for((account, report) <- reports) {
+            @for((account, result) <- reports) {
                 <li>
                     <div class="collapsible-header" tabindex="22">
                         <i class="material-icons">keyboard_arrow_down</i>
                         <span class="iam-header__name">@account.name</span>
-                        @report match {
-                            case Right(re) => {
-                                @defining(reportSummary(re)) { statusCounts =>
-                                    @if(statusCounts.errors > 0) {
-                                        <span class="icon-count">@statusCounts.errors</span>
-                                        <i class="material-icons red-text">error</i>
-                                    }
-                                    @if(statusCounts.warnings > 0) {
-                                        <span class="icon-count">@statusCounts.warnings</span>
-                                        <i class="material-icons amber-text">warning</i>
-                                    }
-                                    @if(statusCounts.suppressed > 0) {
-                                        <span class="icon-count">@statusCounts.suppressed</span>
-                                        <i class="material-icons purple-text">watch_later</i>
-                                    }
-                                    @if(statusCounts.errors == 0 && statusCounts.warnings == 0) {
-                                        <i class="material-icons green-text">check</i>
-                                    }
+                        @result match {
+                            case Right((statusCounts, bucketDetails)) => {
+                                @if(statusCounts.errors > 0) {
+                                    <span class="icon-count">@statusCounts.errors</span>
+                                    <i class="material-icons red-text">error</i>
+                                }
+                                @if(statusCounts.warnings > 0) {
+                                    <span class="icon-count">@statusCounts.warnings</span>
+                                    <i class="material-icons amber-text">warning</i>
+                                }
+                                @if(statusCounts.suppressed > 0) {
+                                    <span class="icon-count">@statusCounts.suppressed</span>
+                                    <i class="material-icons purple-text">watch_later</i>
+                                }
+                                @if(statusCounts.errors == 0 && statusCounts.warnings == 0) {
+                                    <i class="material-icons green-text">check</i>
+                                }
                             }
-                        }
-                        case Left(_) => {
-                            <i class="material-icons">warning</i>
-                        }
+                            case Left(_) => {
+                                <i class="material-icons">warning</i>
+                            }
                     }
                     </div>
 
                     <div class="collapsible-body">
-                        @report match {
+                        @result match {
                             case Left(errs) => {
                                 <p class="p--warning">
                                 @for(err <- errs.failures) {
@@ -84,10 +83,10 @@
                                 }
                                 </p>
                             }
-                            case Right(Nil) => {
+                            case Right((statusCounts, Nil)) => {
                                 <p>No open S3 buckets</p>
                             }
-                            case Right(openBuckets) => {
+                            case Right((statusCounts, openBuckets)) => {
                                 @views.html.s3.publicBucketsBody(openBuckets, shadow=false)
                             }
                         }
