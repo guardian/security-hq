@@ -30,9 +30,13 @@ N.B. If you are using macOS you may need to install `coreutils` before you can r
 
 ### AWS Configuration
 
-Using the Security Admin account, go to AWS IAM console and clone the `security-hq-dev` user to `security-hq-<yourname>`.
+The security-test-user CloudFormation template should create a user with all the required permissions.
 
-At the last step of the creation of this new user, you will be presented with an *Access key ID* and a *Secret access key* that you are going to use during the next step.
+Once the CloudFormation is complete and the user created, you will need to create an access key for this user.
+
+In the console, select the user and then under `security credentials` click `create access key`.
+
+You will be presented with an *Access key ID* and a *Secret access key* that you are going to use during the next step.
 
 Create the file `~/.aws/credentials` with the following contents
 
@@ -137,3 +141,17 @@ To attempt to auto-fix the CSS and JS, you can try using Prettier:
 
 **N.B. Although Prettier will write to the files, changes will still need to be staged afterwards.**
 
+
+##### Checking CloudFormation
+
+The aws cli can perform some basic template validation.
+
+It requires AWS credentials to run, and can validate a single file like so:
+
+`aws cloudformation validate-template --template-body file:///${PWD}/cloudformation/security-test-user.yaml --profile <AWS_PROFILE>`
+
+[CFN nag](https://github.com/stelligent/cfn_nag) is a linting tool for CloudFormation templates that can help catch security issues.
+
+If you have it installed, you can run:
+
+`cfn_nag_scan --input-path cloudformation/*`
