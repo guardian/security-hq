@@ -60,53 +60,47 @@ See `watched-account` template under `cloudformation` folder for the security po
 
 ### nginx setup
 
-At this step we configure nginx.
+1. Install dev-nginx:
 
-1. Install nginx:
-	- Linux: `sudo apt-get install nginx`
-	- Mac OSX: `brew install nginx`
+[dev-nginx](https://github.com/guardian/dev-nginx) contains a number of generic useful scripts to:
+- issue certs locally (and automatically trust them)
+- [generate an nginx config file](https://github.com/guardian/dev-nginx#setup-app) from a yaml definition
 
-2. Make sure you have a sites-enabled folder under your nginx home. This should be:
-	- Linux: `/etc/nginx/sites-enabled`
-	- Mac OSX: `/usr/local/etc/nginx/sites-enabled`
+MacOS users:
 
-3. Ensure that your nginx.conf (found in the same location as the sites-enabled folder) contains the line `include sites-enabled/*` within the http block, for example:
+```bash
+brew tap guardian/homebrew-devtools
+brew install guardian/devtools/dev-nginx
+```
 
-  ```
-  http {
-      include sites-enabled/*;
-      ...
-  }
-  ```
+There are further instructions in the [dev-nginx](https://github.com/guardian/dev-nginx) repo.
 
-4. Checkout the [dev-nginx](https://github.com/guardian/dev-nginx) repo onto your machine and follow the directions regarding installing and trusting the certificates (see [dev-nginx readme](https://github.com/guardian/dev-nginx)).
+2. configure dev-nginx:
 
-5. Install the nginx config for the security-hq application:
+run each of these commands:
 
-  ```
-    cd <path_of_dev-nginx>
-    sudo ./setup-app.rb <path_of_security-hq>/nginx/nginx-mapping.yml
-  ```
+`dev-nginx add-to-hosts-file`
 
-6. To stop and restart ngnix you can now do
+`dev-nginx setup-cert security-hq.local.dev-gutools.co.uk`
 
-	```
-	sudo nginx -s stop
-	sudo nginx
-	```
+`dev-nginx setup-app nginx/nginx-mapping.yml`
 
-7. Now when you run the project (see next step for details), it will also be accessible via [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
+1. To stop and restart nginx you can now run:
+
+`dev-nginx restart-nginx`
+
+4. Now when you run the project (see next step for details), it will also be accessible via [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
 ### Running project
 From the root of the project:
 
 1. Get Security Janus credentials. 
 
-1. Run sbt: `$ ./sbt`
+2. Run sbt: `$ ./sbt`
 
-1. Select the project that you want to run: `sbt:security-hq> project hq`
+3. Select the project that you want to run: `sbt:security-hq> project hq`
 
-1. Start the application: `sbt:security-hq> run`
+4. Start the application: `sbt:security-hq> run`
 
 Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
