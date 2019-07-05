@@ -22,5 +22,6 @@ Resources:
                 - cloudformation:DescribeStacks
                 - cloudformation:DescribeStackResources
                 - trustedadvisor:Describe*
-                - support:*
+                - support:RefreshTrustedAdvisorCheck
+                - support:DescribeTrustedAdvisor*
 
