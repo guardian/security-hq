@@ -1,0 +1,26 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create user for DEV work
+
+Resources:
+  SecurityDev:
+    Type: AWS::IAM::User
+    Properties:
+      Policies:
+        - PolicyName: SecurityDevPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Resource:
+                - "*"
+              Action:
+                - iam:GetCredentialReport
+                - iam:GenerateCredentialReport
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeVpcs
+                - ec2:DescribeRegions
+                - cloudformation:DescribeStacks
+                - cloudformation:DescribeStackResources
+                - trustedadvisor:Describe*
+                - support:*
+
