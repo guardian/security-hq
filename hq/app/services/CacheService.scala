@@ -39,16 +39,16 @@ class CacheService(
   )(implicit ec: ExecutionContext) {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceErrorPerAccount(acc.id, "cache").attempt))).toMap
-  private val publicBucketsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]]]] = Box(startingCache)
+  private val publicBucketsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]]] = Box(startingCache)
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
   private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
 
-  def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]]] = publicBucketsBox.get()
+  def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
 
-  def getPublicBucketsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[PublicS3BucketDetail]] = {
+  def getPublicBucketsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[BucketDetail]] = {
     publicBucketsBox.get().getOrElse(
       awsAccount,
       Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "public buckets").attempt)

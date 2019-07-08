@@ -106,7 +106,7 @@ case class ExposedIAMKeyDetail(
   deadline: String,
   usage: String
 ) extends TrustedAdvisorCheckDetails
-case class PublicS3BucketDetail(
+case class BucketDetail(
   region: String,
   bucketName: String,
   status: String,

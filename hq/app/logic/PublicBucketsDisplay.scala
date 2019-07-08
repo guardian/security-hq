@@ -9,7 +9,7 @@ object PublicBucketsDisplay {
 
   case class BucketReportSummary(total: Int, warnings: Int, errors: Int, suppressed: Int)
 
-  def reportSummary(buckets: List[PublicS3BucketDetail]): BucketReportSummary = {
+  def reportSummary(buckets: List[BucketDetail]): BucketReportSummary = {
     val (suppressed, flagged) = buckets.partition( b => b.isSuppressed)
     val reportStatusSummary = flagged.map( bucket => bucketReportStatus(bucket))
 
@@ -21,13 +21,13 @@ object PublicBucketsDisplay {
     BucketReportSummary(buckets.length, warnings, errors, suppressed.length)
   }
 
-  def hasSuppressedReports(buckets: List[PublicS3BucketDetail]): Boolean = buckets.exists(_.isSuppressed)
+  def hasSuppressedReports(buckets: List[BucketDetail]): Boolean = buckets.exists(_.isSuppressed)
 
-  def linkForAwsConsole(bucket: PublicS3BucketDetail): String = {
+  def linkForAwsConsole(bucket: BucketDetail): String = {
     s"https://console.aws.amazon.com/s3/home?bucket=${URLEncoder.encode(bucket.bucketName, "utf-8")}"
   }
 
-  private[logic] def bucketReportStatus(bucket: PublicS3BucketDetail): ReportStatus = {
+  private[logic] def bucketReportStatus(bucket: BucketDetail): ReportStatus = {
     // permission properties that grant global access
     // The bucket ACL allows Upload/Delete access to anyone
     if (bucket.aclAllowsWrite)
@@ -38,7 +38,7 @@ object PublicBucketsDisplay {
     else Green
   }
 
-  private def bucketDetailsSort(bucketDetail: PublicS3BucketDetail): (Int, String) = {
+  private def bucketDetailsSort(bucketDetail: BucketDetail): (Int, String) = {
     val severity = bucketDetail.reportStatus.getOrElse(10) match {
       case Red => 0
       case Amber => 1
@@ -48,7 +48,7 @@ object PublicBucketsDisplay {
     (severity, bucketDetail.bucketName)
   }
 
-  private def accountsSort(accountInfo: (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])])): (Int, Int, Int, String) = {
+  private def accountsSort(accountInfo: (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])): (Int, Int, Int, String) = {
     accountInfo match {
       case (account, Right((bucketReportSummary, _))) =>
         (-bucketReportSummary.errors, -bucketReportSummary.warnings, -bucketReportSummary.suppressed, account.name)
@@ -57,13 +57,13 @@ object PublicBucketsDisplay {
     }
   }
 
-  def accountsBucketData(reports: List[(AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])]):
-      List[(AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])])] = {
+  def accountsBucketData(reports: List[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])]):
+      List[(AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])] = {
     reports.map(accountBucketData).sortBy(accountsSort)
   }
 
-  def accountBucketData(accountInfo: (AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])):
-      (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])]) = {
+  def accountBucketData(accountInfo: (AwsAccount, Either[FailedAttempt, List[BucketDetail]])):
+      (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])]) = {
     accountInfo match {
       case (account, Right(bucketDetails)) =>
         (account, Right(reportSummary(bucketDetails), bucketDetails.sortBy(bucketDetailsSort)))

@@ -2,7 +2,7 @@
 @import model._
 @import utils.attempt.FailedAttempt
 
-@(awsAccount: AwsAccount, report: Either[FailedAttempt, (BucketReportSummary, List[PublicS3BucketDetail])])(implicit assets: AssetsFinder)
+@(awsAccount: AwsAccount, report: Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])(implicit assets: AssetsFinder)
 
 @floatingNav() = {
     <div class="fixed-action-btn js-floating-nav iam-floating-nav">
