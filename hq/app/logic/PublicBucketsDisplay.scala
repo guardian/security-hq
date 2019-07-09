@@ -39,7 +39,7 @@ object PublicBucketsDisplay {
   }
 
   private def bucketDetailsSort(bucketDetail: BucketDetail): (Int, String) = {
-    val severity = bucketDetail.reportStatus.getOrElse(10) match {
+    val severity = bucketDetail.reportStatus.getOrElse(Blue) match {
       case Red => 0
       case Amber => 1
       case Green => 2
