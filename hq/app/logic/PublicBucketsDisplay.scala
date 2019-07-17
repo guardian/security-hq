@@ -38,7 +38,7 @@ object PublicBucketsDisplay {
     else Green
   }
 
-  private def bucketDetailsSort(bucketDetail: BucketDetail): (Int, String) = {
+  private[logic] def bucketDetailsSort(bucketDetail: BucketDetail): (Int, String) = {
     val severity = bucketDetail.reportStatus.getOrElse(Blue) match {
       case Red => 0
       case Amber => 1
@@ -48,7 +48,7 @@ object PublicBucketsDisplay {
     (severity, bucketDetail.bucketName)
   }
 
-  private def accountsSort(accountInfo: (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])): (Int, Int, Int, String) = {
+  private[logic] def accountsSort(accountInfo: (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])): (Int, Int, Int, String) = {
     accountInfo match {
       case (account, Right((bucketReportSummary, _))) =>
         (-bucketReportSummary.errors, -bucketReportSummary.warnings, -bucketReportSummary.suppressed, account.name)
@@ -57,7 +57,12 @@ object PublicBucketsDisplay {
     }
   }
 
-  def accountsBucketData(reports: List[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])]):
+  // The TA report actually includes all buckets, even if they are status green
+  private def removeGreenBuckets(buckets: List[BucketDetail]): List[BucketDetail] = {
+    buckets.filter( _.status != "green" )
+  }
+
+  def allAccountsBucketData(reports: List[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])]):
       List[(AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])] = {
     reports.map(accountBucketData).sortBy(accountsSort)
   }
@@ -65,8 +70,12 @@ object PublicBucketsDisplay {
   def accountBucketData(accountInfo: (AwsAccount, Either[FailedAttempt, List[BucketDetail]])):
       (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])]) = {
     accountInfo match {
-      case (account, Right(bucketDetails)) =>
-        (account, Right(reportSummary(bucketDetails), bucketDetails.sortBy(bucketDetailsSort)))
+      case (account, Right(bucketDetails)) => {
+        val bucketsWithReportStatus = bucketDetails.map(
+          bucket => bucket.copy(reportStatus = Some(bucketReportStatus(bucket)))
+        )
+        (account, Right(reportSummary(bucketDetails), bucketsWithReportStatus.sortBy(bucketDetailsSort)))
+      }
       case (account, Left(failure)) => (account, Left(failure))
     }
   }
