@@ -20,7 +20,7 @@ class BucketsController(val config: Configuration, cacheService: CacheService, v
   private val accounts = Config.getAwsAccounts(config)
 
   def buckets: Action[AnyContent] = authAction {
-    val viewData = PublicBucketsDisplay.accountsBucketData(cacheService.getAllPublicBuckets.toList)
+    val viewData = PublicBucketsDisplay.allAccountsBucketData(cacheService.getAllPublicBuckets.toList)
     Ok(views.html.s3.publicBuckets(viewData))
   }
 
