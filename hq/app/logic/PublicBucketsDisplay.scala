@@ -28,6 +28,13 @@ object PublicBucketsDisplay {
     s"https://console.aws.amazon.com/s3/home?bucket=${URLEncoder.encode(bucket.bucketName, "utf-8")}"
   }
 
+  def isOnlyMissingEncryption(bucket: BucketDetail): Boolean = {
+    if (bucket.reportStatus.getOrElse(None) == Blue) {
+      return !bucket.isEncrypted
+    }
+    false
+  }
+
   private[logic] def bucketReportStatus(bucket: BucketDetail): ReportStatus = {
     // permission properties that grant global access
     // The bucket ACL allows Upload/Delete access to anyone
