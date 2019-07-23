@@ -21,11 +21,6 @@ object TrustedAdvisorS3 {
     }
   }
 
-  // The TA report actually includes all buckets, even if they are status green
-  private def removePrivateBuckets(buckets: List[BucketDetail]): List[BucketDetail] = {
-    buckets.filter( _.status != "green" )
-  }
-
   private def getBucketReport(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[BucketDetail]] = {
     getTrustedAdvisorCheckDetails(client, S3_Bucket_Permissions)
       .flatMap(parseTrustedAdvisorCheckResult(parseBucketDetail, ec))
@@ -35,7 +30,7 @@ object TrustedAdvisorS3 {
     for {
       supportClient <- taClients.get(account)
       bucketResult <- getBucketReport(supportClient)
-      publicBuckets = removePrivateBuckets(bucketResult.flaggedResources)
+      publicBuckets = bucketResult.flaggedResources
     } yield publicBuckets
   }
 
