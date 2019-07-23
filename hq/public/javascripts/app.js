@@ -44,8 +44,8 @@ $(document).ready(function() {
       ? $('.finding-suppressed--false').show()
       : $('.finding-suppressed--false').hide();
     $('#show-unencrypted-findings')[0].checked
-        ? $('.finding-unencrypted').show()
-        : $('.finding-unencrypted').hide();
+      ? $('.finding-unencrypted').show()
+      : $('.finding-unencrypted').hide();
   });
 
   $('.js-finding-details').click(function() {
