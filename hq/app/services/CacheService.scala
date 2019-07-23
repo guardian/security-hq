@@ -11,6 +11,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.ec2.AmazonEC2Async
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.inspector.AmazonInspectorAsync
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.support.AWSSupportAsync
 import com.gu.Box
 import config.Config
@@ -34,6 +35,7 @@ class CacheService(
     ec2Clients: AwsClients[AmazonEC2Async],
     cfnClients: AwsClients[AmazonCloudFormationAsync],
     taClients: AwsClients[AWSSupportAsync],
+    s3Clients: AwsClients[AmazonS3],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
     regions: List[Regions]
   )(implicit ec: ExecutionContext) {
@@ -106,7 +108,7 @@ class CacheService(
   private def refreshPublicBucketsBox(): Unit = {
     Logger.info("Started refresh of the public S3 buckets data")
     for {
-      allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(accounts, taClients)
+      allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(accounts, taClients, s3Clients)
     } yield {
       Logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)

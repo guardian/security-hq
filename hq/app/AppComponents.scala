@@ -93,6 +93,7 @@ class AppComponents(context: Context)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
+  private val s3Clients = AWS.s3Clients(configuration, availableRegions)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
 
   private val cacheService = new CacheService(
@@ -105,6 +106,7 @@ class AppComponents(context: Context)
     ec2Clients,
     cfnClients,
     taClients,
+    s3Clients,
     iamClients,
     availableRegions)
 

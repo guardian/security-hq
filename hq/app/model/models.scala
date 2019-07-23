@@ -114,7 +114,8 @@ case class BucketDetail(
   aclAllowsWrite: Boolean,
   policyAllowsAccess: Boolean,
   isSuppressed: Boolean,
-  reportStatus: Option[ReportStatus],
+  reportStatus: Option[ReportStatus] = None,
+  isEncrypted: Boolean = false
 ) extends TrustedAdvisorCheckDetails
 
 sealed trait SGInUse

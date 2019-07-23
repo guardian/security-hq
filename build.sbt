@@ -30,6 +30,7 @@ lazy val hq = (project in file("hq"))
       "org.typelevel" %% "cats-core" % "1.0.1",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
       "com.gu" %% "configraun" % "0.3",
+      "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,

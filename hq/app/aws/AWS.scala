@@ -9,6 +9,7 @@ import com.amazonaws.services.cloudformation.{AmazonCloudFormationAsync, AmazonC
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
 import com.amazonaws.services.inspector.{AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder}
+import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import config.Config
 import model.AwsAccount
@@ -61,6 +62,9 @@ object AWS {
   // Only needs Regions.US_EAST_1
   def taClients(configuration: Configuration, region: Regions = Regions.US_EAST_1): AwsClients[AWSSupportAsync] =
     clients(AWSSupportAsyncClientBuilder.standard(), configuration, region)
+
+  def s3Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonS3] =
+    clients(AmazonS3ClientBuilder.standard(), configuration, regions:_*)
 
   def iamClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonIdentityManagementAsync] =
     clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, regions:_*)
