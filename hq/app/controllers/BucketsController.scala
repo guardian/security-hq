@@ -4,6 +4,7 @@ import auth.SecurityHQAuthActions
 import aws.AWS
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
+import logic.PublicBucketsDisplay
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
@@ -18,16 +19,16 @@ class BucketsController(val config: Configuration, cacheService: CacheService, v
 
   private val accounts = Config.getAwsAccounts(config)
 
-  def buckets = authAction {
-    val allPublicBuckets = cacheService.getAllPublicBuckets.toList
-    Ok(views.html.s3.publicBuckets(allPublicBuckets))
+  def buckets: Action[AnyContent] = authAction {
+    val viewData = PublicBucketsDisplay.allAccountsBucketData(cacheService.getAllPublicBuckets.toList)
+    Ok(views.html.s3.publicBuckets(viewData))
   }
 
   def bucketsAccount(accountId: String): Action[AnyContent] = authAction.async {
     attempt {
       for {
         account <- AWS.lookupAccount(accountId, accounts)
-        publicBuckets = cacheService.getPublicBucketsForAccount(account)
+        (_, publicBuckets) = PublicBucketsDisplay.accountBucketData((account, cacheService.getPublicBucketsForAccount(account)))
       } yield Ok(views.html.s3.publicBucketsAccount(account, publicBuckets))
     }
   }

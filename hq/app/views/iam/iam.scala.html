@@ -1,4 +1,4 @@
-@import logic.ReportDisplay._
+@import logic.CredentialsReportDisplay._
 @import model._
 @import utils.attempt.FailedAttempt
 @(reports: List[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])], exposedKeySummary: Map[AwsAccount, Boolean])(implicit assets: AssetsFinder)

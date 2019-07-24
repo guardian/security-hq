@@ -2,7 +2,6 @@ package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
 import aws.{AwsClient, AwsClients}
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model._
@@ -14,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object TrustedAdvisorS3 {
   private val S3_Bucket_Permissions = "Pfx0RwqBli"
 
-  def getAllPublicBuckets(accounts: List[AwsAccount], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[PublicS3BucketDetail]])]] = {
+  def getAllPublicBuckets(accounts: List[AwsAccount], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
         publicBucketsForAccount(account, taClients).asFuture.map(account -> _)
@@ -22,29 +21,29 @@ object TrustedAdvisorS3 {
     }
   }
 
-  private def getPublicS3Buckets(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[PublicS3BucketDetail]] = {
+  private def getBucketReport(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[BucketDetail]] = {
     getTrustedAdvisorCheckDetails(client, S3_Bucket_Permissions)
-      .flatMap(parseTrustedAdvisorCheckResult(parsePublicS3BucketDetail, ec))
+      .flatMap(parseTrustedAdvisorCheckResult(parseBucketDetail, ec))
   }
 
-  private def publicBucketsForAccount(account: AwsAccount, taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[PublicS3BucketDetail]] = {
+  private def publicBucketsForAccount(account: AwsAccount, taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[BucketDetail]] = {
     for {
       supportClient <- taClients.get(account)
-      publicBucketsResult <- getPublicS3Buckets(supportClient)
-      publicBuckets = publicBucketsResult.flaggedResources
+      bucketResult <- getBucketReport(supportClient)
+      publicBuckets = bucketResult.flaggedResources
     } yield publicBuckets
   }
 
-  private[support] def parsePublicS3BucketDetail(detail: TrustedAdvisorResourceDetail): Attempt[PublicS3BucketDetail] = {
+  private[support] def parseBucketDetail(detail: TrustedAdvisorResourceDetail): Attempt[BucketDetail] = {
     def toBoolean(str: String): Boolean = str.toLowerCase.contentEquals("yes")
 
     detail.getMetadata.asScala.toList match {
       case region :: _ :: bucketName :: aclAllowsRead :: aclAllowsWrite :: status :: policyAllowsAccess ::  _ =>
         Attempt.Right {
-          PublicS3BucketDetail(
+          BucketDetail(
             region,
             bucketName,
-            status,
+            status.toLowerCase,
             toBoolean(aclAllowsRead),
             toBoolean(aclAllowsWrite),
             toBoolean(policyAllowsAccess),

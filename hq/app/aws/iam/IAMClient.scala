@@ -7,7 +7,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest}
-import logic.{ReportDisplay, Retry}
+import logic.{CredentialsReportDisplay, Retry}
 import model.{AwsAccount, CredentialReportDisplay, IAMCredentialsReport}
 import utils.attempt.{Attempt, FailedAttempt}
 
@@ -43,7 +43,7 @@ object IAMClient {
       report <- getCredentialsReport(client)
       stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
       enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, stacks)
-    } yield ReportDisplay.toCredentialReportDisplay(enrichedReport)
+    } yield CredentialsReportDisplay.toCredentialReportDisplay(enrichedReport)
   }
 
   def getAllCredentialReports(

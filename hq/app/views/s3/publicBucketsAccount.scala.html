@@ -1,7 +1,8 @@
 @import logic.PublicBucketsDisplay._
 @import model._
+@import utils.attempt.FailedAttempt
 
-@(awsAccount: AwsAccount, report: Either[utils.attempt.FailedAttempt, List[PublicS3BucketDetail]])(implicit assets: AssetsFinder)
+@(awsAccount: AwsAccount, report: Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])])(implicit assets: AssetsFinder)
 
 @floatingNav() = {
     <div class="fixed-action-btn js-floating-nav iam-floating-nav">
@@ -43,13 +44,13 @@
         </div>
 
         @report match {
-            case Right(Nil) => {
+            case Right((_, Nil)) => {
                 <div class="card-panel valign-wrapper">
                     <i class="material-icons medium green-text left">verified_user</i>
                     <h5>No open S3 buckets found</h5>
                 </div>
             }
-            case Right(openBuckets) => {
+            case Right((_, openBuckets)) => {
                 @if(hasSuppressedReports(openBuckets)) {
                     <div class="row">
                         <div class="card-panel valign-wrapper">

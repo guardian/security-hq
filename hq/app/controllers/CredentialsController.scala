@@ -4,7 +4,7 @@ import auth.SecurityHQAuthActions
 import aws.AWS
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
-import logic.ReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
+import logic.CredentialsReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
