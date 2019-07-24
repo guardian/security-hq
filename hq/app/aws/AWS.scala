@@ -63,8 +63,8 @@ object AWS {
   def taClients(configuration: Configuration, region: Regions = Regions.US_EAST_1): AwsClients[AWSSupportAsync] =
     clients(AWSSupportAsyncClientBuilder.standard(), configuration, region)
 
-  def s3Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonS3] =
-    clients(AmazonS3ClientBuilder.standard(), configuration, regions:_*)
+  def s3Clients(configuration: Configuration, region: Regions = Regions.US_EAST_1): AwsClients[AmazonS3] =
+    clients(AmazonS3ClientBuilder.standard(), configuration, region)
 
   def iamClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonIdentityManagementAsync] =
     clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, regions:_*)

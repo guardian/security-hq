@@ -12,9 +12,9 @@ scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-t
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.11.258"
+val awsSdkVersion = "1.11.596"
 val playVersion = "2.6.7"
-val jacksonVersion = "2.8.11.1"
+val jacksonVersion = "2.8.11.2"
 
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin, SbtWeb)

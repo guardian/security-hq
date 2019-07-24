@@ -75,7 +75,7 @@ class AppComponents(context: Context)
         regionList <- EC2.getAvailableRegions(ec2Client)
         regionStringSet = regionList.map(_.getRegionName).toSet
       } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
-      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.get
+      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.getOrElse(List(region, Regions.US_EAST_1))
     } finally {
       ec2Client.client.shutdown()
     }
@@ -93,7 +93,7 @@ class AppComponents(context: Context)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
-  private val s3Clients = AWS.s3Clients(configuration, availableRegions)
+  private val s3Clients = AWS.s3Clients(configuration)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
 
   private val cacheService = new CacheService(
