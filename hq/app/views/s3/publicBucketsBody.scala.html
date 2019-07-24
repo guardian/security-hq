@@ -8,7 +8,7 @@
 
 <div class="finding-container">
     @for(bucket <- buckets) {
-        <div class="finding-container__card finding-suppressed--@bucket.isSuppressed">
+        <div class="finding-container__card finding-suppressed--@bucket.isSuppressed @if(isOnlyMissingEncryption(bucket)){finding-unencrypted}">
             <div class="card @if(!shadow){z-depth-0}">
                 <div class="card-content card-content--title">
                     <span class="card-title">
@@ -35,28 +35,34 @@
                                 @bucket.region
                                 </td>
                             </tr>
-                                <tr>
-                                    <th>ACL Allows Write</th>
-                                    <td>
-                                    @bucket.aclAllowsWrite
-                                    @if(bucket.aclAllowsWrite) { @helpIcon }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>ACL allows Read</th>
-                                    <td>
-                                    @bucket.aclAllowsRead
-                                    @if(bucket.aclAllowsRead) { @helpIcon }
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <th>Policy Allows Access</th>
-                                    <td>
-                                    @bucket.policyAllowsAccess
-                                    @if(bucket.policyAllowsAccess) { @helpIcon }
-                                    </td>
-                                </tr>
+                            <tr>
+                                <th>ACL Allows Write</th>
+                                <td>
+                                @bucket.aclAllowsWrite
+                                @if(bucket.aclAllowsWrite) { @helpIcon }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>ACL allows Read</th>
+                                <td>
+                                @bucket.aclAllowsRead
+                                @if(bucket.aclAllowsRead) { @helpIcon }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Default Encryption</th>
+                                <td>
+                                    @bucket.isEncrypted
+                                    @if(!bucket.isEncrypted) { @helpIcon }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Policy Allows Access</th>
+                                <td>
+                                @bucket.policyAllowsAccess
+                                @if(bucket.policyAllowsAccess) { @helpIcon }
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

@@ -21,7 +21,8 @@ Resources:
                 - ec2:DescribeRegions
                 - cloudformation:DescribeStacks
                 - cloudformation:DescribeStackResources
+                - s3:GetEncryptionConfiguration
                 - trustedadvisor:Describe*
-                - support:RefreshTrustedAdvisorCheck
-                - support:DescribeTrustedAdvisor*
+                - trustedadvisor:RefreshCheck
+                - support:*
 

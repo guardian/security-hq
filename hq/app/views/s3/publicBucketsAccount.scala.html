@@ -51,21 +51,35 @@
                 </div>
             }
             case Right((_, openBuckets)) => {
-                @if(hasSuppressedReports(openBuckets)) {
-                    <div class="row">
-                        <div class="card-panel valign-wrapper">
+                <div class="row card-panel">
+                    @if(hasSuppressedReports(openBuckets)) {
+                        <div class="section valign-wrapper">
                             <i class="material-icons left">visibility_off</i>
-                            <span class="finding-header__name">Some Security Groups have been ignored due to settings in AWS Trusted Advisor</span>
+                            <span class="finding-header__name">
+                                Some results may be ignored due to settings in AWS Trusted Advisor</span>
 
                             <form class="finding-filter" action="#">
                                 <input class="js-finding-filter" type="checkbox" id="show-flagged-findings" checked="checked" />
-                                <label class="black-text finding-filter__label" for="show-flagged-findings">Show flagged</label>
+                                <label class="black-text finding-filter__label" for="show-flagged-findings">
+                                    Show flagged</label>
                                 <input class="js-finding-filter" type="checkbox" id="show-ignored-findings" />
-                                <label class="black-text finding-filter__label" for="show-ignored-findings">Show ignored</label>
+                                <label class="black-text finding-filter__label" for="show-ignored-findings">
+                                    Show ignored</label>
                             </form>
                         </div>
-                    </div>
-                }
+                    }
+                        <div class="section valign-wrapper">
+                            <i class="material-icons left">no_encryption</i>
+                            <span class="finding-header__name">
+                                Some buckets may not have encryption enabled for data at rest</span>
+
+                            <form class="finding-filter" action="#">
+                                <input class="js-finding-filter" type="checkbox" id="show-unencrypted-findings" checked="checked" />
+                                <label class="black-text finding-filter__label" for="show-unencrypted-findings">
+                                    Show all unencrypted buckets</label>
+                            </form>
+                        </div>
+                </div>
 
                 @views.html.s3.publicBucketsBody(openBuckets, shadow=true)
 

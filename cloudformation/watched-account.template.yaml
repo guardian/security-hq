@@ -45,6 +45,7 @@ Resources:
           - Effect: Allow
             Resource: "*"
             Action:
+            - s3:GetEncryptionConfiguration
             # Analyse security groups
             - trustedadvisor:Describe*
             - trustedadvisor:Refresh*

@@ -9,9 +9,9 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
 
   def createExampleBuckets(id: Int): List[BucketDetail] = {
     List(
-      BucketDetail("eu-west-1", s"bucket-green-$id", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green)),
-      BucketDetail("eu-west-1", s"bucket-amber-$id", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
-      BucketDetail("eu-west-1", s"bucket-red-$id", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, Some(Red))
+      BucketDetail("eu-west-1", s"bucket-green-$id", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
+      BucketDetail("eu-west-1", s"bucket-amber-$id", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber), isEncrypted = true),
+      BucketDetail("eu-west-1", s"bucket-red-$id", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, Some(Red), isEncrypted = true)
     )
   }
 
@@ -19,42 +19,52 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
     "counts the total reports along with warnings and errors" in {
       val examples: List[BucketDetail] = createExampleBuckets(1) ++ createExampleBuckets(2)
 
-      reportSummary(examples) shouldEqual BucketReportSummary(6, 2, 2, 0)
+      reportSummary(examples) shouldEqual BucketReportSummary(6, 2, 2, 0, 0)
     }
 
     "includes the number of suppressed reports" in {
       val examples: List[BucketDetail] =
         createExampleBuckets(1) ++
-          List(BucketDetail("eu-west-1", s"bucket-suppressed-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber)),
-            BucketDetail("eu-west-1", s"bucket-suppressed-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber))
+          List(BucketDetail("eu-west-1", s"bucket-suppressed-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber), isEncrypted = true),
+            BucketDetail("eu-west-1", s"bucket-suppressed-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber), isEncrypted = true)
           )
 
-      reportSummary(examples) shouldEqual BucketReportSummary(5, 1, 1, 2)
+      reportSummary(examples) shouldEqual BucketReportSummary(5, 1, 1, 0, 2)
+    }
+
+    "includes the number of other issues, such as when bucket is not encrypted" in {
+      val examples: List[BucketDetail] =
+        createExampleBuckets(1) ++
+          List(BucketDetail("eu-west-1", s"bucket-unencrypted-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Blue)),
+            BucketDetail("eu-west-1", s"bucket-unencrypted-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Blue))
+          )
+
+      reportSummary(examples) shouldEqual BucketReportSummary(5, 1, 1, 2, 0)
     }
   }
 
   "bucketDetailsSort" - {
     "puts an amber bucket before green" in {
       val buckets = List(
-        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green)),
+        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
         BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber))
       )
 
       buckets.sortBy(bucketDetailsSort) shouldEqual List(
         BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
-        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green))
+        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true)
       )
     }
 
-    "puts a green bucket before blue" in {
+    "puts a blue bucket before green" in {
       val buckets = List(
-        BucketDetail("eu-west-1", s"bucket-blue-1", "Blue", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Blue)),
-        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green))
+        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
+        BucketDetail("eu-west-1", s"bucket-blue-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Blue))
       )
 
       buckets.sortBy(bucketDetailsSort) shouldEqual List(
-        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green)),
-        BucketDetail("eu-west-1", s"bucket-blue-1", "Blue", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Blue))
+        BucketDetail("eu-west-1", s"bucket-blue-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Blue)),
+        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true)
       )
     }
 
@@ -73,29 +83,40 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
 
   "accountsSort" - {
     val accountWithErrors = (AwsAccount("account-with-errors", "name", "ARN"),
-      Right(BucketReportSummary(3, 1, 2, 0),
+      Right(BucketReportSummary(3, 1, 2, 0, 0),
         List(
       BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red)),
       BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red)),
       BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber))
     )))
     val accountWithWarnings = (AwsAccount("account-with-warnings", "name", "ARN"),
-      Right(BucketReportSummary(3, 2, 1, 0),
+      Right(BucketReportSummary(3, 2, 1, 0, 0),
         List(
       BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
       BucketDetail("eu-west-1", s"bucket-amber-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
-      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green))
+      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true)
     )))
-    val accountAllGreen = (AwsAccount("account-all-green", "name", "ARN"),
-      Right(BucketReportSummary(2, 0, 0, 0),
+    val accountWithOtherIssues = (AwsAccount("account-with-blue", "name", "ARN"),
+      Right(BucketReportSummary(2, 0, 0, 2, 0),
         List(
-      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green)),
-      BucketDetail("eu-west-1", s"bucket-green-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green))
+        BucketDetail("eu-west-1", s"bucket-blue-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
+        BucketDetail("eu-west-1", s"bucket-blue-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
+      )))
+    val accountAllGreen = (AwsAccount("account-all-green", "name", "ARN"),
+      Right(BucketReportSummary(2, 0, 0, 0, 0),
+        List(
+      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
+      BucketDetail("eu-west-1", s"bucket-green-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true)
     )))
 
     "puts an account with errors above one with lots of warnings" in {
       val accounts = List(accountWithWarnings, accountAllGreen, accountWithErrors).sortBy(accountsSort)
       accounts shouldEqual List(accountWithErrors, accountWithWarnings, accountAllGreen)
+    }
+
+    "puts an account with other issues after those with errors and warnings" in {
+      val accounts = List(accountWithOtherIssues, accountWithErrors, accountWithWarnings).sortBy(accountsSort)
+      accounts shouldEqual List(accountWithErrors, accountWithWarnings, accountWithOtherIssues)
     }
 
     "breaks ties by name" in {
@@ -109,75 +130,63 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
     }
 
     "puts an account with a failed response after others" in {
-      val accountA = accountWithWarnings.copy(_1 = AwsAccount("account-with-warnings", "first", "ARN"))
-      val accountB = accountWithWarnings.copy(_1 = AwsAccount("account-with-warnings", "second", "ARN"))
       val accountWithFailure = (
         AwsAccount("account-with-failure", "will-be-last", "ARN"),
         Left(Failure.cacheServiceErrorPerAccount("account id", "failure type").attempt)
       )
-      List(accountB, accountWithFailure, accountA).sortBy(accountsSort) shouldEqual List(
-        accountA, accountB, accountWithFailure
+      List(accountWithWarnings, accountWithFailure, accountWithOtherIssues, accountWithErrors).sortBy(accountsSort) shouldEqual List(
+        accountWithErrors, accountWithWarnings, accountWithOtherIssues, accountWithFailure
       )
     }
   }
 
-  "allAccountsBucketData" - {
-    val accountWithErrors = (AwsAccount("account-with-errors", "name", "ARN"),
-      Right(List(
-        BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
-      )))
-    val accountWithWarnings = (AwsAccount("account-with-warnings", "name", "ARN"),
-      Right(List(
-        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-amber-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
-      )))
-    val accountAllGreen = (AwsAccount("account-all-green", "name", "ARN"),
-      Right(List(
-        BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-green-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
-      )))
+  val accountWithErrors = (AwsAccount("account-with-errors", "name", "ARN"),
+    Right(List(
+      BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, None),
+      BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, None),
+      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
+    )))
+  val accountWithWarnings = (AwsAccount("account-with-warnings", "name", "ARN"),
+    Right(List(
+      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
+      BucketDetail("eu-west-1", s"bucket-amber-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
+      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None, isEncrypted = true)
+    )))
+  val accountWithOtherIssues = (AwsAccount("account-with-blue", "name", "ARN"),
+    Right(List(
+      BucketDetail("eu-west-1", s"bucket-blue-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
+      BucketDetail("eu-west-1", s"bucket-blue-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
+    )))
+  val accountAllGreen = (AwsAccount("account-all-green", "name", "ARN"),
+    Right(List(
+      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None, isEncrypted = true),
+      BucketDetail("eu-west-1", s"bucket-green-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None, isEncrypted = true)
+    )))
 
+  "allAccountsBucketData" - {
     "sorts accounts according to severity of issues" in {
-      val result = allAccountsBucketData(List(accountWithWarnings, accountAllGreen, accountWithErrors))
+      val result = allAccountsBucketData(List(accountWithOtherIssues, accountWithWarnings, accountAllGreen, accountWithErrors))
 
       result.map(_._1) shouldEqual List(
         AwsAccount("account-with-errors", "name", "ARN"),
         AwsAccount("account-with-warnings", "name", "ARN"),
+        AwsAccount("account-with-blue", "name", "ARN"),
         AwsAccount("account-all-green", "name", "ARN")
       )
     }
   }
 
   "accountBucketData" - {
-    val accountWithErrors = (AwsAccount("account-with-errors", "name", "ARN"),
-      Right(List(
-        BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, None),
-        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
-      )))
-    val accountWithWarnings = (AwsAccount("account-with-warnings", "name", "ARN"),
-      Right(List(
-      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
-      BucketDetail("eu-west-1", s"bucket-amber-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
-      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
-    )))
-    val accountAllGreen = (AwsAccount("account-all-green", "name", "ARN"),
-      Right(List(
-      BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None),
-      BucketDetail("eu-west-1", s"bucket-green-2", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, None)
-    )))
-
     "adds bucket details summary information" in {
       val (greenSummary, _) = accountBucketData(accountAllGreen)._2.right.get
       val (amberSummary, _) = accountBucketData(accountWithWarnings)._2.right.get
       val (redSummary, _) = accountBucketData(accountWithErrors)._2.right.get
+      val (blueSummary, _) = accountBucketData(accountWithOtherIssues)._2.right.get
 
-      greenSummary shouldEqual BucketReportSummary(2, 0, 0, 0)
-      amberSummary shouldEqual BucketReportSummary(3, 2, 0, 0)
-      redSummary shouldEqual BucketReportSummary(3, 1, 2, 0)
+      greenSummary shouldEqual BucketReportSummary(2, 0, 0, 0, 0)
+      amberSummary shouldEqual BucketReportSummary(3, 2, 0, 0, 0)
+      redSummary shouldEqual BucketReportSummary(3, 1, 2, 0, 0)
+      blueSummary shouldEqual BucketReportSummary(2, 0, 0, 2, 0)
     }
   }
 }
