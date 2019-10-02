@@ -6,14 +6,14 @@ import sbt.Keys.libraryDependencies
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.2.0"
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.8"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
-val playVersion = "2.6.7"
+val playVersion = "2.7.3"
 val jacksonVersion = "2.8.11.2"
 
 lazy val hq = (project in file("hq"))

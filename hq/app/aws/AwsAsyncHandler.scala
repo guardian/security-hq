@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T], clientContext: AwsClient[_]) extends AsyncHandler[R, T] {
   def onError(e: Exception): Unit = {
     val context = Failure.contextString(clientContext)
-    Logger.warn(s"Failed to execute AWS SDK operation (${clientContext.client.getClass.getSimpleName}), $context", e)
+    Logger("aws").warn(s"Failed to execute AWS SDK operation (${clientContext.client.getClass.getSimpleName}), $context", e)
     promise failure e
   }
   def onSuccess(r: R, t: T): Unit = {

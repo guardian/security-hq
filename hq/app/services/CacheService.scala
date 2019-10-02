@@ -48,6 +48,8 @@ class CacheService(
   private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
   private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
 
+  private val logger = Logger("CacheService")
+
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
 
   def getPublicBucketsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[BucketDetail]] = {
@@ -96,62 +98,62 @@ class CacheService(
   def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
 
   def refreshCredentialsBox(): Unit = {
-    Logger.info("Started refresh of the Credentials data")
+    logger.info("Started refresh of the Credentials data")
     for {
       allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, iamClients, regions)
     } yield {
-      Logger.info("Sending the refreshed data to the Credentials Box")
+      logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
     }
   }
 
   private def refreshPublicBucketsBox(): Unit = {
-    Logger.info("Started refresh of the public S3 buckets data")
+    logger.info("Started refresh of the public S3 buckets data")
     for {
       allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(accounts, taClients, s3Clients)
     } yield {
-      Logger.info("Sending the refreshed data to the Public Buckets Box")
+      logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
     }
   }
 
   private def refreshExposedKeysBox(): Unit = {
-    Logger.info("Started refresh of the Exposed Keys data")
+    logger.info("Started refresh of the Exposed Keys data")
     for {
       allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(accounts, taClients)
     } yield {
-      Logger.info("Sending the refreshed data to the Exposed Keys Box")
+      logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
     }
   }
 
   private def refreshSgsBox(): Unit = {
-    Logger.info("Started refresh of the Security Groups data")
+    logger.info("Started refresh of the Security Groups data")
     for {
       _ <- EC2.refreshSGSReports(accounts, taClients)
       allFlaggedSgs <- EC2.allFlaggedSgs(accounts, ec2Clients, taClients)
     } yield {
-      Logger.info("Sending the refreshed data to the Security Groups Box")
+      logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
     }
   }
 
   def refreshInspectorBox(): Unit = {
-    Logger.info("Started refresh of the AWS Inspector data")
+    logger.info("Started refresh of the AWS Inspector data")
     for {
       allInspectorRuns <- Inspector.allInspectorRuns(accounts, inspectorClients)
     } yield {
-      Logger.info("Sending the refreshed data to the AWS Inspector Box")
+      logger.info("Sending the refreshed data to the AWS Inspector Box")
       inspectorBox.send(allInspectorRuns.toMap)
     }
   }
 
   def refreshSnykBox(): Unit = {
-    Logger.info("Started refresh of the Snyk data")
+    logger.info("Started refresh of the Snyk data")
     for {
       allSnykRuns <- Snyk.allSnykRuns(configraun, wsClient)
     } yield {
-      Logger.info("Sending the refreshed data to the Snyk Box")
+      logger.info("Sending the refreshed data to the Snyk Box")
       snykBox.send(Attempt.Right(allSnykRuns))
     }
   }

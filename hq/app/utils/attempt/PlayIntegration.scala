@@ -10,7 +10,7 @@ object PlayIntegration extends Results {
   def attempt[A](action: => Attempt[Result])(implicit ec: ExecutionContext, assetsFinder: AssetsFinder): Future[Result] = {
     action.fold(
       { failures =>
-        Logger.error(failures.logMessage, failures.firstException.orNull)
+        Logger("attempt").error(failures.logMessage, failures.firstException.orNull)
         Status(failures.statusCode)(views.html.error(failures))
       },
       identity

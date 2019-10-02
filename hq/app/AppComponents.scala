@@ -42,6 +42,8 @@ class AppComponents(context: Context)
   private val stack = configuration.get[String]("stack")
   implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(region.getName, stack)
 
+  private val logger = Logger("AppComponents")
+
   val configraun: Configuration = {
 
     configuration.getOptional[String]("stage") match {
@@ -50,13 +52,13 @@ class AppComponents(context: Context)
         val stage = "DEV"
         Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
           case Left(a) =>
-            Logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
+            logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
             sys.exit(1)
           case Right(a) => a
         }
       case _ => Configraun.loadConfig match {
         case Left(a) =>
-          Logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
+          logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
           sys.exit(1)
         case Right(a: com.gu.configraun.models.Configuration) => a
       }
@@ -81,11 +83,11 @@ class AppComponents(context: Context)
     }
   }
 
-  Logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
+  logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
 
   val regionsNotInSdk: Set[String] = availableRegions.map(_.getName).toSet -- Regions.values().map(_.getName).toSet
   if (regionsNotInSdk.nonEmpty) {
-    Logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
+    logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
