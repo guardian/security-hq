@@ -13,7 +13,7 @@ scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-t
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
-val playVersion = "2.7.3"
+val playVersion = "2.7.4"
 val jacksonVersion = "2.8.11.2"
 
 lazy val hq = (project in file("hq"))
