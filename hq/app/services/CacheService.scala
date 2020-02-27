@@ -18,7 +18,7 @@ import config.Config
 import model._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.WSClient
-import play.api.{Configuration, Environment, Logger, Mode}
+import play.api._
 import rx.lang.scala.Observable
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -38,7 +38,7 @@ class CacheService(
     s3Clients: AwsClients[AmazonS3],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
     regions: List[Regions]
-  )(implicit ec: ExecutionContext) {
+  )(implicit ec: ExecutionContext) extends Logging {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceErrorPerAccount(acc.id, "cache").attempt))).toMap
   private val publicBucketsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]]] = Box(startingCache)
@@ -47,8 +47,6 @@ class CacheService(
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val inspectorBox: Box[Map[AwsAccount, Either[FailedAttempt, List[InspectorAssessmentRun]]]] = Box(startingCache)
   private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
-
-  private val logger = Logger("CacheService")
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
 

@@ -1,11 +1,11 @@
 import com.amazonaws.regions.Regions
 import model.AwsAccount
-import play.api.Logger
+import play.api.Logging
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.reflect.ClassTag
 
-package object aws {
+package object aws extends Logging {
   type AwsClients[A] = List[AwsClient[A]]
 
   implicit class AwsClientsList[A](clients: AwsClients[A])(implicit classTag: ClassTag[A]) {
@@ -16,7 +16,7 @@ package object aws {
 
       val errorString = s"No ${classTag.runtimeClass.getSimpleName} client exists for ${account.id} and $region"
       if (maybeClient.isEmpty) {
-        Logger("AWS Clients").warn(errorString)
+        logger.warn(errorString)
       }
 
       Attempt.fromOption(maybeClient, FailedAttempt(Failure(
@@ -35,7 +35,7 @@ package object aws {
         case singleClient :: Nil => Attempt.Right(singleClient)
         case Nil =>
           val errorString = s"No ${classTag.runtimeClass.getSimpleName} client exists for ${account.id}"
-          Logger("AWS Clients").warn(errorString)
+          logger.warn(errorString)
           Attempt.Left(FailedAttempt(Failure(
           errorString,
           s"Cannot find AWS client",
@@ -43,7 +43,7 @@ package object aws {
         )))
         case multipleClients =>
           val errorString = s"More than one ${classTag.runtimeClass.getSimpleName} client exists for ${account.id} - perhaps you need to use get(account, region)??"
-          Logger("AWS Clients").warn(errorString)
+          logger.warn(errorString)
           Attempt.Left(FailedAttempt(Failure(
           errorString,
           s"Multiple AWS clients found when only one was expected",

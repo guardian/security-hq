@@ -1,5 +1,5 @@
-import aws.{AWS, AwsClient}
 import aws.ec2.EC2
+import aws.{AWS, AwsClient}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
@@ -11,11 +11,11 @@ import controllers._
 import filters.HstsFilter
 import model.AwsAccount
 import play.api.ApplicationLoader.Context
-import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
+import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.CacheService
@@ -28,7 +28,7 @@ import scala.language.postfixOps
 class AppComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
   with CSRFComponents
-  with AhcWSComponents with AssetsComponents {
+  with AhcWSComponents with AssetsComponents with Logging {
 
   implicit val impWsClient: WSClient = wsClient
   implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
@@ -41,8 +41,6 @@ class AppComponents(context: Context)
   private val region = Regions.EU_WEST_1
   private val stack = configuration.get[String]("stack")
   implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(region.getName, stack)
-
-  private val logger = Logger("AppComponents")
 
   val configraun: Configuration = {
 
