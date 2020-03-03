@@ -14,7 +14,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
 val playVersion = "2.8.1"
-val jacksonVersion = "2.8.11.2"
+val jacksonVersion = "2.10.1"
 
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin, SbtWeb)
