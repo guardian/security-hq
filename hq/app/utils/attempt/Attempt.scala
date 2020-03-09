@@ -2,7 +2,7 @@ package utils.attempt
 
 import java.util.{Timer, TimerTask}
 
-import play.api.Logger
+import play.api.Logging
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -14,7 +14,7 @@ import scala.util.Try
   * Represents a value that will need to be calculated using an asynchronous
   * computation that may fail.
   */
-case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) {
+case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) extends Logging {
   def map[B](f: A => B)(implicit ec: ExecutionContext): Attempt[B] =
     flatMap(a => Attempt.Right(f(a)))
 
@@ -48,7 +48,7 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) {
   def asFuture(implicit ec: ExecutionContext): Future[Either[FailedAttempt, A]] = {
     underlying recover { case err =>
       val apiErrors = FailedAttempt(Failure(err.getMessage, "Unexpected error", 500, throwable = Some(err)))
-      Logger.error(apiErrors.logMessage, apiErrors.firstException.orNull)
+      logger.error(apiErrors.logMessage, apiErrors.firstException.orNull)
       scala.Left(apiErrors)
     }
   }

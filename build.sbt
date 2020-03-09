@@ -6,15 +6,15 @@ import sbt.Keys.libraryDependencies
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.2.0"
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.10"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
-val playVersion = "2.6.7"
-val jacksonVersion = "2.8.11.2"
+val playVersion = "2.8.1"
+val jacksonVersion = "2.10.1"
 
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin, SbtWeb)
@@ -26,8 +26,8 @@ lazy val hq = (project in file("hq"))
       ws,
       filters,
       "com.gu" %% "play-googleauth" % "0.7.6",
-      "joda-time" % "joda-time" % "2.9.9",
-      "org.typelevel" %% "cats-core" % "1.0.1",
+      "joda-time" % "joda-time" % "2.10.5",
+      "org.typelevel" %% "cats-core" % "2.0.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
       "com.gu" %% "configraun" % "0.3",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,

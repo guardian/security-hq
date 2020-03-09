@@ -1,5 +1,5 @@
-import aws.{AWS, AwsClient}
 import aws.ec2.EC2
+import aws.{AWS, AwsClient}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
@@ -11,11 +11,11 @@ import controllers._
 import filters.HstsFilter
 import model.AwsAccount
 import play.api.ApplicationLoader.Context
-import play.api.{BuiltInComponentsFromContext, Logger}
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
+import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.CacheService
@@ -28,7 +28,7 @@ import scala.language.postfixOps
 class AppComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
   with CSRFComponents
-  with AhcWSComponents with AssetsComponents {
+  with AhcWSComponents with AssetsComponents with Logging {
 
   implicit val impWsClient: WSClient = wsClient
   implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
@@ -50,13 +50,13 @@ class AppComponents(context: Context)
         val stage = "DEV"
         Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
           case Left(a) =>
-            Logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
+            logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
             sys.exit(1)
           case Right(a) => a
         }
       case _ => Configraun.loadConfig match {
         case Left(a) =>
-          Logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
+          logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
           sys.exit(1)
         case Right(a: com.gu.configraun.models.Configuration) => a
       }
@@ -81,11 +81,11 @@ class AppComponents(context: Context)
     }
   }
 
-  Logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
+  logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
 
   val regionsNotInSdk: Set[String] = availableRegions.map(_.getName).toSet -- Regions.values().map(_.getName).toSet
   if (regionsNotInSdk.nonEmpty) {
-    Logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
+    logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
