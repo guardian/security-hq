@@ -19,7 +19,7 @@ Metadata:
       Parameters:
       - VpcId
       - Subnets
-      - TLSCertArn
+      - TLSCertDomain
 
 Parameters:
   SecurityHQSourceBundleBucket:
@@ -34,8 +34,8 @@ Parameters:
   AMI:
     Description: Base AMI for Security HQ instances
     Type: AWS::EC2::Image::Id
-  TLSCertArn:
-    Description: ARN of a TLS certificate to install on the load balancer
+  TLSCertDomain:
+    Description: Domain name for a TLS certificate to install on the load balancer
     Type: String
   AccessRestrictionCidr:
     Description: CIDR block from which access to Security HQ should be allowed
@@ -331,7 +331,20 @@ Resources:
         Value:
           Fn::FindInMap: [ Constants, App, Value ]
         PropagateAtLaunch: true
-
+  TLSCertArn:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      ValidationMethod: DNS
+      DomainName: !Ref TLSCertDomain
+      Tags:
+        - Key: Stage
+          Value: !Ref Stage
+        - Key: Stack
+          Value:
+            Fn::FindInMap: [ Constants, Stack, Value ]
+        - Key: App
+          Value:
+            Fn::FindInMap: [ Constants, App, Value ]
 Outputs:
   LoadBalancerUrl:
     Value:
