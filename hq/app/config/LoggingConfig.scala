@@ -1,5 +1,7 @@
 package config
 
+import java.net.InetSocketAddress
+
 import com.amazonaws.regions.Regions
 import com.amazonaws.util.EC2MetadataUtils
 import model.{DEV, Stage}
@@ -15,6 +17,8 @@ case class LoggingConfig (
   stsRole: Option[String]
 ) {
   val isDev: Boolean = stage == DEV
+  val localLogShippingEnabled: Boolean = sys.env.getOrElse("LOCAL_LOG_SHIPPING", "false").toBoolean
+  lazy val localLogShippingDestination: InetSocketAddress = new InetSocketAddress("localhost", 5000)
 }
 
 object LoggingConfig {

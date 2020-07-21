@@ -8,6 +8,8 @@ import com.amazonaws.auth.{InstanceProfileCredentialsProvider, STSAssumeRoleSess
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import com.gu.logback.appender.kinesis.KinesisAppender
 import config.LoggingConfig
+import net.logstash.logback.appender.LogstashTcpSocketAppender
+import net.logstash.logback.encoder.LogstashEncoder
 import net.logstash.logback.layout.LogstashLayout
 import org.slf4j.{LoggerFactory, Logger => SLFLogger}
 import play.api.ApplicationLoader.Context
@@ -36,6 +38,33 @@ object LogConfig {
     val instanceProvider = InstanceProfileCredentialsProvider.getInstance
     val stsClient = AWSSecurityTokenServiceClientBuilder.standard.withCredentials(instanceProvider).build
     new STSAssumeRoleSessionCredentialsProvider.Builder(stsRole, sessionId).withStsClient(stsClient).build
+  }
+
+  def initLocalLogShipping(config: LoggingConfig): Unit = {
+    if(config.isDev && config.localLogShippingEnabled) {
+      Try {
+        rootLogger.info("Initialising local log shipping")
+        val customFields = makeCustomFields(config)
+
+        val appender = new LogstashTcpSocketAppender()
+        appender.setContext(rootLogger.getLoggerContext)
+        appender.addDestinations(config.localLogShippingDestination)
+        appender.setWriteBufferSize(BUFFER_SIZE)
+
+        val encoder = new LogstashEncoder()
+        encoder.setCustomFields(customFields)
+        appender.setEncoder(encoder)
+
+        encoder.start()
+        appender.start()
+
+        rootLogger.addAppender(appender)
+
+        rootLogger.info("Initialised local log shipping")
+      } recover {
+        case e => rootLogger.error("Failed to initialise local log shipping", e)
+      }
+    }
   }
 
   def initRemoteLogShipping(config: LoggingConfig): Unit = {
