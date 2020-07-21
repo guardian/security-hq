@@ -38,9 +38,9 @@ class AppComponents(context: Context)
     csrfFilter,
     new HstsFilter()
   )
-  private val region = Regions.EU_WEST_1
+
   private val stack = configuration.get[String]("stack")
-  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(region.getName, stack)
+  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(Config.region.getName, stack)
 
   val configraun: Configuration = {
 
@@ -69,13 +69,13 @@ class AppComponents(context: Context)
   //  - available regions can return regions that are not in the SDK and so Regions.findName will fail
   // to solve these we return the intersection of available regions and regions.values()
   private val availableRegions = {
-    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(region).build(), AwsAccount(stack, stack, stack), region)
+    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region).build(), AwsAccount(stack, stack, stack), Config.region)
     try {
       val availableRegionsAttempt: Attempt[List[Regions]] = for {
         regionList <- EC2.getAvailableRegions(ec2Client)
         regionStringSet = regionList.map(_.getRegionName).toSet
       } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
-      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.getOrElse(List(region, Regions.US_EAST_1))
+      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.getOrElse(List(Config.region, Regions.US_EAST_1))
     } finally {
       ec2Client.client.shutdown()
     }

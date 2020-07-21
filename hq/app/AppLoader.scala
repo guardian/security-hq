@@ -1,12 +1,16 @@
+import config.LoggingConfig
+import logging.LogConfig
 import play.api.ApplicationLoader.Context
-import play.api.{Application, ApplicationLoader, LoggerConfigurator}
+import play.api.{Application, ApplicationLoader}
 
 
 class AppLoader extends ApplicationLoader {
   override def load(context: Context): Application = {
-    LoggerConfigurator(context.environment.classLoader).foreach {
-      _.configure(context.environment)
-    }
+    val loggingConfig = LoggingConfig(context.initialConfiguration)
+
+    LogConfig.initPlayLogging(context)
+    LogConfig.initRemoteLogShipping(loggingConfig)
+
     new AppComponents(context).application
   }
 }

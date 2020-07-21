@@ -2,6 +2,7 @@ package config
 
 import java.io.FileInputStream
 
+import com.amazonaws.regions.Regions
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import model.{AwsAccount, DEV, PROD, Stage}
@@ -13,6 +14,8 @@ import scala.util.Try
 
 
 object Config {
+  val region: Regions = Regions.EU_WEST_1
+
   def getStage(config: Configuration): Stage = {
     config.getAndValidate("stage", Set("DEV", "PROD")) match {
       case "DEV" => DEV
