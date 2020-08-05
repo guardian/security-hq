@@ -127,12 +127,8 @@ case class UnknownUsage(
 ) extends SGInUse
 
 sealed trait Stage
-case object DEV extends Stage {
-  override def toString: String = "DEV"
-}
-case object PROD extends Stage {
-  override def toString: String = "PROD"
-}
+case object DEV extends Stage
+case object PROD extends Stage
 
 case class CredentialReportDisplay(
   reportDate: DateTime,

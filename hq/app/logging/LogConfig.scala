@@ -1,7 +1,6 @@
 package logging
 
 import java.net.InetSocketAddress
-import java.security.SecureRandom
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.{Logger => LogbackLogger}
@@ -33,9 +32,8 @@ object LogConfig {
     )).toString()
   }
 
-  private def buildCredentialsProvider(stsRole: String) = {
-    val random = new SecureRandom()
-    val sessionId = s"session${random.nextDouble()}"
+  private def buildCredentialsProvider(stsRole: String, config: LoggingConfig) = {
+    val sessionId = s"${config.app}-session"
 
     val instanceProvider = InstanceProfileCredentialsProvider.getInstance
     val stsClient = AWSSecurityTokenServiceClientBuilder.standard.withCredentials(instanceProvider).build
@@ -95,14 +93,13 @@ object LogConfig {
             appender.setContext(context)
             appender.setLayout(layout)
             appender.setRoleToAssumeArn(stsRole)
-            appender.setCredentialsProvider(buildCredentialsProvider(stsRole))
+            appender.setCredentialsProvider(buildCredentialsProvider(stsRole, config))
 
             rootLogger.addAppender(appender)
             rootLogger.info("Initialised remote log shipping")
           }
-          case _ => rootLogger.info("Missing remote logging configuration")
+          case _ => rootLogger.info(s"Missing remote logging configuration streamName=${config.streamName} stsRole=${config.stsRole}")
         }
-
       } recover {
         case e => rootLogger.error("Failed to initialise remote log shipping", e)
       }
