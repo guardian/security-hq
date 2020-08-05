@@ -1,5 +1,6 @@
 package logging
 
+import java.net.InetSocketAddress
 import java.security.SecureRandom
 
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -8,6 +9,7 @@ import com.amazonaws.auth.{InstanceProfileCredentialsProvider, STSAssumeRoleSess
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import com.gu.logback.appender.kinesis.KinesisAppender
 import config.LoggingConfig
+import model.DEV
 import net.logstash.logback.appender.LogstashTcpSocketAppender
 import net.logstash.logback.encoder.LogstashEncoder
 import net.logstash.logback.layout.LogstashLayout
@@ -41,14 +43,16 @@ object LogConfig {
   }
 
   def initLocalLogShipping(config: LoggingConfig): Unit = {
-    if(config.isDev && config.localLogShippingEnabled) {
+    if(config.stage == DEV && config.localLogShippingEnabled) {
       Try {
         rootLogger.info("Initialising local log shipping")
         val customFields = makeCustomFields(config)
 
         val appender = new LogstashTcpSocketAppender()
         appender.setContext(rootLogger.getLoggerContext)
-        appender.addDestinations(config.localLogShippingDestination)
+
+        // hard code the destination as we're relying on the use of local-elk which only accepts TCP traffic on localhost:5000
+        appender.addDestinations(new InetSocketAddress("localhost", 5000))
         appender.setWriteBufferSize(BUFFER_SIZE)
 
         val encoder = new LogstashEncoder()
@@ -68,7 +72,7 @@ object LogConfig {
   }
 
   def initRemoteLogShipping(config: LoggingConfig): Unit = {
-    if(config.isDev) {
+    if(config.stage == DEV) {
       rootLogger.info("Kinesis logging disabled in DEV")
     } else {
       Try {
