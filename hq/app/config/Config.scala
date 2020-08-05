@@ -14,6 +14,7 @@ import scala.util.Try
 
 
 object Config {
+  // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
 
   def getStage(config: Configuration): Stage = {
