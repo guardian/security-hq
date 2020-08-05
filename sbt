@@ -18,6 +18,10 @@ do
       CONF_PARAMS=""
       shift
     fi
+    if [ "$arg" == ""--ship-logs"" ]; then
+      export LOCAL_LOG_SHIPPING=true
+      shift
+    fi
 done
 
 if [ $TEAMCITY_BUILD_PROPERTIES_FILE ]; then
