@@ -41,38 +41,40 @@ object LogConfig {
   }
 
   def initLocalLogShipping(config: LoggingConfig): Unit = {
-    if(config.stage == DEV && config.localLogShippingEnabled) {
-      Try {
-        rootLogger.info("Initialising local log shipping")
-        val customFields = makeCustomFields(config)
+    if (config.stage != DEV) rootLogger.info("Local log shipping only available in DEV") else {
+      if (!config.localLogShippingEnabled) rootLogger.info("Local log shipping is disabled") else {
+        Try {
+          rootLogger.info("Initialising local log shipping")
+          val customFields = makeCustomFields(config)
 
-        val appender = new LogstashTcpSocketAppender()
-        appender.setContext(rootLogger.getLoggerContext)
+          val appender = new LogstashTcpSocketAppender()
+          appender.setContext(rootLogger.getLoggerContext)
 
-        // hard code the destination as we're relying on the use of local-elk which only accepts TCP traffic on localhost:5000
-        appender.addDestinations(new InetSocketAddress("localhost", 5000))
-        appender.setWriteBufferSize(BUFFER_SIZE)
+          // hard code the destination as we're relying on the use of local-elk which only accepts TCP traffic on localhost:5000
+          // see https://github.com/guardian/local-elk
+          appender.addDestinations(new InetSocketAddress("localhost", 5000))
+          appender.setWriteBufferSize(BUFFER_SIZE)
 
-        val encoder = new LogstashEncoder()
-        encoder.setCustomFields(customFields)
-        appender.setEncoder(encoder)
+          val encoder = new LogstashEncoder()
+          encoder.setCustomFields(customFields)
+          appender.setEncoder(encoder)
 
-        encoder.start()
-        appender.start()
+          encoder.start()
+          appender.start()
 
-        rootLogger.addAppender(appender)
+          rootLogger.addAppender(appender)
 
-        rootLogger.info("Initialised local log shipping")
-      } recover {
-        case e => rootLogger.error("Failed to initialise local log shipping", e)
+          rootLogger.info("Initialised local log shipping")
+        } recover {
+          case e => rootLogger.error("Failed to initialise local log shipping", e)
+        }
+
       }
     }
   }
 
   def initRemoteLogShipping(config: LoggingConfig): Unit = {
-    if(config.stage == DEV) {
-      rootLogger.info("Kinesis logging disabled in DEV")
-    } else {
+    if(config.stage == DEV) rootLogger.info("Remote log shipping via Kinesis disabled in DEV") else {
       Try {
         rootLogger.info("Initialising remote log shipping via Kinesis")
 
