@@ -1,8 +1,7 @@
 package config
 
 import java.io.FileInputStream
-
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.auth.oauth2.ServiceAccountCredentials
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import model.{AwsAccount, DEV, PROD, Stage}
 import play.api.Configuration
@@ -24,7 +23,7 @@ object Config {
   def googleSettings(httpConfiguration: HttpConfiguration, config: Configuration): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
-    val domain = requiredString(config, "auth.domain")
+    val domain = List(requiredString(config, "auth.domain"))
     val redirectUrl = s"${requiredString(config, "host")}/oauthCallback"
     GoogleAuthConfig(
       clientId,
@@ -39,16 +38,16 @@ object Config {
     val twoFAUser = requiredString(config, "auth.google.2faUser")
     val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")
 
-    val credentials: GoogleCredential = {
+    val credentials = {
       val jsonCertStream =
         Try(new FileInputStream(serviceAccountCertPath))
           .getOrElse(throw new RuntimeException(s"Could not load service account JSON from $serviceAccountCertPath"))
-      GoogleCredential.fromStream(jsonCertStream)
+      ServiceAccountCredentials.fromStream(jsonCertStream)
     }
 
     val serviceAccount = GoogleServiceAccount(
-      credentials.getServiceAccountId,
-      credentials.getServiceAccountPrivateKey,
+      credentials.getClientEmail,
+      credentials.getPrivateKey,
       twoFAUser
     )
     new GoogleGroupChecker(serviceAccount)

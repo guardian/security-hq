@@ -7,7 +7,7 @@ import sbt.Keys.libraryDependencies
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.2.0"
 scalaVersion in ThisBuild := "2.12.10"
-scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
+scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
@@ -25,7 +25,8 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu" %% "play-googleauth" % "0.7.6",
+      "com.gu.play-googleauth" %% "play-v28" % "2.0.0",
+      "com.google.auth" % "google-auth-library-oauth2-http" % "0.21.1",
       "joda-time" % "joda-time" % "2.10.5",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
