@@ -96,7 +96,7 @@ object LogConfig {
             appender.setLayout(layout)
             appender.setRoleToAssumeArn(stsRole)
             appender.setCredentialsProvider(buildCredentialsProvider(stsRole, config))
-
+            appender.start()
             rootLogger.addAppender(appender)
             rootLogger.info("Initialised remote log shipping")
           }
