@@ -43,7 +43,13 @@ lazy val hq = (project in file("hq"))
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
+
+      // logstash-logback-encoder brings in version 2.11.0
+      // exclude transitive dependency to avoid a runtime exception:
+      // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
+      "net.logstash.logback" % "logstash-logback-encoder" % "6.4" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "com.gu" % "kinesis-logback-appender" % "1.4.4",
     ),
     pipelineStages in Assets := Seq(digest),
     // exclude docs

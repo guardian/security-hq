@@ -55,6 +55,9 @@ Parameters:
     - PROD
     - CODE
     - DEV
+  LoggingRoleToAssumeArn:
+    Type: String
+    Description: Name of IAM role in logging account e.g. arn:aws:iam::222222222222:role/LoggingRole
 
 Mappings:
   Constants:
@@ -64,6 +67,19 @@ Mappings:
       Value: security-hq
 
 Resources:
+  LoggingPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: LoggingPolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Resource: !Ref "LoggingRoleToAssumeArn"
+      Roles:
+        - !Ref SecurityHQInstanceRole
+
   SecurityHQInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
