@@ -81,7 +81,9 @@ lazy val hq = (project in file("hq"))
     ),
     javaOptions in Universal ++= Seq(
       "-Dpidfile.path=/dev/null",
-      "-J-Xmx3147m",
+      "-Dconfig.file=/etc/gu/security-hq.conf",
+      "-J-XX:+UseCompressedOops",
+      "-J-XX:+UseConcMarkSweepGC",
       "-J-XX:NativeMemoryTracking=detail",
       "-J-XX:MaxRAMFraction=2",
       "-J-XX:InitialRAMFraction=2",
