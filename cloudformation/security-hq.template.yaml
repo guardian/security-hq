@@ -302,21 +302,14 @@ Resources:
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -ev
-          echo ${Stage} > /etc/stage
           # setup security-hq
-          adduser --system --home /security-hq --disabled-password security-hq
-          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.conf /security-hq
-          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq-service-account-cert.json /security-hq
-          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.tgz /security-hq
-          # Expand zipped tar file; remove base directory
-          tar -xzf /security-hq/security-hq.tgz --strip 1 --directory /security-hq/
-          # Put systemd file in correct location with correct ownership
-          /bin/bash /security-hq/systemd/install
-          # Give ownership of all the application files to the application user
-          chown -R security-hq /security-hq
-          # Start application
-          systemctl daemon-reload
-          systemctl start security-hq.service
+          mkdir -p /etc/gu
+
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.conf /etc/gu
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq-service-account-cert.json /etc/gu
+          aws --region eu-west-1 s3 cp s3://${SecurityHQSourceBundleBucket}/security/${Stage}/security-hq/security-hq.deb /tmp/installer.deb
+
+          dpkg -i /tmp/installer.deb
 
   AutoscalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup

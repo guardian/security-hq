@@ -17,7 +17,7 @@ val playVersion = "2.8.1"
 val jacksonVersion = "2.10.1"
 
 lazy val hq = (project in file("hq"))
-  .enablePlugins(PlayScala, RiffRaffArtifact, UniversalPlugin, SbtWeb)
+  .enablePlugins(PlayScala, RiffRaffArtifact, SbtWeb, JDebPackaging, SystemdPlugin)
   .disablePlugins(sbtassembly.AssemblyPlugin)
   .settings(
     name := """security-hq""",
@@ -70,11 +70,27 @@ lazy val hq = (project in file("hq"))
     unmanagedResourceDirectories in Compile += baseDirectory.value / "markdown",
     parallelExecution in Test := false,
     fork in Test := false,
-    riffRaffPackageType := (packageZipTarball in Universal).value,
+    riffRaffPackageType := (packageBin in Debian).value,
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
     riffRaffAddManifestDir := Option("hq/public"),
-    riffRaffArtifactResources += (file("cloudformation/security-hq.template.yaml"), s"${name.value}-cfn/cfn.yaml")
+    riffRaffArtifactResources  := Seq(
+      riffRaffPackageType.value -> s"${name.value}/${name.value}.deb",
+      baseDirectory.value / "conf" / "riff-raff.yaml" -> "riff-raff.yaml",
+      file("cloudformation/security-hq.template.yaml") -> s"${name.value}-cfn/cfn.yaml"
+    ),
+    javaOptions in Universal ++= Seq(
+      "-Dpidfile.path=/dev/null",
+      "-J-Xmx3147m",
+      "-J-XX:NativeMemoryTracking=detail",
+      "-J-XX:MaxRAMFraction=2",
+      "-J-XX:InitialRAMFraction=2",
+      "-J-XX:MaxMetaspaceSize=300m",
+      "-J-XX:+PrintGCDetails",
+      "-J-XX:+PrintGCDateStamps",
+      s"-J-Xloggc:/var/log/${packageName.value}/gc.log"
+    )
+
   )
 
 // More will go here!
@@ -123,3 +139,5 @@ lazy val root = (project in file(".")).
   )
 
 addCommandAlias("dependency-tree", "dependencyTree")
+
+
