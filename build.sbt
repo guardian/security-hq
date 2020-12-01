@@ -22,6 +22,7 @@ lazy val hq = (project in file("hq"))
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
+    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
     libraryDependencies ++= Seq(
       ws,
       filters,
