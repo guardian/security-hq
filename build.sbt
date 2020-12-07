@@ -88,6 +88,7 @@ lazy val hq = (project in file("hq"))
       "-J-XX:NativeMemoryTracking=detail",
       "-J-XX:MaxRAMFraction=2",
       "-J-XX:InitialRAMFraction=2",
+      "-XX:NewRatio=3",
       "-J-XX:MaxMetaspaceSize=300m",
       "-J-XX:+PrintGCDetails",
       "-J-XX:+PrintGCDateStamps",
