@@ -129,6 +129,9 @@ Resources:
         - Effect: Allow
           Resource: "*"
           Action:
+          - autoscaling:DescribeAutoScalingInstances
+          - autoscaling:DescribeAutoScalingGroups
+          - ec2:DescribeRegions
           - ec2:DescribeTags
       Roles:
       - !Ref SecurityHQInstanceRole
