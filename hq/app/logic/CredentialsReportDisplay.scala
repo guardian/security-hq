@@ -17,24 +17,24 @@ object CredentialsReportDisplay {
     allDates.sortWith(_.isAfter(_)).collectFirst { case date if date.isBefore(DateTime.now(DateTimeZone.UTC)) => date }
   }
 
-  private[logic] def key1Status(cred: IAMCredential): KeyStatus = {
+  private[logic] def accessKey1Details(cred: IAMCredential): AccessKey = {
     if (cred.accessKey1Active)
-      AccessKeyEnabled
+      AccessKey(AccessKeyEnabled, cred.accessKey1LastRotated)
     else if (!cred.accessKey1Active && cred.accessKey1LastUsedDate.nonEmpty)
-      AccessKeyDisabled
-    else NoKey
+      AccessKey(AccessKeyDisabled, cred.accessKey1LastRotated)
+    else AccessKey(NoKey, None)
   }
 
-  private[logic] def key2Status(cred: IAMCredential): KeyStatus = {
+  private[logic] def accessKey2Details(cred: IAMCredential): AccessKey = {
     if (cred.accessKey2Active)
-      AccessKeyEnabled
+      AccessKey(AccessKeyEnabled, cred.accessKey2LastRotated)
     else if (!cred.accessKey2Active && cred.accessKey2LastUsedDate.nonEmpty)
-      AccessKeyDisabled
-    else NoKey
+      AccessKey(AccessKeyDisabled, cred.accessKey2LastRotated)
+    else AccessKey(NoKey, None)
   }
 
   private[logic] def machineReportStatus(cred: IAMCredential): ReportStatus = {
-    if (!Seq(key1Status(cred), key2Status(cred)).contains(AccessKeyEnabled))
+    if (!Seq(accessKey1Details(cred).keyStatus, accessKey2Details(cred).keyStatus).contains(AccessKeyEnabled))
       Amber
     else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
       Blue
@@ -44,7 +44,7 @@ object CredentialsReportDisplay {
   private[logic] def humanReportStatus(cred: IAMCredential): ReportStatus = {
     if (!cred.mfaActive)
       Red
-    else if (Seq(key1Status(cred), key2Status(cred)).contains(AccessKeyEnabled))
+    else if (Seq(accessKey1Details(cred).keyStatus, accessKey2Details(cred).keyStatus).contains(AccessKeyEnabled))
       Amber
     else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
       Blue
@@ -62,8 +62,8 @@ object CredentialsReportDisplay {
         if (!cred.passwordEnabled.getOrElse(false)) {
           Some(MachineUser(
             cred.user,
-            key1Status(cred),
-            key2Status(cred),
+            accessKey1Details(cred),
+            accessKey2Details(cred),
             machineReportStatus(cred),
             dayDiff(lastActivityDate(cred)),
             stack = cred.stack
@@ -75,8 +75,8 @@ object CredentialsReportDisplay {
           Some(HumanUser(
             cred.user,
             cred.mfaActive,
-            key1Status(cred),
-            key2Status(cred),
+            accessKey1Details(cred),
+            accessKey2Details(cred),
             humanReportStatus(cred),
             dayDiff(lastActivityDate(cred)),
             stack = cred.stack
@@ -90,8 +90,8 @@ object CredentialsReportDisplay {
     }
   }
 
-  def checkNoKeyExists(keyStatuses: KeyStatus*): Boolean = {
-    keyStatuses.forall(_ == NoKey)
+  def checkNoKeyExists(keyStatuses: AccessKey*): Boolean = {
+    keyStatuses.forall(_.keyStatus == NoKey)
   }
 
   def toDayString(day: Option[Long]): String = day match {

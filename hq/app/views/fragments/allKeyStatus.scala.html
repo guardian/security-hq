@@ -1,23 +1,21 @@
-@import model.KeyStatus
-@import model.AccessKeyDisabled
-@import model.AccessKeyEnabled
+@import model.{AccessKeyDisabled, AccessKeyEnabled, AccessKey}
 @import logic.CredentialsReportDisplay
-@(key1Status: KeyStatus, key2Status: KeyStatus)
 
+@(accessKey1: AccessKey, accessKey2: AccessKey)
 
-@keyStatus(keyStatus: KeyStatus) = {
-    @if(keyStatus == AccessKeyDisabled) {
+@keyStatus(accessKey: AccessKey) = {
+    @if(accessKey.keyStatus == AccessKeyDisabled) {
         <span><i class="material-icons left tooltipped iam-icon--disabled"  data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i></span>
     }
-    @if(keyStatus == AccessKeyEnabled) {
+    @if(accessKey.keyStatus == AccessKeyEnabled) {
         <span><i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="Has active Access Key">vpn_key</i></span>
     }
 }
 
-@if(CredentialsReportDisplay.checkNoKeyExists(key1Status, key2Status)) {
+@if(CredentialsReportDisplay.checkNoKeyExists(accessKey1, accessKey2)) {
   <span>-</span>
 } else {
-    @keyStatus(key1Status)
-    @keyStatus(key2Status)
+    @keyStatus(accessKey1)
+    @keyStatus(accessKey2)
 }
 

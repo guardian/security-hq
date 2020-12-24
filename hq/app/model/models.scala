@@ -1,6 +1,6 @@
 package model
 
-import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.regions.Region
 import org.joda.time.DateTime
 
 case class AwsAccount(
@@ -141,6 +141,10 @@ object AccessKeyEnabled extends KeyStatus
 object AccessKeyDisabled extends KeyStatus
 object NoKey extends KeyStatus
 
+case class AccessKey(
+  keyStatus: KeyStatus,
+  lastRotated: Option[DateTime]
+)
 
 sealed trait ReportStatus
 object Red extends ReportStatus
@@ -151,16 +155,16 @@ object Blue extends ReportStatus
 case class HumanUser(
   username: String,
   hasMFA : Boolean,
-  key1Status: KeyStatus,
-  key2Status: KeyStatus,
+  key1: AccessKey,
+  key2: AccessKey,
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long],
   stack: Option[AwsStack]
 )
 case class MachineUser(
   username: String,
-  key1Status: KeyStatus,
-  key2Status: KeyStatus,
+  key1: AccessKey,
+  key2: AccessKey,
   reportStatus: ReportStatus,
   lastActivityDay: Option[Long],
   stack: Option[AwsStack]
