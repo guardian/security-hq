@@ -3,27 +3,29 @@
   "version": "0.0.1",
   "private": true,
   "engines": {
-    "node": "^8.11.0",
-    "yarn": "^1.5.0"
+    "node": ">=14.0.0",
+    "yarn": ">=1.22.0"
   },
   "devDependencies": {
-    "eslint": "5.3.0",
-    "eslint-config-prettier": "2.9.0",
-    "eslint-plugin-import": "2.8.0",
-    "eslint-plugin-prettier": "2.6.2",
+    "eslint": "7.15.0",
+    "eslint-config-prettier": "6.15.0",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-prettier": "3.1.4",
     "materialize-css": "0.100.2",
-    "prettier": "1.14.0",
-    "sass-lint": "1.12.1",
-    "snyk": "1.90.0"
+    "prettier": "2.2.0",
+    "stylelint": "13.8.0",
+    "stylelint-config-recommended": "3.0.0",
+    "snyk": "1.437.3"
   },
   "prettier": {
     "singleQuote": true
   },
   "scripts": {
-    "eslint": "eslint --max-warnings 0 --format codeframe --ignore-pattern '**/*.min.js' hq/public/javascripts/",
+    "lint:styles": "stylelint hq/public/stylesheets/*.css --config .stylelintrc.json",
+    "lint:js": "eslint --max-warnings 0 --format codeframe --ignore-pattern '**/*.min.js' hq/public/javascripts/",
+    "lint": "yarn lint:js && yarn lint:styles",
     "linter-check": "eslint --print-config .eslintrc.js | eslint-config-prettier-check",
-    "prettier": "prettier -o --write './**/*.{js,css}'",
-    "sass-lint": "sass-lint -v -q hq/public/stylesheets/*.css",
+    "prettier": "prettier --write './**/*.{js,css}'",
     "not-master": "test \"$BRANCH_NAME\" != \"master\" && echo \"BRANCH_NAME variable is '$BRANCH_NAME', not master\" ",
     "snyk-test": "PATH=$(pwd):$PATH snyk test --debug --org=guardian-security --json --file=build.sbt ",
     "snyk-test-master": "npm run not-master --silent || npm run snyk-test --silent ",
