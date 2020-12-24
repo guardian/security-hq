@@ -1,0 +1,7 @@
+{
+  "ignoreFiles": ["node_modules/**/*.s+(a|c)ss"],
+  "extends": [
+    "stylelint-config-recommended"
+  ],
+  "defaultSeverity": "warning"
+}
