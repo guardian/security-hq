@@ -1,21 +1,29 @@
-@import model.{AccessKeyDisabled, AccessKeyEnabled, AccessKey}
-@import logic.CredentialsReportDisplay
+@import model._
+@import logic.CredentialsReportDisplay.{toDayString, checkNoKeyExists}
+@import logic.DateUtils
 
 @(accessKey1: AccessKey, accessKey2: AccessKey)
 
 @keyStatus(accessKey: AccessKey) = {
     @if(accessKey.keyStatus == AccessKeyDisabled) {
-        <span><i class="material-icons left tooltipped iam-icon--disabled"  data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i></span>
+        <span><i class="material-icons left tooltipped iam-icon--disabled"
+        data-position="bottom" data-delay="50" data-tooltip="Disabled Access Key">vpn_key</i>
+        </span>
+        <span class="iam-icon--disabled">@DateUtils.dayDiff(accessKey.lastRotated) days old</span>
     }
     @if(accessKey.keyStatus == AccessKeyEnabled) {
-        <span><i class="material-icons left tooltipped" data-position="bottom" data-delay="50" data-tooltip="Has active Access Key">vpn_key</i></span>
+        <span><i class="material-icons left tooltipped"
+        data-position="bottom" data-delay="50" data-tooltip="Active Access Key">vpn_key</i>
+        </span>
+        <span>@DateUtils.dayDiff(accessKey.lastRotated) days old</span>
     }
+
 }
 
-@if(CredentialsReportDisplay.checkNoKeyExists(accessKey1, accessKey2)) {
-  <span>-</span>
+@if(checkNoKeyExists(accessKey1, accessKey2)) {
+  <td>-</td><td>-</td>
 } else {
-    @keyStatus(accessKey1)
-    @keyStatus(accessKey2)
+    <td>@keyStatus(accessKey1)</td>
+    <td>@keyStatus(accessKey2)</td>
 }
 
