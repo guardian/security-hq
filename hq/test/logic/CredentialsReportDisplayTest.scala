@@ -43,32 +43,32 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
 
     "check key 1 status when key1 enabled" in {
       val cred2 =cred.copy(accessKey1Active = true)
-      key1Status(cred2) shouldBe AccessKeyEnabled
+      accessKey1Details(cred2).keyStatus shouldBe AccessKeyEnabled
     }
 
     "check key 1 status when key1 disabled" in {
       val cred2 =cred.copy(accessKey1Active = false)
-      key1Status(cred2) shouldBe AccessKeyDisabled
+      accessKey1Details(cred2).keyStatus shouldBe AccessKeyDisabled
     }
 
     "check key 1 status when there is no key1" in {
       val cred2 =cred.copy(accessKey1Active = false, accessKey1LastUsedDate = None)
-      key1Status(cred2) shouldBe NoKey
+      accessKey1Details(cred2).keyStatus shouldBe NoKey
     }
 
     "check key2 status when key2 enabled" in {
       val cred2 =cred.copy(accessKey2Active = true)
-      key2Status(cred2) shouldBe AccessKeyEnabled
+      accessKey2Details(cred2).keyStatus shouldBe AccessKeyEnabled
     }
 
     "check key2 status when key2 disabled" in {
       val cred2 =cred.copy(accessKey2Active = false)
-      key2Status(cred2) shouldBe AccessKeyDisabled
+      accessKey2Details(cred2).keyStatus shouldBe AccessKeyDisabled
     }
 
     "check key2 status when there is no key2" in {
       val cred2 =cred.copy(accessKey2Active = false, accessKey2LastUsedDate = None)
-      key2Status(cred2) shouldBe NoKey
+      accessKey2Details(cred2).keyStatus shouldBe NoKey
     }
 
     "machine report status green when key1 enabled" in {
@@ -114,23 +114,23 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
     "check credential display report for human user" in {
       val humanCred = cred.copy(passwordEnabled = Some(true))
       val iAMCredentialsReport = IAMCredentialsReport(now, List(humanCred))
-      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
+      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKey(AccessKeyEnabled, Some(now.minusDays(4))), AccessKey(AccessKeyEnabled, Some(now.minusDays(6))), Amber, Some(1), None)
       val displayReport = CredentialReportDisplay(now, humanUsers = Seq(humanUser) )
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
 
     "check credential display report for machine user" in {
       val iAMCredentialsReport = IAMCredentialsReport(now, List(cred))
-      val machineUser = MachineUser(cred.user, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+      val machineUser = MachineUser(cred.user, AccessKey(AccessKeyEnabled, Some(now.minusDays(4))), AccessKey(AccessKeyEnabled, Some(now.minusDays(6))), Green, Some(1), None)
       val displayReport = CredentialReportDisplay(now, machineUsers = Seq(machineUser) )
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
 
     "check credential display report - machine user and human user" in {
       val humanCred = cred.copy(passwordEnabled = Some(true))
-      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
+      val humanUser = HumanUser(cred.user, cred.mfaActive, AccessKey(AccessKeyEnabled, Some(now.minusDays(4))), AccessKey(AccessKeyEnabled, Some(now.minusDays(6))), Amber, Some(1), None)
       val iAMCredentialsReport = IAMCredentialsReport(now, List(humanCred, cred))
-      val machineUser = MachineUser(cred.user, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+      val machineUser = MachineUser(cred.user, AccessKey(AccessKeyEnabled, Some(now.minusDays(4))), AccessKey(AccessKeyEnabled, Some(now.minusDays(6))), Green, Some(1), None)
       val displayReport = CredentialReportDisplay(now, humanUsers = Seq(humanUser) , machineUsers = Seq(machineUser) )
       toCredentialReportDisplay(iAMCredentialsReport) shouldBe displayReport
     }
@@ -140,11 +140,11 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   "sortAccountsByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRed = HumanUser("humanRed", hasMFA = false, NoKey, NoKey, Red, Some(1), None)
-    val humanAmber = HumanUser("humanAmber", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-    val humanGreen = HumanUser("humanGreen", hasMFA = true, NoKey, NoKey, Green, Some(1), None)
-    val machineAmber = MachineUser("machineAmber", AccessKeyDisabled, NoKey, Amber, Some(1), None)
-    val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+    val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None)
+    val humanAmber = HumanUser("humanAmber", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None)
+    val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None)
+    val machineAmber = MachineUser("machineAmber", AccessKey(AccessKeyDisabled, None), AccessKey(NoKey, None), Amber, Some(1), None)
+    val machineGreen = MachineUser("machineGreen", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None)
 
     val reportNoUsers = CredentialReportDisplay(now, humanUsers = Seq.empty, machineUsers = Seq.empty)
     val reportAllGreen = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanGreen), machineUsers = Seq(machineGreen, machineGreen))
@@ -255,11 +255,11 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
     }
 
     "returns individual counts for each report status" in {
-      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKeyEnabled, AccessKeyEnabled, Red, Some(1), None)
-      val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
-      val machineAmber = MachineUser("machineAmber", AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-      val machineBlue = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Blue, Some(1), None)
-      val machineGreen = MachineUser("machineGreen", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Red, Some(1), None)
+      val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None)
+      val machineAmber = MachineUser("machineAmber", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None)
+      val machineBlue = MachineUser("machineGreen", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Blue, Some(1), None)
+      val machineGreen = MachineUser("machineGreen", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None)
       val report = CredentialReportDisplay(
         now, humanUsers = Seq(humanRed, humanGreen), machineUsers = Seq(machineAmber, machineBlue, machineGreen, machineAmber, machineBlue, machineBlue)
       )
@@ -272,17 +272,17 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   "sortUsersByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRedA = HumanUser("humanRedA", hasMFA = false, NoKey, NoKey, Red, Some(1), None)
-    val humanRedB = HumanUser("humanRedB", hasMFA = false, NoKey, NoKey, Red, Some(1), None)
-    val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-    val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKeyEnabled, AccessKeyEnabled, Amber, Some(1), None)
-    val humanGreenA = HumanUser("humanGreenA", hasMFA = true, NoKey, NoKey, Green, Some(1), None)
-    val humanGreenB = HumanUser("humanGreenB", hasMFA = true, NoKey, NoKey, Green, Some(1), None)
+    val humanRedA = HumanUser("humanRedA", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None)
+    val humanRedB = HumanUser("humanRedB", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None)
+    val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None)
+    val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None)
+    val humanGreenA = HumanUser("humanGreenA", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None)
+    val humanGreenB = HumanUser("humanGreenB", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None)
 
-    val machineAmberA = MachineUser("machineAmberA", AccessKeyDisabled, NoKey, Amber, Some(1), None)
-    val machineAmberB = MachineUser("machineAmberB", AccessKeyDisabled, NoKey, Amber, Some(1), None)
-    val machineGreenA = MachineUser("machineGreenA", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
-    val machineGreenB = MachineUser("machineGreenB", AccessKeyEnabled, AccessKeyEnabled, Green, Some(1), None)
+    val machineAmberA = MachineUser("machineAmberA", AccessKey(AccessKeyDisabled, None), AccessKey(NoKey, None), Amber, Some(1), None)
+    val machineAmberB = MachineUser("machineAmberB", AccessKey(AccessKeyDisabled, None), AccessKey(NoKey, None), Amber, Some(1), None)
+    val machineGreenA = MachineUser("machineGreenA", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None)
+    val machineGreenB = MachineUser("machineGreenB", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None)
 
     "will sort according to username if the ReportStatuses are equal" in {
       val report = CredentialReportDisplay(now,
