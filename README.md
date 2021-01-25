@@ -52,7 +52,7 @@ Another file you need will need (here again ask for a team member) is `~/.gu/sec
 
 ### Adding additional AWS accounts for local development
 
-As well as the `security-test` and `security` accounts, you can add additional AWS accounts to your local security-hq. This may be helpful for debugging purposes for example. You will need janus credentials for the account you want to add.
+When running security HQ locally, you can modify the list of AWS accounts to include additional account. For example, you may want to add a specific account for debugging purposes. You will need valid AWS credentials for any accounts you wish to include.
 
 It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`, which you should have from a colleague. Add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
 
@@ -66,7 +66,7 @@ AWS_ACCOUNTS = [
 ]
 ```
 
-The value of `id` should be the same as the AWS Profile name, which you can see when you copy your credentials from janus. You can add a `roleArn` if you want to generate an iAM report, otherwise you don't need it.
+The value of `id` should be the same as the AWS Profile name, which you can see when you copy your credentials from Janus. You can add a `roleArn` if you want to generate an IAM report, otherwise you don't need it.
 
 ### AWS Security Policies
 See `watched-account` template under `cloudformation` folder for the security policies needed to run security-hq.
@@ -75,7 +75,7 @@ See `watched-account` template under `cloudformation` folder for the security po
 
 When running security-hq locally you will always need nginx running in the background. You only need to configure dev-nginx once (as described in step 2), but if you restart your computer, you will need to run `sudo nginx` to restart the nginx process.
 
-To check nginx is running, you can run `$ ps -e | grep nginx` and you should receive a response that includes `nginx: master process nginx` and `nginx: worker process`.
+To check nginx is running, you can run `ps -e | grep nginx` and you should receive a response that includes `nginx: master process nginx` and `nginx: worker process`.
 
 1. Install dev-nginx:
 
