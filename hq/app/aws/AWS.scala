@@ -7,6 +7,7 @@ import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.{AmazonCloudFormationAsync, AmazonCloudFormationAsyncClientBuilder}
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
+import com.amazonaws.services.elasticfilesystem.{AmazonElasticFileSystemAsync, AmazonElasticFileSystemAsyncClient, AmazonElasticFileSystemAsyncClientBuilder}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
 import com.amazonaws.services.inspector.{AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
@@ -68,5 +69,8 @@ object AWS {
 
   def iamClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonIdentityManagementAsync] =
     clients(AmazonIdentityManagementAsyncClientBuilder.standard(), configuration, regions:_*)
+
+  def efsClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonElasticFileSystemAsync] =
+    clients(AmazonElasticFileSystemAsyncClientBuilder.standard(), configuration, regions:_*)
 
 }

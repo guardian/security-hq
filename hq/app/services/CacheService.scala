@@ -9,6 +9,7 @@ import aws.AwsClients
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.ec2.AmazonEC2Async
+import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.inspector.AmazonInspectorAsync
 import com.amazonaws.services.s3.AmazonS3
@@ -37,6 +38,7 @@ class CacheService(
     taClients: AwsClients[AWSSupportAsync],
     s3Clients: AwsClients[AmazonS3],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
+    efsClients: AwsClients[AmazonElasticFileSystemAsync],
     regions: List[Regions]
   )(implicit ec: ExecutionContext) extends Logging {
   private val accounts = Config.getAwsAccounts(config)
@@ -129,7 +131,7 @@ class CacheService(
     logger.info("Started refresh of the Security Groups data")
     for {
       _ <- EC2.refreshSGSReports(accounts, taClients)
-      allFlaggedSgs <- EC2.allFlaggedSgs(accounts, ec2Clients, taClients)
+      allFlaggedSgs <- EC2.allFlaggedSgs(accounts, ec2Clients, efsClients, taClients)
     } yield {
       logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)

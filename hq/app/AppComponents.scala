@@ -95,6 +95,7 @@ class AppComponents(context: Context)
   private val taClients = AWS.taClients(configuration)
   private val s3Clients = AWS.s3Clients(configuration)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
+  private val efsClients = AWS.efsClients(configuration, availableRegions)
 
   private val cacheService = new CacheService(
     configuration,
@@ -108,6 +109,7 @@ class AppComponents(context: Context)
     taClients,
     s3Clients,
     iamClients,
+    efsClients,
     availableRegions)
 
   override def router: Router = new Routes(

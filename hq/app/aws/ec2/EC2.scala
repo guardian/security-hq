@@ -1,6 +1,7 @@
 package aws.ec2
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
+import aws.ec2.EFS.removeAllEfsUnknownUsages
 import aws.support.TrustedAdvisorSGOpenPorts
 import aws.{AwsClient, AwsClients}
 import cats.instances.map._
@@ -9,10 +10,11 @@ import cats.syntax.semigroup._
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2Async
 import com.amazonaws.services.ec2.model._
+import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model._
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,12 +37,27 @@ object EC2 {
   def getSgsUsage(
       sgReport: TrustedAdvisorDetailsResult[SGOpenPortsDetail],
       awsAccount: AwsAccount,
-      ec2Clients: AwsClients[AmazonEC2Async]
+      ec2Clients: AwsClients[AmazonEC2Async],
+      efsClients: AwsClients[AmazonElasticFileSystemAsync]
     )(implicit ec: ExecutionContext): Attempt[Map[String, Set[SGInUse]]] = {
     val allSgIds = TrustedAdvisorSGOpenPorts.sgIds(sgReport)
     val activeRegions = sgReport.flaggedResources.map(sgInfo => Regions.fromName(sgInfo.region)).distinct
 
-    for {
+    val efsSgs: Attempt[Map[String, Set[SGInUse]]] = for {
+      efsSecGrps <- Attempt.traverse(activeRegions){ region =>
+        val clients = efsClients.get(awsAccount, region)
+        clients.flatMap { client =>
+          val efsInstances = EFS.getFileSystems(client)
+          val mountTargets = efsInstances.flatMap(EFS.getMountTargets(_, client))
+          val mountTargetSecGrps = mountTargets.flatMap(EFS.getMountTargetSecGrps(_, client))
+          val allEfsSecGrps = mountTargetSecGrps.map(EFS.secGrpToKey)
+          val flaggedEfsSecGrps = allEfsSecGrps.map(EFS.getFlaggedSecGrps(allSgIds, _))
+          flaggedEfsSecGrps
+        }
+      }
+    } yield efsSecGrps.flatten.groupBy(_._1).mapValues(_.map(_._2).toSet)
+
+    val ec2Sgs: Attempt[Map[String, Set[SGInUse]]] = for {
 
       dnirs <- Attempt.traverse(activeRegions){ region =>
         for {
@@ -54,13 +71,20 @@ object EC2 {
         .map(parseDescribeNetworkInterfacesResults(_, allSgIds))
         .fold(Map.empty)(_ |+| _)
     }
+
+    val ec2AndEfsSecGrps = for {
+      efsSg <- efsSgs
+      ec2Sg <- ec2Sgs
+    } yield List(ec2Sg, efsSg).fold(Map.empty)(_ |+| _)
+
+    removeAllEfsUnknownUsages(ec2AndEfsSecGrps)
   }
 
-  def flaggedSgsForAccount(account: AwsAccount, ec2Clients: AwsClients[AmazonEC2Async], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
+  def flaggedSgsForAccount(account: AwsAccount, ec2Clients: AwsClients[AmazonEC2Async], efsClients: AwsClients[AmazonElasticFileSystemAsync], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
     for {
       supportClient <- taClients.get(account)
       sgResult <- TrustedAdvisorSGOpenPorts.getSGOpenPorts(supportClient)
-      sgUsage <- getSgsUsage(sgResult, account, ec2Clients)
+      sgUsage <- getSgsUsage(sgResult, account, ec2Clients, efsClients)
       flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
       flaggedSgsIds = flaggedSgs.map(_.id)
       regions = flaggedSgs.map(sg => Regions.fromName(sg.region)).distinct
@@ -82,10 +106,11 @@ object EC2 {
     }
   }
 
-  def allFlaggedSgs(accounts: List[AwsAccount], ec2Clients: AwsClients[AmazonEC2Async], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
+  def allFlaggedSgs(accounts: List[AwsAccount], ec2Clients: AwsClients[AmazonEC2Async], efsClients: AwsClients[AmazonElasticFileSystemAsync], taClients: AwsClients[AWSSupportAsync])
+  (implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        flaggedSgsForAccount(account, ec2Clients, taClients).asFuture.map(account -> _)
+        flaggedSgsForAccount(account, ec2Clients, efsClients, taClients).asFuture.map(account -> _)
       }
     }
   }
