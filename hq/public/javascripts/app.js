@@ -101,4 +101,5 @@ $(document).ready(function() {
         'slow'
       );
   });
+  $('.tooltipped').tooltip({enterDelay: 0, inDuration: 100});
 });
