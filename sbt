@@ -36,7 +36,7 @@ if [ $TEAMCITY_BUILD_PROPERTIES_FILE ]; then
 fi
 
 java $DEBUG_PARAMS \
-    -Xms1024M -Xmx2048M \
+    -Xms1024M -Xmx4096M \
     -Xss1M \
     -XX:+CMSClassUnloadingEnabled \
     $CONF_PARAMS \
