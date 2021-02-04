@@ -18,10 +18,6 @@ GET        /security-groups/:accountId                controllers.SecurityGroups
 
 GET        /snyk                                      controllers.SnykController.snyk
 
-GET        /inspector                                 controllers.InspectorController.inspector
-GET        /inspector/:accountId                      controllers.InspectorController.inspectorAccount(accountId)
-GET        /inspector/refresh/all                     controllers.InspectorController.refresh
-
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback

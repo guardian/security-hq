@@ -9,7 +9,6 @@ import com.amazonaws.services.cloudformation.{AmazonCloudFormationAsync, AmazonC
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import com.amazonaws.services.elasticfilesystem.{AmazonElasticFileSystemAsync, AmazonElasticFileSystemAsyncClient, AmazonElasticFileSystemAsyncClientBuilder}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
-import com.amazonaws.services.inspector.{AmazonInspectorAsync, AmazonInspectorAsyncClientBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import config.Config
@@ -49,10 +48,6 @@ object AWS {
         .build()
     } yield AwsClient(client, account, region)
   }
-
-  // Only needs Regions.EU_WEST_1
-  def inspectorClients(configuration: Configuration, region: Regions = Regions.EU_WEST_1): AwsClients[AmazonInspectorAsync] =
-    clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, region)
 
   def ec2Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonEC2Async] =
     clients(AmazonEC2AsyncClientBuilder.standard(), configuration, regions:_*)

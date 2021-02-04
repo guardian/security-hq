@@ -192,20 +192,3 @@ case class SnykProjectIssues(project: Option[SnykProject], ok: Boolean, vulnerab
 }
 
 case class SnykError(error: String)
-
-case class InspectorAssessmentRun(
-  arn: String,
-  name: String,
-  appId: (String, String, String),
-  assessmentTemplateArn: String,
-  state: String,
-  durationInSeconds: Int,
-  rulesPackageArns: List[String],
-  userAttributesForFindings: List[(String, String)],
-  createdAt: DateTime,
-  startedAt: DateTime,
-  completedAt: DateTime,
-  stateChangedAt: DateTime,
-  dataCollected: Boolean,
-  findingCounts: Map[String, Int]
-)
