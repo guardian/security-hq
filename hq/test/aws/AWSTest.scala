@@ -1,7 +1,6 @@
 package aws
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.inspector.AmazonInspectorAsyncClientBuilder
 import com.typesafe.config.ConfigFactory
 import org.scalatest.prop.{Checkers, PropertyChecks}
 import org.scalatest.{FreeSpec, Matchers}
@@ -41,9 +40,6 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     // Only in one region.
     val singleRegionSize = 2
 
-    "inspector" in {
-      AWS.inspectorClients(configuration) should have size(singleRegionSize)
-    }
     "ec2" in {
       AWS.ec2Clients(configuration, regions) should have size(allRegionsSize)
     }
@@ -81,10 +77,6 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
     )
     val configuration = Configuration(config)
 
-    "correct account and region" in {
-      val clients = AWS.clients(AmazonInspectorAsyncClientBuilder.standard(), configuration, Regions.EU_WEST_1).map(c => c.account.id -> c.region)
-      clients should contain (("mock", Regions.EU_WEST_1))
-    }
   }
 
 }

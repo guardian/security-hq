@@ -89,7 +89,6 @@ class AppComponents(context: Context)
   }
 
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
-  private val inspectorClients = AWS.inspectorClients(configuration)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
@@ -103,7 +102,6 @@ class AppComponents(context: Context)
     environment,
     configraun,
     wsClient,
-    inspectorClients,
     ec2Clients,
     cfnClients,
     taClients,
@@ -119,7 +117,6 @@ class AppComponents(context: Context)
     new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),
-    new InspectorController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
     assets
   )
