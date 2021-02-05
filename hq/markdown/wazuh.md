@@ -5,8 +5,6 @@
 Wazuh is a security monitoring service managed by Infosec. It requires agents be installed in our EC2 instances, which then report security events
 back to Infosec's central wazuh server.
 
-Add architecture picture??
-
 
 ## Integrating Wazuh with your ec2 based applications
 
@@ -100,9 +98,6 @@ We recommend adding a standard DescribeEC2Policy to the InstanceRole, which adds
 ### Adding the wazuh-agent role in amigo
 
 This is the easy part. You edit your recipe, tick the box next to the wazuh-agent role, save, and bake!
-
-Screenshot??
-
 
 ## Testing
 
