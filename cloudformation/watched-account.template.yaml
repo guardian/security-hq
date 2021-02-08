@@ -51,6 +51,7 @@ Resources:
             - trustedadvisor:Refresh*
             - support:*
             - ec2:DescribeNetworkInterfaces
+            - ec2:DescribeNetworkInterfaceAttribute
             - ec2:DescribeRegions
             - ec2:DescribeSecurityGroups
             - ec2:DescribeVpcs
