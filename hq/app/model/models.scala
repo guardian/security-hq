@@ -121,6 +121,7 @@ case class BucketDetail(
 sealed trait SGInUse
 case class Ec2Instance(instanceId: String) extends SGInUse
 case class ELB(description: String) extends SGInUse
+case class EfsVolume(description: String) extends SGInUse
 case class UnknownUsage(
   description: String,
   networkInterfaceId: String

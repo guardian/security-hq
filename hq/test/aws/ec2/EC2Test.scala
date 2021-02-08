@@ -1,6 +1,5 @@
 package aws.ec2
 
-import akka.actor.FSM.->
 import aws.AwsClient
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder

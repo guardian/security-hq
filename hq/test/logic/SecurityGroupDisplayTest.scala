@@ -15,10 +15,11 @@ class SecurityGroupDisplayTest extends FreeSpec with Matchers {
     }
 
     "returns individual counts for the different resource types" in {
-      val usages = List[SGInUse](Ec2Instance("instance"), ELB("elb-1"), ELB("elb-2"), UnknownUsage("unknown", ""))
+      val usages = List[SGInUse](Ec2Instance("instance"), ELB("elb-1"), ELB("elb-2"), UnknownUsage("unknown", ""), EfsVolume("fs-12345"))
       resourceIcons(usages).instances shouldEqual 1
       resourceIcons(usages).elbs shouldEqual 2
       resourceIcons(usages).unknown shouldEqual 1
+      resourceIcons(usages).efss shouldEqual 1
     }
   }
 
