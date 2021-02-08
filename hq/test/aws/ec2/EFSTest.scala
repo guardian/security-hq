@@ -29,7 +29,7 @@ class EFSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
         EfsVolume("fs-1234"),
         UnknownUsage("test","test")))
       val result: Map[String, Set[SGInUse]] = Map("sg-123456789" -> Set(EfsVolume("fs-1234"), UnknownUsage("test","test")))
-      EFS.filterUnknownEfsSecGrps(secGrpToResources) shouldEqual result
+      EFS.filterOutEfsUnknownUsages(secGrpToResources) shouldEqual result
     }
   }
 }

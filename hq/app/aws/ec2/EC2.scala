@@ -1,7 +1,7 @@
 package aws.ec2
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import aws.ec2.EFS.removeAllEfsUnknownUsages
+import aws.ec2.EFS.filterOutEfsUnknownUsages
 import aws.support.TrustedAdvisorSGOpenPorts
 import aws.{AwsClient, AwsClients}
 import cats.instances.map._
@@ -72,12 +72,10 @@ object EC2 {
         .fold(Map.empty)(_ |+| _)
     }
 
-    val ec2AndEfsSecGrps = for {
+    for {
       efsSg <- efsSgs
       ec2Sg <- ec2Sgs
-    } yield List(ec2Sg, efsSg).fold(Map.empty)(_ |+| _)
-
-    removeAllEfsUnknownUsages(ec2AndEfsSecGrps)
+    } yield filterOutEfsUnknownUsages(List(ec2Sg, efsSg).fold(Map.empty)(_ |+| _))
   }
 
   def flaggedSgsForAccount(account: AwsAccount, ec2Clients: AwsClients[AmazonEC2Async], efsClients: AwsClients[AmazonElasticFileSystemAsync], taClients: AwsClients[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[List[(SGOpenPortsDetail, Set[SGInUse])]] = {
