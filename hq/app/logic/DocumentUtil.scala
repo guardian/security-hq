@@ -2,8 +2,10 @@ package logic
 
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
-import com.vladsch.flexmark.util.options.MutableDataSet
 import java.io.InputStream
+
+import com.vladsch.flexmark.util.data.MutableDataSet
+
 import scala.io.Source
 import play.twirl.api.Html
 

@@ -1,3 +1,4 @@
+@import config.Config
 @()(implicit assets: AssetsFinder)
 
 
@@ -15,28 +16,21 @@
 } { @* Main content *@
     <div class="container">
         <div class="row docs-reports">
-            <div class="card">
-                <div class="card-content">
-                    <a class="docs__link" href="/documentation/ssh-access">
-                        <i class="right material-icons">code</i>
-                        <span class="card-title">SSH</span>
-                        <p>
-                            Use SSM-Scala for SSH access.
-                        </p>
-                    </a>
+            @for(docLink <- Config.documentationLinks) {
+                <div class="card">
+                    <div class="card-content">
+                        <a class="docs__link" href="/documentation/@{
+                            docLink.slug
+                        }">
+                            <i class="right material-icons">@docLink.icon</i>
+                            <span class="card-title">@docLink.title</span>
+                            <p>
+                            @docLink.description
+                            </p>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="card">
-                <div class="card-content">
-                    <a class="docs__link" href="/documentation/snyk">
-                        <i class="right material-icons">security</i>
-                        <span class="card-title">Software dependency checks</span>
-                        <p>
-                            Integrate Snyk for software vulnerability reports.
-                        </p>
-                    </a>
-                </div>
-            </div>
+            }
         </div>
     </div>
 }
