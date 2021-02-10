@@ -360,20 +360,31 @@ table.iam-report__table th {
   color: rgba(0, 0, 0, 0.87);
 }
 
+.doc-content {
+  font-size: 1.2rem;
+}
+
+.doc-content ul, .doc-content ul li {
+  list-style-type: disc !important;
+  margin-left: 10px;
+}
+
+
+
 .doc-content h1 {
-  font-size: 3.5rem;
-}
-
-.doc-content h2 {
-  font-size: 3rem;
-}
-
-.doc-content h3 {
   font-size: 2.5rem;
 }
 
-.doc-content h4 {
+.doc-content h2 {
   font-size: 2rem;
+}
+
+.doc-content h3 {
+  font-size: 1.5rem;
+}
+
+.doc-content h4 {
+  font-size: 1rem;
 }
 
 /* Snyk */

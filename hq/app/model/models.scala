@@ -192,3 +192,5 @@ case class SnykProjectIssues(project: Option[SnykProject], ok: Boolean, vulnerab
 }
 
 case class SnykError(error: String)
+
+case class Documentation(title: String, description: String, icon: String, slug: String)

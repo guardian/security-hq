@@ -5,7 +5,7 @@ import java.io.FileInputStream
 import com.amazonaws.regions.Regions
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
-import model.{AwsAccount, DEV, PROD, Stage}
+import model.{AwsAccount, DEV, Documentation, PROD, Stage}
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 
@@ -16,6 +16,11 @@ import scala.util.Try
 object Config {
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
+  val documentationLinks = List (
+    Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
+    Documentation("Software dependency checks", "Integrate Snyk for software vulnerability reports.", "security", "snyk"),
+    Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh")
+  )
 
   def getStage(config: Configuration): Stage = {
     config.getAndValidate("stage", Set("DEV", "PROD")) match {
