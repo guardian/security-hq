@@ -28,8 +28,6 @@ So a roll out will typically include these steps:
 6. Redeploy services
 7. Test connectivity
 
-
-
 ### Outbound traffic on ports 1514 and 1515
 
 The Wazuh agent communicates with the central server on port 1514 and 1515.
@@ -61,6 +59,12 @@ Here's an [example](https://github.com/guardian/deploy-tools-platform/pull/313):
       - Ref: WazuhSecurityGroup      #<-- add it to the instance role
 
 ```
+
+#### VPC access control lists (ACLs)
+You may find that your VPC doesn't allow traffic on ports 1514/1515. This isn't something we've come across so far but if 
+you encounter problems setting up Wazuh this maybe something to check. Feeel free to contact Phil or Jorge in the 
+DevX team for assistance - we want to get the agent installed but don't want to waste your time debugging awkward connectivity
+problems!
 
 ### IAM policy for querying tags
 
@@ -108,14 +112,54 @@ First thing to test is if your service is still running properly. It's highly un
 worth checking.
 
 Second, we'll want to see if the agent has booted and connected to the central server. Unfortunately, access to the wazuh UI is restricted due to the sensitive
-nature of the data. Luckily, it's easy to check success on the instance itself. At a high level, we need to
+nature of the data, so you'll either need to ask someone on DevX to check in the UI for you, or follow the steps below
+to verify that everything's working.  
 
-1. ssh to the box
-2. confirm that the wazuh-agent service ia loaded and active
-3. check the logs
+Luckily, it's easy to check success on the instance itself. At a high level, we need to
 
-Here's an example of going through these steps and finding a correctly running service (with private information edited out). If your
-agent is having trouble booting or reaching the server, you can use the example below as a reference to see at which stage the failure happened.
+1. confirm that the wazuh-agent service is loaded and active
+2. check the logs to verify the agent succesfully authenticated with the manager server
+
+The quickest way to do this is usin [ssm-scala](https://github.com/guardian/ssm-scala) to run some commands on the instances
+you want to check. Here's the full command:
+
+`ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep Valid" -t app,stage,stack -p <janus_profile>`
+
+So, for example to check the wazuh status for *all instances tagged 'amiable'* I would run:
+
+`ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep Valid" -p deployTools  -t amiable`
+
+In a happy scenario this should give you output looking a bit like this, telling you that the agent is running  and has
+authenticated correctly.
+
+```
+========= i-040399xxxxxxx =========
+STDOUT:
+   Active: active (running) since Tue 2021-02-09 12:16:06 UTC; 6 days ago
+Feb 09 12:15:58 ip-10-248-48-90 authenticate-with-wazuh-manager.sh[1060]: 2021/02/09 12:15:58 agent-auth: INFO: Valid key created. Finished.
+
+STDERR:
+
+========= i-01fc71000xxxxxx =========
+STDOUT:
+   Active: active (running) since Mon 2021-02-15 11:20:29 UTC; 6h ago
+Feb 15 11:20:21 ip-10-248-48-147 authenticate-with-wazuh-manager.sh[1068]: 2021/02/15 11:20:21 agent-auth: INFO: Valid key created. Finished.
+
+STDERR:
+```
+
+And that's it, all done! On to the next app. 
+
+## Troubleshooting
+
+If you don't see lines looking like this, you might wish to get rid of the 'grep' commands in the `ssm` command so as to
+view the full wazuh agent logs, e.g.:
+
+`ssm cmd -c "service wazuh-agent status && journalctl -u wazuh-agent" -p deployTools  -t amiable`
+
+Below is an example of running the two commands separately whilst sshing into the box (the downside of using SSH is that 
+you'll need to log into each box individually).  If your agent is having trouble booting or reaching the server, you can
+ use the example below as a reference to see at which stage the failure happened.
 
 
 ```bash
@@ -184,7 +228,7 @@ A milestone to look out for is a successfull authentication with the central ser
 INFO: Valid key created. Finished.
 ```
 
-And a successfull boot of the agent
+And a successful boot of the agent
 
 ```
 systemd[1]: Started Wazuh agent.
