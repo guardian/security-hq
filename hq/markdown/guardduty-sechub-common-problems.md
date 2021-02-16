@@ -1,4 +1,4 @@
-This document aims to help out with tackling the long lists of vulnerabilities in Security Hub and Guard Duty. If you're
+This document aims to help out with tackling the long lists of vulnerabilities in Security Hub and GuardDuty. If you're
 stuck on something that isn't listed here please get in touch with DevX and we'll get this doc updated with recommendations.
 
 # AWS Security Hub Common Issues
@@ -40,4 +40,4 @@ rather than modifying them in the console where possible.
 
 # AWS GuardDuty Common Issues
 Right now, we don't have any of these to suggest remediation for. Please get in contact with DevX if you're unsure about
-something Guard Duty has flagged up
+something GuardDuty has flagged up
