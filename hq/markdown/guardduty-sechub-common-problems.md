@@ -14,7 +14,7 @@ However, there are quite a few scenarios where public access might be required.
 
 ## Buckets serving assets for the website e.g. images, static files.
 You should *never* use an S3 bucket to serve public assets to users directly - instead you should use a CDN such as Fastly
-or Cloudfront. If you are using cloudfront, it should be straightforwards to make your bucket private so that it can
+or CloudFront. If you are using CloudFront, it should be straightforward to make your bucket private so that it can
 only be accessed via CloudFront.
 
 If you are using Fastly, setting up [authentication to a private bucket](https://docs.fastly.com/en/guides/amazon-s3#using-an-amazon-s3-private-bucket)
@@ -37,7 +37,7 @@ This is a very common problem. Unfortunately AWS's [suggested fix](https://docs.
 involves a bucket policy which would need setting for every bucket. We're hoping in future this is something we will be 
 able to enforce organisation wide rather than having to be specified for every bucket. In the meantime you might choose
 to focus on public buckets or ones containing highly sensitive data. Note that you should cloudform bucket policies
-rather than modifyiing them in the console where possible.
+rather than modifying them in the console where possible.
 
 # AWS GuardDuty Common Issues
 Right now, we don't have any of these to suggest remediation for. Please get in contact with DevX if you're unsure about
