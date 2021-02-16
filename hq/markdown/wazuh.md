@@ -62,7 +62,7 @@ Here's an [example](https://github.com/guardian/deploy-tools-platform/pull/313):
 
 #### VPC access control lists (ACLs)
 You may find that your VPC doesn't allow traffic on ports 1514/1515. This isn't something we've come across so far but if 
-you encounter problems setting up Wazuh this maybe something to check. Feeel free to contact Phil or Jorge in the 
+you encounter problems setting up Wazuh this maybe something to check. Feel free to contact Phil or Jorge in the 
 DevX team for assistance - we want to get the agent installed but don't want to waste your time debugging awkward connectivity
 problems!
 
