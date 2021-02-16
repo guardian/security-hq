@@ -15,7 +15,7 @@ However, there are quite a few scenarios where public access might be required.
 ## Buckets serving assets for the website e.g. images, static files.
 You should *never* use an S3 bucket to serve public assets to users directly - instead you should use a CDN such as Fastly
 or Cloudfront. If you are using cloudfront, it should be straightforwards to make your bucket private so that it can
-only be accessed via cloudfront.
+only be accessed via CloudFront.
 
 If you are using Fastly, setting up [authentication to a private bucket](https://docs.fastly.com/en/guides/amazon-s3#using-an-amazon-s3-private-bucket)
 is possible, but quite complicated, involving permanent AWS IAM credentials ending up in VCL. If you don't make the bucket
