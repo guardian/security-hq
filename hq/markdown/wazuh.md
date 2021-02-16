@@ -105,22 +105,26 @@ This is the easy part. You edit your recipe, tick the box next to the wazuh-agen
 
 ## Testing
 
-The system is ready to test once the new bake is finished, and the application is redeployed in riff raff. This will pick up the freshly baked ami with
+The system is ready to test once the new bake is finished and the application has been redeployed in riff raff. This will pick up the freshly baked ami with
 the wazuh agent ready to go.
 
 First thing to test is if your service is still running properly. It's highly unlikely that the agent will disrupt your service, but it's of course
 worth checking.
 
-Second, we'll want to see if the agent has booted and connected to the central server. Unfortunately, access to the wazuh UI is restricted due to the sensitive
-nature of the data, so you'll either need to ask someone on DevX to check in the UI for you, or follow the steps below
-to verify that everything's working.  
+Second, we'll want to see if the agent has booted and connected to the central server. Unfortunately, access to the wazuh
+UI is restricted due to the sensitive nature of the data, so you'll need to either:
 
-Luckily, it's easy to check success on the instance itself. At a high level, we need to
+ - Ask someone on DevX to check in the UI for you
+ - Follow the steps below to check yourself
+ 
+### Manually verifying the wazuh agent is working correctly
 
-1. confirm that the wazuh-agent service is loaded and active
-2. check the logs to verify the agent succesfully authenticated with the manager server
+There are two things to check
 
-The quickest way to do this is usin [ssm-scala](https://github.com/guardian/ssm-scala) to run some commands on the instances
+1. confirm that the wazuh-agent service is active (`service wazuh-agent status`)
+2. check the logs to verify that the agent successfully authenticated with the manager server (`journalctl -u wazuh-agent`)
+
+The quickest way to do this is using [ssm-scala](https://github.com/guardian/ssm-scala) to run some commands on the instances
 you want to check. Here's the full command:
 
 `ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep Valid" -t app,stage,stack -p <janus_profile>`
@@ -128,6 +132,8 @@ you want to check. Here's the full command:
 So, for example to check the wazuh status for *all instances tagged 'amiable'* I would run:
 
 `ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep Valid" -p deployTools  -t amiable`
+
+If you just want to run the command on a specific instance you can use `-i` instead of `-t` and specify the instance id.
 
 In a happy scenario this should give you output looking a bit like this, telling you that the agent is running  and has
 authenticated correctly.
