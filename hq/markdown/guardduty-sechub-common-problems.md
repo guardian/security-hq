@@ -39,6 +39,6 @@ able to enforce organisation wide rather than having to be specified for every b
 to focus on public buckets or ones containing highly sensitive data. Note that you should cloudform bucket policies
 rather than modifyiing them in the console where possible.
 
-# AWS Guard Duty Common Issues
+# AWS GuardDuty Common Issues
 Right now, we don't have any of these to suggest remediation for. Please get in contact with DevX if you're unsure about
 something Guard Duty has flagged up
