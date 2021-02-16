@@ -38,6 +38,17 @@ able to enforce organisation wide rather than having to be specified for every b
 to focus on public buckets or ones containing highly sensitive data. Note that you should cloudform bucket policies
 rather than modifying them in the console where possible.
 
+## EC2 instances should use IMDSv2
+Ths is likely to affect pretty much every instance across our estate as the default option for cloudformation is wrong :(
+To fix this you should update the MetadataOptions of your launch configuration/launch template to set `HttpTokens` to `required`.
+There's an example PR for this here https://github.com/guardian/amigo/pull/544
+
+If you're lucky this won't impact your services, but there's a good chance you'll have to make changes before switching to
+IMDSv2. If you're using `curl` to fetch metadata from the `169.254.169.254` IP address then you'll need to update those calls
+prior to enforcing IMDSv2. You can see the difference between IMDSv1 and IMDSv2 calls [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html)
+
+A quick test to see how painful this change will be is to search for usages of `169.254.169.254` in your repo/infrastructure.
+
 # AWS GuardDuty Common Issues
 Right now, we don't have any of these to suggest remediation for. Please get in contact with DevX if you're unsure about
 something GuardDuty has flagged up
