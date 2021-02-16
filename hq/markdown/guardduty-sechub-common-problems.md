@@ -49,6 +49,9 @@ prior to enforcing IMDSv2. You can see the difference between IMDSv1 and IMDSv2 
 
 A quick test to see how painful this change will be is to search for usages of `169.254.169.254` in your repo/infrastructure.
 
+If you are using AWS CDK you (may) need to wait before you can fix this feature - there's an issue tracking this 
+[here](https://github.com/aws/aws-cdk/issues/5137)
+
 # AWS GuardDuty Common Issues
 Right now, we don't have any of these to suggest remediation for. Please get in contact with DevX if you're unsure about
 something GuardDuty has flagged up
