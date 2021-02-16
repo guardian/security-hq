@@ -1,10 +1,9 @@
 # Wazuh
-
+![Wazuh logo](https://www.axonius.com/hubfs/Adapter%20Logos/wazuh_adapter.png)
 ## Introduction
 
-Wazuh is a security monitoring service managed by Infosec. It requires agents be installed in our EC2 instances, which then report security events
-back to Infosec's central wazuh server.
-
+Wazuh is a security monitoring service managed by Infosec. It requires agents be installed in our EC2 instances, which 
+then report security event back to Infosec's central wazuh server.
 
 ## Integrating Wazuh with your ec2 based applications
 
