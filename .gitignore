@@ -144,3 +144,5 @@ node_modules/
 
 # Local notes directory
 notes
+
+.DS_Store
