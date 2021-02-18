@@ -19,7 +19,8 @@ object Config {
   val documentationLinks = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
     Documentation("Software dependency checks", "Integrate Snyk for software vulnerability reports.", "security", "snyk"),
-    Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh")
+    Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),
+    Documentation("Vulnerabilities", "Developer guiide to addressing vulnerabilities.", "format_list_numbered", "vulnerability-management")
   )
 
   def getStage(config: Configuration): Stage = {
