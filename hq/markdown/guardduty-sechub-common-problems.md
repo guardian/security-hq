@@ -28,8 +28,8 @@ the EC2 instances or lambda functions that require access.
 ## The VPC default security group should not allow inbound and outbound traffic
 This is an awkward one. In a whole 5 minutes of googling Phil couldn't work out how to set the inbound/outbound rules for a 
 VPC's default security group via cloudformation. So our current suggestion is that you follow [the instructions](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html#ec2-2-remediation)
-to shut down the default security group via the console. BUT FIRST! Make sure it's not being used by anything! Using the 
-default security group is considered bad practice.
+to shut down the default security group via the console. BUT FIRST! [Make sure it's not being used by anything](https://aws.amazon.com/premiumsupport/knowledge-center/ec2-find-security-group-resources/)
+Using the default security group is considered bad practice.
 
 ## S3 buckets should require requests to use Secure Socket Layer
 This is a very common problem. Unfortunately AWS's [suggested fix](https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html#s3-5-remediation)
