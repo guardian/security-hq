@@ -209,3 +209,6 @@ case class GcpFinding(
 )
 
 case class GcpSccConfig(orgId: String, sourceId: String)
+
+case class CronSchedule(cron: String, description: String)
+
