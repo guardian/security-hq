@@ -338,6 +338,30 @@ table.iam-report__table th {
   box-sizing: initial;
 }
 
+table.gcp-report__table td,
+table.gcp-report__table th {
+  min-height: 21px;
+  box-sizing: initial;
+  word-wrap: break-word;
+}
+
+table.gcp-report__table {
+  table-layout: fixed;
+  word-break: break-all;
+}
+
+.gcp-table-row-severity {
+  width: 55px;
+}
+
+.gcp-table-row-category {
+  width: 130px;
+}
+
+.gcp-table-row-date {
+  width: 65px;
+}
+
 .iam-modal__trigger {
   height: 24px;
 }
@@ -398,3 +422,4 @@ table.iam-report__table th {
 .hq-footer__links {
   height: 40px;
 }
+

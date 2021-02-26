@@ -7,7 +7,7 @@ import sbt.Keys.libraryDependencies
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.2.0"
 scalaVersion in ThisBuild := "2.12.10"
-scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
+scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8") //"-Xfatal-warnings"
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
@@ -42,6 +42,8 @@ lazy val hq = (project in file("hq"))
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.gu" %% "box" % "0.1.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+      "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
+      "com.google.cloud" % "google-cloud-storage" % "1.113.9", // we need this for point to a service account file: https://cloud.google.com/docs/authentication/production#passing_code
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
