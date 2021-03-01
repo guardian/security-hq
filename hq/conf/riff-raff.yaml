@@ -19,6 +19,6 @@ deployments:
       templatePath: cfn.yaml
       amiEncrypted: true
       amiTags:
-        Recipe: security-java-lts
+        Recipe: security-java-lts-arm64
         BuiltBy: amigo
         AmigoStage: PROD

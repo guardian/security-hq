@@ -48,6 +48,9 @@ Parameters:
   LoggingRoleToAssumeArn:
     Type: String
     Description: Name of IAM role in logging account e.g. arn:aws:iam::222222222222:role/LoggingRole
+  InstanceType:
+    Type: String
+    Description: AWS instance type (e.g. t4g.large)
 
 Mappings:
   Constants:
@@ -285,7 +288,7 @@ Resources:
         Ref: AMI
       SecurityGroups:
       - Ref: InstanceSecurityGroup
-      InstanceType: t3.large
+      InstanceType: !Ref InstanceType
       IamInstanceProfile:
         Ref: SecurityHQInstanceProfile
       AssociatePublicIpAddress: true
