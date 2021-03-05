@@ -41,6 +41,7 @@ Here's an [example](https://github.com/guardian/deploy-tools-platform/pull/313):
   WazuhSecurityGroup:                 #<-- declare a new security group
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupDescription: Allow outbound traffic from wazuh agent to manager
       VpcId:
         Ref: VpcId
       SecurityGroupEgress:
