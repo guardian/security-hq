@@ -18,7 +18,7 @@ you won't be able to integrate wazuh one service at a time, but in batches.
 
 So a roll out will typically include these steps:
 
-1. Pick an amigo recipe (check `amiTags`/`Recipe` in riff-raff.yaml)
+1. Pick an amigo recipe (lookup recipes used by your account [in amiable](https://amiable.gutools.co.uk/instanceAMIs?accountName=deploy-tools&stack=&stage=&app=))
 2. Find which services are using it (lookup [recipe usages](https://amigo.gutools.co.uk/recipes/bionic-java8-deploy-infrastructure/usages) in amigo)
 3. Check if security groups and iam policy for each service meet requirements
 4. Update the cloudformation stacks of those that don't
@@ -41,6 +41,7 @@ Here's an [example](https://github.com/guardian/deploy-tools-platform/pull/313):
   WazuhSecurityGroup:                 #<-- declare a new security group
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupDescription: Allow outbound traffic from wazuh agent to manager
       VpcId:
         Ref: VpcId
       SecurityGroupEgress:
