@@ -3,9 +3,8 @@ package config
 import java.io.FileInputStream
 
 import com.amazonaws.regions.Regions
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.auth.oauth2.GoogleCredentials
+import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import model.{AwsAccount, DEV, Documentation, PROD, Stage}
 import play.api.Configuration
@@ -66,16 +65,16 @@ object Config {
   def googleGroupChecker(implicit config: Configuration): GoogleGroupChecker = {
     val twoFAUser = requiredString(config, "auth.google.2faUser")
     val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")
-    val credentials: GoogleCredential = {
+    val credentials: ServiceAccountCredentials = {
       val jsonCertStream =
         Try(new FileInputStream(serviceAccountCertPath))
           .getOrElse(throw new RuntimeException(s"Could not load service account JSON from $serviceAccountCertPath"))
-      GoogleCredential.fromStream(jsonCertStream)
+      ServiceAccountCredentials.fromStream(jsonCertStream)
     }
 
     val serviceAccount = GoogleServiceAccount(
-      credentials.getServiceAccountId,
-      credentials.getServiceAccountPrivateKey,
+      credentials.getClientEmail,
+      credentials.getPrivateKey,
       twoFAUser
     )
     new GoogleGroupChecker(serviceAccount)
