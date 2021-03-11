@@ -1,6 +1,8 @@
 package model
 
 import com.amazonaws.regions.Region
+import com.google.cloud.securitycenter.v1.Finding
+import com.google.protobuf.{Timestamp, Value}
 import org.joda.time.DateTime
 
 case class AwsAccount(
@@ -194,3 +196,16 @@ case class SnykProjectIssues(project: Option[SnykProject], ok: Boolean, vulnerab
 case class SnykError(error: String)
 
 case class Documentation(title: String, description: String, icon: String, slug: String)
+
+case class GcpReport(reportDate: DateTime, finding: Map[String, Seq[GcpFinding]] = Map.empty)
+
+case class GcpFinding(
+  project: String,
+  category: String,
+  severity: Option[String],
+  eventTime: DateTime,
+  explanation: Option[String],
+  recommendation: Option[String]
+)
+
+case class GcpSccConfig(orgId: String, sourceId: String)

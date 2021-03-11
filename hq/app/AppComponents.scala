@@ -3,6 +3,7 @@ import aws.{AWS, AwsClient}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
+import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
 import com.gu.configraun.models._
@@ -88,6 +89,7 @@ class AppComponents(context: Context)
     logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
+
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
@@ -95,6 +97,9 @@ class AppComponents(context: Context)
   private val s3Clients = AWS.s3Clients(configuration)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
+  private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
+  private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
+
 
   private val cacheService = new CacheService(
     configuration,
@@ -108,7 +113,9 @@ class AppComponents(context: Context)
     s3Clients,
     iamClients,
     efsClients,
-    availableRegions)
+    availableRegions,
+    securityCenterClient
+  )
 
   override def router: Router = new Routes(
     httpErrorHandler,
@@ -118,6 +125,7 @@ class AppComponents(context: Context)
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
-    assets
+    assets,
+    new GcpController(configuration, googleAuthConfig, cacheService)
   )
 }

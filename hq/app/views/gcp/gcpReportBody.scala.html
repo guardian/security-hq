@@ -1,0 +1,40 @@
+@import logic.DateUtils
+@import model._
+@import logic.CredentialsReportDisplay
+@import org.joda.time.DateTime
+@import logic.GcpDisplay
+@(findings: List[GcpFinding], date: DateTime)
+
+<div class="row">
+    <div class="card-panel">
+        <span>Report generated at @{DateUtils.printTime(date)} (refreshed every four hours)</span>
+    </div>
+</div>
+<div class="row">
+    <div class="col s12">
+        <table class="striped responsive-table gcp-report__table">
+            <thead>
+                <tr>
+                    <th class="gcp-table-row-severity">Severity</th>
+                    <th class="gcp-table-row-category">Category</th>
+                    <th class="gcp-table-row-date">Date</th>
+                    <th>Explanation</th>
+                    <th>Recommendation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(finding <- findings) {
+                    <tr>
+                        <td class="gcp-table-row-severity"><span>@finding.severity</span></td>
+                        <td class="gcp-table-row-category"><span>@finding.category</span></td>
+                        <td class="gcp-table-row-date"><span>@finding.eventTime.toString(GcpDisplay.dateTimePattern)</span></td>
+                        <td><span>@finding.explanation</span></td>
+                        <td><span>@finding.recommendation</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@*if(finding.severity.contains("")) {Unknown} else {@finding.severity} *@

@@ -3,9 +3,10 @@ package config
 import java.io.FileInputStream
 
 import com.amazonaws.regions.Regions
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
-import model.{AwsAccount, DEV, Documentation, PROD, Stage}
+import model._
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 
@@ -45,20 +46,33 @@ object Config {
     )
   }
 
+  def gcpSccAuthentication(implicit config: Configuration): GcpSccConfig = {
+    val gcpOrgId = requiredString(config, "gcp.orgId")
+    val gcpSccSourceId = requiredString(config, "gcp.sccSourceId")
+    GcpSccConfig(gcpOrgId, gcpSccSourceId)
+  }
+
+  def gcpCredentialsProvider(implicit config: Configuration): FixedCredentialsProvider = {
+    val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")
+    val tmpCredsFile = new FileInputStream(serviceAccountCertPath)
+    val scopesTmp= "https://www.googleapis.com/auth/cloud-platform"
+    val googleCredential = GoogleCredentials.fromStream(tmpCredsFile).createScoped(scopesTmp)
+    FixedCredentialsProvider.create(googleCredential)
+  }
+
   def googleGroupChecker(implicit config: Configuration): GoogleGroupChecker = {
     val twoFAUser = requiredString(config, "auth.google.2faUser")
     val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")
-
-    val credentials: GoogleCredential = {
+    val credentials: ServiceAccountCredentials = {
       val jsonCertStream =
         Try(new FileInputStream(serviceAccountCertPath))
           .getOrElse(throw new RuntimeException(s"Could not load service account JSON from $serviceAccountCertPath"))
-      GoogleCredential.fromStream(jsonCertStream)
+      ServiceAccountCredentials.fromStream(jsonCertStream)
     }
 
     val serviceAccount = GoogleServiceAccount(
-      credentials.getServiceAccountId,
-      credentials.getServiceAccountPrivateKey,
+      credentials.getClientEmail,
+      credentials.getPrivateKey,
       twoFAUser
     )
     new GoogleGroupChecker(serviceAccount)

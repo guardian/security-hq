@@ -1,10 +1,10 @@
 package services
 
 import api.Snyk
+import aws.AwsClients
 import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
-import aws.AwsClients
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.ec2.AmazonEC2Async
@@ -12,12 +12,14 @@ import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.support.AWSSupportAsync
+import com.google.cloud.securitycenter.v1.{OrganizationName, SecurityCenterClient}
 import com.gu.Box
 import config.Config
+import logic.GcpDisplay
 import model._
+import play.api._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.WSClient
-import play.api._
 import rx.lang.scala.Observable
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -36,7 +38,8 @@ class CacheService(
     s3Clients: AwsClients[AmazonS3],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
     efsClients: AwsClients[AmazonElasticFileSystemAsync],
-    regions: List[Regions]
+    regions: List[Regions],
+    gcpClient: SecurityCenterClient
   )(implicit ec: ExecutionContext) extends Logging {
   private val accounts = Config.getAwsAccounts(config)
   private val startingCache = accounts.map(acc => (acc, Left(Failure.cacheServiceErrorPerAccount(acc.id, "cache").attempt))).toMap
@@ -45,6 +48,7 @@ class CacheService(
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
+  private val gcpBox: Box[Attempt[List[GcpFinding]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("").attempt)))
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
 
@@ -83,6 +87,8 @@ class CacheService(
   }
 
   def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
+
+  def getGcpFindings: Attempt[List[GcpFinding]] = gcpBox.get()
 
   def refreshCredentialsBox(): Unit = {
     logger.info("Started refresh of the Credentials data")
@@ -135,6 +141,17 @@ class CacheService(
     }
   }
 
+  def refreshGcpBox(): Unit = {
+    logger.info("Started refresh of GCP data")
+    val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
+    for {
+      gcpFindings <- GcpDisplay.getGcpFindings(organisation, gcpClient, config)
+    } yield {
+      logger.info("Sending the refreshed data to the GCP Box")
+      gcpBox.send(Attempt.Right(gcpFindings))
+    }
+  }
+
   if (environment.mode != Mode.Test) {
     val initialDelay =
       if (environment.mode == Mode.Prod) 10.seconds
@@ -160,12 +177,18 @@ class CacheService(
       refreshSnykBox()
     }
 
+    val gcpSubscription = Observable.interval(initialDelay + 6000.millis, 90.minutes).subscribe { _ =>
+      logger.info("refreshing the GCP Box now")
+      refreshGcpBox()
+    }
+
     lifecycle.addStopHook { () =>
       publicBucketsSubscription.unsubscribe()
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
       snykSubscription.unsubscribe()
+      gcpSubscription.unsubscribe()
       Future.successful(())
     }
   }
