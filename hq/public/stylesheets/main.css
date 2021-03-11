@@ -338,19 +338,17 @@ table.iam-report__table th {
   box-sizing: initial;
 }
 
-table.gcp-report__table td,
-table.gcp-report__table th {
+gcp-report__table td,
+gcp-report__table th {
   min-height: 21px;
   box-sizing: initial;
   word-wrap: break-word;
 }
 
-/*
-table.gcp-report__table {
+gcp-report__table {
   table-layout: fixed;
   word-break: break-all;
 }
- */
 
 .gcp-table-row-severity {
   width: 55px;
