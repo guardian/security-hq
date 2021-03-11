@@ -43,7 +43,6 @@ lazy val hq = (project in file("hq"))
       "com.gu" %% "box" % "0.1.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
-      "com.google.cloud" % "google-cloud-storage" % "1.113.9", // we need this for point to a service account file: https://cloud.google.com/docs/authentication/production#passing_code
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,

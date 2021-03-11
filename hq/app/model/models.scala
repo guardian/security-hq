@@ -207,3 +207,5 @@ case class GcpFinding(
   explanation: Option[String],
   recommendation: Option[String]
 )
+
+case class GcpSccConfig(orgId: String, sourceId: String)

@@ -35,7 +35,7 @@ object GcpDisplay {
       val sourceName: SourceName = SourceName.of(org.getOrganization, source)
       val filter = """-sourceProperties.ResourcePath : "projects/sys-"""" //TODO remove org level findings
       val request: ListFindingsRequest.Builder = ListFindingsRequest.newBuilder.setParent(sourceName.toString).setFilter(filter)
-      client.listFindings(request.build) //Calling the API
+      client.listFindings(request.build)
     }
 
   val severities = List("High", "Medium", "Low")

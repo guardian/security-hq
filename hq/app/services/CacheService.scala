@@ -178,7 +178,7 @@ class CacheService(
     }
 
     val gcpSubscription = Observable.interval(initialDelay + 6000.millis, 90.minutes).subscribe { _ =>
-      println("refreshing the GCP Box now")
+      logger.info("refreshing the GCP Box now")
       refreshGcpBox()
     }
 

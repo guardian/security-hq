@@ -7,7 +7,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
-import model.{AwsAccount, DEV, Documentation, PROD, Stage}
+import model._
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 
@@ -47,12 +47,10 @@ object Config {
     )
   }
 
-  case class GcpSccAuth(orgId: String, sourceId: String)
-
-  def gcpSccAuthentication(implicit config: Configuration): GcpSccAuth = {
-    val gcpOrgId = requiredString(config, "gcpOrgId")
-    val gcpSccSourceId = requiredString(config, "gcpSccSourceId")
-    GcpSccAuth(gcpOrgId, gcpSccSourceId)
+  def gcpSccAuthentication(implicit config: Configuration): GcpSccConfig = {
+    val gcpOrgId = requiredString(config, "gcp.orgId")
+    val gcpSccSourceId = requiredString(config, "gcp.sccSourceId")
+    GcpSccConfig(gcpOrgId, gcpSccSourceId)
   }
 
   def gcpCredentialsProvider(implicit config: Configuration): FixedCredentialsProvider = {

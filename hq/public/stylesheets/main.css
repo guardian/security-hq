@@ -345,10 +345,12 @@ table.gcp-report__table th {
   word-wrap: break-word;
 }
 
+/*
 table.gcp-report__table {
   table-layout: fixed;
   word-break: break-all;
 }
+ */
 
 .gcp-table-row-severity {
   width: 55px;

@@ -5,7 +5,7 @@ DEBUG_PARAMS=""
 TC_PARAMS=""
 COLOUR_PARAMS=""
 
-CONF_PARAMS="-Dconfig.file=$HOME/.gu/security-hq.local.conf -Dgoogle.application.credentials=$HOME/.gu/security-hq-service-account-cert.json"
+CONF_PARAMS="-Dconfig.file=$HOME/.gu/security-hq.local.conf"
 for arg in "$@"
 do
     if [ "$arg" == "--debug" ]; then
