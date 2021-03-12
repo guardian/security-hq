@@ -46,15 +46,30 @@ Create the entry below in `~/.aws/config` file.
 region = eu-west-1   
 ```
 
-The next file is `~/.gu/security-hq.local.conf`, which should be given by one of your team members. Once you have it, make sure to update the value of key `GOOGLE_SERVICE_ACCOUNT_CERT_PATH`. 
+### Other Configuration
 
-Another file you need will need (here again ask for a team member) is `~/.gu/security-hq-service-account-cert.json`.
+There are two other files that you will need to run security HQ locally. These are:
+
+1.  `~/.gu/security-hq.local.conf` (Please update the value of key `GOOGLE_SERVICE_ACCOUNT_CERT_PATH`)
+1. `~/.gu/security-hq-service-account-cert.json`
+
+Both of these files can be found in the Security AWS account in S3 here `s3://security-dist/security/PROD/security-hq/`.
+
+To access the Security AWS account you will need to raise a PR in [Janus](https://github.com/guardian/janus/blob/main/guData/src/main/scala/com/gu/janus/data/Access.scala) 
+to get access to the Security account (`Security.dev` should be appropriate).
+
+Once you have credentials you can copy the files from S3 by using the `aws s3 cp` command (do this whilst in your `~/ .gu` directory). For example, 
+```
+ aws s3 cp s3://security-dist/security/PROD/security-hq/security-hq.local.conf ./ --profile security
+```
 
 ### Adding additional AWS accounts for local development
 
-When running security HQ locally, you can modify the list of AWS accounts to include additional account. For example, you may want to add a specific account for debugging purposes. You will need valid AWS credentials for any accounts you wish to include.
+When running security HQ locally, you can modify the list of AWS accounts to include additional account. 
+For example, you may want to add a specific account for debugging purposes. You will need valid AWS credentials for any accounts you wish to include.
 
-It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`, which you should have from a colleague. Add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
+It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`, 
+add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
 
 ```
 AWS_ACCOUNTS = [
