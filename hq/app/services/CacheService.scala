@@ -153,7 +153,7 @@ class CacheService(
           logMetric(account, dataType, details.length)
         }
         case Left(_) => {
-          println("left")
+          logger.error(s"Attempt to log cloudwatch metric failed. Data is missing for account ${account.name}.")
         }
       }
     }
