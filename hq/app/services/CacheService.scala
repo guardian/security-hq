@@ -25,6 +25,16 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch
+import com.amazonaws.services.cloudwatch.model.{ Dimension, MetricDatum, PutMetricDataRequest, StandardUnit }
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
+import com.amazonaws.services.cloudwatch.model.MetricDatum
+import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest
+import com.amazonaws.services.cloudwatch.model.PutMetricDataResult
+import com.amazonaws.services.cloudwatch.model.StandardUnit
+import collection.JavaConverters._
+
 
 class CacheService(
     config: Configuration,
@@ -100,6 +110,20 @@ class CacheService(
     }
   }
 
+  private def logMetric(account: AwsAccount, dataType: String, value: Int): String = {
+    println(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
+    val cw = AmazonCloudWatchClientBuilder.defaultClient
+
+    val dimension = List(
+      (new Dimension).withName("Account").withValue(account.name),
+      (new Dimension).withName("DataType").withValue(dataType)
+    )
+    val datum = new MetricDatum().withMetricName("Vulnerabilities").withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
+    val request = new PutMetricDataRequest().withNamespace("SecurityHQ").withMetricData(datum)
+    val response: PutMetricDataResult = cw.putMetricData(request)
+    response.toString
+  }
+
   private def refreshPublicBucketsBox(): Unit = {
     logger.info("Started refresh of the public S3 buckets data")
     for {
@@ -107,6 +131,18 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
+      for ((account, result) <- allPublicBuckets) {
+        println(account.name)
+        result match {
+          case Right(bucketDetails) => {
+            println(s"METRIC:  Account=${account.name},DataType=s3/critical,Value=${bucketDetails.length}")
+            logMetric(account, "s3/critical", bucketDetails.length)
+          }
+          case Left(_) => {
+            println("left")
+          }
+        }
+      }
     }
   }
 
@@ -128,6 +164,18 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
+      for ((account, result) <- allFlaggedSgs) {
+        println(account.name)
+        result match {
+          case Right(sgDetails) => {
+            println(s"METRIC:  Account=${account.name},DataType=securitygroup/critical,Value=${sgDetails.length}")
+            logMetric(account, "securitygroup/critical", sgDetails.length)
+          }
+          case Left(_) => {
+            println("left")
+          }
+        }
+      }
     }
   }
 
