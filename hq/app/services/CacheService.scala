@@ -25,15 +25,9 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.{ Dimension, MetricDatum, PutMetricDataRequest, StandardUnit }
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
-import com.amazonaws.services.cloudwatch.model.MetricDatum
-import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest
-import com.amazonaws.services.cloudwatch.model.PutMetricDataResult
-import com.amazonaws.services.cloudwatch.model.StandardUnit
-import collection.JavaConverters._
+import logging.Cloudwatch
+import logging.Cloudwatch.putMetric
+
 
 
 class CacheService(
@@ -107,21 +101,8 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
+      Cloudwatch.logAsMetric(allCredentialReports, Cloudwatch.DataType.iamCredentialsTotal)
     }
-  }
-
-  private def putMetric(account: AwsAccount, dataType: String, value: Int): String = {
-    logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
-    val cw = AmazonCloudWatchClientBuilder.defaultClient
-
-    val dimension = List(
-      (new Dimension).withName("Account").withValue(account.name),
-      (new Dimension).withName("DataType").withValue(dataType)
-    )
-    val datum = new MetricDatum().withMetricName("Vulnerabilities").withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
-    val request = new PutMetricDataRequest().withNamespace("SecurityHQ").withMetricData(datum)
-    val response: PutMetricDataResult = cw.putMetricData(request)
-    response.toString
   }
 
   private def refreshPublicBucketsBox(): Unit = {
@@ -131,7 +112,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
-      logAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])](allPublicBuckets, "s3/critical")
+      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
     }
   }
 
@@ -142,22 +123,10 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
-      logAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])](allExposedKeys, "iam/critical")
+      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
     }
   }
 
-  private def logAsCloudwatchMetric[T](data: Seq[T], dataType: String) : Unit = {
-    for ((account: AwsAccount, result) <- data) {
-      result match {
-        case Right(details: List[Any]) => {
-          putMetric(account, dataType, details.length)
-        }
-        case Left(_) => {
-          logger.error(s"Attempt to log cloudwatch metric failed. Data is missing for account ${account.name}.")
-        }
-      }
-    }
-  }
   private def refreshSgsBox(): Unit = {
     logger.info("Started refresh of the Security Groups data")
     for {
@@ -166,7 +135,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
-      logAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])](allFlaggedSgs, "securitygroup/critical")
+      Cloudwatch.logAsMetric(allFlaggedSgs, Cloudwatch.DataType.sgTotal)
     }
   }
 
