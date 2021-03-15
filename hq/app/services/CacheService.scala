@@ -131,18 +131,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
-      for ((account, result) <- allPublicBuckets) {
-        println(account.name)
-        result match {
-          case Right(bucketDetails) => {
-            println(s"METRIC:  Account=${account.name},DataType=s3/critical,Value=${bucketDetails.length}")
-            logMetric(account, "s3/critical", bucketDetails.length)
-          }
-          case Left(_) => {
-            println("left")
-          }
-        }
-      }
+      publishAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])](allPublicBuckets, "s3/critical")
     }
   }
 
@@ -153,9 +142,22 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
+      publishAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])](allExposedKeys, "iam/critical")
     }
   }
 
+  private def publishAsCloudwatchMetric[T](data: Seq[T], dataType: String) : Unit = {
+    for ((account: AwsAccount, result) <- data) {
+      result match {
+        case Right(details: List[Any]) => {
+          logMetric(account, dataType, details.length)
+        }
+        case Left(_) => {
+          println("left")
+        }
+      }
+    }
+  }
   private def refreshSgsBox(): Unit = {
     logger.info("Started refresh of the Security Groups data")
     for {
@@ -164,18 +166,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
-      for ((account, result) <- allFlaggedSgs) {
-        println(account.name)
-        result match {
-          case Right(sgDetails) => {
-            println(s"METRIC:  Account=${account.name},DataType=securitygroup/critical,Value=${sgDetails.length}")
-            logMetric(account, "securitygroup/critical", sgDetails.length)
-          }
-          case Left(_) => {
-            println("left")
-          }
-        }
-      }
+      publishAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])](allFlaggedSgs, "securitygroup/critical")
     }
   }
 
