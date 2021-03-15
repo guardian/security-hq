@@ -110,8 +110,8 @@ class CacheService(
     }
   }
 
-  private def logMetric(account: AwsAccount, dataType: String, value: Int): String = {
-    println(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
+  private def putMetric(account: AwsAccount, dataType: String, value: Int): String = {
+    logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
     val cw = AmazonCloudWatchClientBuilder.defaultClient
 
     val dimension = List(
@@ -131,7 +131,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
-      publishAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])](allPublicBuckets, "s3/critical")
+      logAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[BucketDetail]])](allPublicBuckets, "s3/critical")
     }
   }
 
@@ -142,15 +142,15 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
-      publishAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])](allExposedKeys, "iam/critical")
+      logAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])](allExposedKeys, "iam/critical")
     }
   }
 
-  private def publishAsCloudwatchMetric[T](data: Seq[T], dataType: String) : Unit = {
+  private def logAsCloudwatchMetric[T](data: Seq[T], dataType: String) : Unit = {
     for ((account: AwsAccount, result) <- data) {
       result match {
         case Right(details: List[Any]) => {
-          logMetric(account, dataType, details.length)
+          putMetric(account, dataType, details.length)
         }
         case Left(_) => {
           logger.error(s"Attempt to log cloudwatch metric failed. Data is missing for account ${account.name}.")
@@ -166,7 +166,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
-      publishAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])](allFlaggedSgs, "securitygroup/critical")
+      logAsCloudwatchMetric[(AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]])](allFlaggedSgs, "securitygroup/critical")
     }
   }
 
