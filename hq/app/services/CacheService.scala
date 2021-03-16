@@ -26,8 +26,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import logging.Cloudwatch
-import logging.Cloudwatch.putMetric
-
 
 
 class CacheService(
