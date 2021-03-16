@@ -7,6 +7,8 @@ import logic.CredentialsReportDisplay
 import logic.CredentialsReportDisplay.reportStatusSummary
 import model.{AwsAccount, CredentialReportDisplay}
 import play.api.Logging
+import utils.attempt.FailedAttempt
+
 import collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -22,15 +24,20 @@ object Cloudwatch extends Logging {
     val sgTotal = Value("securitygroup/total")
   }
 
-  def logAsMetric[T](data: Seq[T], dataType: DataType.Value ) : Unit = {
+  def logMetricsForCredentialsReport(data: Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])] ) : Unit = {
     data.foreach {
       case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
-
         val reportSummary: CredentialsReportDisplay.ReportSummary = reportStatusSummary(details)
         putMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
         putMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings)
-        putMetric(account, dataType, reportSummary.errors + reportSummary.warnings)
+        putMetric(account, DataType.iamCredentialsTotal, reportSummary.errors + reportSummary.warnings)
+      case (account: AwsAccount, Left(_)) =>
+        logger.error(s"Attempt to log cloudwatch metric failed. IAM data is missing for account ${account.name}.")
+    }
+  }
 
+  def logAsMetric[T](data: Seq[T], dataType: DataType.Value ) : Unit = {
+    data.foreach {
       case (account: AwsAccount, Right(details: List[Any])) =>
         putMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>

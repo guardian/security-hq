@@ -99,7 +99,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
-      Cloudwatch.logAsMetric(allCredentialReports, Cloudwatch.DataType.iamCredentialsTotal)
+      Cloudwatch.logMetricsForCredentialsReport(allCredentialReports)
     }
   }
 
