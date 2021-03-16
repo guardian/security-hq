@@ -33,7 +33,7 @@ object Cloudwatch extends logging {
     }
   }
 
-  def putMetric(account: AwsAccount, dataType: DataType.Value , value: Int): String = {
+  def putMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
     logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
     val cw = AmazonCloudWatchClientBuilder.defaultClient
 
@@ -43,7 +43,6 @@ object Cloudwatch extends logging {
     )
     val datum = new MetricDatum().withMetricName("Vulnerabilities").withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
     val request = new PutMetricDataRequest().withNamespace("SecurityHQ").withMetricData(datum)
-    val response: PutMetricDataResult = cw.putMetricData(request)
-    response.toString
+    cw.putMetricData(request)
   }
 }
