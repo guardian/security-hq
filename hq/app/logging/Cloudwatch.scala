@@ -26,7 +26,7 @@ object Cloudwatch extends Logging {
       case (account: AwsAccount, Right(details: List[Any])) =>
         putMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>
-        println(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
+        logger.error(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
     }
   }
 
