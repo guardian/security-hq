@@ -2,10 +2,11 @@ package logging
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
-import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, PutMetricDataResult, StandardUnit}
+import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
+import logic.CredentialsReportDisplay
+import logic.CredentialsReportDisplay.reportStatusSummary
 import model.{AwsAccount, CredentialReportDisplay}
 import play.api.Logging
-
 import collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -15,6 +16,8 @@ object Cloudwatch extends Logging {
   object DataType extends Enumeration {
     val s3Total = Value("s3/total")
     val iamCredentialsTotal = Value("iam/credentials/total")
+    val iamCredentialsCritical = Value("iam/credentials/critical")
+    val iamCredentialsWarning = Value("iam/credentials/warning")
     val iamKeysTotal = Value("iam/keys/total")
     val sgTotal = Value("securitygroup/total")
   }
@@ -22,7 +25,12 @@ object Cloudwatch extends Logging {
   def logAsMetric[T](data: Seq[T], dataType: DataType.Value ) : Unit = {
     data.foreach {
       case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
-        putMetric(account, dataType, details.humanUsers.length + details.machineUsers.length)
+
+        val reportSummary: CredentialsReportDisplay.ReportSummary = reportStatusSummary(details)
+        putMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
+        putMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings)
+        putMetric(account, dataType, reportSummary.errors + reportSummary.warnings)
+
       case (account: AwsAccount, Right(details: List[Any])) =>
         putMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>
