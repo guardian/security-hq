@@ -20,18 +20,13 @@ object Cloudwatch extends Logging {
   }
 
   def logAsMetric[T](data: Seq[T], dataType: DataType.Value ) : Unit = {
-    for ((account: AwsAccount, result) <- data) {
-      result match {
-        case Right(details: CredentialReportDisplay) => {
-          putMetric(account, dataType, details.humanUsers.length + details.machineUsers.length)
-        }
-        case Right(details: List[Any]) => {
-          putMetric(account, dataType, details.length)
-        }
-        case Left(_) => {
-          logger.error(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
-        }
-      }
+    data.foreach {
+      case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
+        putMetric(account, dataType, details.humanUsers.length + details.machineUsers.length)
+      case (account: AwsAccount, Right(details: List[Any])) =>
+        putMetric(account, dataType, details.length)
+      case (account: AwsAccount, Left(_)) =>
+        println(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
     }
   }
 
