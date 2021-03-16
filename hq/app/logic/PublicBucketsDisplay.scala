@@ -74,7 +74,6 @@ object PublicBucketsDisplay {
 
   def accountBucketData(accountInfo: (AwsAccount, Either[FailedAttempt, List[BucketDetail]])):
       (AwsAccount, Either[FailedAttempt, (BucketReportSummary, List[BucketDetail])]) = {
-    println("Aadvanced programming skillz")
     accountInfo match {
       case (account, Right(bucketDetails)) => {
         val bucketsWithReportStatus = bucketDetails.map(
