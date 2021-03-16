@@ -4,13 +4,13 @@ import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, PutMetricDataResult, StandardUnit}
 import model.{AwsAccount, CredentialReportDisplay}
-import sun.util.logging.resources.logging
+import play.api.Logging
 
 import collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 
-object Cloudwatch extends logging {
+object Cloudwatch extends Logging {
 
   object DataType extends Enumeration {
     val s3Total = Value("s3/total")
