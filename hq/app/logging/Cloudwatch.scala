@@ -3,11 +3,12 @@ package logging
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, PutMetricDataResult, StandardUnit}
 import model.{AwsAccount, CredentialReportDisplay}
+import sun.util.logging.resources.logging
 
 import collection.JavaConverters._
 
 
-object Cloudwatch {
+object Cloudwatch extends logging {
 
   object DataType extends Enumeration {
     val s3Total = Value("s3/total")
@@ -26,14 +27,14 @@ object Cloudwatch {
           putMetric(account, dataType, details.length)
         }
         case Left(_) => {
-          println(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
+          logger.error(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
         }
       }
     }
   }
 
   def putMetric(account: AwsAccount, dataType: DataType.Value , value: Int): String = {
-    println(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
+    logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
     val cw = AmazonCloudWatchClientBuilder.defaultClient
 
     val dimension = List(
