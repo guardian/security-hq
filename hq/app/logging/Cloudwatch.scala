@@ -1,11 +1,13 @@
 package logging
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, PutMetricDataResult, StandardUnit}
 import model.{AwsAccount, CredentialReportDisplay}
 import sun.util.logging.resources.logging
 
 import collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 
 object Cloudwatch extends logging {
@@ -34,7 +36,6 @@ object Cloudwatch extends logging {
   }
 
   def putMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
-    logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
     val cw = AmazonCloudWatchClientBuilder.defaultClient
 
     val dimension = List(
@@ -43,6 +44,9 @@ object Cloudwatch extends logging {
     )
     val datum = new MetricDatum().withMetricName("Vulnerabilities").withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
     val request = new PutMetricDataRequest().withNamespace("SecurityHQ").withMetricData(datum)
-    cw.putMetricData(request)
+    Try(cw.putMetricData(request)) match {
+      case Success(response) => logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
+      case Failure(e: AmazonServiceException) => logger.error(s"Put metric of type ${dataType} failed for account ${account.name}", e)
+    }
   }
 }
