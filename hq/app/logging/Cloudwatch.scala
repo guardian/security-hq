@@ -42,11 +42,14 @@ object Cloudwatch extends Logging {
       (new Dimension).withName("Account").withValue(account.name),
       (new Dimension).withName("DataType").withValue(dataType.toString)
     )
+
     val datum = new MetricDatum().withMetricName("Vulnerabilities").withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
     val request = new PutMetricDataRequest().withNamespace("SecurityHQ").withMetricData(datum)
+
     Try(cw.putMetricData(request)) match {
       case Success(response) => logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
       case Failure(e: AmazonServiceException) => logger.error(s"Put metric of type ${dataType} failed for account ${account.name}", e)
+      case Failure(e) => logger.error(s"Put metric of type ${dataType} failed for account ${account.name} with an unknown exception", e)
     }
   }
 }
