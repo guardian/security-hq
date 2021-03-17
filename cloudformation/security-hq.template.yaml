@@ -11,7 +11,7 @@ Metadata:
     - Label:
         default: Security
       Parameters:
-      - AccessRestrictionCidr
+      - GuardianIpBlock
     - Label:
         default: Networking
       Parameters:
@@ -35,9 +35,15 @@ Parameters:
   TLSCertArn:
     Description: ARN of a TLS certificate to install on the load balancer
     Type: String
-  AccessRestrictionCidr:
-    Description: CIDR block from which access to Security HQ should be allowed
+  GuardianIpBlock:
+    Description: CIDR block for Guardian IP addresses
     Type: String
+  GuardianAUIpBlock:
+    Type: String
+    Description: CIDR block for Guardian AU IP addresses
+  GuardianAUIpBlock2:
+    Type: String
+    Description: CIDR block for Guardian AU IP addresses
   Stage:
     Description: Application stage (e.g. PROD, CODE)
     Type: String
@@ -191,7 +197,17 @@ Resources:
         FromPort: 443
         ToPort: 443
         CidrIp:
-          Ref: AccessRestrictionCidr
+          Ref: GuardianIpBlock
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp:
+          Ref: GuardianAUIpBlock
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp:
+          Ref: GuardianAUIpBlock2
       Tags:
       - Key: Stack
         Value: !FindInMap [ Constants, Stack, Value ]
