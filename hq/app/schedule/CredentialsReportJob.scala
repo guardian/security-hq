@@ -1,12 +1,14 @@
 
-import model.CronSchedule
-import play.api.{Logger, Logging}
+import logic.DateUtils
+import model.{AccessKey, AwsAccount, CredentialReportDisplay, CronSchedule}
+import play.api.Logging
 import schedule.{CronSchedules, JobRunner}
+import services.CacheService
+import utils.attempt.FailedAttempt
 
-class CredentialsReportJob(enabled: Boolean) extends JobRunner with Logging {
+class CredentialsReportJob(enabled: Boolean, cacheService: CacheService) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated emails for old permanent credentials"
-
   override val cronSchedule: CronSchedule = CronSchedules.onceADayAt1am
 
   def run(): Unit = {
@@ -14,16 +16,39 @@ class CredentialsReportJob(enabled: Boolean) extends JobRunner with Logging {
       logger.info(s"Skipping scheduled $id job as it is not enabled")
     } else {
       logger.info(s"Running scheduled job: $description")
-
-      // retrieve/generate creds report
-         // get from cacheservice : CredentialReportDisplay (for comp - for each account in our Map)
-         // We can use case classes: HumanUser / MachineUser and their AccessKey
-      // 1) get old perm creds (1 or more access keys)
-      // 2) find accounts where IAM users have password enabled, but not MFA
-      // create an email to the aws accounts with either of these 2 cases
-      // send an email
-
-      logger.info(s"Completed scheduled job: $description")
+      for {
+        (awsAccount, result) <- getCredentialsReport()
+        credsReport <- result
+        outdatedKeys = findOldAccessKeys(credsReport)
+        missingMfa = findMissingMfa(credsReport)
+        //TODO create this function or a set of functions
+        // (could we create a function that has the same name, but takes diff args so that we can use this for diff use cases?)
+        email = createEmail(awsAccount, outdatedKeys, missingMfa)
+        // TODO: create function that returns Either(failedAttempt, AWS was successful)
+        sendEmailResponse <- emailService.sendEmail(email)
+        // what does SNS respond with when we send it an email request? Is it an Either?
+      } yield {
+        logger.info(s"Completed scheduled job: $description")
+        // TODO: could we log the failures and successes?
+      }
     }
+  }
+  def getCredentialsReport(): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
+  def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
+    def hasOutdatedKey(keys: List[AccessKey]): Boolean = {
+      keys.exists{ key =>
+        DateUtils.dayDiff(key.lastRotated).getOrElse(1) > 90
+      }
+    }
+    val filteredMachines = credsReport.machineUsers.filter{ user =>
+      hasOutdatedKey(List(user.key1, user.key2))
+    }
+    val filteredHumans = credsReport.humanUsers.filter{ user =>
+      hasOutdatedKey(List(user.key1, user.key2))
+    }
+    credsReport.copy(machineUsers = filteredMachines, humanUsers = filteredHumans)
+  }
+  def findMissingMfa(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
+    credsReport.copy(humanUsers = credsReport.humanUsers.filterNot(_.hasMFA))
   }
 }
