@@ -21,7 +21,7 @@ object GcpDisplay {
         GcpFinding(
           getProjectNameFromUri(finding.getExternalUri).getOrElse("unknown"),
           finding.getCategory,
-          Option(finding.getSourcePropertiesOrDefault("SeverityLevel", Value.newBuilder.build).getStringValue),
+          getSeverity(finding.getSourcePropertiesOrDefault("SeverityLevel", Value.newBuilder.build).getStringValue),
           new DateTime(finding.getEventTime.getSeconds * 1000),
           Option(finding.getSourcePropertiesOrDefault("Explanation", Value.newBuilder.build).getStringValue),
           Option(finding.getSourcePropertiesOrDefault("Recommendation", Value.newBuilder.build).getStringValue)
@@ -38,9 +38,9 @@ object GcpDisplay {
       client.listFindings(request.build)
     }
 
-  val severities = List("High", "Medium", "Low")
+  val severities = List("High", "Medium", "Low", "Unknown")
   def sortFindings(findings: List[GcpFinding]): List[GcpFinding] = findings.sortBy{ finding =>
-    val severity = severities.indexOf(finding.severity.getOrElse("Low"))
+    val severity = severities.indexOf(finding.severity)
       val date = finding.eventTime.getMillis
     (severity, -date)
   }
@@ -49,4 +49,6 @@ object GcpDisplay {
       val regexPattern = new Regex("""(?<=project=).*""")
       regexPattern.findFirstIn(uri)
     }
+
+  def getSeverity(severityLevel: String): String = if (severityLevel == "") "Unknown" else severityLevel
 }
