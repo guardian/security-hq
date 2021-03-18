@@ -345,7 +345,7 @@ gcp-report__table th {
   word-wrap: break-word;
 }
 
-gcp-report__table {
+table.gcp-report__table {
   table-layout: fixed;
   word-break: break-all;
 }
