@@ -202,7 +202,7 @@ case class GcpReport(reportDate: DateTime, finding: Map[String, Seq[GcpFinding]]
 case class GcpFinding(
   project: String,
   category: String,
-  severity: Option[String],
+  severity: String,
   eventTime: DateTime,
   explanation: Option[String],
   recommendation: Option[String]
