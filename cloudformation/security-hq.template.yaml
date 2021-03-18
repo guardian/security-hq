@@ -179,6 +179,19 @@ Resources:
           - sts:AssumeRole
       Roles:
       - !Ref SecurityHQInstanceRole
+      
+  CloudWatchMetrics:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: cloudwatch-put-metric
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Resource: "*"
+          Action:
+          - cloudwatch:PutMetricData
+      Roles:
+      - !Ref SecurityHQInstanceRole
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
