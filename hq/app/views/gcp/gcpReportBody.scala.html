@@ -24,7 +24,7 @@
             </thead>
             <tbody>
                 @for(finding <- findings) {
-                    <tr>
+                    <tr class="finding-@finding.severity.toLowerCase">
                         <td class="gcp-table-row-severity"><span>@finding.severity</span></td>
                         <td class="gcp-table-row-category"><span>@finding.category</span></td>
                         <td class="gcp-table-row-date"><span>@finding.eventTime.toString(GcpDisplay.dateTimePattern)</span></td>

@@ -338,30 +338,6 @@ table.iam-report__table th {
   box-sizing: initial;
 }
 
-table.gcp-report__table td,
-table.gcp-report__table th {
-  min-height: 21px;
-  box-sizing: initial;
-  word-wrap: break-word;
-}
-
-table.gcp-report__table {
-  table-layout: fixed;
-  word-break: break-all;
-}
-
-.gcp-table-row-severity {
-  width: 65px;
-}
-
-.gcp-table-row-category {
-  width: 130px;
-}
-
-.gcp-table-row-date {
-  width: 65px;
-}
-
 .iam-modal__trigger {
   height: 24px;
 }
@@ -393,8 +369,6 @@ table.gcp-report__table {
   margin-left: 10px;
 }
 
-
-
 .doc-content h1 {
   font-size: 2.5rem;
 }
@@ -423,3 +397,27 @@ table.gcp-report__table {
   height: 40px;
 }
 
+/* GCP */
+table.gcp-report__table td,
+table.gcp-report__table th {
+  min-height: 21px;
+  box-sizing: initial;
+  word-wrap: break-word;
+}
+
+table.gcp-report__table {
+  table-layout: fixed;
+  word-break: break-all;
+}
+
+.gcp-table-row-severity {
+  width: 65px;
+}
+
+.gcp-table-row-category {
+  width: 130px;
+}
+
+.gcp-table-row-date {
+  width: 65px;
+}
