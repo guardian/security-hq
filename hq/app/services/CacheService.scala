@@ -25,6 +25,8 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import logging.Cloudwatch
+
 
 class CacheService(
     config: Configuration,
@@ -97,6 +99,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Credentials Box")
       credentialsBox.send(allCredentialReports.toMap)
+      Cloudwatch.logMetricsForCredentialsReport(allCredentialReports)
     }
   }
 
@@ -107,6 +110,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
+      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
     }
   }
 
@@ -117,6 +121,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
+      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
     }
   }
 
@@ -128,6 +133,7 @@ class CacheService(
     } yield {
       logger.info("Sending the refreshed data to the Security Groups Box")
       sgsBox.send(allFlaggedSgs.toMap)
+      Cloudwatch.logAsMetric(allFlaggedSgs, Cloudwatch.DataType.sgTotal)
     }
   }
 
