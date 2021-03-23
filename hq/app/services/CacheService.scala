@@ -108,7 +108,7 @@ class CacheService(
       allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(accounts, taClients, s3Clients)
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
-      if(allPublicBuckets.exists(_._2.isRight)) {
+      if(! allPublicBuckets.exists(_._2.isLeft)) {
         publicBucketsBox.send(allPublicBuckets.toMap)
       }
     }
