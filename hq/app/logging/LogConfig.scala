@@ -3,7 +3,6 @@ package logging
 import java.net.InetSocketAddress
 
 import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.{Logger => LogbackLogger}
 import com.amazonaws.auth.{InstanceProfileCredentialsProvider, STSAssumeRoleSessionCredentialsProvider}
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
@@ -99,7 +98,6 @@ object LogConfig {
             appender.setCredentialsProvider(buildCredentialsProvider(stsRole, config))
             appender.start()
             rootLogger.addAppender(appender)
-            rootLogger.setLevel(Level.INFO)
             rootLogger.info("Initialised remote log shipping")
           }
           case _ => rootLogger.info(s"Missing remote logging configuration streamName=${config.streamName} stsRole=${config.stsRole}")
