@@ -19,7 +19,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import services.CacheService
+import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
 import scala.concurrent.Await
@@ -115,6 +115,13 @@ class AppComponents(context: Context)
     efsClients,
     availableRegions,
     securityCenterClient
+  )
+
+  new MetricService(
+    configuration,
+    applicationLifecycle,
+    environment,
+    cacheService
   )
 
   override def router: Router = new Routes(
