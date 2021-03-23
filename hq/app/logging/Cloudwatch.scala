@@ -26,8 +26,8 @@ object Cloudwatch extends Logging {
     val sgTotal = Value("securitygroup/total")
   }
 
-  def logMetricsForCredentialsReport(data: Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])] ) : Unit = {
-    data.foreach {
+  def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] ) : Unit = {
+    data.toSeq.foreach {
       case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
         val reportSummary: CredentialsReportDisplay.ReportSummary = reportStatusSummary(details)
         putMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
@@ -38,9 +38,9 @@ object Cloudwatch extends Logging {
     }
   }
 
-  def logAsMetric[T](data: Seq[T], dataType: DataType.Value ) : Unit = {
-    data.foreach {
-      case (account: AwsAccount, Right(details: List[Any])) =>
+  def logAsMetric[T](data: Map[AwsAccount, Either[FailedAttempt, List[T]]], dataType: DataType.Value ) : Unit = {
+    data.toSeq.foreach {
+      case (account: AwsAccount, Right(details: List[T])) =>
         putMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>
         logger.error(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
