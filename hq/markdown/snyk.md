@@ -25,14 +25,15 @@ section of the dashboard).
 
 ## Integrating Snyk with your project(s)
 
-By far the most effective way to integrate Snyk is through GitHub Actions. Here's how to do it:
+By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has it's limitation and it's less accurate. Here's how to do it using GH Actions:
 
 1. Make sure your repo has the `SNYK_TOKEN` available under 'Organization secrets' (Go to Settings -> Secrets). If it does not, ask an engineering manager to enable it for your repo.
 1. Create a file called `snyk.yml` in the `/.github/workflows/` folder of your repo. Paste one the appropriate code snippets from below into your new file.
-1. Edit the `org` argument in the code snippet to your org's code. We have several organisations in our Snyk account. The code snippet bellow uses the Reader Revenue's code. To get your organisation's code go to the [Snyk dashboard](https://app.snyk.io/org/), select the org you want then obtain the code from the URL.
+1. Edit the `org` argument in the code snippet to your org's code. We have several organisations in our Snyk account. To get your organisation's code go to the [Snyk dashboard](https://app.snyk.io/org/), select the org you want then obtain the code from the URL.  
+![image](https://user-images.githubusercontent.com/48949546/112194614-f6985880-8c00-11eb-946f-a88fdae57662.jpg)
 1. If your package file does not live in the main folder you will need to add a `--file` argument, such as the one in the Node example below. 
 
-![image](https://user-images.githubusercontent.com/48949546/112194614-f6985880-8c00-11eb-946f-a88fdae57662.jpg)
+
 
 
 Setting up this Action will take care of updating your project's entry in snyk.io daily or whenever a new push to `main` takes place. It will also add feedback to commits and PRs, showing developers if their branch has any security vulnerabilities.
@@ -69,7 +70,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --org=the-guardian-cuu --project-name=${{ github.repository }} --file=./app/yarn.lock
+          args: --org=REPLACE_WITH_YOUR_ORG --project-name=${{ github.repository }} --file=./app/yarn.lock
           command: ${{ env.SNYK_COMMAND }}
 
 ```
@@ -106,7 +107,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --org=the-guardian-cuu --project-name=${{ github.repository }}
+          args: --org=REPLACE_WITH_YOUR_ORG --project-name=${{ github.repository }}
           command: ${{ env.SNYK_COMMAND }}
 ```
 
