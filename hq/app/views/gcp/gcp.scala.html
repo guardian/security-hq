@@ -40,6 +40,26 @@
 
 } { @* Main content *@
     <div class="container">
+        <div class="row flow-text">
+            <h3>GCP Security Findings</h3>
+            <p>Security Command Centre's findings display possible security risks for your GCP resources.</p>
+        </div>
+
+        <div class="row">
+            <div class="card-panel valign-wrapper">
+                <form class="finding-filter" action="#">
+                    <input class="js-finding-filter-for-gcp" type="checkbox" id="show-high-findings" checked="checked" />
+                    <label class="black-text finding-filter__label" for="show-high-findings">High</label>
+                    <input class="js-finding-filter-for-gcp" type="checkbox" id="show-medium-findings" checked="checked" />
+                    <label class="black-text finding-filter__label" for="show-medium-findings">Medium</label>
+                    <input class="js-finding-filter-for-gcp" type="checkbox" id="show-low-findings" />
+                    <label class="black-text finding-filter__label" for="show-low-findings">Low</label>
+                    <input class="js-finding-filter-for-gcp" type="checkbox" id="show-unknown-findings" />
+                    <label class="black-text finding-filter__label" for="show-unknown-findings">Unknown</label>
+                </form>
+            </div>
+        </div>
+
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
                 @for((projectName, findings) <- report.finding.toList.sortBy(_._1)) {

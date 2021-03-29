@@ -36,6 +36,7 @@ $(document).ready(function() {
     }
   );
 
+  // filtering table results
   $('.js-finding-filter').change(function() {
     $('#show-ignored-findings')[0].checked
       ? $('.finding-suppressed--true').show()
@@ -43,9 +44,25 @@ $(document).ready(function() {
     $('#show-flagged-findings')[0].checked
       ? $('.finding-suppressed--false').show()
       : $('.finding-suppressed--false').hide();
+  });
+  $('.js-finding-filter-for-s3').change(function() {
     $('#show-unencrypted-findings')[0].checked
       ? $('.finding-unencrypted').show()
       : $('.finding-unencrypted').hide();
+  });
+  $('.js-finding-filter-for-gcp').change(function() {
+    $('#show-high-findings')[0].checked
+        ? $('.finding-high').show()
+        : $('.finding-high').hide();
+    $('#show-medium-findings')[0].checked
+        ? $('.finding-medium').show()
+        : $('.finding-medium').hide();
+    $('#show-low-findings')[0].checked
+        ? $('.finding-low').show()
+        : $('.finding-low').hide();
+    $('#show-unknown-findings')[0].checked
+        ? $('.finding-unknown').show()
+        : $('.finding-unknown').hide();
   });
 
   $('.js-finding-details').click(function() {
