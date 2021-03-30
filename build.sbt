@@ -40,6 +40,8 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-efs" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.62.2",
+      "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
+      "com.vladsch.flexmark" % "flexmark" % "0.28.20",
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.gu" %% "box" % "0.1.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
@@ -48,6 +50,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
+      "com.gu" % "anghammarad-client_2.12" % "1.1.2",
 
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
