@@ -25,7 +25,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import logging.Cloudwatch
 
 
 class CacheService(
@@ -145,12 +144,17 @@ class CacheService(
 
   def refreshGcpBox(): Unit = {
     logger.info("Started refresh of GCP data")
-    val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
-    for {
-      gcpFindings <- GcpDisplay.getGcpFindings(organisation, gcpClient, config)
-    } yield {
-      logger.info("Sending the refreshed data to the GCP Box")
-      gcpBox.send(Attempt.Right(gcpFindings))
+    config.getOptional[String]("stage") match {
+      case Some("DEV") =>
+        gcpBox.send(Attempt.Right(GcpFinding.test))
+      case _ =>
+        val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
+        for {
+          gcpFindings <- GcpDisplay.getGcpFindings(organisation, gcpClient, config)
+        } yield {
+          logger.info("Sending the refreshed data to the GCP Box")
+          gcpBox.send(Attempt.Right(gcpFindings))
+        }
     }
   }
 

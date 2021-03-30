@@ -208,4 +208,19 @@ case class GcpFinding(
   recommendation: Option[String]
 )
 
+//TODO delete after /gcp dev work complete
+object GcpFinding {
+  val longText: String = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+  val test: List[GcpFinding] = List(
+    GcpFinding("TEST PROJECT A", "TEST", "High", DateTime.now, Some(longText), Some("TEST")),
+    GcpFinding("TEST PROJECT A", "TEST", "Medium", DateTime.now, Some("TEST"), Some(longText)),
+    GcpFinding("TEST PROJECT A", "TEST", "Low", DateTime.now, Some("TEST"), Some("TEST")),
+    GcpFinding("TEST PROJECT A", "TEST", "Unknown", DateTime.now, Some("TEST"), Some("TEST")),
+    GcpFinding("TEST PROJECT B", "TEST", "High", DateTime.now, Some("TEST"), Some("TEST")),
+    GcpFinding("TEST PROJECT B", "TEST", "Medium", DateTime.now, Some("TEST"), Some("TEST")),
+    GcpFinding("TEST PROJECT B", "TEST", "Low", DateTime.now, Some("TEST"), Some(longText)),
+    GcpFinding("TEST PROJECT B", "TEST", "Unknown", DateTime.now, Some(longText), Some("TEST")),
+  )
+}
+
 case class GcpSccConfig(orgId: String, sourceId: String)
