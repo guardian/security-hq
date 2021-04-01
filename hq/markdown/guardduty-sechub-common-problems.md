@@ -47,6 +47,11 @@ If you're lucky this won't impact your services, but there's a good chance you'l
 IMDSv2. If you're using `curl` to fetch metadata from the `169.254.169.254` IP address then you'll need to update those calls
 prior to enforcing IMDSv2. You can see the difference between IMDSv1 and IMDSv2 calls [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html)
 
+You will also experience problems with this change if you are using the instance metadata service within your app via an old 
+version of the AWS SDK. You will need to be using at least version 1.11.678 or 2.10.20 of the AWS SDK to get IMDSv2 support. 
+If you are using the guardian [simple configuration library](https://github.com/guardian/simple-configuration) you'll need 
+to make sure you're on the latest version.
+
 A quick test to see how painful this change will be is to search for usages of `169.254.169.254` in your repo/infrastructure.
 
 If you are using AWS CDK you (may) need to wait before you can fix this feature - there's an issue tracking this 
