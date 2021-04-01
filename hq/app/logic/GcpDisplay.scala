@@ -51,4 +51,8 @@ object GcpDisplay {
     }
 
   def getSeverity(severityLevel: String): String = if (severityLevel == "") "Unknown" else severityLevel
+
+  def preview(s: String, n: Int): String = {
+    if (s.length <= n) s else s.take(s.lastIndexWhere(_.isSpaceChar, n + 1)).trim
+  }
 }
