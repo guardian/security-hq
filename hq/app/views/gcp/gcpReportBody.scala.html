@@ -36,7 +36,7 @@
                             @*if not, trim the text to show only 40 chars and add ... to the end*@
                             <span class="truncated">@GcpDisplay.preview(finding.recommendation.getOrElse(""), 30)</span>
                             <span class="full-text">@finding.recommendation</span>
-                            <span class="js-read-more">...Read More</span>}
+                            <span class="js-read-more btn usage-cta truncate">Read More</span>}
                         </td>
                             @*in the td:
                                 span 0 = unaltered-short
