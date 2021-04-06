@@ -3,6 +3,7 @@
 @import model.GcpReport
 @import controllers.AssetsFinder
 @import logic.GcpDisplay
+@import model.GcpFinding
 @(report: GcpReport)(implicit assets: AssetsFinder)
 
 @floatingNav() = {
@@ -66,8 +67,15 @@
                     <li>
                     <div class="collapsible-header" tabindex="22">
                     <i class="material-icons">keyboard_arrow_down</i>
-
                     <span class="iam-header__name">@projectName</span>
+                        <span class="icon-count">@findings.count(_.severity == "High")</span>
+                        <i class="material-icons red-text">error</i>
+                        <span class="icon-count">@findings.count(_.severity == "Medium")</span>
+                        <i class="material-icons orange-text">warning</i>
+                        <span class="icon-count">@findings.count(_.severity == "Low")</span>
+                        <i class="material-icons yellow-text">priority_high</i>
+                        <span class="icon-count">@findings.count(_.severity == "Unknown")</span>
+                        <i class="material-icons grey-text">not_listed_location</i>
                     </div>
                     <div class="collapsible-body">
                     @views.html.gcp.gcpReportBody(GcpDisplay.sortFindings(findings.toList), report.reportDate)
