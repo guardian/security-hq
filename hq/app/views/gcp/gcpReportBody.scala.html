@@ -28,28 +28,21 @@
                         <td class="gcp-table-row-severity"><span>@finding.severity</span></td>
                         <td class="gcp-table-row-category"><span>@finding.category</span></td>
                         <td class="gcp-table-row-date"><span>@finding.eventTime.toString(GcpDisplay.dateTimePattern)</span></td>
-                        <td><span>@finding.explanation</span></td>
                         <td>
-                        @*if the text is less than 40 chars, show it*@
-                        @if(finding.recommendation.getOrElse("").length < 30) {
-                            <span class="unaltered-short">@finding.recommendation</span>} else {
-                            @*if not, trim the text to show only 40 chars and add ... to the end*@
-                            <span class="truncated">@GcpDisplay.preview(finding.recommendation.getOrElse(""), 30)</span>
-                            <span class="full-text">@finding.recommendation</span>
-                            <span class="js-read-more btn usage-cta truncate">Read More</span>}
+                            @if(finding.explanation.getOrElse("").length < 30) {
+                                <span class="unaltered-short">@finding.explanation</span>} else {
+                                <span class="gcp-toggle gcp-truncated">@GcpDisplay.preview(finding.explanation.getOrElse(""), 30)</span>
+                                <span class="gcp-toggle gcp-full-text">@finding.explanation</span>
+                                <span class="js-read-more btn">Read More/Less</span>
+                            }
                         </td>
-                            @*in the td:
-                                span 0 = unaltered-short
-                                span 1 = truncated
-                                span 2 = full text (css: hidden by default)
-                                span 3 = read more button
-                            add *click handler* to read more button (when clicked, shown span 2, hide span 1)
-                            https://api.jquery.com/click/
-                                *find parent*
-                            https://api.jquery.com/parent/
-                            *find the children with certain class names*
-                            https://api.jquery.com/find/
-                            *@
+                        <td>
+                            @if(finding.recommendation.getOrElse("").length < 30) {
+                                <span class="unaltered-short">@finding.recommendation</span>} else {
+                                <span class="gcp-toggle gcp-truncated">@GcpDisplay.preview(finding.recommendation.getOrElse(""), 30)</span>
+                                <span class="gcp-toggle gcp-full-text">@finding.recommendation</span>
+                                <span class="js-read-more btn">Read More/Less</span>}
+                        </td>
                         }
                     </tr>
             </tbody>
