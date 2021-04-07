@@ -64,6 +64,12 @@ object Failure {
     Failure(details, friendlyMessage, 500)
   }
 
+  def cacheServiceErrorGcp(cacheContent: String): Failure = {
+    val details = s"Cache service error; unable to retrieve $cacheContent"
+    val friendlyMessage = s"Oops! We're still loading the $cacheContent data. Please refresh the page shortly."
+    Failure(details, friendlyMessage, 500)
+  }
+
   def contextString(clientContext: AwsClient[_]): String = {
     val acc = s"account: ${clientContext.account.name}"
     val reg = s"region: ${clientContext.region.name}"
