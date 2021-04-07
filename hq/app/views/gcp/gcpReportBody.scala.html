@@ -33,7 +33,9 @@
                                 <span class="unaltered-short">@finding.explanation</span>} else {
                                 <span class="gcp-toggle gcp-truncated">@GcpDisplay.preview(finding.explanation.getOrElse(""), 30)</span>
                                 <span class="gcp-toggle gcp-full-text">@finding.explanation</span>
-                                <span class="js-read-more btn">Read More/Less</span>
+                                <button class="js-read-more mdc-button">
+                                    <span class="mdc-button__label">Read More/Less</span>
+                                </button>
                             }
                         </td>
                         <td>
@@ -41,7 +43,9 @@
                                 <span class="unaltered-short">@finding.recommendation</span>} else {
                                 <span class="gcp-toggle gcp-truncated">@GcpDisplay.preview(finding.recommendation.getOrElse(""), 30)</span>
                                 <span class="gcp-toggle gcp-full-text">@finding.recommendation</span>
-                                <span class="js-read-more btn">Read More/Less</span>}
+                                <button class="js-read-more mdc-button">
+                                    <span class="mdc-button__label">Read More/Less</span>}
+                                </button>
                         </td>
                         }
                     </tr>
