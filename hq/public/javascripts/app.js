@@ -119,4 +119,9 @@ $(document).ready(function() {
       );
   });
   $('.tooltipped').tooltip({enterDelay: 0, inDuration: 100});
+
+  // Functionality for the GCP table
+  $('.js-read-more').click(function() {
+    $(this).parent().find('.gcp-toggle').toggle();
+  });
 });

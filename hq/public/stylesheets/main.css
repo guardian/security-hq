@@ -421,3 +421,7 @@ table.iam-report__table th {
 .gcp-table-row-date {
   width: 65px;
 }
+
+.gcp-full-text {
+  display: none
+}
