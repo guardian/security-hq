@@ -127,11 +127,11 @@ There are two things to check
 The quickest way to do this is using [ssm-scala](https://github.com/guardian/ssm-scala) to run some commands on the instances
 you want to check. Here's the full command:
 
-`ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep Valid" -t app,stage,stack -p <janus_profile>`
+`ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep -E \"(Valid|error)\"" -t app,stage,stack -p <janus_profile>`
 
 So, for example to check the wazuh status for *all instances tagged 'amiable'* I would run:
 
-`ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep Valid" -p deployTools  -t amiable`
+`ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep -E \"(Valid|error)\"" -p deployTools  -t amiable`
 
 If you just want to run the command on a specific instance you can use `-i` instead of `-t` and specify the instance id.
 
@@ -154,7 +154,18 @@ Feb 15 11:20:21 ip-10-248-48-147 authenticate-with-wazuh-manager.sh[1068]: 2021/
 STDERR:
 ```
 
-And that's it, all done! On to the next app. 
+And that's it, all done! On to the next app.
+
+If the correct permissions aren't available on the instance, you'll see permissions errors in the output – check that the permissions described above apply to the instance.
+
+```
+ Active: active (running) since Thu 2021-04-08 07:55:29 UTC; 15min ago
+Apr 08 07:55:19 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingInstances operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingInstances
+Apr 08 07:55:20 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
+Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
+Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
+Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: 2021/04/08 07:55:21 agent-auth: INFO: Valid key created. Finished.
+```
 
 ## Troubleshooting
 
