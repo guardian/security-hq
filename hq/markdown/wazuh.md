@@ -160,10 +160,10 @@ If the correct permissions aren't available on the instance, you'll see permissi
 
 ```
  Active: active (running) since Thu 2021-04-08 07:55:29 UTC; 15min ago
-Apr 08 07:55:19 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingInstances operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingInstances
-Apr 08 07:55:20 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
-Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
-Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::563563610310:assumed-role/media-service-TEST-UsageRole-1S2DRMKVLR4UJ/i-0548e6681a83c0a95 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
+Apr 08 07:55:19 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingInstances operation: User: arn:aws:sts::112233445566:assumed-role/instance-role/i-a00b11c22 is not authorized to perform: autoscaling:DescribeAutoScalingInstances
+Apr 08 07:55:20 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::112233445566:assumed-role/instance-role/i-a00b11c22 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
+Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::112233445566:assumed-role/instance-role/i-a00b11c22 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
+Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: An error occurred (AccessDenied) when calling the DescribeAutoScalingGroups operation: User: arn:aws:sts::112233445566:assumed-role/instance-role/i-a00b11c22 is not authorized to perform: autoscaling:DescribeAutoScalingGroups
 Apr 08 07:55:21 ip-172-31-9-33 authenticate-with-wazuh-manager.sh[1084]: 2021/04/08 07:55:21 agent-auth: INFO: Valid key created. Finished.
 ```
 
