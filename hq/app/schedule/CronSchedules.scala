@@ -2,6 +2,7 @@ package schedule
 
 import model.CronSchedule
 
+//TODO consider if we need all of these
 object CronSchedules {
   val onceADayAt1am = CronSchedule("0 0 1 * * ?", "Run once a day at 1am")
   val onceADayAt2am = CronSchedule("0 0 2 * * ?", "Run once a day at 2am")

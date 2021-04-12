@@ -29,9 +29,7 @@ object CredentialsNotifier extends Logging {
     notification: Notification,
     topicArn: String,
     snsClient: AmazonSNSAsync)(implicit executionContext: ExecutionContext): Unit = {
-
     val response = Anghammarad.notify(notification, topicArn, snsClient)
-
     try {
       val id = Await.result(response, 5.seconds)
       logger.info(s"Sent notification to ${notification.target}: $id")
