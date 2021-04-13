@@ -212,3 +212,6 @@ case class GcpSccConfig(orgId: String, sourceId: String)
 
 case class CronSchedule(cron: String, description: String)
 
+case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long])
+case class UserNoMfa(username: String, userLastActiveDay: Option[Long])
+
