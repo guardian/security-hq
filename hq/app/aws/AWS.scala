@@ -10,6 +10,7 @@ import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import com.amazonaws.services.elasticfilesystem.{AmazonElasticFileSystemAsync, AmazonElasticFileSystemAsyncClient, AmazonElasticFileSystemAsyncClientBuilder}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
+import com.amazonaws.services.sns.{AmazonSNSAsync, AmazonSNSAsyncClientBuilder}
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import config.Config
 import model.AwsAccount
@@ -68,4 +69,6 @@ object AWS {
   def efsClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonElasticFileSystemAsync] =
     clients(AmazonElasticFileSystemAsyncClientBuilder.standard(), configuration, regions:_*)
 
+  def snsClients(configuration: Configuration, region: Regions = Regions.EU_WEST_1): AwsClients[AmazonSNSAsync] =
+    clients(AmazonSNSAsyncClientBuilder.standard(), configuration, region)
 }
