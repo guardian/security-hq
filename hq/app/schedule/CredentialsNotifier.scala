@@ -3,7 +3,6 @@ package schedule
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{Email, Notification, Preferred, Target}
-import org.joda.time.DateTime
 import play.api.Logging
 
 import scala.concurrent.duration.DurationInt

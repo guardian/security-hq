@@ -42,7 +42,14 @@ object CredentialsMessages {
     s"""
       |Username: ${user.username}
       |Key 1 last rotation: ${user.key1LastRotation}
+      |Key 2 last rotation: ${user.key2LastRotation}
+      |Last active (number of days ago): ${user.userLastActiveDay}
       |""".stripMargin
   }
-  private def printFormatMissingMfa(user: UserNoMfa): String = ???
+  private def printFormatMissingMfa(user: UserNoMfa): String = {
+    s"""
+      |Username: ${user.username}
+      |Last active (number of days ago): ${user.userLastActiveDay}
+      |""".stripMargin
+  }
 }
