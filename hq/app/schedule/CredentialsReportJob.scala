@@ -1,18 +1,22 @@
+import aws.AwsClients
+import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import logic.DateUtils
-import model.{AccessKey, AwsAccount, CredentialReportDisplay, CronSchedule}
+import model._
 import play.api.Logging
-import schedule.CredentialsNotifier.{createMessage, createNotification, send}
+import schedule.CredentialsMessages.createMessage
+import schedule.CredentialsNotifier.{createNotification, send}
 import schedule.{CronSchedules, JobRunner}
 import services.CacheService
 import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class CredentialsReportJob(enabled: Boolean, cacheService: CacheService)(executionContext: ExecutionContext) extends JobRunner with Logging {
+class CredentialsReportJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClients[AmazonSNSAsync])(executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated emails for old permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.onceADayAt1am
+  //TODO retrieve from config
   val topicArn: String = ???
 
   def run(): Unit = {
@@ -21,23 +25,28 @@ class CredentialsReportJob(enabled: Boolean, cacheService: CacheService)(executi
     } else {
       logger.info(s"Running scheduled job: $description")
 
+      //TODO: make into function and add tests
       val someValue: List[Either[FailedAttempt, Notification]] = getCredentialsReport().toList.map{ case (awsAccount, eFCreds) =>
         eFCreds.map{ credsReport =>
-          val outdatedKeys = findOldAccessKeys(credsReport)
-          val missingMfa = findMissingMfa(credsReport)
+          val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
+          val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
           val message = createMessage(outdatedKeys, missingMfa)
           createNotification(Account(awsAccount.id), message)
         }
       }
-      someValue.foreach{ result: Either[FailedAttempt, Notification] =>
-        result match {
-          case Left(value) =>
-            logger.info(s"check this issue out security devs! $value")
-          case Right(email) =>
-            send(email, topicArn, ???)(executionContext)
-            logger.info(s"Completed scheduled job: $description")
+      for {
+        snsClient <- snsClients
+      } yield {
+        someValue.foreach{ result: Either[FailedAttempt, Notification] =>
+          result match {
+            case Left(error) =>
+              logger.info(s"failed to collect credentials report: $error")
+            case Right(email) =>
+              send(email, topicArn, snsClient.client)(executionContext)
+              logger.info(s"Completed scheduled job: $description")
+          }
         }
-       }
+      }
     }
   }
 
@@ -53,5 +62,24 @@ class CredentialsReportJob(enabled: Boolean, cacheService: CacheService)(executi
 
   def findMissingMfa(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
     credsReport.copy(humanUsers = credsReport.humanUsers.filterNot(_.hasMFA))
+  }
+
+  private def outdatedKeysInfo(outdatedKeys: CredentialReportDisplay): Seq[UserWithOutdatedKeys] = {
+    outdatedKeys.humanUsers.map{ user =>
+      UserWithOutdatedKeys(
+        user.username,
+        user.key1.lastRotated,
+        user.key2.lastRotated,
+        user.lastActivityDay
+      )
+    }
+  }
+  private def missingMfaInfo(missingMfa: CredentialReportDisplay): Seq[UserNoMfa] = {
+    missingMfa.humanUsers.map{ user =>
+      UserNoMfa(
+        user.username,
+        user.lastActivityDay
+      )
+    }
   }
 }

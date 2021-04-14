@@ -97,9 +97,9 @@ class AppComponents(context: Context)
   private val s3Clients = AWS.s3Clients(configuration)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
+  private val snsClients = AWS.snsClients(configuration)
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-
 
   private val cacheService = new CacheService(
     configuration,
