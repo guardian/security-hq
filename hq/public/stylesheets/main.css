@@ -402,12 +402,11 @@ table.iam-report__table th {
 .gcp-report__table th {
   min-height: 21px;
   box-sizing: initial;
-  word-wrap: break-word;
 }
 
 .gcp-report__table {
   table-layout: fixed;
-  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .gcp-table-row-severity {
