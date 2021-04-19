@@ -98,7 +98,8 @@ class CacheService(
       allCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, iamClients, regions)
     } yield {
       logger.info("Sending the refreshed data to the Credentials Box")
-      credentialsBox.send(allCredentialReports.toMap)
+      if(! allCredentialReports.exists(_._2.isLeft))
+        credentialsBox.send(allCredentialReports.toMap)
     }
   }
 
