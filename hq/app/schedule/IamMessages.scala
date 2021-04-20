@@ -11,7 +11,7 @@ object IamMessages {
   val missingMfaMessage: String = "Please add multi-factor authentication to the following AWS IAM users:"
   val boilerPlateText: String =
     """
-      |If you have any questions, please contact the Developer Experience team: devx@guardian.co.uk.
+      |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
       |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/)
       |""".stripMargin
 

@@ -3,14 +3,13 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.Notification
 import model._
 import play.api.Logging
-import schedule.IamNotifier.send
 import schedule.IamAudit.makeCredentialsNotification
+import schedule.IamNotifier.send
 import schedule.{CronSchedules, JobRunner}
 import services.CacheService
 import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
-import scala.util.control.ControlThrowable
 
 class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClients[AmazonSNSAsync])(executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
@@ -31,10 +30,10 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClient
       makeCredentialsNotification(getCredsReport(cacheService)).foreach{ result: Either[FailedAttempt, Notification] =>
         result match {
           case Left(error) =>
-            error.failures.foreach(e =>
-              //TODO: how can i manage the option throwable?
-              logger.error(s"failed to collect credentials report for IAM notifier: ${e.friendlyMessage}", e.throwable.getOrElse(throw new Throwable))
-            )
+            error.failures.foreach { failure =>
+              val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
+              failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
+            }
           case Right(email) =>
             send(email, topicArn, snsClient.client)(executionContext)
             logger.info(s"Completed scheduled job: $description")

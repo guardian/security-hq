@@ -1,6 +1,7 @@
 package schedule
 
 import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
+import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
 import schedule.IamMessages.createMessage
@@ -20,17 +21,18 @@ object IamAudit {
   }
 
   def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
-    val filteredMachines = credsReport.machineUsers.filter(user => hasOutdatedKey(List(user.key1, user.key2)))
-    val filteredHumans = credsReport.humanUsers.filter(user => hasOutdatedKey(List(user.key1, user.key2)))
+    val filteredMachines = credsReport.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2)))
+    val filteredHumans = credsReport.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2)))
     credsReport.copy(machineUsers = filteredMachines, humanUsers = filteredHumans)
   }
 
-  def hasOutdatedKey(keys: List[AccessKey]): Boolean = keys.exists(key => DateUtils.dayDiff(key.lastRotated).getOrElse(1L) > 90L)
+  def hasOutdatedHumanKey(keys: List[AccessKey]): Boolean = keys.exists(key => DateUtils.dayDiff(key.lastRotated).getOrElse(1L) > iamHumanUserRotationCadence)
+  def hasOutdatedMachineKey(keys: List[AccessKey]): Boolean = keys.exists(key => DateUtils.dayDiff(key.lastRotated).getOrElse(1L) > iamMachineUserRotationCadence)
 
   def findMissingMfa(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
-    val filteredMachines = credsReport.machineUsers.filterNot(_.username == "")
+    val removeMachineUsers = credsReport.machineUsers.filterNot(_.username == "")
     val filteredHumans = credsReport.humanUsers.filterNot(_.hasMFA)
-    credsReport.copy(machineUsers = filteredMachines, humanUsers = filteredHumans)
+    credsReport.copy(machineUsers = removeMachineUsers, humanUsers = filteredHumans)
   }
 
   def outdatedKeysInfo(outdatedKeys: CredentialReportDisplay): Seq[UserWithOutdatedKeys] = {
