@@ -2,10 +2,17 @@
 @import model._
 @import logic.CredentialsReportDisplay
 @(report: CredentialReportDisplay)
-
+@message = @{s"Report generated at ${DateUtils.printTime(report.reportDate)} (refreshed every four hours)"}
+@warning = @{". Warning: this data is over a day old."}
 <div class="row">
     <div class="card-panel">
-        <span>Report generated at @{DateUtils.printTime(report.reportDate)} (refreshed every four hours)</span>
+        <span>
+        @if(DateUtils.dayDiff(report.reportDate) > 0) {
+            @{message + warning}
+        } else {
+            @{message}
+        }
+        </span>
     </div>
 </div>
 <div class="row">
