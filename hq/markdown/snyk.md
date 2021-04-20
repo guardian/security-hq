@@ -190,4 +190,5 @@ rather than simply moving to the latest minor version of the jackson databind li
 this via an AWS SDK upgrade and you have to override the dependency. 
 
 For now, our recommendation is to *focus on other Snyk issues first*. For further info on this, there's a helpful thread
-on google chat [here](https://chat.google.com/room/AAAAFug03y8/3p2y42sYhMc). 
+on google chat [here](https://chat.google.com/room/AAAAFug03y8/3p2y42sYhMc) and an in depth blog post about the issue
+[here](https://cowtowncoder.medium.com/on-jackson-cves-dont-panic-here-is-what-you-need-to-know-54cd0d6e8062#da96).
