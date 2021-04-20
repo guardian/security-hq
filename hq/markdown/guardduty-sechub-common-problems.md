@@ -57,6 +57,18 @@ A quick test to see how painful this change will be is to search for usages of `
 If you are using AWS CDK you (may) need to wait before you can fix this feature - there's an issue tracking this 
 [here](https://github.com/aws/aws-cdk/issues/5137)
 
+## Instances should not have a public IPv4 address
+This will occur in cases where you have EC2 instances in the public section of your VPC. Often this is because when the VPC
+was set up, only public subnets were created. You can check the subnets of your VPC in the [AWS console](https://eu-west-1.console.aws.amazon.com/vpc/home?region=eu-west-1#subnets:).
+To determine whether a subnet is public or private you can check the route table. If there is an entry where all traffic 
+(typically 0.0.0.0/0) is directed to an 'internet gateway' (typically igw-12345) then it is a *public subnet*. If there is
+no internet gateway entry then it is a private subnet.
+
+If you only have private subnets in your VPC then you won't be able to resolve this issue. You'll either need to add
+private subnets to your VPC if there's space or move to a new VPC with private subnets. Both tasks will likely require
+several weeks of work. Joe Smith did a great tech time on this issue. The slides are [here](https://docs.google.com/presentation/d/1_YfLuAfKULplBBP8Ugs9IYxrKwWLtL9JsBICBoVqn4c/edit#slide=id.g5c86dc83d4_0_81)
+, video [here](https://drive.google.com/file/d/1AP_fN2i9S0ssocETOBtJXl_oCZ2XY_zM/view).
+
 # AWS GuardDuty Common Issues
 Right now, we don't have any of these to suggest remediation for. Please get in contact with DevX if you're unsure about
 something GuardDuty has flagged up
