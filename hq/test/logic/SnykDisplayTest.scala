@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
 
-  private def readFile(filename:String) = Source.fromResource(s"logic/SnykDisplayTest/$filename.json").getLines.mkString
+  private def readFile(filename:String) = Source.fromResource(s"logic/SnykDisplayTestResources/$filename.json").getLines.mkString
 
   private val mockBadResponseWithMessage = readFile("badResponseWithMessage")
   private val mockBadResponseWithoutMessage = readFile("badResponseWithoutMessage")
