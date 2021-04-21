@@ -51,6 +51,9 @@ Parameters:
   InstanceType:
     Type: String
     Description: AWS instance type (e.g. t4g.large)
+  TopicARN:
+    Type: String
+    Description: ARN for Anghammarad's SNS topic
 
 Mappings:
   Constants:
@@ -70,6 +73,19 @@ Resources:
           - Effect: Allow
             Action: sts:AssumeRole
             Resource: !Ref "LoggingRoleToAssumeArn"
+      Roles:
+        - !Ref SecurityHQInstanceRole
+
+  SnsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: SnsPublish
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sns:Publish
+            Resource: !Ref TopicARN
       Roles:
         - !Ref SecurityHQInstanceRole
 

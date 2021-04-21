@@ -1,8 +1,9 @@
 import aws.AwsClients
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.Notification
+import config.Config.getAnghammaradSNSTopicArn
 import model._
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import schedule.IamAudit.makeCredentialsNotification
 import schedule.IamNotifier.send
 import schedule.{CronSchedules, JobRunner}
@@ -11,11 +12,11 @@ import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClients[AmazonSNSAsync])(executionContext: ExecutionContext) extends JobRunner with Logging {
+class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClients[AmazonSNSAsync], config: Configuration)(executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated emails for old permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.onceADayAt1am
-  val topicArn: String = ??? //TODO retrieve from config
+  val topicArn: String = getAnghammaradSNSTopicArn(config).getOrElse("") //TODO in the event that it is a None, what should we do?
 
   def run(): Unit = {
     if (!enabled) {
