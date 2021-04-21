@@ -1,27 +1,32 @@
 package logic
 
-import com.google.cloud.securitycenter.v1.{ListFindingsRequest, OrganizationName, SecurityCenterClient, SourceName}
+import com.google.cloud.securitycenter.v1.Finding.Severity
+import com.google.cloud.securitycenter.v1.SecurityCenterClient.ListFindingsPagedResponse
+import com.google.cloud.securitycenter.v1.{Finding, ListFindingsRequest, OrganizationName, SecurityCenterClient, SourceName}
 import com.google.protobuf.Value
 import config.Config
 import model.GcpFinding
 import org.joda.time.DateTime
-import play.api.Configuration
+import play.api.{Configuration, Logging}
 import utils.attempt.Attempt
 
 import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.util.matching.Regex
 
-object GcpDisplay {
+object GcpDisplay extends Logging {
   val dateTimePattern = "dd/MM/yy"
 
   def getGcpFindings(org: OrganizationName, client: SecurityCenterClient, config: Configuration): Attempt[List[GcpFinding]] = {
     Attempt.Right {
-      callGcpApi(org, client, config).iterateAll.iterator.asScala.toList.map{  result =>
-        val finding = result.getFinding
+      val gcpPagedResponse: ListFindingsPagedResponse = callGcpApi(org, client, config)
+      val allSccData = gcpPagedResponse.iterateAll().iterator().asScala.toList
+      logger.info(s"Gathered all GCP response data, total findings: ${allSccData.length}")
+      allSccData.map{  result =>
+        val finding: Finding = result.getFinding
         GcpFinding(
           getProjectNameFromUri(finding.getExternalUri).getOrElse("unknown"),
           finding.getCategory,
-          getSeverity(finding.getSourcePropertiesOrDefault("SeverityLevel", Value.newBuilder.build).getStringValue),
+          finding.getSeverity,
           new DateTime(finding.getEventTime.getSeconds * 1000),
           Option(finding.getSourcePropertiesOrDefault("Explanation", Value.newBuilder.build).getStringValue),
           Option(finding.getSourcePropertiesOrDefault("Recommendation", Value.newBuilder.build).getStringValue)
@@ -33,12 +38,15 @@ object GcpDisplay {
   def callGcpApi(org: OrganizationName, client: SecurityCenterClient, config: Configuration): SecurityCenterClient.ListFindingsPagedResponse = {
       val source = Config.gcpSccAuthentication(config).sourceId
       val sourceName: SourceName = SourceName.of(org.getOrganization, source)
-      val filter = """-sourceProperties.ResourcePath : "projects/sys-"""" //TODO remove org level findings
-      val request: ListFindingsRequest.Builder = ListFindingsRequest.newBuilder.setParent(sourceName.toString).setFilter(filter)
+      val filter = """state = "ACTIVE" AND -sourceProperties.ResourcePath : "projects/sys-""""
+      val request: ListFindingsRequest.Builder = ListFindingsRequest.newBuilder
+        .setParent(sourceName.toString)
+        .setFilter(filter)
+        .setPageSize(1000)
       client.listFindings(request.build)
     }
 
-  val severities = List("High", "Medium", "Low", "Unknown")
+  val severities = List(Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.UNRECOGNIZED)
   def sortFindings(findings: List[GcpFinding]): List[GcpFinding] = findings.sortBy{ finding =>
     val severity = severities.indexOf(finding.severity)
       val date = finding.eventTime.getMillis
@@ -49,8 +57,6 @@ object GcpDisplay {
       val regexPattern = new Regex("""(?<=project=).*""")
       regexPattern.findFirstIn(uri)
     }
-
-  def getSeverity(severityLevel: String): String = if (severityLevel == "") "Unknown" else severityLevel
 
   def preview(s: String, n: Int): String = {
     if (s.length <= n) s else s.take(s.lastIndexWhere(_.isSpaceChar, n + 1)).trim

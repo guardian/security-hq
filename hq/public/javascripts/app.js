@@ -51,6 +51,9 @@ $(document).ready(function() {
       : $('.finding-unencrypted').hide();
   });
   $('.js-finding-filter-for-gcp').change(function() {
+    $('#show-critical-findings')[0].checked
+        ? $('.finding-critical').show()
+        : $('.finding-critical').hide();
     $('#show-high-findings')[0].checked
         ? $('.finding-high').show()
         : $('.finding-high').hide();

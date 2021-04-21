@@ -4,6 +4,7 @@
 @import controllers.AssetsFinder
 @import logic.GcpDisplay
 @import model.GcpFinding
+@import com.google.cloud.securitycenter.v1.Finding.Severity
 @(report: GcpReport)(implicit assets: AssetsFinder)
 
 @floatingNav() = {
@@ -44,11 +45,14 @@
         <div class="row flow-text">
             <h3>GCP Security Findings</h3>
             <p>Security Command Centre's findings display possible security risks for your GCP resources.</p>
+            <i class="material-icons red-text text-darken-4">error</i>
         </div>
 
         <div class="row">
             <div class="card-panel valign-wrapper">
                 <form class="finding-filter" action="#">
+                    <input class="js-finding-filter-for-gcp" type="checkbox" id="show-critical-findings" checked="checked" />
+                    <label class="black-text finding-filter__label" for="show-critical-findings">Critical</label>
                     <input class="js-finding-filter-for-gcp" type="checkbox" id="show-high-findings" checked="checked" />
                     <label class="black-text finding-filter__label" for="show-high-findings">High</label>
                     <input class="js-finding-filter-for-gcp" type="checkbox" id="show-medium-findings" checked="checked" />
@@ -68,20 +72,24 @@
                     <div class="collapsible-header" tabindex="22">
                     <i class="material-icons">keyboard_arrow_down</i>
                     <span class="iam-header__name">@projectName</span>
-                        @if(findings.exists(_.severity == "High")) {
-                            <span class="icon-count">@findings.count(_.severity == "High")</span>
+                        @if(findings.exists(_.severity == Severity.CRITICAL)) {
+                            <span class="icon-count">@findings.count(_.severity == Severity.CRITICAL)</span>
+                            <i class="material-icons red-text text-darken-4">error</i>
+                        }
+                        @if(findings.exists(_.severity == Severity.HIGH)) {
+                            <span class="icon-count">@findings.count(_.severity == Severity.HIGH)</span>
                             <i class="material-icons red-text">error</i>
                         }
-                        @if(findings.exists(_.severity == "Medium")) {
-                            <span class="icon-count">@findings.count(_.severity == "Medium")</span>
+                        @if(findings.exists(_.severity == Severity.MEDIUM)) {
+                            <span class="icon-count">@findings.count(_.severity == Severity.MEDIUM)</span>
                             <i class="material-icons orange-text">warning</i>
                         }
-                        @if(findings.exists(_.severity == "Low")) {
-                            <span class="icon-count">@findings.count(_.severity == "Low")</span>
+                        @if(findings.exists(_.severity == Severity.LOW)) {
+                            <span class="icon-count">@findings.count(_.severity == Severity.LOW)</span>
                             <i class="material-icons yellow-text">priority_high</i>
                         }
-                        @if(findings.exists(_.severity == "Unknown")) {
-                            <span class="icon-count">@findings.count(_.severity == "Unknown")</span>
+                        @if(findings.exists(_.severity == Severity.SEVERITY_UNSPECIFIED)) {
+                            <span class="icon-count">@findings.count(_.severity == Severity.SEVERITY_UNSPECIFIED)</span>
                             <i class="material-icons grey-text">not_listed_location</i>
                         }
                     </div>

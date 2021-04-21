@@ -2,6 +2,7 @@ package model
 
 import com.amazonaws.regions.Region
 import com.google.cloud.securitycenter.v1.Finding
+import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.google.protobuf.{Timestamp, Value}
 import org.joda.time.DateTime
 
@@ -202,7 +203,7 @@ case class GcpReport(reportDate: DateTime, finding: Map[String, Seq[GcpFinding]]
 case class GcpFinding(
   project: String,
   category: String,
-  severity: String,
+  severity: Severity,
   eventTime: DateTime,
   explanation: Option[String],
   recommendation: Option[String]
