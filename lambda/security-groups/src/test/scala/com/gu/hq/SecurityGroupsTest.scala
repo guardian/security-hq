@@ -73,6 +73,26 @@ class SecurityGroupsTest extends FreeSpec with Matchers {
     }
   }
 
+  "isExactlyHttps" - {
+    "returns true for a SecurityGroup with an HTTPS (443) port range exactly" in {
+      val openPermissions = List(
+        IpPermission("tcp", Some(443), Some(443), Nil, Nil, Nil)
+      )
+      val sg = SGConfiguration("owner", "security-group", "sg-01234", "Test SecurityGroup", openPermissions, Nil, "vpc-id", Nil)
+
+      SecurityGroups.isExactlyHttps(sg) shouldEqual true
+    }
+
+    "returns false for a SecurityGroup with a port range that includes HTTPS (443)" in {
+      val openPermissions = List(
+        IpPermission("tcp", Some(22), Some(443), Nil, Nil, Nil)
+      )
+      val sg = SGConfiguration("owner", "security-group", "sg-01234", "Test SecurityGroup", openPermissions, Nil, "vpc-id", Nil)
+
+      SecurityGroups.isExactlyHttps(sg) shouldEqual false
+    }
+  }
+
   private def elbWithSg(sgIds: String *): LoadBalancerDescription = {
     val elb = new LoadBalancerDescription()
     elb.withSecurityGroups(sgIds:_*)

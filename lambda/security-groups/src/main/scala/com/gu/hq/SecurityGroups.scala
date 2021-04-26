@@ -17,12 +17,19 @@ object SecurityGroups {
     elbSGs.contains(sgConfiguration.groupId)
   }
 
+  private[hq] def isExactlyHttps(sGConfiguration: SGConfiguration): Boolean = {
+    sGConfiguration.ipPermissions.exists(ipPermission => {
+      ipPermission.fromPort.contains(443) && ipPermission.toPort.contains(443)
+    })
+  }
+
   def status(sgConfiguration: SGConfiguration, loadBalancers: DescribeLoadBalancersResult): SgStatus = {
     val open = openToWorld(sgConfiguration)
     val elbSg = attachedToElb(sgConfiguration, loadBalancers)
+    val exactlyHttps = isExactlyHttps(sgConfiguration)
 
-    if (open && elbSg) OpenELB
-    else if (open) Open
+    if (open && elbSg && !exactlyHttps) OpenELB
+    else if (open && !exactlyHttps) Open
     else NotOpen
   }
 
