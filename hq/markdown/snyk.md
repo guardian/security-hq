@@ -179,3 +179,16 @@ When reviewing previously accepted risks, it would be prudent to examine how lon
 If a problem is not fairly new, and still looks unlikely to be resolved, then reconsider both the _risk_ of exploitation and
 the _cost_ of exploitation before deciding whether to continue extending an exemption.  It may now be
 appropriate to consider alternatives.
+
+## Common Vulnerabilities
+
+## Deserialization of Untrusted Data: Jackson Databind
+At the time of writing, this vulnerability makes up 74% of our 'high severity' vulnerabilities in Snyk. In the majority
+of cases this library is imported as a transitive dependency to our projects rather than being used directly - typically
+by the AWS SDK. This makes fixing it more challenging than you might expect, because it requires and AWS SDK upgrade 
+rather than simply moving to the latest minor version of the jackson databind library. In some cases it's not possible to fix
+this via an AWS SDK upgrade and you have to override the dependency. 
+
+For now, our recommendation is to *focus on other Snyk issues first*. For further info on this, there's a helpful thread
+on google chat [here](https://chat.google.com/room/AAAAFug03y8/3p2y42sYhMc) and an in depth blog post about the issue
+[here](https://cowtowncoder.medium.com/on-jackson-cves-dont-panic-here-is-what-you-need-to-know-54cd0d6e8062#da96).
