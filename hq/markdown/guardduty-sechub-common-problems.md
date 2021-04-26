@@ -64,7 +64,7 @@ To determine whether a subnet is public or private you can check the route table
 (typically 0.0.0.0/0) is directed to an 'internet gateway' (typically igw-12345) then it is a *public subnet*. If there is
 no internet gateway entry then it is a private subnet.
 
-If you only have private subnets in your VPC then you won't be able to resolve this issue. You'll either need to add
+If you only have public subnets in your VPC then you won't be able to resolve this issue. You'll either need to add
 private subnets to your VPC if there's space or move to a new VPC with private subnets. Both tasks will likely require
 several weeks of work. Joe Smith did a great tech time on this issue. The slides are [here](https://docs.google.com/presentation/d/1_YfLuAfKULplBBP8Ugs9IYxrKwWLtL9JsBICBoVqn4c/edit#slide=id.g5c86dc83d4_0_81)
 , video [here](https://drive.google.com/file/d/1AP_fN2i9S0ssocETOBtJXl_oCZ2XY_zM/view).
