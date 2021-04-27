@@ -16,7 +16,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClient
   override val id = "credentials report job"
   override val description = "Automated emails for old permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.firstMondayOfEveryMonth
-  val topicArn: String = getAnghammaradSNSTopicArn(config).getOrElse("") //TODO in the event that it is a None, what should we do?
+  val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
 
   def run(): Unit = {
     if (!enabled) {
@@ -37,7 +37,6 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClient
             }
           case Right(email) =>
             send(email, topicArn, snsClient.client)(executionContext)
-            logger.info(s"Completed scheduled job: $description")
         }
       }
     }
