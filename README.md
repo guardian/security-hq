@@ -58,9 +58,9 @@ Both of these files can be found in the Security AWS account in S3 here `s3://se
 To access the Security AWS account you will need to raise a PR in [Janus](https://github.com/guardian/janus/blob/main/guData/src/main/scala/com/gu/janus/data/Access.scala) 
 to get access to the Security account (`Security.dev` should be appropriate).
 
-Once you have credentials you can copy the files from S3 by using the `aws s3 cp` command (do this whilst in your `~/ .gu` directory). For example, 
+Once you have Janus credentials for the AWS Security account, you can copy the files from S3 by using the following:
 ```
- aws s3 cp s3://security-dist/security/PROD/security-hq/security-hq.local.conf ./ --profile security
+ aws s3 cp s3://security-dist/security/PROD/security-hq/security-hq.local.conf ~/.gu --profile security
 ```
 
 ### Adding additional AWS accounts for local development
