@@ -11,6 +11,7 @@ import config.Config
 import controllers._
 import filters.HstsFilter
 import model.AwsAccount
+import org.quartz.impl.StdSchedulerFactory
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -19,6 +20,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
+import schedule.JobScheduler
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -135,4 +137,10 @@ class AppComponents(context: Context)
     assets,
     new GcpController(configuration, googleAuthConfig, cacheService)
   )
+
+  //initialise IAM notification service
+  val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
+  val iamJob = new IamJob(true, cacheService, snsClients, configuration)(executionContext)
+  val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
+  jobScheduler.initialise()
 }

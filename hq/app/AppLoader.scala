@@ -3,6 +3,8 @@ import logging.LogConfig
 import play.api.ApplicationLoader.Context
 import play.api.{Application, ApplicationLoader}
 
+import scala.concurrent.Future
+
 
 class AppLoader extends ApplicationLoader {
   override def load(context: Context): Application = {
@@ -15,6 +17,14 @@ class AppLoader extends ApplicationLoader {
     LogConfig.initRemoteLogShipping(loggingConfig)
     LogConfig.initLocalLogShipping(loggingConfig)
 
-    new AppComponents(context).application
+    val components = new AppComponents(context)
+
+    components.quartzScheduler.start()
+
+    components.applicationLifecycle.addStopHook { () =>
+      Future.successful(components.quartzScheduler.shutdown())
+    }
+
+    components.application
   }
 }
