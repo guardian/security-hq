@@ -116,7 +116,7 @@ class IamAuditTest extends FreeSpec with Matchers {
       val notification: Notification = Notification(
         "Action required - old AWS credentials and/or credentials missing MFA",
         """
-          |Please rotate the following AWS IAM access keys as they are over 90 days old and therefore pose a security risk:
+          |Please rotate the following AWS IAM access keys:
           |
           |Username: machine user B
           |Key 1 last rotation: 12/12/2019
@@ -141,8 +141,10 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Last active: 365 days ago
           |
           |
+          |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
+          |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/)
           |
           |""".stripMargin,
         List.empty,
@@ -171,7 +173,7 @@ class IamAuditTest extends FreeSpec with Matchers {
       val notification: Notification = Notification(
         "Action required - old AWS credentials and/or credentials missing MFA",
         """
-          |Please rotate the following AWS IAM access keys as they are over 90 days old and therefore pose a security risk:
+          |Please rotate the following AWS IAM access keys:
           |
           |Username: machine user B
           |Key 1 last rotation: 12/12/2018
@@ -191,8 +193,10 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Last active: 150 days ago
           |
           |
+          |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
+          |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/)
           |
           |""".stripMargin,
         List.empty,
@@ -227,8 +231,10 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Last active: 150 days ago
           |
           |
+          |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
+          |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/)
           |
           |""".stripMargin,
         List.empty,

@@ -111,4 +111,6 @@ object Config {
   def getSnykSSOUrl(config: Configuration): Option[String] = {
     config.getOptional[String]("snykSSOUrl")
   }
+
+  def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("anghammaradSnsArn")
 }

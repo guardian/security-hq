@@ -20,15 +20,19 @@ object IamNotifier extends Logging {
 
   def send(
     notification: Notification,
-    topicArn: String,
+    topicArn: Option[String],
     snsClient: AmazonSNSAsync)(implicit executionContext: ExecutionContext): Unit = {
-    val response = Anghammarad.notify(notification, topicArn, snsClient)
-    try {
-      val id = Await.result(response, 5.seconds)
-      logger.info(s"Sent notification to ${notification.target}: $id")
-    } catch {
-      case NonFatal(err) =>
-        logger.error("Failed to send notification", err)
+    topicArn match {
+      case Some(arn) =>
+        val response = Anghammarad.notify(notification, arn, snsClient)
+        try {
+          val id = response.foreach(id => logger.info(s"Sent notification to ${notification.target}: $id"))
+        } catch {
+          case NonFatal(err) =>
+            logger.error("Failed to send notification", err)
+        }
+      case None => logger.error("Failed to send notification: no SNS topic provided")
     }
+
   }
 }
