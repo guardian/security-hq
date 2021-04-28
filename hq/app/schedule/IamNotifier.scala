@@ -26,8 +26,7 @@ object IamNotifier extends Logging {
       case Some(arn) =>
         val response = Anghammarad.notify(notification, arn, snsClient)
         try {
-          val id = Await.result(response, 5.seconds)
-          logger.info(s"Sent notification to ${notification.target}: $id")
+          val id = response.foreach(id => logger.info(s"Sent notification to ${notification.target}: $id"))
         } catch {
           case NonFatal(err) =>
             logger.error("Failed to send notification", err)

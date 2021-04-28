@@ -140,7 +140,7 @@ class AppComponents(context: Context)
 
   //initialise IAM notification service
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val iamJob = new IamJob(true, cacheService, snsClients, configuration)(executionContext)
+  val iamJob = new IamJob(enabled = true, cacheService, snsClients, configuration)(executionContext)
   val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
   jobScheduler.initialise()
 }
