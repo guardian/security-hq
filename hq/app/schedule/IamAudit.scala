@@ -1,6 +1,6 @@
 package schedule
 
-import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
+import com.gu.anghammarad.models.{Notification, Target, AwsAccount => Account}
 import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
@@ -9,13 +9,39 @@ import schedule.IamNotifier.createNotification
 import utils.attempt.FailedAttempt
 
 object IamAudit {
-  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]):List[Either[FailedAttempt, Notification]] = {
+  /**
+    * Takes users with outdated keys/missing mfa and groups them based off the stack/stage/app tags of the users.
+    * Produce a group containing the two groups of users (outdated keys/missing mfa) and a list of Anghammarad Targets
+    * for alerts about those userss to be sent to
+    * @param outdatedKeys
+    * @param missingMfa
+    * @return
+    */
+  def getNotificationTargetGroups(outdatedKeys: Seq[UserWithOutdatedKeys], missingMfa: Seq[UserNoMfa]): Seq[IAMAlertTargetGroup] = {
+    val outdatedKeysGroups = outdatedKeys.groupBy(u => Tag.tagsToSSAID(u.tags))
+    val missingMfaGroups = missingMfa.groupBy(u => Tag.tagsToSSAID(u.tags))
+
+    // merge groups into IAMAlertTargetGroup seq
+    outdatedKeysGroups.toSeq.map {
+      case (ssaString, user) =>
+        // assume that within a group all tags are the same. Use first element of the group to generate tags
+        val targets = user.headOption.map(k => Tag.tagsToAnghammaradTargets(k.tags)).getOrElse(List())
+        // check missingMfaGroup for users with matching tags
+        val missingMfaUsers = missingMfaGroups.getOrElse(ssaString, Seq())
+        IAMAlertTargetGroup(targets, user, missingMfaUsers)
+    }
+  }
+
+  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]):List[Either[FailedAttempt, Seq[Notification]]] = {
     allCreds.toList.map { case (awsAccount, eFCreds) =>
       eFCreds.map { credsReport =>
         val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
         val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
-        val message = createMessage(outdatedKeys, missingMfa)
-        createNotification(Account(awsAccount.id), message)
+
+        val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
+        targetGroups.map { tg =>
+            val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers)
+            createNotification(tg.targets :+ Account(awsAccount.id), message)
       }
     }
   }
@@ -41,7 +67,8 @@ object IamAudit {
         user.username,
         user.key1.lastRotated,
         user.key2.lastRotated,
-        user.lastActivityDay
+        user.lastActivityDay,
+        user.tags
       )
     }
     val humans = outdatedKeys.humanUsers.map { user =>
@@ -49,7 +76,8 @@ object IamAudit {
         user.username,
         user.key1.lastRotated,
         user.key2.lastRotated,
-        user.lastActivityDay
+        user.lastActivityDay,
+        user.tags
       )
     }
     machines ++ humans
@@ -59,7 +87,8 @@ object IamAudit {
     missingMfa.humanUsers.map { user =>
       UserNoMfa(
         user.username,
-        user.lastActivityDay
+        user.lastActivityDay,
+        user.tags
       )
     }
   }

@@ -20,7 +20,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.JobScheduler
+import schedule.{IamJob, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 

@@ -1,3 +1,5 @@
+package schedule
+
 import aws.AwsClients
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.Notification
@@ -28,15 +30,17 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClient
     for {
       snsClient <- snsClients
     } yield {
-      makeCredentialsNotification(getCredsReport(cacheService)).foreach{ result: Either[FailedAttempt, Notification] =>
+      makeCredentialsNotification(getCredsReport(cacheService)).foreach{ result: Either[FailedAttempt, Seq[Notification]] =>
         result match {
           case Left(error) =>
             error.failures.foreach { failure =>
               val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
               failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
             }
-          case Right(email) =>
-            send(email, topicArn, snsClient.client)(executionContext)
+          case Right(notifications) =>
+            notifications.foreach { notification =>
+              send(notification, topicArn, snsClient.client)(executionContext)
+            }
         }
       }
     }

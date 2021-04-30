@@ -1,10 +1,10 @@
 package model
 
 import com.amazonaws.regions.Region
-import com.google.cloud.securitycenter.v1.Finding
 import com.google.cloud.securitycenter.v1.Finding.Severity
-import com.google.protobuf.{Timestamp, Value}
 import org.joda.time.DateTime
+import com.gu.anghammarad.models.{App, Stack, Stage, Target}
+
 
 case class AwsAccount(
   id: String,
@@ -158,6 +158,27 @@ object Amber extends ReportStatus
 object Blue extends ReportStatus
 
 case class Tag(key: String, value: String)
+object Tag {
+
+  def findAnghammaradTarget(key: String, toTarget: String => Target, tags: List[Tag]): Option[Target] = {
+    val value = tags.find(_.key.toLowerCase() == key.toLowerCase()).map(_.value)
+    value.map(toTarget)
+  }
+
+  def tagsToAnghammaradTargets(tags: List[Tag]): List[Target] = {
+    List (
+      findAnghammaradTarget("stack", Stack, tags),
+      findAnghammaradTarget("stage", Stage, tags),
+      findAnghammaradTarget("app", App, tags),
+    ).flatten
+  }
+
+  def tagsToSSAID(tags: List[Tag]): String = {
+    val ssaTags = tags.filter(t => List("stack", "stage", "app").contains(t.key.toLowerCase))
+    ssaTags.sortBy(_.key).map(_.value).mkString("-")
+  }
+}
+
 
 trait IAMUser
 
@@ -221,6 +242,11 @@ case class GcpSccConfig(orgId: String, sourceId: String)
 
 case class CronSchedule(cron: String, description: String)
 
-case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long])
-case class UserNoMfa(username: String, userLastActiveDay: Option[Long])
+trait IAMAlert {
+  def username: String
+  def tags: List[Tag]
+}
+case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
+case class UserNoMfa(username: String, userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
 
+case class IAMAlertTargetGroup(targets: List[Target], outdatedKeysUsers: Seq[UserWithOutdatedKeys], noMfaUsers: Seq[UserNoMfa])

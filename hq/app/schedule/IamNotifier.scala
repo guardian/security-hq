@@ -14,8 +14,8 @@ import scala.util.control.NonFatal
 object IamNotifier extends Logging {
   val channel = Preferred(Email)
 
-  def createNotification(awsAccount: Target, message: String): Notification = {
-    Notification(subject, message, List.empty, List(awsAccount), channel, sourceSystem)
+  def createNotification(targets: List[Target], message: String): Notification = {
+    Notification(subject, message, List.empty, targets, channel, sourceSystem)
   }
 
   def send(
