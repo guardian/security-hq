@@ -55,7 +55,8 @@ case class IAMCredential(
   cert1Active: Boolean,
   cert1LastRotated: Option[DateTime],
   cert2Active: Boolean,
-  cert2LastRotated: Option[DateTime]
+  cert2LastRotated: Option[DateTime],
+  tags: List[Tag] = List()
                         ) {
   val rootUser = user == "<root_account>"
 }
@@ -156,6 +157,10 @@ object Green extends ReportStatus
 object Amber extends ReportStatus
 object Blue extends ReportStatus
 
+case class Tag(key: String, value: String)
+
+trait IAMUser
+
 case class HumanUser(
   username: String,
   hasMFA : Boolean,
@@ -163,16 +168,19 @@ case class HumanUser(
   key2: AccessKey,
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long],
-  stack: Option[AwsStack]
-)
+  stack: Option[AwsStack],
+  tags: List[Tag]
+) extends IAMUser
+
 case class MachineUser(
   username: String,
   key1: AccessKey,
   key2: AccessKey,
   reportStatus: ReportStatus,
   lastActivityDay: Option[Long],
-  stack: Option[AwsStack]
-)
+  stack: Option[AwsStack],
+  tags: List[Tag]
+) extends IAMUser
 
 case class SnykToken(value: String) extends AnyVal
 

@@ -6,14 +6,15 @@ import aws.{AwsClient, AwsClients}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest}
+import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListUserTagsRequest}
 import logic.{CredentialsReportDisplay, Retry}
-import model.{AwsAccount, CredentialReportDisplay, IAMCredentialsReport}
 import org.joda.time.DateTime
+import model.{AwsAccount, CredentialReportDisplay, IAMCredential, IAMCredentialsReport, Tag}
 import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 
 object IAMClient {
@@ -30,6 +31,20 @@ object IAMClient {
     handleAWSErrs(client)(awsToScala(client)(_.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
+  private def enrichCredentialWithTags(credential: IAMCredential, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext) = {
+    val request = new ListUserTagsRequest().withUserName(credential.user)
+    val result = awsToScala(client)(_.listUserTagsAsync)(request)
+    result.map { tagsResult =>
+      val tagsList = tagsResult.getTags.asScala.toList.map(t => Tag(t.getKey, t.getValue))
+      credential.copy(tags = tagsList)
+    }
+  }
+
+  private def getCredentialTags(report: IAMCredentialsReport, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
+    val updatedEntries = handleAWSErrs(client)(Future.sequence(report.entries.map(e => enrichCredentialWithTags(e, client))))
+    updatedEntries.map(e => report.copy(entries = e))
+  }
+
   def getCredentialReportDisplay(
     account: AwsAccount,
     currentData: Either[FailedAttempt, CredentialReportDisplay],
@@ -39,17 +54,16 @@ object IAMClient {
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val now = DateTime.now()
-
+    
     if(CredentialsReport.credentialsReportReadyForRefresh(currentData, now))
       for {
         client <- iamClients.get(account, SOLE_REGION)
         _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
         report <- getCredentialsReport(client)
         stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
-        enrichedReport = CredentialsReport.enrichReportWithStackDetails(report, stacks)
-      } yield {
-        CredentialsReportDisplay.toCredentialReportDisplay(enrichedReport)
-      }
+        reportWithTags <- getCredentialTags(report, client)
+        reportWithStacks = CredentialsReport.enrichReportWithStackDetails(reportWithTags, stacks)
+      } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithStacks)
     else
       Attempt.fromEither(currentData)
   }
