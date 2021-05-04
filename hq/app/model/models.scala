@@ -3,7 +3,7 @@ package model
 import com.amazonaws.regions.Region
 import com.google.cloud.securitycenter.v1.Finding.Severity
 import org.joda.time.DateTime
-import com.gu.anghammarad.models.{App, Stack, Stage, Target}
+import com.gu.anghammarad.models.{App, Stack, Stage => AnghammaradStage, Target}
 
 
 case class AwsAccount(
@@ -168,7 +168,7 @@ object Tag {
   def tagsToAnghammaradTargets(tags: List[Tag]): List[Target] = {
     List (
       findAnghammaradTarget("stack", Stack, tags),
-      findAnghammaradTarget("stage", Stage, tags),
+      findAnghammaradTarget("stage", AnghammaradStage, tags),
       findAnghammaradTarget("app", App, tags),
     ).flatten
   }

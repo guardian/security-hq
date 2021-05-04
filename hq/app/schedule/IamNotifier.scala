@@ -6,8 +6,7 @@ import com.gu.anghammarad.models.{Email, Notification, Preferred, Target}
 import play.api.Logging
 import schedule.IamMessages.{sourceSystem, subject}
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 

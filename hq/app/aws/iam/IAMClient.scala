@@ -54,7 +54,7 @@ object IAMClient {
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val now = DateTime.now()
-    
+
     if(CredentialsReport.credentialsReportReadyForRefresh(currentData, now))
       for {
         client <- iamClients.get(account, SOLE_REGION)

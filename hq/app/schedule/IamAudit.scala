@@ -1,6 +1,6 @@
 package schedule
 
-import com.gu.anghammarad.models.{Notification, Target, AwsAccount => Account}
+import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
@@ -12,7 +12,7 @@ object IamAudit {
   /**
     * Takes users with outdated keys/missing mfa and groups them based off the stack/stage/app tags of the users.
     * Produce a group containing the two groups of users (outdated keys/missing mfa) and a list of Anghammarad Targets
-    * for alerts about those userss to be sent to
+    * for alerts about those users to be sent to
     * @param outdatedKeys
     * @param missingMfa
     * @return
@@ -40,8 +40,9 @@ object IamAudit {
 
         val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
         targetGroups.map { tg =>
-            val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers)
-            createNotification(tg.targets :+ Account(awsAccount.id), message)
+          val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers)
+          createNotification(tg.targets :+ Account(awsAccount.id), message)
+        }
       }
     }
   }

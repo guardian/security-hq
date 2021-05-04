@@ -8,7 +8,6 @@ import model._
 import play.api.{Configuration, Logging}
 import schedule.IamAudit.makeCredentialsNotification
 import schedule.IamNotifier.send
-import schedule.{CronSchedules, JobRunner}
 import services.CacheService
 import utils.attempt.FailedAttempt
 

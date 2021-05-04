@@ -20,26 +20,26 @@ class IamAuditTest extends FreeSpec with Matchers {
         CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None),
-            MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None),
+            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None),
-            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None),
-            HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
+            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
           )
         )
       val result: CredentialReportDisplay =
         CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None),
+            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None),
-            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None),
+            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
           )
         )
       findOldAccessKeys(credsReport) shouldEqual result
@@ -48,10 +48,10 @@ class IamAuditTest extends FreeSpec with Matchers {
       val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq(
-          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(11))), AccessKey(NoKey, None), Red, None, None),
+          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(11))), AccessKey(NoKey, None), Red, None, None, List.empty),
         ),
         Seq(
-          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
+          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(
@@ -63,18 +63,18 @@ class IamAuditTest extends FreeSpec with Matchers {
       val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq(
-          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(10))), AccessKey(NoKey, None), Red, None, None),
+          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(10))), AccessKey(NoKey, None), Red, None, None, List.empty),
         ),
         Seq(
-          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-          HumanUser("", false, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None),
+          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", false, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None, List.empty),
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq.empty,
         Seq(
-          HumanUser("", false, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None),
+          HumanUser("", false, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None, List.empty),
         )
       )
       findMissingMfa(credsReport) shouldEqual result
@@ -83,11 +83,11 @@ class IamAuditTest extends FreeSpec with Matchers {
       val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq(
-          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(9))), AccessKey(NoKey, None), Red, None, None),
+          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(9))), AccessKey(NoKey, None), Red, None, None, List.empty),
         ),
         Seq(
-          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-          HumanUser("", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None),
+          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None, List.empty),
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(
@@ -103,13 +103,13 @@ class IamAuditTest extends FreeSpec with Matchers {
         AwsAccount("", "", "") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2019, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None),
-            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None),
+            MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2019, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None, List.empty),
+            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None, List.empty),
           ),
           Seq(
-            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None),
-            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None),
+            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None, List.empty),
+            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None, List.empty),
           )
         ))
       )
@@ -121,13 +121,13 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Username: machine user B
           |Key 1 last rotation: 12/12/2019
           |Key 2 last rotation: Unknown
-          |Last active: 243 days ago
+          |Last active: 242 days ago
           |
           |
           |Username: machine user C
           |Key 1 last rotation: Unknown
           |Key 2 last rotation: 05/06/2015
-          |Last active: 243 days ago
+          |Last active: 242 days ago
           |
           |
           |Username: username B
@@ -151,7 +151,7 @@ class IamAuditTest extends FreeSpec with Matchers {
         List(AwsAccountTarget("")),
         Preferred(Email),
         "Security HQ Credentials Notifier")
-      val result: List[Either[FailedAttempt, Notification]] = List(Right(notification))
+      val result = List(Right(Seq(notification)))
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "makes a credentials notification with a message notifying about old access keys only" in {
@@ -160,13 +160,13 @@ class IamAuditTest extends FreeSpec with Matchers {
         AwsAccount("", "", "") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2018, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None),
-            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None),
+            MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2018, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None, List.empty),
+            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None, List.empty),
           ),
           Seq(
-            HumanUser("username A", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None),
-            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None),
+            HumanUser("username A", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None, List.empty),
+            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None, List.empty),
           )
         ))
       )
@@ -178,13 +178,13 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Username: machine user B
           |Key 1 last rotation: 12/12/2018
           |Key 2 last rotation: Unknown
-          |Last active: 243 days ago
+          |Last active: 242 days ago
           |
           |
           |Username: machine user C
           |Key 1 last rotation: Unknown
           |Key 2 last rotation: 05/06/2015
-          |Last active: 243 days ago
+          |Last active: 242 days ago
           |
           |
           |Username: username B
@@ -203,7 +203,7 @@ class IamAuditTest extends FreeSpec with Matchers {
         List(AwsAccountTarget("")),
         Preferred(Email),
         "Security HQ Credentials Notifier")
-      val result: List[Either[FailedAttempt, Notification]] = List(Right(notification))
+      val result = List(Right(Seq(notification)))
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "makes a credentials notification with a message notifying about missing mfas only" in {
@@ -213,8 +213,8 @@ class IamAuditTest extends FreeSpec with Matchers {
           new DateTime(2021, 1, 1, 1, 1),
           Seq.empty,
           Seq(
-            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None),
-            HumanUser("username B", false, AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(2))), Red, Some(150), None),
+            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None, List.empty),
+            HumanUser("username B", false, AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(2))), Red, Some(150), None, List.empty),
           )
         ))
       )
@@ -241,7 +241,7 @@ class IamAuditTest extends FreeSpec with Matchers {
         List(AwsAccountTarget("")),
         Preferred(Email),
         "Security HQ Credentials Notifier")
-      val result: List[Either[FailedAttempt, Notification]] = List(Right(notification))
+      val result = List(Right(Seq(notification)))
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "returns a failure when there are no old access keys or missing mfas" in {
