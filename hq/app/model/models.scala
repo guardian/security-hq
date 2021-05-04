@@ -160,6 +160,8 @@ object Blue extends ReportStatus
 case class Tag(key: String, value: String)
 object Tag {
 
+  val EMPTY_SSAID = "no-ssa-tags"
+
   def findAnghammaradTarget(key: String, toTarget: String => Target, tags: List[Tag]): Option[Target] = {
     val value = tags.find(_.key.toLowerCase() == key.toLowerCase()).map(_.value)
     value.map(toTarget)
@@ -178,7 +180,7 @@ object Tag {
     if (ssaTags.nonEmpty) {
       ssaTags.sortBy(_.key).map(_.value).mkString("-")
     } else {
-      "no-ssa-tags"
+      EMPTY_SSAID
     }
   }
 }
