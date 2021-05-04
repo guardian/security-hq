@@ -175,7 +175,11 @@ object Tag {
 
   def tagsToSSAID(tags: List[Tag]): String = {
     val ssaTags = tags.filter(t => List("stack", "stage", "app").contains(t.key.toLowerCase))
-    ssaTags.sortBy(_.key).map(_.value).mkString("-")
+    if (ssaTags.nonEmpty) {
+      ssaTags.sortBy(_.key).map(_.value).mkString("-")
+    } else {
+      "no-ssa-tags"
+    }
   }
 }
 

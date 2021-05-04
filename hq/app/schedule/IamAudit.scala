@@ -18,17 +18,19 @@ object IamAudit {
     * @return
     */
   def getNotificationTargetGroups(outdatedKeys: Seq[UserWithOutdatedKeys], missingMfa: Seq[UserNoMfa]): Seq[IAMAlertTargetGroup] = {
+    val ssaStrings = (outdatedKeys.map(k => Tag.tagsToSSAID(k.tags)) ++ missingMfa.map(k => Tag.tagsToSSAID(k.tags))).distinct
     val outdatedKeysGroups = outdatedKeys.groupBy(u => Tag.tagsToSSAID(u.tags))
     val missingMfaGroups = missingMfa.groupBy(u => Tag.tagsToSSAID(u.tags))
 
     // merge groups into IAMAlertTargetGroup seq
-    outdatedKeysGroups.toSeq.map {
-      case (ssaString, user) =>
-        // assume that within a group all tags are the same. Use first element of the group to generate tags
-        val targets = user.headOption.map(k => Tag.tagsToAnghammaradTargets(k.tags)).getOrElse(List())
-        // check missingMfaGroup for users with matching tags
-        val missingMfaUsers = missingMfaGroups.getOrElse(ssaString, Seq())
-        IAMAlertTargetGroup(targets, user, missingMfaUsers)
+    ssaStrings.map { ssaString =>
+      val outdatedKeysUsers =  outdatedKeysGroups.getOrElse(ssaString, Seq())
+      val missingMfaUsers = missingMfaGroups.getOrElse(ssaString, Seq())
+
+      // assume that within a group all tags are the same. Use first element of the group to generate tags
+      val targets = (outdatedKeysUsers ++ missingMfaUsers).headOption.map(k => Tag.tagsToAnghammaradTargets(k.tags)).getOrElse(List())
+
+      IAMAlertTargetGroup(targets, outdatedKeysUsers, missingMfaUsers)
     }
   }
 
