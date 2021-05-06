@@ -1,14 +1,55 @@
 package aws.iam
 
+import aws.iam.CredentialsReport.credentialsReportReadyForRefresh
 import com.amazonaws.regions.{Region, Regions}
-import model.{AwsStack, IAMCredential, IAMCredentialsReport}
+import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
-import utils.attempt.AttemptValues
+import utils.attempt.{AttemptValues, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class CredentialsReportTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
+
+  "credentialsReportNeedsRefreshing" - {
+    "when the report is at least 4 hours old" - {
+      val now = new DateTime(2021, 5, 6, 16, 43)
+      "returns false for exactly 4 hours old" in {
+        val credentialGenerationTime = new DateTime(2021, 5, 6, 12, 43)
+        val result = credentialsReportReadyForRefresh(Right(CredentialReportDisplay(credentialGenerationTime)), now)
+        result shouldEqual false
+      }
+
+      "returns true for just over 4 hours old" in {
+        val credentialGenerationTime = new DateTime(2021, 5, 6, 12, 42)
+        val result = credentialsReportReadyForRefresh(Right(CredentialReportDisplay(credentialGenerationTime)), now)
+        result shouldEqual true
+      }
+
+      "returns true for way over 4 hours old" in {
+        val credentialGenerationTime = new DateTime(2021, 5, 5, 12, 42)
+        val result = credentialsReportReadyForRefresh(Right(CredentialReportDisplay(credentialGenerationTime)), now)
+        result shouldEqual true
+      }
+    }
+
+    "returns false when report is less than 4 hours old" in {
+      val credentialGenerationTime = new DateTime(2021, 5, 6, 12, 44)
+      val credentialReportDisplay = CredentialReportDisplay(credentialGenerationTime)
+      val now = new DateTime(2021, 5, 6, 16, 43)
+      val result = credentialsReportReadyForRefresh(Right(credentialReportDisplay), now)
+      result shouldEqual false
+    }
+
+    "returns true if the argument is a failure" in {
+      val result = credentialsReportReadyForRefresh(
+        Left(FailedAttempt(Failure("Test error", "Test error", 500))),
+        new DateTime(2021, 5, 6, 16, 43)
+      )
+      result shouldEqual true
+    }
+  }
+
   "credentials report" - {
     val testReportNoPasswordLastUsed = """user,arn,user_creation_time,password_enabled,password_last_used,password_last_changed,password_next_rotation,mfa_active,access_key_1_active,access_key_1_last_rotated,access_key_1_last_used_date,access_key_1_last_used_region,access_key_1_last_used_service,access_key_2_active,access_key_2_last_rotated,access_key_2_last_used_date,access_key_2_last_used_region,access_key_2_last_used_service,cert_1_active,cert_1_last_rotated,cert_2_active,cert_2_last_rotated
                        |credential-user,arn:aws:iam::0123456789:user/credential-user,2015-10-22T16:40:00+00:00,false,no_information,N/A,N/A,false,true,2015-10-22T14:45:00+00:00,2017-08-30T13:32:00+00:00,eu-west-1,ec2,false,N/A,N/A,N/A,N/A,false,N/A,false,N/A""".stripMargin

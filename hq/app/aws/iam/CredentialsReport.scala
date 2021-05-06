@@ -1,14 +1,13 @@
 package aws.iam
 
 import java.io.StringReader
-
-import model.{IAMCredential, IAMCredentialsReport, AwsStack}
+import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import com.github.tototoshi.csv._
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, Hours, Seconds}
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
 import logic.DateUtils
-import utils.attempt.Attempt
+import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
@@ -17,6 +16,16 @@ import scala.util.{Failure, Success, Try}
 object CredentialsReport {
 
   def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
+
+  def credentialsReportReadyForRefresh(currentReport: Either[FailedAttempt, CredentialReportDisplay], currentTime: DateTime): Boolean = {
+    currentReport match {
+      case Left(_) => true
+      case Right(credentialReportDisplay) => {
+        val timeSinceLastReport = Seconds.secondsBetween(credentialReportDisplay.reportDate, currentTime)
+        timeSinceLastReport.isGreaterThan(Hours.hours(4).toStandardSeconds)
+      }
+    }
+  }
 
   private[iam] def enrichReportWithStackDetails(report: IAMCredentialsReport, stacks: List[AwsStack]): IAMCredentialsReport = {
     val updatedEntries = report.entries.map { cred =>

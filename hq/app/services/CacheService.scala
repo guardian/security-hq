@@ -95,13 +95,11 @@ class CacheService(
   def refreshCredentialsBox(): Unit = {
     logger.info("Started refresh of the Credentials data")
     for {
-      newCredentialReports <- IAMClient.getAllCredentialReports(accounts, cfnClients, iamClients, regions)
+      updatedCredentialReports <- IAMClient.getAllCredentialReports(accounts, credentialsBox.get(), cfnClients, iamClients, regions)
     } yield {
       logger.info("Sending the refreshed data to the Credentials Box")
-      val oldCredentialsReports = credentialsBox.get()
-      val mergedCredentialsReports = newCredentialReports.toMap.map(report => if (report._2.isLeft) (report._1, oldCredentialsReports(report._1)) else report)
 
-      credentialsBox.send(mergedCredentialsReports)
+      credentialsBox.send(updatedCredentialReports.toMap)
     }
   }
 
@@ -174,7 +172,7 @@ class CacheService(
       refreshSgsBox()
     }
 
-    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 90.minutes).subscribe { _ =>
+    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 5.minutes).subscribe { _ =>
       refreshCredentialsBox()
     }
 
