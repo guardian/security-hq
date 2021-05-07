@@ -104,12 +104,12 @@ class IamAuditTest extends FreeSpec with Matchers {
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2019, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(8))), None),
-            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, dayDiff(Some(DateTime.now().minusMonths(8))), None),
+            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2019, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None),
+            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None),
           ),
           Seq(
-            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(12))), None),
-            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(5))), None),
+            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None),
+            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None),
           )
         ))
       )
@@ -161,12 +161,12 @@ class IamAuditTest extends FreeSpec with Matchers {
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
-            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2018, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(8))), None),
-            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, dayDiff(Some(DateTime.now().minusMonths(8))), None),
+            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2018, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None),
+            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None),
           ),
           Seq(
-            HumanUser("username A", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(12))), None),
-            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(5))), None),
+            HumanUser("username A", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None),
+            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None),
           )
         ))
       )
@@ -213,8 +213,8 @@ class IamAuditTest extends FreeSpec with Matchers {
           new DateTime(2021, 1, 1, 1, 1),
           Seq.empty,
           Seq(
-            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, dayDiff(Some(DateTime.now().minusMonths(12))), None),
-            HumanUser("username B", false, AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(2))), Red, dayDiff(Some(DateTime.now().minusMonths(5))), None),
+            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None),
+            HumanUser("username B", false, AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(2))), Red, Some(150), None),
           )
         ))
       )
