@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
 class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClients[AmazonSNSAsync], config: Configuration)(executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated emails for old permanent credentials"
-  override val cronSchedule: CronSchedule = CronSchedules.firstMondayOfEveryMonth
+  override val cronSchedule: CronSchedule = CronSchedules.secondMondayOfEveryMonth //TODO revert back to first Monday
   val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
 
   def run(): Unit = {
