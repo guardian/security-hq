@@ -88,8 +88,6 @@ Resources:
   LambdaS3AccountMappingPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: read_s3_to_get_account_mapping_file
-    Properties:
       PolicyName: security-hq-install-bucket-policy
       PolicyDocument:
         Statement:
