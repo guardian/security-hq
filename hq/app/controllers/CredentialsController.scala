@@ -8,12 +8,13 @@ import logic.CredentialsReportDisplay.{exposedKeysSummary, sortAccountsByReportS
 import play.api._
 import play.api.libs.ws.WSClient
 import play.api.mvc._
+import schedule.IamJob
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig)
+class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamJob)
                            (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 
@@ -40,5 +41,10 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
   def refresh() = authAction {
     cacheService.refreshCredentialsBox()
     Ok("Refreshing IAM credentials reports (may take a minute or so to appear)")
+  }
+
+  def sendNotifications(send: Boolean) = authAction {
+    iamJob.run()
+    Ok("Triggered notifications job")
   }
 }

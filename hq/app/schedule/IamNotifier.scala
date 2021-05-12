@@ -8,6 +8,7 @@ import schedule.IamMessages.{sourceSystem, subject}
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext}
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 
@@ -22,17 +23,17 @@ object IamNotifier extends Logging {
     notification: Notification,
     topicArn: Option[String],
     snsClient: AmazonSNSAsync)(implicit executionContext: ExecutionContext): Unit = {
+    logger.info(s"attempting to send iam notification to topic arn: $topicArn to targets: ${notification.target}")
     topicArn match {
       case Some(arn) =>
         val response = Anghammarad.notify(notification, arn, snsClient)
-        try {
-          val id = response.foreach(id => logger.info(s"Sent notification to ${notification.target}: $id"))
-        } catch {
-          case NonFatal(err) =>
+        response.onComplete{
+          case Success(id) =>
+            logger.info(s"Sent notification to ${notification.target}: $id")
+          case Failure(err) =>
             logger.error("Failed to send notification", err)
         }
       case None => logger.error("Failed to send notification: no SNS topic provided")
     }
-
   }
 }

@@ -7,11 +7,12 @@ import org.joda.time.format.DateTimeFormat
 object IamMessages {
   val subject = "Action required - old AWS credentials and/or credentials missing MFA"
   val sourceSystem = "Security HQ Credentials Notifier"
-  val outdatedKeysMessage: String = "Please rotate the following AWS IAM access keys:"
+  val outdatedKeysMessage: String = "Please rotate the following AWS IAM access keys or delete them if they are disabled and unused:"
   val missingMfaMessage: String = "Please add multi-factor authentication to the following AWS IAM users:"
   val boilerPlateText: String =
     """
       |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
+      |Documentation on deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console.
       |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
       |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
       |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.

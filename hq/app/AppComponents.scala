@@ -1,8 +1,13 @@
+import aws.AWS.credentialsProvider
 import aws.ec2.EC2
 import aws.{AWS, AwsClient}
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
+import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import com.gu.configraun.Configraun
 import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
@@ -20,7 +25,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.JobScheduler
+import schedule.{IamJob, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -99,7 +104,12 @@ class AppComponents(context: Context)
   private val s3Clients = AWS.s3Clients(configuration)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
-  private val snsClients = AWS.snsClients(configuration)
+  val credsProvider = new AWSCredentialsProviderChain(DefaultAWSCredentialsProviderChain.getInstance(), new ProfileCredentialsProvider("security"))
+  private val snsClient = AmazonSNSAsyncClientBuilder.standard()
+    .withCredentials(credsProvider)
+    .withRegion(Config.region)
+    .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
+    .build()
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
 
@@ -125,11 +135,16 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
+  //initialise IAM notification service
+  val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
+  val iamJob = new IamJob(enabled = true, cacheService, snsClient, configuration)(executionContext)
+  val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
+  jobScheduler.initialise()
 
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration, googleAuthConfig),
-    new CredentialsController(configuration, cacheService, googleAuthConfig),
+    new CredentialsController(configuration, cacheService, googleAuthConfig, iamJob),
     new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),
@@ -138,9 +153,4 @@ class AppComponents(context: Context)
     new GcpController(configuration, googleAuthConfig, cacheService)
   )
 
-  //initialise IAM notification service
-  val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val iamJob = new IamJob(enabled = true, cacheService, snsClients, configuration)(executionContext)
-  val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
-  jobScheduler.initialise()
 }
