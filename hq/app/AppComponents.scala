@@ -77,7 +77,7 @@ class AppComponents(context: Context)
   //  - available regions can return regions that are not in the SDK and so Regions.findName will fail
   // to solve these we return the intersection of available regions and regions.values()
   private val availableRegions = {
-    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region).build(), AwsAccount(stack, stack, stack), Config.region)
+    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region).build(), AwsAccount(stack, stack, stack, stack), Config.region)
     try {
       val availableRegionsAttempt: Attempt[List[Regions]] = for {
         regionList <- EC2.getAvailableRegions(ec2Client)

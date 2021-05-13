@@ -9,7 +9,8 @@ import org.joda.time.DateTime
 case class AwsAccount(
   id: String,
   name: String,
-  roleArn: String
+  roleArn: String,
+  accountNumber: String
 )
 
 case class AwsStack(

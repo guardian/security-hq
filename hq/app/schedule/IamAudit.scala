@@ -22,7 +22,7 @@ object IamAudit extends Logging {
           } else {
             logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
             val message = createMessage(outdatedKeys, missingMfa)
-            Some(createNotification(Account(awsAccount.id), message))
+            Some(createNotification(Account(awsAccount.accountNumber), message))
           }
         case Left(error) =>
           error.failures.foreach { failure =>

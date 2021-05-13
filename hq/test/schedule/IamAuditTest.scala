@@ -98,8 +98,8 @@ class IamAuditTest extends FreeSpec with Matchers {
     }
     "makes a credentials notification with a message including both old access keys and missing mfa" in {
       val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "", "") -> Right(CredentialReportDisplay(
+        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
+        AwsAccount("", "", "", "") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
@@ -156,8 +156,8 @@ class IamAuditTest extends FreeSpec with Matchers {
     }
     "makes a credentials notification with a message notifying about old access keys only" in {
       val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "", "") -> Right(CredentialReportDisplay(
+        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
+        AwsAccount("", "", "", "") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
@@ -209,8 +209,8 @@ class IamAuditTest extends FreeSpec with Matchers {
     }
     "makes a credentials notification with a message notifying about missing mfas only" in {
       val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "", "") -> Right(CredentialReportDisplay(
+        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
+        AwsAccount("", "", "", "") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq.empty,
           Seq(
@@ -247,7 +247,7 @@ class IamAuditTest extends FreeSpec with Matchers {
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "returns a failure when there are no old access keys or missing mfas" in {
-      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)))
+      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)))
       val result = List.empty
       makeCredentialsNotification(allCreds) shouldEqual result
     }

@@ -105,7 +105,8 @@ object Config {
       id <- config.getOptional[String]("id")
       name <- config.getOptional[String]("name")
       roleArn <- config.getOptional[String]("roleArn")
-    } yield AwsAccount(id, name, roleArn)
+      number <- config.getOptional[String]("number")
+    } yield AwsAccount(id, name, roleArn, number)
   }
 
   def getSnykSSOUrl(config: Configuration): Option[String] = {
