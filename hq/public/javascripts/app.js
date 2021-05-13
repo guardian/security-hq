@@ -37,36 +37,48 @@ $(document).ready(function () {
   );
 
   // filtering table results
-  $('.js-finding-filter').change(function () {
-    $('#show-ignored-findings')[0].checked
-      ? $('.finding-suppressed--true').show()
-      : $('.finding-suppressed--true').hide();
-    $('#show-flagged-findings')[0].checked
-      ? $('.finding-suppressed--false').show()
-      : $('.finding-suppressed--false').hide();
-  });
-  $('.js-finding-filter-for-s3').change(function () {
-    $('#show-unencrypted-findings')[0].checked
-      ? $('.finding-unencrypted').show()
-      : $('.finding-unencrypted').hide();
-  });
-  $('.js-finding-filter-for-gcp').change(function () {
-    $('#show-critical-findings')[0].checked
-      ? $('.finding-critical').show()
-      : $('.finding-critical').hide();
-    $('#show-high-findings')[0].checked
-      ? $('.finding-high').show()
-      : $('.finding-high').hide();
-    $('#show-medium-findings')[0].checked
-      ? $('.finding-medium').show()
-      : $('.finding-medium').hide();
-    $('#show-low-findings')[0].checked
-      ? $('.finding-low').show()
-      : $('.finding-low').hide();
-    $('#show-unknown-findings')[0].checked
-      ? $('.finding-unknown').show()
-      : $('.finding-unknown').hide();
-  });
+  const form = document.querySelector('form.finding-filter');
+  if (form) {
+    const ignoredFindings = $('.finding-suppressed--true');
+    const flaggedFindings = $('.finding-suppressed--false');
+    const unencryptedFindings = $('.finding-unencrypted');
+    const criticalFindings = $('.finding-critical');
+    const highFindings = $('.finding-high');
+    const mediumFindings = $('.finding-medium');
+    const lowFindings = $('.finding-low');
+    const unknownFindings = $('.finding-unknown');
+
+    form.addEventListener('input', function () {
+      const formData = new FormData(form);
+
+      const {
+        // S3 and Security Group filters
+        showFlaggedFindings,
+        showIgnoredFindings,
+
+        // S3 filters
+        showUnencryptedFindings,
+
+        // GCP filters
+        showCriticalFindings,
+        showHighFindings,
+        showMediumFindings,
+        showLowFindings,
+        showUnknownFindings,
+      } = Object.fromEntries(formData);
+
+      showIgnoredFindings ? ignoredFindings.show() : ignoredFindings.hide();
+      showFlaggedFindings ? flaggedFindings.show() : flaggedFindings.hide();
+      showUnencryptedFindings
+        ? unencryptedFindings.show()
+        : unencryptedFindings.hide();
+      showCriticalFindings ? criticalFindings.show() : criticalFindings.hide();
+      showHighFindings ? highFindings.show() : highFindings.hide();
+      showMediumFindings ? mediumFindings.show() : mediumFindings.hide();
+      showLowFindings ? lowFindings.show() : lowFindings.hide();
+      showUnknownFindings ? unknownFindings.show() : unknownFindings.hide();
+    });
+  }
 
   $('.js-finding-details').click(function () {
     $(this).collapsible('destroy');
