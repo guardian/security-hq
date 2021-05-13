@@ -35,10 +35,15 @@ class MetricService(
       return
     }
 
-    Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
-    Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
-    Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
-    Cloudwatch.logMetricsForCredentialsReport(allCredentials)
+    for {
+      allGcpFindings <- cacheService.getGcpFindings
+    } yield {
+      Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
+      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
+      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
+      Cloudwatch.logMetricsForCredentialsReport(allCredentials)
+      Cloudwatch.logMetricsForGCPFindings(allGcpFindings)
+    }
   }
 
   if (environment.mode != Mode.Test) {
