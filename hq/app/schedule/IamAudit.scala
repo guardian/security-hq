@@ -17,12 +17,12 @@ object IamAudit extends Logging {
           val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
           val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
           if (outdatedKeys.isEmpty && missingMfa.isEmpty) {
-            logger.info(s"found no issues for ${awsAccount.name}")
+            logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
             None
           } else {
             logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
-            val message = createMessage(outdatedKeys, missingMfa)
-            Some(createNotification(Account(awsAccount.accountNumber), message))
+            val message = createMessage(outdatedKeys, missingMfa, awsAccount)
+            Some(createNotification(awsAccount, Account(awsAccount.accountNumber), message))
           }
         case Left(error) =>
           error.failures.foreach { failure =>

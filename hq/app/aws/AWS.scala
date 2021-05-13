@@ -68,7 +68,4 @@ object AWS {
 
   def efsClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonElasticFileSystemAsync] =
     clients(AmazonElasticFileSystemAsyncClientBuilder.standard(), configuration, regions:_*)
-
-  def snsClients(configuration: Configuration, region: Regions = Regions.EU_WEST_1): AwsClients[AmazonSNSAsync] =
-    clients(AmazonSNSAsyncClientBuilder.standard(), configuration, region)
 }

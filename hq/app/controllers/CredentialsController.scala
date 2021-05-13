@@ -44,7 +44,7 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
   }
 
   def sendNotifications(send: Boolean) = authAction {
-    iamJob.run()
+    if (send) iamJob.run()
     Ok("Triggered notifications job")
   }
 }

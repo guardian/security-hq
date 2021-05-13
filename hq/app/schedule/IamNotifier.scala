@@ -3,20 +3,19 @@ package schedule
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{Email, Notification, Preferred, Target}
+import model.AwsAccount
 import play.api.Logging
 import schedule.IamMessages.{sourceSystem, subject}
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
-import scala.util.control.NonFatal
 
 
 object IamNotifier extends Logging {
   val channel = Preferred(Email)
 
-  def createNotification(awsAccount: Target, message: String): Notification = {
-    Notification(subject, message, List.empty, List(awsAccount), channel, sourceSystem)
+  def createNotification(accountName: AwsAccount, accountNumber: Target, message: String): Notification = {
+    Notification(subject(accountName), message, List.empty, List(accountNumber), channel, sourceSystem)
   }
 
   def send(
