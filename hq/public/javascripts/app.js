@@ -48,9 +48,20 @@ $(document).ready(function () {
     const lowFindings = $('.finding-low');
     const unknownFindings = $('.finding-unknown');
 
+    const toggleElements = (checkboxValue, elements) => {
+      if (checkboxValue === undefined) {
+        // field is not on the current page's form, nothing to do
+        return;
+      }
+
+      // Checkboxes have a value of `on` or `off`. Yay HTML forms!
+      return checkboxValue === 'on' ? elements.show() : elements.hide();
+    };
+
     form.addEventListener('input', function () {
       const formData = new FormData(form);
 
+      // values are `undefined` by default, for example if they are not on the current page's form
       const {
         // S3 and Security Group filters
         showFlaggedFindings,
@@ -67,16 +78,14 @@ $(document).ready(function () {
         showUnknownFindings,
       } = Object.fromEntries(formData);
 
-      showIgnoredFindings ? ignoredFindings.show() : ignoredFindings.hide();
-      showFlaggedFindings ? flaggedFindings.show() : flaggedFindings.hide();
-      showUnencryptedFindings
-        ? unencryptedFindings.show()
-        : unencryptedFindings.hide();
-      showCriticalFindings ? criticalFindings.show() : criticalFindings.hide();
-      showHighFindings ? highFindings.show() : highFindings.hide();
-      showMediumFindings ? mediumFindings.show() : mediumFindings.hide();
-      showLowFindings ? lowFindings.show() : lowFindings.hide();
-      showUnknownFindings ? unknownFindings.show() : unknownFindings.hide();
+      toggleElements(showIgnoredFindings, ignoredFindings);
+      toggleElements(showFlaggedFindings, flaggedFindings);
+      toggleElements(showUnencryptedFindings, unencryptedFindings);
+      toggleElements(showCriticalFindings, criticalFindings);
+      toggleElements(showHighFindings, highFindings);
+      toggleElements(showMediumFindings, mediumFindings);
+      toggleElements(showLowFindings, lowFindings);
+      toggleElements(showUnknownFindings, unknownFindings);
     });
   }
 
