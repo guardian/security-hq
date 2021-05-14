@@ -73,7 +73,7 @@ object Cloudwatch extends Logging {
     putMetric("SecurityHQ", "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
   }
 
-  def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
+  private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
     val dimension = metricDimensions.map( d => (new Dimension).withName(d._1).withValue(d._2)).toList
     val datum = new MetricDatum().withMetricName(metricName).withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
     val request = new PutMetricDataRequest().withNamespace(namespace).withMetricData(datum)
