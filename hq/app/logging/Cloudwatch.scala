@@ -3,9 +3,10 @@ package logging
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
+import com.google.cloud.securitycenter.v1.Finding
 import logic.CredentialsReportDisplay
 import logic.CredentialsReportDisplay.reportStatusSummary
-import model.{AwsAccount, CredentialReportDisplay}
+import model.{AwsAccount, CredentialReportDisplay, GcpFinding}
 import play.api.Logging
 import utils.attempt.FailedAttempt
 
@@ -24,15 +25,32 @@ object Cloudwatch extends Logging {
     val iamCredentialsWarning = Value("iam/credentials/warning")
     val iamKeysTotal = Value("iam/keys/total")
     val sgTotal = Value("securitygroup/total")
+    val gcpTotal = Value("gcp/total")
+    val gcpCritical = Value("gcp/critical")
+    val gcpHigh = Value("gcp/high")
+  }
+
+  def logMetricsForGCPFindings(allGcpFindings: Seq[GcpFinding]): Unit = {
+    val gcpProjectToFinding = allGcpFindings.groupBy(_.project)
+
+    gcpProjectToFinding.toSeq.foreach {
+      case (project: String, findings: Seq[GcpFinding]) =>
+        val criticalFindings = allGcpFindings.filter(_.severity == Finding.Severity.CRITICAL)
+        val highFindings = allGcpFindings.filter(_.severity == Finding.Severity.HIGH)
+        putGcpMetric(project, Cloudwatch.DataType.gcpCritical, criticalFindings.length)
+        putGcpMetric(project, Cloudwatch.DataType.gcpHigh, highFindings.length)
+        putGcpMetric(project, Cloudwatch.DataType.gcpTotal, criticalFindings.length + highFindings.length)
+    }
+
   }
 
   def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] ) : Unit = {
     data.toSeq.foreach {
       case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
         val reportSummary: CredentialsReportDisplay.ReportSummary = reportStatusSummary(details)
-        putMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
-        putMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings)
-        putMetric(account, DataType.iamCredentialsTotal, reportSummary.errors + reportSummary.warnings)
+        putAwsMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
+        putAwsMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings)
+        putAwsMetric(account, DataType.iamCredentialsTotal, reportSummary.errors + reportSummary.warnings)
       case (account: AwsAccount, Left(_)) =>
         logger.error(s"Attempt to log cloudwatch metric failed. IAM data is missing for account ${account.name}.")
     }
@@ -41,25 +59,28 @@ object Cloudwatch extends Logging {
   def logAsMetric[T](data: Map[AwsAccount, Either[FailedAttempt, List[T]]], dataType: DataType.Value ) : Unit = {
     data.toSeq.foreach {
       case (account: AwsAccount, Right(details: List[T])) =>
-        putMetric(account, dataType, details.length)
+        putAwsMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>
         logger.error(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
     }
   }
 
-  def putMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
-    val dimension = List(
-      (new Dimension).withName("Account").withValue(account.name),
-      (new Dimension).withName("DataType").withValue(dataType.toString)
-    )
+  def putAwsMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
+    putMetric("SecurityHQ", "Vulnerabilities", Seq(("Account", account.name),("DataType", dataType.toString)), value)
+  }
 
-    val datum = new MetricDatum().withMetricName("Vulnerabilities").withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
-    val request = new PutMetricDataRequest().withNamespace("SecurityHQ").withMetricData(datum)
+  def putGcpMetric(project: String, dataType: DataType.Value , value: Int): Unit = {
+    putMetric("SecurityHQ", "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
+  }
+
+  private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
+    val dimension = metricDimensions.map( d => (new Dimension).withName(d._1).withValue(d._2)).toList
+    val datum = new MetricDatum().withMetricName(metricName).withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
+    val request = new PutMetricDataRequest().withNamespace(namespace).withMetricData(datum)
 
     Try(cloudwatchClient.putMetricData(request)) match {
-      case Success(response) => logger.info(s"METRIC:  Account=${account.name},DataType=${dataType},Value=${value}")
-      case Failure(e: AmazonServiceException) => logger.error(s"Put metric of type ${dataType} failed for account ${account.name}", e)
-      case Failure(e) => logger.error(s"Put metric of type ${dataType} failed for account ${account.name} with an unknown exception", e)
+      case Success(response) => logger.info(s"putMetric: ${datum}")
+      case Failure(e) => logger.error(s"putMetric failure: ${datum}", e)
     }
   }
 }

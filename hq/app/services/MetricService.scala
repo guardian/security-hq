@@ -24,6 +24,21 @@ class MetricService(
     }
   }
 
+  /*
+   * The intended behaviour for this method is to only log data to cloudwatch if cache service has a full
+   * data set. If any of it is missing, we try again in 6 hours.
+   *
+   * This is counter intuitive. All the different datapoints (security groups, gcp vulnerabilities etc)
+   * are independent of each other, so it follows that we'd track them independently, and one being missing
+   * shouldn't affect the other.
+   *
+   * The reasoning to force them to be coupled to each other and taking this all or nothing approach is that
+   * it makes aggregation and calculating SUMs over time much easier.
+   *
+   * See these 2 PRs for further discussion and examples with data
+   * - https://github.com/guardian/security-hq/pull/211
+   * - https://github.com/guardian/security-hq/pull/245#discussion_r632548991
+   */
   def postCachedContentsAsMetrics(): Unit = {
     val allSgs = cacheService.getAllSgs
     val allExposedKeys = cacheService.getAllExposedKeys
@@ -35,15 +50,20 @@ class MetricService(
       return
     }
 
-    Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
-    Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
-    Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
-    Cloudwatch.logMetricsForCredentialsReport(allCredentials)
+    for {
+      allGcpFindings <- cacheService.getGcpFindings
+    } yield {
+      Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
+      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
+      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
+      Cloudwatch.logMetricsForCredentialsReport(allCredentials)
+      Cloudwatch.logMetricsForGCPFindings(allGcpFindings)
+    }
   }
 
   if (environment.mode != Mode.Test) {
     val initialDelay =
-      if (environment.mode == Mode.Prod) 5.minutes
+      if (environment.mode == Mode.Prod) 15.minutes
       else Duration.Zero
 
     val cloudwatchSubscription = Observable.interval(initialDelay, 6.hours).subscribe { _ =>
