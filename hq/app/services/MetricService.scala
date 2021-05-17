@@ -63,7 +63,7 @@ class MetricService(
 
   if (environment.mode != Mode.Test) {
     val initialDelay =
-      if (environment.mode == Mode.Prod) 5.minutes
+      if (environment.mode == Mode.Prod) 15.minutes
       else Duration.Zero
 
     val cloudwatchSubscription = Observable.interval(initialDelay, 6.hours).subscribe { _ =>
