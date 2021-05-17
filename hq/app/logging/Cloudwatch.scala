@@ -35,8 +35,8 @@ object Cloudwatch extends Logging {
 
     gcpProjectToFinding.toSeq.foreach {
       case (project: String, findings: Seq[GcpFinding]) =>
-        val criticalFindings = allGcpFindings.filter(_.severity == Finding.Severity.CRITICAL)
-        val highFindings = allGcpFindings.filter(_.severity == Finding.Severity.HIGH)
+        val criticalFindings = findings.filter(_.severity == Finding.Severity.CRITICAL)
+        val highFindings = findings.filter(_.severity == Finding.Severity.HIGH)
         putGcpMetric(project, Cloudwatch.DataType.gcpCritical, criticalFindings.length)
         putGcpMetric(project, Cloudwatch.DataType.gcpHigh, highFindings.length)
         putGcpMetric(project, Cloudwatch.DataType.gcpTotal, criticalFindings.length + highFindings.length)
