@@ -187,7 +187,15 @@ object Tag {
 }
 
 
-trait IAMUser
+sealed trait IAMUser {
+  def username: String
+  def key1: AccessKey
+  def key2: AccessKey
+  def reportStatus: ReportStatus
+  def lastActivityDay: Option[Long]
+  def stack: Option[AwsStack]
+  def tags: List[Tag]
+}
 
 case class HumanUser(
   username: String,
