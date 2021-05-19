@@ -4,18 +4,32 @@ import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
+import play.api.Logging
 import schedule.IamMessages.createMessage
 import schedule.IamNotifier.createNotification
 import utils.attempt.FailedAttempt
 
-object IamAudit {
-  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]):List[Either[FailedAttempt, Notification]] = {
-    allCreds.toList.map { case (awsAccount, eFCreds) =>
-      eFCreds.map { credsReport =>
-        val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
-        val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
-        val message = createMessage(outdatedKeys, missingMfa)
-        createNotification(Account(awsAccount.id), message)
+object IamAudit extends Logging {
+  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]):List[Notification] = {
+    allCreds.toList.flatMap { case (awsAccount, eFCreds) =>
+      eFCreds match {
+        case Right(credsReport) =>
+          val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
+          val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
+          if (outdatedKeys.isEmpty && missingMfa.isEmpty) {
+            logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
+            None
+          } else {
+            logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
+            val message = createMessage(outdatedKeys, missingMfa, awsAccount)
+            Some(createNotification(awsAccount, Account(awsAccount.accountNumber), message))
+          }
+        case Left(error) =>
+          error.failures.foreach { failure =>
+            val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
+            failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
+          }
+          None
       }
     }
   }

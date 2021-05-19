@@ -20,11 +20,13 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
          |         "name": "Test1"
          |         "id": "test1"
          |         "roleArn": ""
+         |         "number": ""
          |       },
          |       {
          |         "name": "Test2"
          |         "id": "test2"
          |         "roleArn": ""
+         |         "number": ""
          |       }
          |     ]
          |   }
@@ -69,6 +71,7 @@ class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks w
          |         "name": "Mock"
          |         "id": "mock"
          |         "roleArn": ""
+         |         "number": ""
          |       }
          |     ]
          |   }

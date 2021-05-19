@@ -1,7 +1,6 @@
 package schedule
 
 import com.gu.anghammarad.models.{Email, Notification, Preferred, AwsAccount => AwsAccountTarget}
-import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
@@ -99,8 +98,8 @@ class IamAuditTest extends FreeSpec with Matchers {
     }
     "makes a credentials notification with a message including both old access keys and missing mfa" in {
       val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "", "") -> Right(CredentialReportDisplay(
+        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
+        AwsAccount("", "test", "", "123456789") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
@@ -114,9 +113,9 @@ class IamAuditTest extends FreeSpec with Matchers {
         ))
       )
       val notification: Notification = Notification(
-        "Action required - old AWS credentials and/or credentials missing MFA",
+        "Action required - The test AWS Account has old AWS credentials and/or credentials missing MFA",
         """
-          |Please rotate the following AWS IAM access keys:
+          |Please rotate the following IAM access keys in AWS Account test/123456789 or delete them if they are disabled and unused (if you're already planning to do this, please ignore this message):
           |
           |Username: machine user B
           |Key 1 last rotation: 12/12/2019
@@ -135,29 +134,33 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Key 2 last rotation: Unknown
           |Last active: 150 days ago
           |
-          |Please add multi-factor authentication to the following AWS IAM users:
+          |Please add multi-factor authentication to the following AWS IAM users in Account test/123456789:
           |
           |Username: username A
           |Last active: 365 days ago
           |
+          |Here is some helpful documentation on:
           |
-          |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
-          |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html,
+          |
+          |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,
+          |
+          |multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |
           |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |
           |""".stripMargin,
         List.empty,
-        List(AwsAccountTarget("")),
+        List(AwsAccountTarget("123456789")),
         Preferred(Email),
         "Security HQ Credentials Notifier")
-      val result: List[Either[FailedAttempt, Notification]] = List(Right(notification))
+      val result = List(notification)
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "makes a credentials notification with a message notifying about old access keys only" in {
       val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "", "") -> Right(CredentialReportDisplay(
+        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
+        AwsAccount("", "test", "", "123456789") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None),
@@ -171,9 +174,9 @@ class IamAuditTest extends FreeSpec with Matchers {
         ))
       )
       val notification: Notification = Notification(
-        "Action required - old AWS credentials and/or credentials missing MFA",
+        "Action required - The test AWS Account has old AWS credentials and/or credentials missing MFA",
         """
-          |Please rotate the following AWS IAM access keys:
+          |Please rotate the following IAM access keys in AWS Account test/123456789 or delete them if they are disabled and unused (if you're already planning to do this, please ignore this message):
           |
           |Username: machine user B
           |Key 1 last rotation: 12/12/2018
@@ -192,24 +195,28 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Key 2 last rotation: Unknown
           |Last active: 150 days ago
           |
+          |Here is some helpful documentation on:
           |
-          |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
-          |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html,
+          |
+          |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,
+          |
+          |multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |
           |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |
           |""".stripMargin,
         List.empty,
-        List(AwsAccountTarget("")),
+        List(AwsAccountTarget("123456789")),
         Preferred(Email),
         "Security HQ Credentials Notifier")
-      val result: List[Either[FailedAttempt, Notification]] = List(Right(notification))
+      val result = List(notification)
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "makes a credentials notification with a message notifying about missing mfas only" in {
       val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "", "") -> Right(CredentialReportDisplay(
+        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
+        AwsAccount("", "test", "", "123456789") -> Right(CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq.empty,
           Seq(
@@ -219,9 +226,9 @@ class IamAuditTest extends FreeSpec with Matchers {
         ))
       )
       val notification: Notification = Notification(
-        "Action required - old AWS credentials and/or credentials missing MFA",
+        "Action required - The test AWS Account has old AWS credentials and/or credentials missing MFA",
         """
-          |Please add multi-factor authentication to the following AWS IAM users:
+          |Please add multi-factor authentication to the following AWS IAM users in Account test/123456789:
           |
           |Username: username A
           |Last active: 365 days ago
@@ -230,23 +237,27 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Username: username B
           |Last active: 150 days ago
           |
+          |Here is some helpful documentation on:
           |
-          |Documentation on rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html.
-          |Documentation on multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html,
+          |
+          |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,
+          |
+          |multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.
+          |
           |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |
           |""".stripMargin,
         List.empty,
-        List(AwsAccountTarget("")),
+        List(AwsAccountTarget("123456789")),
         Preferred(Email),
         "Security HQ Credentials Notifier")
-      val result: List[Either[FailedAttempt, Notification]] = List(Right(notification))
+      val result = List(notification)
       makeCredentialsNotification(allCreds) shouldEqual result
     }
     "returns a failure when there are no old access keys or missing mfas" in {
-      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(AwsAccount("", "", "") -> Left(FailedAttempt(List.empty)))
-      val result: List[Either[FailedAttempt, Notification]] = List(Left(FailedAttempt(List.empty)))
+      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)))
+      val result = List.empty
       makeCredentialsNotification(allCreds) shouldEqual result
     }
   }
