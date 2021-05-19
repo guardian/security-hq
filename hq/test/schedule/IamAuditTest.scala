@@ -180,13 +180,13 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Username: machine user B
           |Key 1 last rotation: 12/12/2019
           |Key 2 last rotation: Unknown
-          |Last active: 242 days ago
+          |Last active: 243 days ago
           |
           |
           |Username: machine user C
           |Key 1 last rotation: Unknown
           |Key 2 last rotation: 05/06/2015
-          |Last active: 242 days ago
+          |Last active: 243 days ago
           |
           |
           |Username: username B
@@ -241,13 +241,13 @@ class IamAuditTest extends FreeSpec with Matchers {
           |Username: machine user B
           |Key 1 last rotation: 12/12/2018
           |Key 2 last rotation: Unknown
-          |Last active: 242 days ago
+          |Last active: 243 days ago
           |
           |
           |Username: machine user C
           |Key 1 last rotation: Unknown
           |Key 2 last rotation: 05/06/2015
-          |Last active: 242 days ago
+          |Last active: 243 days ago
           |
           |
           |Username: username B
