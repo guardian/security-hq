@@ -13,7 +13,7 @@ import com.amazonaws.services.ec2.model._
 import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
-import model._
+import model.{AwsAccount, ELB, Ec2Instance, SGInUse, SGOpenPortsDetail, TrustedAdvisorDetailsResult, UnknownUsage}
 import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.collection.JavaConverters._

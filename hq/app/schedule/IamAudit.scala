@@ -50,7 +50,7 @@ object IamAudit extends Logging {
           } else {
             logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
             targetGroups.map { tg =>
-              val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers)
+              val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
               Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message))
             }
           }
@@ -61,7 +61,7 @@ object IamAudit extends Logging {
           }
           None
       }
-    }
+    }.flatten
   }
 
   def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
