@@ -66,7 +66,8 @@ object CredentialsReportDisplay {
             accessKey2Details(cred),
             machineReportStatus(cred),
             dayDiff(lastActivityDate(cred)),
-            stack = cred.stack
+            stack = cred.stack,
+            tags = cred.tags
           ))
         } else None
 
@@ -79,7 +80,8 @@ object CredentialsReportDisplay {
             accessKey2Details(cred),
             humanReportStatus(cred),
             dayDiff(lastActivityDate(cred)),
-            stack = cred.stack
+            stack = cred.stack,
+            tags = cred.tags
           ))
         } else None
 

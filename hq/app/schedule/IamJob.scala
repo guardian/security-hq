@@ -1,7 +1,6 @@
 package schedule
 
 import com.amazonaws.services.sns.AmazonSNSAsync
-import com.gu.anghammarad.models.Notification
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
@@ -27,9 +26,10 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
 
     val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = getCredsReport(cacheService)
     logger.info(s"successfully collected credentials report for $id. Report is not empty: ${credsReport.nonEmpty}.")
-    makeCredentialsNotification(credsReport).foreach { result: Notification =>
-      send(result, topicArn, snsClient)(executionContext)
+    makeCredentialsNotification(credsReport).foreach { notification =>
+      send(notification, topicArn, snsClient)(executionContext)
     }
   }
+
   def getCredsReport(cacheService: CacheService): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
 }

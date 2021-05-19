@@ -4,7 +4,7 @@ import aws.AwsClient
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.ec2.model._
-import model._
+import model.{AwsAccount, ELB, Ec2Instance, SGInUse, SGOpenPortsDetail, UnknownUsage}
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.scalacheck.ScalacheckShapeless._

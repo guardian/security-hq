@@ -14,8 +14,8 @@ import scala.util.{Failure, Success}
 object IamNotifier extends Logging {
   val channel = Preferred(Email)
 
-  def createNotification(accountName: AwsAccount, accountNumber: Target, message: String): Notification = {
-    Notification(subject(accountName), message, List.empty, List(accountNumber), channel, sourceSystem)
+  def createNotification(accountName: AwsAccount, targets: List[Target], message: String): Notification = {
+    Notification(subject(accountName), message, List.empty, targets, channel, sourceSystem)
   }
 
   def send(

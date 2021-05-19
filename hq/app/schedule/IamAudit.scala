@@ -10,19 +10,49 @@ import schedule.IamNotifier.createNotification
 import utils.attempt.FailedAttempt
 
 object IamAudit extends Logging {
-  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]):List[Notification] = {
+
+  /**
+    * Takes users with outdated keys/missing mfa and groups them based off the stack/stage/app tags of the users.
+    * Produce a group containing the two groups of users (outdated keys/missing mfa) and a list of Anghammarad Targets
+    * for alerts about those users to be sent to
+    * @param outdatedKeys
+    * @param missingMfa
+    * @return
+    */
+  def getNotificationTargetGroups(outdatedKeys: Seq[UserWithOutdatedKeys], missingMfa: Seq[UserNoMfa]): Seq[IAMAlertTargetGroup] = {
+    val ssaStrings = (outdatedKeys.map(k => Tag.tagsToSSAID(k.tags)) ++ missingMfa.map(k => Tag.tagsToSSAID(k.tags))).distinct
+    val outdatedKeysGroups = outdatedKeys.groupBy(u => Tag.tagsToSSAID(u.tags))
+    val missingMfaGroups = missingMfa.groupBy(u => Tag.tagsToSSAID(u.tags))
+
+    // merge groups into IAMAlertTargetGroup seq
+    ssaStrings.map { ssaString =>
+      val outdatedKeysUsers =  outdatedKeysGroups.getOrElse(ssaString, Seq())
+      val missingMfaUsers = missingMfaGroups.getOrElse(ssaString, Seq())
+
+      // assume that within a group all tags are the same. Use first element of the group to generate tags
+      val targets = (outdatedKeysUsers ++ missingMfaUsers).headOption.map(k => Tag.tagsToAnghammaradTargets(k.tags)).getOrElse(List())
+
+      IAMAlertTargetGroup(targets, outdatedKeysUsers, missingMfaUsers)
+    }
+  }
+
+  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): List[Notification] = {
     allCreds.toList.flatMap { case (awsAccount, eFCreds) =>
       eFCreds match {
         case Right(credsReport) =>
           val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
           val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
+          val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
+
           if (outdatedKeys.isEmpty && missingMfa.isEmpty) {
             logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
             None
           } else {
             logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
-            val message = createMessage(outdatedKeys, missingMfa, awsAccount)
-            Some(createNotification(awsAccount, Account(awsAccount.accountNumber), message))
+            targetGroups.map { tg =>
+              val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
+              Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message))
+            }
           }
         case Left(error) =>
           error.failures.foreach { failure =>
@@ -31,7 +61,7 @@ object IamAudit extends Logging {
           }
           None
       }
-    }
+    }.flatten
   }
 
   def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
@@ -55,7 +85,8 @@ object IamAudit extends Logging {
         user.username,
         user.key1.lastRotated,
         user.key2.lastRotated,
-        user.lastActivityDay
+        user.lastActivityDay,
+        user.tags
       )
     }
     val humans = outdatedKeys.humanUsers.map { user =>
@@ -63,7 +94,8 @@ object IamAudit extends Logging {
         user.username,
         user.key1.lastRotated,
         user.key2.lastRotated,
-        user.lastActivityDay
+        user.lastActivityDay,
+        user.tags
       )
     }
     machines ++ humans
@@ -73,7 +105,8 @@ object IamAudit extends Logging {
     missingMfa.humanUsers.map { user =>
       UserNoMfa(
         user.username,
-        user.lastActivityDay
+        user.lastActivityDay,
+        user.tags
       )
     }
   }

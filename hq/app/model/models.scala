@@ -1,10 +1,10 @@
 package model
 
 import com.amazonaws.regions.Region
-import com.google.cloud.securitycenter.v1.Finding
 import com.google.cloud.securitycenter.v1.Finding.Severity
-import com.google.protobuf.{Timestamp, Value}
 import org.joda.time.DateTime
+import com.gu.anghammarad.models.{App, Stack, Stage => AnghammaradStage, Target}
+
 
 case class AwsAccount(
   id: String,
@@ -56,7 +56,8 @@ case class IAMCredential(
   cert1Active: Boolean,
   cert1LastRotated: Option[DateTime],
   cert2Active: Boolean,
-  cert2LastRotated: Option[DateTime]
+  cert2LastRotated: Option[DateTime],
+  tags: List[Tag] = List()
                         ) {
   val rootUser = user == "<root_account>"
 }
@@ -157,6 +158,45 @@ object Green extends ReportStatus
 object Amber extends ReportStatus
 object Blue extends ReportStatus
 
+case class Tag(key: String, value: String)
+object Tag {
+
+  val EMPTY_SSAID = "no-ssa-tags"
+
+  def findAnghammaradTarget(key: String, toTarget: String => Target, tags: List[Tag]): Option[Target] = {
+    val value = tags.find(_.key.toLowerCase() == key.toLowerCase()).map(_.value)
+    value.map(toTarget)
+  }
+
+  def tagsToAnghammaradTargets(tags: List[Tag]): List[Target] = {
+    List (
+      findAnghammaradTarget("stack", Stack, tags),
+      findAnghammaradTarget("stage", AnghammaradStage, tags),
+      findAnghammaradTarget("app", App, tags),
+    ).flatten
+  }
+
+  def tagsToSSAID(tags: List[Tag]): String = {
+    val ssaTags = tags.filter(t => List("stack", "stage", "app").contains(t.key.toLowerCase))
+    if (ssaTags.nonEmpty) {
+      ssaTags.sortBy(_.key).map(_.value).mkString("-")
+    } else {
+      EMPTY_SSAID
+    }
+  }
+}
+
+
+sealed trait IAMUser {
+  def username: String
+  def key1: AccessKey
+  def key2: AccessKey
+  def reportStatus: ReportStatus
+  def lastActivityDay: Option[Long]
+  def stack: Option[AwsStack]
+  def tags: List[Tag]
+}
+
 case class HumanUser(
   username: String,
   hasMFA : Boolean,
@@ -164,16 +204,19 @@ case class HumanUser(
   key2: AccessKey,
   reportStatus: ReportStatus,
   lastActivityDay : Option[Long],
-  stack: Option[AwsStack]
-)
+  stack: Option[AwsStack],
+  tags: List[Tag]
+) extends IAMUser
+
 case class MachineUser(
   username: String,
   key1: AccessKey,
   key2: AccessKey,
   reportStatus: ReportStatus,
   lastActivityDay: Option[Long],
-  stack: Option[AwsStack]
-)
+  stack: Option[AwsStack],
+  tags: List[Tag]
+) extends IAMUser
 
 case class SnykToken(value: String) extends AnyVal
 
@@ -214,6 +257,11 @@ case class GcpSccConfig(orgId: String, sourceId: String)
 
 case class CronSchedule(cron: String, description: String)
 
-case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long])
-case class UserNoMfa(username: String, userLastActiveDay: Option[Long])
+trait IAMAlert {
+  def username: String
+  def tags: List[Tag]
+}
+case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
+case class UserNoMfa(username: String, userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
 
+case class IAMAlertTargetGroup(targets: List[Target], outdatedKeysUsers: Seq[UserWithOutdatedKeys], noMfaUsers: Seq[UserNoMfa])
