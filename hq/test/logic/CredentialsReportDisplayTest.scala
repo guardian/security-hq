@@ -153,11 +153,11 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
     val reportBadScenario = CredentialReportDisplay(now, humanUsers = Seq(humanGreen, humanAmber, humanRed, humanAmber), machineUsers = Seq(machineAmber, machineAmber, machineGreen))
     val reportWorstCase = CredentialReportDisplay(now, humanUsers = Seq(humanRed, humanAmber, humanRed, humanGreen), machineUsers = Seq(machineAmber, machineGreen))
 
-    val awsAccA = AwsAccount("awsAccA", "Account A", "roleArnA")
-    val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB")
-    val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC")
-    val awsAccD = AwsAccount("awsAccD", "Account D", "roleArnD")
-    val awsAccE = AwsAccount("awsAccE", "Account E", "roleArnE")
+    val awsAccA = AwsAccount("awsAccA", "Account A", "roleArnA", "123456789")
+    val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB", "123456789")
+    val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC", "123456789")
+    val awsAccD = AwsAccount("awsAccD", "Account D", "roleArnD", "123456789")
+    val awsAccE = AwsAccount("awsAccE", "Account E", "roleArnE", "123456789")
 
     "will sort reports by account name if there are no alerts" in {
       val reports = List(
@@ -307,9 +307,9 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   }
 
   "exposedKeysSummary" - {
-    val awsAccA = AwsAccount("awsAccA", "Account A", "roleArnA")
-    val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB")
-    val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC")
+    val awsAccA = AwsAccount("awsAccA", "Account A", "roleArnA", "123456789")
+    val awsAccB = AwsAccount("awsAccB", "Account B", "roleArnB", "123456789")
+    val awsAccC = AwsAccount("awsAccC", "Account C", "roleArnC", "123456789")
 
     val failedAttempt = Failure.cacheServiceErrorPerAccount("account id", "failure type").attempt
     val exposedKeys = List(ExposedIAMKeyDetail("key-id", "username", "bad fraud", "2345671234", "2017-29-09T11:32:04Z", "the internet", "Soon", "EC2"))

@@ -248,15 +248,15 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
     )
     val vpcsResult = Attempt.Right(vpcsMap)
     val clients = List(
-      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build(), AwsAccount("security-test", "security", "security-test"), Regions.EU_WEST_1),
-      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build(), AwsAccount("security-test", "security", "security-test"), Regions.EU_WEST_2)
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build(), AwsAccount("security-test", "security", "security-test", "123456789"), Regions.EU_WEST_1),
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build(), AwsAccount("security-test", "security", "security-test", "123456789"), Regions.EU_WEST_2)
     )
 
     "getVpcs" - {
 
       "returns vpc details in a map" in {
         EC2.getVpcs(
-          AwsAccount("security-test", "security", "security-test"),
+          AwsAccount("security-test", "security", "security-test", "123456789"),
           sgsList,
           clients
         )( _ => vpcsResult).value shouldBe vpcsMap
@@ -264,7 +264,7 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
 
       "returns empty vpc details" in {
         EC2.getVpcs(
-          AwsAccount("security-test", "security", "security-test"),
+          AwsAccount("security-test", "security", "security-test", "123456789"),
           sgsList,
           clients)( _ => Attempt.Right(Map.empty)).value shouldBe Map.empty
       }

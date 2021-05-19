@@ -9,7 +9,8 @@ import com.gu.anghammarad.models.{App, Stack, Stage => AnghammaradStage, Target}
 case class AwsAccount(
   id: String,
   name: String,
-  roleArn: String
+  roleArn: String,
+  accountNumber: String
 )
 
 case class AwsStack(

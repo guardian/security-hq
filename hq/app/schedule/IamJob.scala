@@ -1,8 +1,6 @@
 package schedule
 
-import aws.AwsClients
 import com.amazonaws.services.sns.AmazonSNSAsync
-import com.gu.anghammarad.models.Notification
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
@@ -13,10 +11,10 @@ import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClients[AmazonSNSAsync], config: Configuration)(executionContext: ExecutionContext) extends JobRunner with Logging {
+class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSAsync, config: Configuration)(executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated emails for old permanent credentials"
-  override val cronSchedule: CronSchedule = CronSchedules.secondMondayOfEveryMonth //TODO revert back to first Monday
+  override val cronSchedule: CronSchedule = CronSchedules.firstMondayOfEveryMonth
   val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
 
   def run(): Unit = {
@@ -24,26 +22,14 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClients: AwsClient
       logger.info(s"Skipping scheduled $id job as it is not enabled")
     } else {
       logger.info(s"Running scheduled job: $description")
-      }
+    }
 
-    for {
-      snsClient <- snsClients
-    } yield {
-      makeCredentialsNotification(getCredsReport(cacheService)).foreach{ result: Either[FailedAttempt, Seq[Notification]] =>
-        result match {
-          case Left(error) =>
-            error.failures.foreach { failure =>
-              val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
-              failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
-            }
-          case Right(notifications) =>
-            notifications.foreach { notification =>
-              send(notification, topicArn, snsClient.client)(executionContext)
-            }
-        }
-      }
+    val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = getCredsReport(cacheService)
+    logger.info(s"successfully collected credentials report for $id. Report is not empty: ${credsReport.nonEmpty}.")
+    makeCredentialsNotification(credsReport).foreach { notification =>
+      send(notification, topicArn, snsClient)(executionContext)
     }
   }
-  def getCredsReport(cacheService: CacheService): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
 
+  def getCredsReport(cacheService: CacheService): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
 }
