@@ -61,8 +61,8 @@ object IAMClient {
         _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
         report <- getCredentialsReport(client)
         stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
-        reportWithTags <- getCredentialTags(report, client)
-        reportWithStacks = CredentialsReport.enrichReportWithStackDetails(reportWithTags, stacks)
+//        reportWithTags <- getCredentialTags(report, client) NOTE: disabled pending fixing the stack set
+        reportWithStacks = CredentialsReport.enrichReportWithStackDetails(report, stacks)
       } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithStacks)
     else
       Attempt.fromEither(currentData)
