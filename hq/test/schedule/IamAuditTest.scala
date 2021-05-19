@@ -2,12 +2,10 @@ package schedule
 
 import com.gu.anghammarad.models.Stack
 import model.{UserWithOutdatedKeys, _}
-import com.gu.anghammarad.models.{Email, Notification, Preferred, AwsAccount => AwsAccountTarget}
-import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.IamAudit._
-import utils.attempt.FailedAttempt
+import schedule.IamMessages.createMessage
 
 class IamAuditTest extends FreeSpec with Matchers {
   val outdatedUser1: UserWithOutdatedKeys = UserWithOutdatedKeys("lesleyKnope", Some(DateTime.now.minusDays(400)), None, None, List())
@@ -156,48 +154,37 @@ class IamAuditTest extends FreeSpec with Matchers {
       )
       findMissingMfa(credsReport) shouldEqual result
     }
-    "makes a credentials notification with a message including both old access keys and missing mfa" in {
-      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "test", "", "123456789") -> Right(CredentialReportDisplay(
-          new DateTime(2021, 1, 1, 1, 1),
-          Seq(
-            MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2019, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None, List.empty),
-            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None, List.empty),
-          ),
-          Seq(
-            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None, List.empty),
-            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None, List.empty),
-          )
-        ))
+    "creates correct message when given users with old access keys and missing mfa" in {
+      val outdatedKeys = Seq(
+        UserWithOutdatedKeys("machine user A",  Some(new DateTime(2019, 12, 12, 1, 1)), None, Some(243), List.empty),
+        UserWithOutdatedKeys("machine user B", None, Some(new DateTime(2015, 6, 5, 12, 1)), Some(243), List.empty),
       )
-      val notification: Notification = Notification(
-        "Action required - The test AWS Account has old AWS credentials and/or credentials missing MFA",
+      val missingMfa = Seq(UserNoMfa("username A", Some(365), List.empty), UserNoMfa("username B", Some(150), List.empty))
+      val account = AwsAccount("", "test", "", "123456789")
+
+      val notification =
         """
           |Please rotate the following IAM access keys in AWS Account test/123456789 or delete them if they are disabled and unused (if you're already planning to do this, please ignore this message):
           |
-          |Username: machine user B
+          |Username: machine user A
           |Key 1 last rotation: 12/12/2019
           |Key 2 last rotation: Unknown
           |Last active: 243 days ago
           |
           |
-          |Username: machine user C
+          |Username: machine user B
           |Key 1 last rotation: Unknown
           |Key 2 last rotation: 05/06/2015
           |Last active: 243 days ago
-          |
-          |
-          |Username: username B
-          |Key 1 last rotation: 01/09/2020
-          |Key 2 last rotation: Unknown
-          |Last active: 150 days ago
           |
           |Please add multi-factor authentication to the following AWS IAM users in Account test/123456789:
           |
           |Username: username A
           |Last active: 365 days ago
+          |
+          |
+          |Username: username B
+          |Last active: 150 days ago
           |
           |Here is some helpful documentation on:
           |
@@ -209,51 +196,31 @@ class IamAuditTest extends FreeSpec with Matchers {
           |
           |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |""".stripMargin,
-        List.empty,
-        List(AwsAccountTarget("123456789")),
-        Preferred(Email),
-        "Security HQ Credentials Notifier")
-      val result = List(notification)
-      makeCredentialsNotification(allCreds) shouldEqual result
+          |""".stripMargin
+      val result = notification
+      createMessage(outdatedKeys, missingMfa, account) shouldEqual result
     }
     "makes a credentials notification with a message notifying about old access keys only" in {
-      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "test", "", "123456789") -> Right(CredentialReportDisplay(
-          new DateTime(2021, 1, 1, 1, 1),
-          Seq(
-            MachineUser("machine user A", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("machine user B", AccessKey(AccessKeyEnabled, Some(new DateTime(2018, 12, 12, 1, 1))), AccessKey(NoKey, None), Red, Some(243), None, List.empty),
-            MachineUser("machine user C", AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(new DateTime(2015, 6, 5, 12, 1))), Red, Some(243), None, List.empty),
-          ),
-          Seq(
-            HumanUser("username A", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None, List.empty),
-            HumanUser("username B", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, Some(150), None, List.empty),
-          )
-        ))
+      val outdatedKeys = Seq(
+        UserWithOutdatedKeys("machine user A",  Some(new DateTime(2019, 12, 12, 1, 1)), None, Some(243), List.empty),
+        UserWithOutdatedKeys("machine user B", None, Some(new DateTime(2015, 6, 5, 12, 1)), Some(243), List.empty),
       )
-      val notification: Notification = Notification(
-        "Action required - The test AWS Account has old AWS credentials and/or credentials missing MFA",
+      val account = AwsAccount("", "test", "", "123456789")
+
+      val notification =
         """
           |Please rotate the following IAM access keys in AWS Account test/123456789 or delete them if they are disabled and unused (if you're already planning to do this, please ignore this message):
           |
-          |Username: machine user B
-          |Key 1 last rotation: 12/12/2018
+          |Username: machine user A
+          |Key 1 last rotation: 12/12/2019
           |Key 2 last rotation: Unknown
           |Last active: 243 days ago
           |
           |
-          |Username: machine user C
+          |Username: machine user B
           |Key 1 last rotation: Unknown
           |Key 2 last rotation: 05/06/2015
           |Last active: 243 days ago
-          |
-          |
-          |Username: username B
-          |Key 1 last rotation: 01/09/2020
-          |Key 2 last rotation: Unknown
-          |Last active: 150 days ago
           |
           |Here is some helpful documentation on:
           |
@@ -265,29 +232,15 @@ class IamAuditTest extends FreeSpec with Matchers {
           |
           |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |""".stripMargin,
-        List.empty,
-        List(AwsAccountTarget("123456789")),
-        Preferred(Email),
-        "Security HQ Credentials Notifier")
-
-      val result = List(notification)
-      makeCredentialsNotification(allCreds) shouldEqual result
+          |""".stripMargin
+      val result = notification
+      createMessage(outdatedKeys, Seq.empty, account) shouldEqual result
     }
     "makes a credentials notification with a message notifying about missing mfas only" in {
-      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(
-        AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)),
-        AwsAccount("", "test", "", "123456789") -> Right(CredentialReportDisplay(
-          new DateTime(2021, 1, 1, 1, 1),
-          Seq.empty,
-          Seq(
-            HumanUser("username A", false, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, Some(365), None, List.empty),
-            HumanUser("username B", false, AccessKey(NoKey, None), AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(2))), Red, Some(150), None, List.empty),
-          )
-        ))
-      )
-      val notification: Notification = Notification(
-        "Action required - The test AWS Account has old AWS credentials and/or credentials missing MFA",
+      val missingMfa = Seq(UserNoMfa("username A", Some(365), List.empty), UserNoMfa("username B", Some(150), List.empty))
+      val account = AwsAccount("", "test", "", "123456789")
+
+      val notification =
         """
           |Please add multi-factor authentication to the following AWS IAM users in Account test/123456789:
           |
@@ -308,19 +261,14 @@ class IamAuditTest extends FreeSpec with Matchers {
           |
           |For an overview of security vulnerabilities in your AWS account, see Security HQ (https://security-hq.gutools.co.uk/).
           |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
-          |""".stripMargin,
-        List.empty,
-        List(AwsAccountTarget("123456789")),
-        Preferred(Email),
-        "Security HQ Credentials Notifier")
-
-      val result = List(notification)
-      makeCredentialsNotification(allCreds) shouldEqual result
+          |""".stripMargin
+      val result = notification
+      createMessage(Seq.empty, missingMfa, account) shouldEqual result
     }
-    "returns a failure when there are no old access keys or missing mfas" in {
-      val allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = Map(AwsAccount("", "", "", "") -> Left(FailedAttempt(List.empty)))
+    "returns nothing when there are no old access keys or missing mfas" in {
+      val allCreds = Map(AwsAccount("", "", "", "") -> CredentialReportDisplay(DateTime.now))
       val result = List.empty
-      makeCredentialsNotification(allCreds) shouldEqual result
+      makeIamNotification(allCreds) shouldEqual result
     }
   }
 }

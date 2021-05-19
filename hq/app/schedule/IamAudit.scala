@@ -1,6 +1,6 @@
 package schedule
 
-import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
+import com.gu.anghammarad.models.{AwsAccount => Account}
 import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
@@ -10,7 +10,6 @@ import schedule.IamNotifier.createNotification
 import utils.attempt.FailedAttempt
 
 object IamAudit extends Logging {
-
   /**
     * Takes users with outdated keys/missing mfa and groups them based off the stack/stage/app tags of the users.
     * Produce a group containing the two groups of users (outdated keys/missing mfa) and a list of Anghammarad Targets
@@ -36,30 +35,38 @@ object IamAudit extends Logging {
     }
   }
 
-  def makeCredentialsNotification(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): List[Notification] = {
-    allCreds.toList.flatMap { case (awsAccount, eFCreds) =>
-      eFCreds match {
-        case Right(credsReport) =>
-          val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(credsReport))
-          val missingMfa = missingMfaInfo(findMissingMfa(credsReport))
-          val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
+  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, CredentialReportDisplay] = {
+   allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
+      case Left(error) =>
+        error.failures.foreach { failure =>
+          val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
+          failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
+        }
+        (awsAccount, Left(error))
+      case Right(report) =>
+        val filteredReport = report.copy(
+          machineUsers = findOldAccessKeys(report).machineUsers,
+          humanUsers = findOldAccessKeys(report).humanUsers ++ findMissingMfa(report).humanUsers
+        )
+        (awsAccount, Right(filteredReport))
+      }
+    }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
+  }
 
-          if (outdatedKeys.isEmpty && missingMfa.isEmpty) {
-            logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
-            None
-          } else {
-            logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
-            targetGroups.map { tg =>
-              val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
-              Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message))
-            }
-          }
-        case Left(error) =>
-          error.failures.foreach { failure =>
-            val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
-            failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
-          }
-          None
+  def makeIamNotification(flaggedCreds: Map[AwsAccount, CredentialReportDisplay]): List[IamNotification] = {
+    flaggedCreds.toList.flatMap { case (awsAccount, report) =>
+      val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(report))
+      val missingMfa = missingMfaInfo(findMissingMfa(report))
+      val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
+      if (outdatedKeys.isEmpty && missingMfa.isEmpty) {
+        logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
+        None
+      } else {
+        logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
+        targetGroups.map { tg =>
+          val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
+          Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, awsAccount.id, awsAccount.name))
+        }
       }
     }.flatten
   }

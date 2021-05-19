@@ -114,4 +114,5 @@ object Config {
   }
 
   def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("anghammaradSnsArn")
+  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("iamDynamoTableName")
 }

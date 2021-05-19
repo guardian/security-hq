@@ -1,10 +1,11 @@
-import aws.AWS.credentialsProvider
 import aws.ec2.EC2
 import aws.{AWS, AwsClient}
 import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
@@ -15,7 +16,8 @@ import com.gu.configraun.models._
 import config.Config
 import controllers._
 import filters.HstsFilter
-import model.AwsAccount
+import model.{AwsAccount, IamAuditAlert, IamAuditUser, Warning}
+import org.joda.time.DateTime
 import org.quartz.impl.StdSchedulerFactory
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
@@ -25,7 +27,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.{IamJob, JobScheduler}
+import schedule.{Dynamo, IamJob, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -112,6 +114,20 @@ class AppComponents(context: Context)
     .build()
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
+  private val dynamoDbClient: AmazonDynamoDB = {
+    configuration.getOptional[String]("stage") match {
+      case Some("DEV") =>
+        AmazonDynamoDBClientBuilder.standard()
+          .withCredentials(securityCredentialsProvider)
+          .withEndpointConfiguration(new EndpointConfiguration("http://127.0.0.1:8000", Config.region.getName))
+          .build()
+      case _ =>
+        AmazonDynamoDBClientBuilder.standard()
+          .withCredentials(securityCredentialsProvider)
+          .withRegion(Config.region.getName)
+          .build()
+    }
+  }
 
   private val cacheService = new CacheService(
     configuration,
@@ -135,9 +151,13 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
+
+  val iamDynamoDbTableName = Config.getIamDynamoTableName(configuration)
+  val dynamo = new Dynamo(dynamoDbClient, iamDynamoDbTableName)
+
   //initialise IAM notification service
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val iamJob = new IamJob(enabled = true, cacheService, securitySnsClient, configuration)(executionContext)
+  val iamJob = new IamJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration)(executionContext)
   val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
   jobScheduler.initialise()
 
@@ -152,5 +172,4 @@ class AppComponents(context: Context)
     assets,
     new GcpController(configuration, googleAuthConfig, cacheService)
   )
-
 }
