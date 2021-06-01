@@ -4,6 +4,7 @@ import com.gu.anghammarad.models.{AwsAccount => Account}
 import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
+import org.joda.time.{DateTime, Days}
 import play.api.Logging
 import schedule.IamMessages.createMessage
 import schedule.IamNotifier.createNotification
@@ -14,14 +15,13 @@ object IamAudit extends Logging {
     * Takes users with outdated keys/missing mfa and groups them based off the stack/stage/app tags of the users.
     * Produce a group containing the two groups of users (outdated keys/missing mfa) and a list of Anghammarad Targets
     * for alerts about those users to be sent to
-    * @param outdatedKeys
-    * @param missingMfa
+    * @param vulnerableUsers
     * @return
     */
-  def getNotificationTargetGroups(outdatedKeys: Seq[UserWithOutdatedKeys], missingMfa: Seq[UserNoMfa]): Seq[IAMAlertTargetGroup] = {
-    val ssaStrings = (outdatedKeys.map(k => Tag.tagsToSSAID(k.tags)) ++ missingMfa.map(k => Tag.tagsToSSAID(k.tags))).distinct
-    val outdatedKeysGroups = outdatedKeys.groupBy(u => Tag.tagsToSSAID(u.tags))
-    val missingMfaGroups = missingMfa.groupBy(u => Tag.tagsToSSAID(u.tags))
+  def getNotificationTargetGroups(vulnerableUsers: VulnerableUsers): Seq[IAMAlertTargetGroup] = {
+    val ssaStrings = (vulnerableUsers.outdatedKeys.map(k => Tag.tagsToSSAID(k.tags)) ++ vulnerableUsers.noMfa.map(k => Tag.tagsToSSAID(k.tags))).distinct
+    val outdatedKeysGroups = vulnerableUsers.outdatedKeys.groupBy(u => Tag.tagsToSSAID(u.tags))
+    val missingMfaGroups = vulnerableUsers.noMfa.groupBy(u => Tag.tagsToSSAID(u.tags))
 
     // merge groups into IAMAlertTargetGroup seq
     ssaStrings.map { ssaString =>
@@ -35,7 +35,7 @@ object IamAudit extends Logging {
     }
   }
 
-  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
+  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]], dynamo: Dynamo): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
    allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
       case Left(error) =>
         error.failures.foreach { failure =>
@@ -44,12 +44,42 @@ object IamAudit extends Logging {
         }
         (awsAccount, Left(error))
       case Right(report) =>
-        val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(report))
-        val missingMfa = missingMfaInfo(findMissingMfa(report))
-        val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
-        (awsAccount, Right(targetGroups))
+        (awsAccount, Right(getTargetGroups(report, awsAccount, dynamo)))
       }
     }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
+  }
+
+  def getTargetGroups(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[IAMAlertTargetGroup] = {
+    val vulnerableUsers = findVulnerableUsers(report)
+    val vulnerableUsersToAlert = getUsersNotRecentlyNotified(vulnerableUsers, awsAccount, dynamo)
+    getNotificationTargetGroups(vulnerableUsersToAlert)
+  }
+
+  def findVulnerableUsers(report: CredentialReportDisplay): VulnerableUsers = {
+    VulnerableUsers(outdatedKeysInfo(findOldAccessKeys(report)), missingMfaInfo(findMissingMfa(report)))
+  }
+
+  def getUsersNotRecentlyNotified(users: VulnerableUsers, awsAccount: AwsAccount, dynamo: Dynamo): VulnerableUsers = {
+    val userNoMfas = users.noMfa.filter { user =>
+      dynamo.getAlert(awsAccount, user.username).exists { notifiedUser =>
+        !isAlreadyAlerted(notifiedUser.alerts)
+      }
+    }
+
+    val usersWithOldKeys = users.outdatedKeys.filter { user =>
+      dynamo.getAlert(awsAccount, user.username).exists { notifiedUser =>
+        !isAlreadyAlerted(notifiedUser.alerts)
+      }
+    }
+
+    VulnerableUsers(usersWithOldKeys, userNoMfas)
+  }
+
+  def isAlreadyAlerted(alerts: List[IamAuditAlert]): Boolean = {
+    val daysSinceLastAlert = 21
+    alerts.exists { alert =>
+      Days.daysBetween(alert.dateNotificationSent.toLocalDate, DateTime.now.toLocalDate).getDays <= daysSinceLastAlert
+    }
   }
 
   def makeIamNotification(flaggedCreds: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
@@ -61,7 +91,8 @@ object IamAudit extends Logging {
         targetGroups.map { tg =>
           logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.outdatedKeysUsers.length} user(s) with outdated keys and ${tg.noMfaUsers.length} user(s) with missing mfa")
           val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
-          Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, awsAccount.id, awsAccount.name))
+          //TODO get username
+          Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, ""))
         }
       }
     }.flatten

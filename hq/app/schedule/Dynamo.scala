@@ -2,7 +2,8 @@ package schedule
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest}
-import model.{IamAuditAlert, IamAuditUser}
+import model.{AwsAccount, IamAuditAlert, IamAuditUser}
+import org.joda.time.DateTime
 import play.api.Logging
 
 import scala.collection.JavaConverters._
@@ -26,8 +27,40 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
       "error"
   }
 
-  def get(key: Map[String, AttributeValue]): Option[Map[String, AttributeValue]] = Option(client.getItem(
-    new GetItemRequest().withTableName(table).withKey(key.asJava)).getItem) map (_.asScala.toMap)
+  def get(key: Map[String, AttributeValue]): Option[Map[String, AttributeValue]] = {
+    try {
+      Option(client.getItem(
+        new GetItemRequest().withTableName(table).withKey(key.asJava)).getItem).map(_.asScala.toMap)
+    } catch {
+      case NonFatal(e) =>
+        logger.error(s"unable to get item from dynamoDB table: ${e.getMessage}", e)
+        None
+    }
+  }
+
+  def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser] = {
+    val key = Map("id" -> S(Dynamo.createId(awsAccount, username)))
+    get(key).map { r =>
+
+      val alerts = r("alerts").getL.asScala.map{ a =>
+        val alertMap = a.getM.asScala
+        IamAuditAlert(
+          new DateTime(alertMap("date").getS.toLong),
+          alertMap("notificationType").getS match {
+            case model.Warning.name => model.Warning
+            case model.Final.name => model.Final
+          }
+        )
+      }.toList
+
+      IamAuditUser(
+        r("id").getS,
+        r("awsAccount").getS,
+        r("username").getS,
+        alerts
+      )
+    }
+  }
 
   def put(item: Map[String, AttributeValue]): Unit = try {
     client.putItem(
@@ -47,8 +80,12 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   def putAlert(alert: IamAuditUser): Unit = put(Map(
     "id" -> S(alert.id),
     "awsAccount" -> S(alert.awsAccount),
-    "userName" -> S(alert.userName),
+    "userName" -> S(alert.username),
     "alerts" -> L(alert.alerts.map(alert => M(alertToMap(alert))))
   ))
+}
+
+object Dynamo {
+  def createId(awsAccount: AwsAccount, username: String) = s"${awsAccount.id}/$username"
 }
 
