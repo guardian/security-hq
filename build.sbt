@@ -39,6 +39,7 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-cloudformation" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-efs" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsSdkVersion,
+      "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.62.2",
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",

@@ -155,6 +155,25 @@ Resources:
       Roles:
       - !Ref SecurityHQInstanceRole
 
+  SecurityHQDynamoPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: security-hq-dynamodb-policy
+      PolicyDocument:
+        Statement:
+          # Read from and write to dynamodb
+          - Effect: Allow
+            Resource: !GetAtt SecurityHqIamDynamoTable.Arn
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:PutItem
+              - dynamodb:Scan
+              - dynamodb:Query
+      Roles:
+        - !Ref SecurityHQInstanceRole
+
   SecurityHQSSMRunCommandPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -366,6 +385,27 @@ Resources:
         Value:
           Fn::FindInMap: [ Constants, App, Value ]
         PropagateAtLaunch: true
+
+  SecurityHqIamDynamoTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub security-hq-iam-${Stage}
+      AttributeDefinitions:
+        - { AttributeName: id, AttributeType: S }
+      KeySchema:
+        - { AttributeName: id, KeyType: HASH }
+      ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 }
+      Tags:
+        - Key: Stage
+          Value:
+            Ref: Stage
+        - Key: Stack
+          Value:
+            Fn::FindInMap: [ Constants, Stack, Value ]
+        - Key: App
+          Value:
+            Fn::FindInMap: [ Constants, App, Value ]
 
 Outputs:
   LoadBalancerUrl:
