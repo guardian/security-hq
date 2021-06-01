@@ -35,7 +35,7 @@ object IamAudit extends Logging {
     }
   }
 
-  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, CredentialReportDisplay] = {
+  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
    allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
       case Left(error) =>
         error.failures.foreach { failure =>
@@ -44,26 +44,22 @@ object IamAudit extends Logging {
         }
         (awsAccount, Left(error))
       case Right(report) =>
-        val filteredReport = report.copy(
-          machineUsers = findOldAccessKeys(report).machineUsers,
-          humanUsers = findOldAccessKeys(report).humanUsers ++ findMissingMfa(report).humanUsers
-        )
-        (awsAccount, Right(filteredReport))
+        val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(report))
+        val missingMfa = missingMfaInfo(findMissingMfa(report))
+        val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
+        (awsAccount, Right(targetGroups))
       }
     }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
   }
 
-  def makeIamNotification(flaggedCreds: Map[AwsAccount, CredentialReportDisplay]): List[IamNotification] = {
-    flaggedCreds.toList.flatMap { case (awsAccount, report) =>
-      val outdatedKeys = outdatedKeysInfo(findOldAccessKeys(report))
-      val missingMfa = missingMfaInfo(findMissingMfa(report))
-      val targetGroups = getNotificationTargetGroups(outdatedKeys, missingMfa)
-      if (outdatedKeys.isEmpty && missingMfa.isEmpty) {
+  def makeIamNotification(flaggedCreds: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
+    flaggedCreds.toList.flatMap { case (awsAccount, targetGroups) =>
+      if (targetGroups.isEmpty) {
         logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
         None
       } else {
-        logger.info(s"for ${awsAccount.name}, generating iam notification message for ${outdatedKeys.length} user(s) with outdated keys and ${missingMfa.length} user(s) with missing mfa")
         targetGroups.map { tg =>
+          logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.outdatedKeysUsers.length} user(s) with outdated keys and ${tg.noMfaUsers.length} user(s) with missing mfa")
           val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
           Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, awsAccount.id, awsAccount.name))
         }
