@@ -40,9 +40,11 @@ object IAMClient {
     }
   }
 
-  private def getCredentialTags(report: IAMCredentialsReport, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
+  private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
     val updatedEntries = handleAWSErrs(client)(Future.sequence(report.entries.map(e => enrichCredentialWithTags(e, client))))
-    updatedEntries.map(e => report.copy(entries = e))
+    val updatedReportAttempt = updatedEntries.map(e => report.copy(entries = e))
+    // if the fetch tags request failed, just return the original report without tags
+    Attempt.fromFuture(updatedReportAttempt.fold(_ => report, updatedReport => updatedReport))
   }
 
   def getCredentialReportDisplay(
@@ -61,8 +63,8 @@ object IAMClient {
         _ <- Retry.until(generateCredentialsReport(client), CredentialsReport.isComplete, "Failed to generate credentials report", delay)
         report <- getCredentialsReport(client)
         stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
-//        reportWithTags <- getCredentialTags(report, client) NOTE: disabled pending fixing the stack set
-        reportWithStacks = CredentialsReport.enrichReportWithStackDetails(report, stacks)
+        reportWithTags <- enrichReportWithTags(report, client)
+        reportWithStacks = CredentialsReport.enrichReportWithStackDetails(reportWithTags, stacks)
       } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithStacks)
     else
       Attempt.fromEither(currentData)
