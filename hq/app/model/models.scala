@@ -2,10 +2,8 @@ package model
 
 import com.amazonaws.regions.Region
 import com.google.cloud.securitycenter.v1.Finding.Severity
-import com.google.protobuf.{Timestamp, Value}
-import com.gu.anghammarad.models.Notification
+import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
-import com.gu.anghammarad.models.{App, Stack, Stage => AnghammaradStage, Target}
 
 
 case class AwsAccount(
@@ -267,12 +265,13 @@ case class IAMAlertTargetGroup(targets: List[Target], outdatedKeysUsers: Seq[Use
 
 case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
 case class UserNoMfa(username: String, userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
+case class VulnerableUsers(outdatedKeys: Seq[UserWithOutdatedKeys], noMfa: Seq[UserNoMfa])
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
 object Final extends IamAuditNotificationType {val name = "Final"}
 
 case class IamAuditAlert(dateNotificationSent: DateTime, notificationType: IamAuditNotificationType)
-case class IamAuditUser(id: String, awsAccount: String, userName: String, alerts: List[IamAuditAlert])
+case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
 case class IamNotification(iamUser: IamAuditUser, anghammaradNotification: Notification)
 

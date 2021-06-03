@@ -28,7 +28,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
     val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = getCredsReport(cacheService)
     logger.info(s"successfully collected credentials report for $id. Report is empty: ${credsReport.isEmpty}.")
 
-    makeIamNotification(getFlaggedCredentialsReports(credsReport)).foreach { notification: IamNotification =>
+    makeIamNotification(getFlaggedCredentialsReports(credsReport, dynamo)).foreach { notification: IamNotification =>
       for {
         _ <- send(notification, topicArn, snsClient)
         _ = dynamo.putAlert(notification.iamUser)

@@ -19,7 +19,7 @@ class IamAuditTest extends FreeSpec with Matchers {
 
   "getNotificationTargetGroups" - {
     "correctly builds target groups when users have no tags " in {
-      val targetGroups = getNotificationTargetGroups(Seq(outdatedUser1, outdatedUser2), Seq(noMfaUser1, noMfaUser2))
+      val targetGroups = getNotificationTargetGroups(VulnerableUsers(Seq(outdatedUser1, outdatedUser2), Seq(noMfaUser1, noMfaUser2)))
       targetGroups.length shouldEqual 1
       targetGroups.head.noMfaUsers.length shouldEqual 2
       targetGroups.head.outdatedKeysUsers.length shouldEqual 2
@@ -41,7 +41,7 @@ class IamAuditTest extends FreeSpec with Matchers {
         noMfaUser3.copy(tags=List(Tag("Stack", "recreation")))
       )
 
-      val targetGroups = getNotificationTargetGroups(inputOutdatedUsers, inputNoMfaUsers)
+      val targetGroups = getNotificationTargetGroups(VulnerableUsers(inputOutdatedUsers, inputNoMfaUsers))
 
       targetGroups.length shouldEqual 3
 
@@ -60,7 +60,7 @@ class IamAuditTest extends FreeSpec with Matchers {
     }
 
     "correctly builds target list when there are only mfa users" in {
-      val targetGroups = getNotificationTargetGroups(Seq(), Seq(noMfaUser1, noMfaUser2))
+      val targetGroups = getNotificationTargetGroups(VulnerableUsers(Seq(), Seq(noMfaUser1, noMfaUser2)))
       targetGroups.length shouldEqual 1
       targetGroups.head.noMfaUsers.length shouldEqual 2
       targetGroups.head.outdatedKeysUsers.length shouldEqual 0
@@ -266,7 +266,7 @@ class IamAuditTest extends FreeSpec with Matchers {
       createMessage(Seq.empty, missingMfa, account) shouldEqual result
     }
     "returns nothing when there are no old access keys or missing mfas" in {
-      val allCreds = Map(AwsAccount("", "", "", "") -> CredentialReportDisplay(DateTime.now))
+      val allCreds = Map(AwsAccount("", "", "", "") -> Seq.empty)
       val result = List.empty
       makeIamNotification(allCreds) shouldEqual result
     }

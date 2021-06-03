@@ -17,16 +17,15 @@ object IamNotifier extends Logging {
   val channel = Preferred(Email)
 
   def createNotification(
-    accountName: AwsAccount,
+    account: AwsAccount,
     targets: List[Target],
     message: String,
-    awsAccountId: String,
     username: String,
     alertType: IamAuditNotificationType = Warning
   ): IamNotification = {
     val alerts: List[IamAuditAlert] = List(IamAuditAlert(DateTime.now, alertType))
-    val iamAuditUser: IamAuditUser = IamAuditUser(awsAccountId, accountName.name, username, alerts)
-    val anghammaradNotification = Notification(subject(accountName), message, List.empty, targets, channel, sourceSystem)
+    val iamAuditUser: IamAuditUser = IamAuditUser(Dynamo.createId(account, username), account.name, username, alerts)
+    val anghammaradNotification = Notification(subject(account), message, List.empty, targets, channel, sourceSystem)
     IamNotification(iamAuditUser, anghammaradNotification)
   }
 
