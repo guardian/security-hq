@@ -10,7 +10,7 @@ import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReport
 import logic.{CredentialsReportDisplay, Retry}
 import org.joda.time.DateTime
 import model.{AwsAccount, CredentialReportDisplay, IAMCredential, IAMCredentialsReport, Tag}
-import utils.attempt.{Attempt, FailedAttempt}
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +44,9 @@ object IAMClient {
     val updatedEntries = handleAWSErrs(client)(Future.sequence(report.entries.map(e => enrichCredentialWithTags(e, client))))
     val updatedReportAttempt = updatedEntries.map(e => report.copy(entries = e))
     // if the fetch tags request failed, just return the original report without tags
-    Attempt.fromFuture(updatedReportAttempt.fold(_ => report, updatedReport => updatedReport))
+    Attempt.fromFuture(updatedReportAttempt.fold(_ => report, updatedReport => updatedReport)){
+      case throwable => Failure(throwable.getMessage, "failed to enrich report with tags", 500, throwable = Some(throwable)).attempt
+    }
   }
 
   def getCredentialReportDisplay(
