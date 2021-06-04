@@ -261,17 +261,35 @@ trait IAMAlert {
   def username: String
   def tags: List[Tag]
 }
-case class IAMAlertTargetGroup(targets: List[Target], outdatedKeysUsers: Seq[UserWithOutdatedKeys], noMfaUsers: Seq[UserNoMfa])
+case class IAMAlertTargetGroup(
+  targets: List[Target],
+  outdatedKeysUsers: Seq[UserWithOutdatedKeys],
+  noMfaUsers: Seq[UserNoMfa]
+)
 
-case class UserWithOutdatedKeys(username: String, key1LastRotation: Option[DateTime], key2LastRotation: Option[DateTime], userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
-case class UserNoMfa(username: String, userLastActiveDay: Option[Long], tags: List[Tag]) extends IAMAlert
+case class UserWithOutdatedKeys(
+  username: String,
+  key1LastRotation: Option[DateTime],
+  key2LastRotation: Option[DateTime],
+  userLastActiveDay: Option[Long],
+  tags: List[Tag],
+  disableDeadline: Option[DateTime] = None
+) extends IAMAlert
+
+case class UserNoMfa(
+  username: String,
+  userLastActiveDay: Option[Long],
+  tags: List[Tag],
+  disableDeadline: Option[DateTime] = None
+) extends IAMAlert
+
 case class VulnerableUsers(outdatedKeys: Seq[UserWithOutdatedKeys], noMfa: Seq[UserNoMfa])
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
 object Final extends IamAuditNotificationType {val name = "Final"}
 
-case class IamAuditAlert(dateNotificationSent: DateTime, notificationType: IamAuditNotificationType)
+case class IamAuditAlert(dateNotificationSent: DateTime, disableDeadline: DateTime)
 case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
 case class IamNotification(iamUser: IamAuditUser, anghammaradNotification: Notification)
 

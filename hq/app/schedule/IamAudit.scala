@@ -1,7 +1,7 @@
 package schedule
 
 import com.gu.anghammarad.models.{AwsAccount => Account}
-import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
+import config.Config.{iamAlertCadence, iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
 import org.joda.time.{DateTime, Days}
@@ -11,6 +11,43 @@ import schedule.IamNotifier.createNotification
 import utils.attempt.FailedAttempt
 
 object IamAudit extends Logging {
+
+  def makeIamNotification(flaggedCreds: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
+    flaggedCreds.toList.flatMap { case (awsAccount, targetGroups) =>
+      if (targetGroups.isEmpty) {
+        logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
+        None
+      } else {
+        targetGroups.map { tg =>
+          logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.outdatedKeysUsers.length} user(s) with outdated keys and ${tg.noMfaUsers.length} user(s) with missing mfa")
+          val outdatedKeys = tg.outdatedKeysUsers.flatMap { user =>
+            val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
+            Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, user.username, createDeadline(user.disableDeadline)))
+          }
+          val missingMfa = tg.noMfaUsers.flatMap { user =>
+            val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
+            Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, user.username, createDeadline(user.disableDeadline)))
+          }
+          outdatedKeys ++ missingMfa
+        }
+      }
+    }.flatten
+  }
+
+  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]], dynamo: Dynamo): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
+    allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
+      case Left(error) =>
+        error.failures.foreach { failure =>
+          val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
+          failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
+        }
+        (awsAccount, Left(error))
+      case Right(report) =>
+        (awsAccount, Right(getTargetGroups(report, awsAccount, dynamo)))
+    }
+    }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
+  }
+
   /**
     * Takes users with outdated keys/missing mfa and groups them based off the stack/stage/app tags of the users.
     * Produce a group containing the two groups of users (outdated keys/missing mfa) and a list of Anghammarad Targets
@@ -35,19 +72,7 @@ object IamAudit extends Logging {
     }
   }
 
-  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]], dynamo: Dynamo): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
-   allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
-      case Left(error) =>
-        error.failures.foreach { failure =>
-          val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
-          failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
-        }
-        (awsAccount, Left(error))
-      case Right(report) =>
-        (awsAccount, Right(getTargetGroups(report, awsAccount, dynamo)))
-      }
-    }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
-  }
+  private def createDeadline(date: Option[DateTime]): DateTime = date.getOrElse(DateTime.now.plusDays(iamAlertCadence))
 
   def getTargetGroups(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[IAMAlertTargetGroup] = {
     val vulnerableUsers = findVulnerableUsers(report)
@@ -60,42 +85,23 @@ object IamAudit extends Logging {
   }
 
   def getUsersNotRecentlyNotified(users: VulnerableUsers, awsAccount: AwsAccount, dynamo: Dynamo): VulnerableUsers = {
-    val userNoMfas = users.noMfa.filter { user =>
-      dynamo.getAlert(awsAccount, user.username).exists { notifiedUser =>
-        !isAlreadyAlerted(notifiedUser.alerts)
-      }
-    }
-
     val usersWithOldKeys = users.outdatedKeys.filter { user =>
       dynamo.getAlert(awsAccount, user.username).exists { notifiedUser =>
         !isAlreadyAlerted(notifiedUser.alerts)
       }
     }
-
-    VulnerableUsers(usersWithOldKeys, userNoMfas)
+    val userNoMfa = users.noMfa.filter { user =>
+      dynamo.getAlert(awsAccount, user.username).exists { notifiedUser =>
+        !isAlreadyAlerted(notifiedUser.alerts)
+      }
+    }
+    VulnerableUsers(usersWithOldKeys, userNoMfa)
   }
 
   def isAlreadyAlerted(alerts: List[IamAuditAlert]): Boolean = {
-    val daysSinceLastAlert = 21
     alerts.exists { alert =>
-      Days.daysBetween(alert.dateNotificationSent.toLocalDate, DateTime.now.toLocalDate).getDays <= daysSinceLastAlert
+      Days.daysBetween(alert.dateNotificationSent.toLocalDate, DateTime.now.toLocalDate).getDays <= iamAlertCadence
     }
-  }
-
-  def makeIamNotification(flaggedCreds: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
-    flaggedCreds.toList.flatMap { case (awsAccount, targetGroups) =>
-      if (targetGroups.isEmpty) {
-        logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
-        None
-      } else {
-        targetGroups.map { tg =>
-          logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.outdatedKeysUsers.length} user(s) with outdated keys and ${tg.noMfaUsers.length} user(s) with missing mfa")
-          val message = createMessage(tg.outdatedKeysUsers, tg.noMfaUsers, awsAccount)
-          //TODO get username
-          Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, ""))
-        }
-      }
-    }.flatten
   }
 
   def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {

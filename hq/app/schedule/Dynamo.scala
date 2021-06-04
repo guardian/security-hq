@@ -46,10 +46,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
         val alertMap = a.getM.asScala
         IamAuditAlert(
           new DateTime(alertMap("date").getS.toLong),
-          alertMap("notificationType").getS match {
-            case model.Warning.name => model.Warning
-            case model.Final.name => model.Final
-          }
+          new DateTime(alertMap("disableDeadline").getS.toLong)
         )
       }.toList
 
@@ -73,7 +70,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   def alertToMap(e: IamAuditAlert): Map[String, AttributeValue] = {
     Map(
       "date" -> N(e.dateNotificationSent.getMillis),
-      "notificationType" -> S(e.notificationType.name)
+      "disableDeadline" -> N(e.disableDeadline.getMillis)
     )
   }
 
