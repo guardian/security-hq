@@ -144,5 +144,36 @@ class IamAuditTest extends FreeSpec with Matchers {
       val result = List.empty
       makeIamNotification(allCreds) shouldEqual result
     }
+    "returns true when the deadline is one week away" in {
+      val deadline = DateTime.now.plusWeeks(1)
+      val today = DateTime.now
+      isWarningAlert(deadline, today) shouldBe true
+    }
+    "returns true when the deadline is three weeks away" in {
+      val deadline = DateTime.now.plusWeeks(3)
+      val today = DateTime.now
+      isWarningAlert(deadline, today) shouldBe true
+    }
+    "returns false when the deadline is not one or three weeks away" in {
+      val deadline = DateTime.now.plusWeeks(2)
+      val today = DateTime.now
+      isWarningAlert(deadline, today) shouldBe false
+    }
+    "returns true when the deadline is the next day" in {
+      val deadline = DateTime.now.plusDays(1)
+      val today = DateTime.now
+      isFinalAlert(deadline, today) shouldBe true
+    }
+    "returns false when the deadline is not the next day" in {
+      val deadline = DateTime.now.plusDays(2)
+      val today = DateTime.now
+      isFinalAlert(deadline, today) shouldBe false
+    }
+    "returns nearest deadline" in {
+      val nearestDeadline = DateTime.now.plusDays(1).withTimeAtStartOfDay
+      val alert1 = IamAuditAlert(DateTime.now.minusWeeks(3), nearestDeadline)
+      val alert2 = IamAuditAlert(DateTime.now.minusWeeks(3), DateTime.now.plusDays(2).withTimeAtStartOfDay)
+      getNearestDeadline(List(alert1, alert2)) shouldEqual nearestDeadline
+    }
   }
 }
