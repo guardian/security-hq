@@ -24,6 +24,13 @@ class MetricService(
     }
   }
 
+  def discardSuppressedSgs(sgsMap: Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]): Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = {
+    sgsMap.mapValues{
+      case Right(secGroups) => Right(secGroups.filter(!_._1.isSuppressed))
+      case left => left
+    }
+  }
+
   /*
    * The intended behaviour for this method is to only log data to cloudwatch if cache service has a full
    * data set. If any of it is missing, we try again in 6 hours.
@@ -40,7 +47,7 @@ class MetricService(
    * - https://github.com/guardian/security-hq/pull/245#discussion_r632548991
    */
   def postCachedContentsAsMetrics(): Unit = {
-    val allSgs = cacheService.getAllSgs
+    val allSgs = discardSuppressedSgs(cacheService.getAllSgs)
     val allExposedKeys = cacheService.getAllExposedKeys
     val allPublicBuckets = cacheService.getAllPublicBuckets
     val allCredentials = cacheService.getAllCredentials
