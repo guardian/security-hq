@@ -263,27 +263,10 @@ trait IAMAlert {
 }
 case class IAMAlertTargetGroup(
   targets: List[Target],
-  outdatedKeysUsers: Seq[UserWithOutdatedKeys],
-  noMfaUsers: Seq[UserNoMfa]
+  users: Seq[VulnerableUser]
 )
 
-case class UserWithOutdatedKeys(
-  username: String,
-  key1LastRotation: Option[DateTime],
-  key2LastRotation: Option[DateTime],
-  userLastActiveDay: Option[Long],
-  tags: List[Tag],
-  disableDeadline: Option[DateTime] = None
-) extends IAMAlert
-
-case class UserNoMfa(
-  username: String,
-  userLastActiveDay: Option[Long],
-  tags: List[Tag],
-  disableDeadline: Option[DateTime] = None
-) extends IAMAlert
-
-case class VulnerableUsers(outdatedKeys: Seq[UserWithOutdatedKeys], noMfa: Seq[UserNoMfa])
+case class VulnerableUser(username: String, tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
