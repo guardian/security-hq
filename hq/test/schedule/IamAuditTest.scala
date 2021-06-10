@@ -1,47 +1,39 @@
 package schedule
 
 import com.gu.anghammarad.models.Stack
-import model.{UserWithOutdatedKeys, _}
+import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.IamAudit._
-import schedule.IamMessages.createMessage
 
 class IamAuditTest extends FreeSpec with Matchers {
-  val outdatedUser1: UserWithOutdatedKeys = UserWithOutdatedKeys("lesleyKnope", Some(DateTime.now.minusDays(400)), None, None, List())
-  val outdatedUser2: UserWithOutdatedKeys = UserWithOutdatedKeys("ronSwanson", Some(DateTime.now.minusDays(400)), None, None, List())
-  val outdatedUser3: UserWithOutdatedKeys = UserWithOutdatedKeys("tomHaverford", Some(DateTime.now.minusDays(400)), None, None, List())
+  val outdatedUser1 = VulnerableUser("lesleyKnope", List())
+  val outdatedUser2 = VulnerableUser("ronSwanson", List())
+  val outdatedUser3 = VulnerableUser("tomHaverford", List())
 
-  val noMfaUser1: UserNoMfa = UserNoMfa("april", None, List())
-  val noMfaUser2: UserNoMfa = UserNoMfa("andy", None, List())
-  val noMfaUser3: UserNoMfa = UserNoMfa("diane", None, List())
+  val noMfaUser1 = VulnerableUser("april", List())
+  val noMfaUser2 = VulnerableUser("andy", List())
+  val noMfaUser3 = VulnerableUser("diane", List())
 
 
   "getNotificationTargetGroups" - {
     "correctly builds target groups when users have no tags " in {
-      val targetGroups = getNotificationTargetGroups(VulnerableUsers(Seq(outdatedUser1, outdatedUser2), Seq(noMfaUser1, noMfaUser2)))
+      val targetGroups = getNotificationTargetGroups(Seq(outdatedUser1, outdatedUser2, noMfaUser1, noMfaUser2))
       targetGroups.length shouldEqual 1
-      targetGroups.head.noMfaUsers.length shouldEqual 2
-      targetGroups.head.outdatedKeysUsers.length shouldEqual 2
+      targetGroups.head.users.length shouldEqual 4
     }
 
     "correctly builds target groups when users have tags" in {
       val parks = Tag("Stack", "parks")
       val recreation = Tag("Stack", "recreation")
 
-      val inputOutdatedUsers = Seq(
+      val users = Seq(
         outdatedUser1,
         outdatedUser2.copy(tags=List(parks)),
         outdatedUser3.copy(tags=List(recreation))
       )
 
-      val inputNoMfaUsers = Seq(
-        noMfaUser1,
-        noMfaUser2.copy(tags=List(Tag("Stack", "parks"))),
-        noMfaUser3.copy(tags=List(Tag("Stack", "recreation")))
-      )
-
-      val targetGroups = getNotificationTargetGroups(VulnerableUsers(inputOutdatedUsers, inputNoMfaUsers))
+      val targetGroups = getNotificationTargetGroups(users)
 
       targetGroups.length shouldEqual 3
 
@@ -50,20 +42,13 @@ class IamAuditTest extends FreeSpec with Matchers {
         case _ => false
       })
       parkGroup shouldBe defined
-      val parkGroupNoMfaUsers = parkGroup.get.noMfaUsers
-      parkGroupNoMfaUsers.head.username shouldBe noMfaUser2.username
+      val parkGroupUsers = parkGroup.get.users
+      parkGroupUsers.head.username shouldBe outdatedUser2.username
 
       val noTagGroup = targetGroups.find(t => t.targets.isEmpty)
       noTagGroup shouldBe defined
-      noTagGroup.get.noMfaUsers shouldEqual List(noMfaUser1)
+      noTagGroup.get.users shouldEqual List(outdatedUser1)
 
-    }
-
-    "correctly builds target list when there are only mfa users" in {
-      val targetGroups = getNotificationTargetGroups(VulnerableUsers(Seq(), Seq(noMfaUser1, noMfaUser2)))
-      targetGroups.length shouldEqual 1
-      targetGroups.head.noMfaUsers.length shouldEqual 2
-      targetGroups.head.outdatedKeysUsers.length shouldEqual 0
     }
   }
   "findOldCredentialsAndMissingMfas" - {
