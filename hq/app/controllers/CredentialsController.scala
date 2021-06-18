@@ -2,19 +2,22 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import logic.CredentialsReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
+import model.IamAuditUser
 import play.api._
+import play.api.libs.json.{Json, OWrites, Writes}
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import schedule.IamJob
+import schedule.{Dynamo, IamJob}
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamJob)
+class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamJob, val configuration: Configuration, val dynamo: Dynamo)
                            (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 
@@ -46,5 +49,10 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
   def sendNotifications(send: Boolean) = authAction {
     if (send) iamJob.run()
     Ok("Triggered notifications job")
+  }
+
+  def getNotifications() = authAction {
+    val result = dynamo.scanAlert()
+    Ok(Json.toJson(result))
   }
 }

@@ -4,6 +4,7 @@ import com.amazonaws.regions.Region
 import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
+import play.api.libs.json.{JsString, JsValue, Json, Writes}
 
 
 case class AwsAccount(
@@ -273,6 +274,15 @@ object Warning extends IamAuditNotificationType {val name = "Warning"}
 object Final extends IamAuditNotificationType {val name = "Final"}
 
 case class IamAuditAlert(dateNotificationSent: DateTime, disableDeadline: DateTime)
+object IamAuditAlert {
+  implicit val jodaDateWrites: Writes[DateTime] = new Writes[DateTime] {
+    def writes(d: DateTime): JsValue = JsString(d.toString())
+  }
+  implicit val iamAuditAlerts = Json.writes[IamAuditAlert]
+}
 case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
+object IamAuditUser {
+  implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
+}
 case class IamNotification(iamUser: IamAuditUser, anghammaradNotification: Notification)
 

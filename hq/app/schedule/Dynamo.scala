@@ -1,7 +1,7 @@
 package schedule
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, ScanRequest}
 import model.{AwsAccount, IamAuditAlert, IamAuditUser}
 import org.joda.time.DateTime
 import play.api.Logging
@@ -27,13 +27,41 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
       "error"
   }
 
+  def scan: Seq[Map[String, AttributeValue]] = {
+    try {
+      client.scan(new ScanRequest().withTableName(table)).getItems.asScala.map(_.asScala.toMap)
+    } catch {
+      case NonFatal(e) =>
+        logger.error(s"unable to scan dynamoDB table $table: ${e.getMessage}", e)
+        List.empty
+    }
+  }
+
+  def scanAlert(): Seq[IamAuditUser] = {
+    scan.map { r =>
+      val alerts = r("alerts").getL.asScala.map { a =>
+        val alertMap = a.getM.asScala
+        IamAuditAlert(
+          new DateTime(alertMap("date").getS.toLong),
+          new DateTime(alertMap("disableDeadline").getS.toLong)
+        )
+      }.toList
+      IamAuditUser(
+        r("id").getS,
+        r("awsAccount").getS,
+        r("username").getS,
+        alerts
+      )
+    }
+  }
+
   def get(key: Map[String, AttributeValue]): Option[Map[String, AttributeValue]] = {
     try {
       Option(client.getItem(
         new GetItemRequest().withTableName(table).withKey(key.asJava)).getItem).map(_.asScala.toMap)
     } catch {
       case NonFatal(e) =>
-        logger.error(s"unable to get item from dynamoDB table: ${e.getMessage}", e)
+        logger.error(s"unable to get item from dynamoDB table $table: ${e.getMessage}", e)
         None
     }
   }
@@ -77,7 +105,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   def putAlert(alert: IamAuditUser): Unit = put(Map(
     "id" -> S(alert.id),
     "awsAccount" -> S(alert.awsAccount),
-    "userName" -> S(alert.username),
+    "username" -> S(alert.username),
     "alerts" -> L(alert.alerts.map(alert => M(alertToMap(alert))))
   ))
 }
