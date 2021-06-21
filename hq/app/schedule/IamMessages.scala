@@ -5,10 +5,38 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
 object IamMessages {
-  def subject(account: AwsAccount) = s"Action required: Insecure credentials in the ${account.name} AWS Account scheduled for deactivaton"
+
   val sourceSystem = "Security HQ Credentials Notifier"
-  def message(account: AwsAccount) =
+
+  def warningSubject(account: AwsAccount): String = s"Action required: Insecure credentials in the ${account.name} AWS Account scheduled for deactivaton"
+  def finalSubject(account: AwsAccount): String = s"Action required: Insecure credentials to be deactivated tomorrow in the ${account.name} AWS Account"
+
+  def message(account: AwsAccount) = {
     s"Please check the following permanent credentials in AWS Account ${account.name}/${account.accountNumber}, which have been flagged as either needing to be rotated or requiring multi-factor authentication (if you're already planning on doing this, please ignore this message). If this is not rectified before the deadline, Security HQ will automatically disable this user:"
+  }
+  def createWarningMessage(account: AwsAccount, users: Seq[VulnerableUser]): String = {
+    s"""
+       |${message(account)}
+       |${users.map(printFormat).mkString("\n")}
+       |$boilerPlateText
+       |""".stripMargin
+  }
+
+  def createFinalMessage(account: AwsAccount, users: Seq[VulnerableUser]): String = {
+    s"""
+       |${message(account)}
+       |${users.map(printFormat).mkString("\n")}
+       |$boilerPlateText
+       |""".stripMargin
+  }
+
+  private def printFormat(user: VulnerableUser): String = {
+    s"""
+       |Username: ${user.username}
+       |If this is not rectified by ${dateTimeToString(user.disableDeadline)}, the user will be disabled.
+       |""".stripMargin
+  }
+
   val boilerPlateText = List(
     "To see why these keys have been flagged and how to rectify this, see Security HQ (https://security-hq.gutools.co.uk/iam).",
     "",
@@ -23,19 +51,6 @@ object IamMessages {
     "If you have any questions, please contact the Developer Experience team: devx@theguardian.com."
   ).mkString("\n")
 
-  def createMessage(users: Seq[VulnerableUser], account: AwsAccount): String = {
-      s"""
-         |${message(account)}
-         |${users.map(printFormat).mkString("\n")}
-         |$boilerPlateText
-         |""".stripMargin
-  }
-  private def printFormat(user: VulnerableUser): String = {
-    s"""
-      |Username: ${user.username}
-      |If this is not rectified by ${dateTimeToString(user.disableDeadline)}, the user will be disabled.
-      |""".stripMargin
-  }
   private def dateTimeToString(day: Option[DateTime]): String = {
     val dateTimeFormatPattern = DateTimeFormat.forPattern("dd/MM/yyyy")
     day match {

@@ -3,11 +3,10 @@ package schedule
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{Email, Notification, Preferred, Target}
-import config.Config.iamAlertCadence
 import model._
 import org.joda.time.DateTime
 import play.api.Logging
-import schedule.IamMessages.{sourceSystem, subject}
+import schedule.IamMessages.sourceSystem
 import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,12 +20,13 @@ object IamNotifier extends Logging {
     account: AwsAccount,
     targets: List[Target],
     message: String,
+    subject: String,
     username: String,
     disableDate: DateTime,
   ): IamNotification = {
     val alerts: List[IamAuditAlert] = List(IamAuditAlert(DateTime.now, disableDate))
     val iamAuditUser: IamAuditUser = IamAuditUser(Dynamo.createId(account, username), account.name, username, alerts)
-    val anghammaradNotification = Notification(subject(account), message, List.empty, targets, channel, sourceSystem)
+    val anghammaradNotification = Notification(subject, message, List.empty, targets, channel, sourceSystem)
     IamNotification(iamAuditUser, anghammaradNotification)
   }
 

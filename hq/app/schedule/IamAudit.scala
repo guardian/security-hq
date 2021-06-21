@@ -1,29 +1,27 @@
 package schedule
 
-import com.gu.anghammarad.models.{AwsAccount => Account}
+import com.gu.anghammarad.models.{Target, AwsAccount => Account}
 import config.Config.{iamAlertCadence, iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import logic.DateUtils
 import model._
 import org.joda.time.{DateTime, Days}
 import play.api.Logging
-import schedule.IamMessages.createMessage
+import schedule.IamMessages._
 import schedule.IamNotifier.createNotification
 import utils.attempt.FailedAttempt
 
 object IamAudit extends Logging {
 
-  def makeIamNotification(flaggedCreds: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
-    flaggedCreds.toList.flatMap { case (awsAccount, targetGroups) =>
+  def makeIamNotification(flaggedCredsToNotify: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
+    flaggedCredsToNotify.toList.flatMap { case (awsAccount, targetGroups) =>
       if (targetGroups.isEmpty) {
         logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
         None
       } else {
         targetGroups.map { tg =>
-          logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.users.length} user(s) with outdated keys and missing mfa")
-          tg.users.flatMap { user =>
-            val message = createMessage(tg.users, awsAccount)
-            Some(createNotification(awsAccount, tg.targets :+ Account(awsAccount.accountNumber), message, user.username, createDeadline(user.disableDeadline)))
-          }
+          logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.users.length} user(s) with outdated keys and and/or missing mfa")
+          val (usersToReceiveWarningAlerts, usersToReceiveFinalAlerts) = sortUsersIntoWarningOrFinalAlerts(tg.users)
+          createNotifications(warning = true, usersToReceiveWarningAlerts, awsAccount, tg.targets) ++ createNotifications(warning = false, usersToReceiveFinalAlerts, awsAccount, tg.targets)
         }
       }
     }.flatten
@@ -41,6 +39,61 @@ object IamAudit extends Logging {
         (awsAccount, Right(getTargetGroups(report, awsAccount, dynamo)))
     }
     }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
+  }
+
+  private def sortUsersIntoWarningOrFinalAlerts(users: Seq[VulnerableUser]): (Seq[VulnerableUser], Seq[VulnerableUser]) = {
+    val warningAlerts = users.filter(user => isWarningAlert(createDeadlineIfMissing(user.disableDeadline)))
+    val finalAlerts = users.filter(user => isFinalAlert(createDeadlineIfMissing(user.disableDeadline)))
+    (warningAlerts, finalAlerts)
+  }
+
+  private def createNotifications(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]): Seq[IamNotification] = {
+    users.map { user =>
+      val message = if (warning) createWarningMessage(awsAccount, users) else createFinalMessage(awsAccount, users)
+      createNotification(awsAccount, targets :+ Account(awsAccount.accountNumber), message, warningSubject(awsAccount), user.username, createDeadlineIfMissing(user.disableDeadline))
+    }
+  }
+
+  private def createDeadlineIfMissing(date: Option[DateTime]): DateTime = date.getOrElse(DateTime.now.plusDays(iamAlertCadence))
+
+  def isWarningAlert(deadline: DateTime, today: DateTime = DateTime.now): Boolean = {
+    deadline.withTimeAtStartOfDay == today.withTimeAtStartOfDay.plusWeeks(1) ||
+      deadline.withTimeAtStartOfDay == today.withTimeAtStartOfDay.plusWeeks(3)
+  }
+  def isFinalAlert(deadline: DateTime, today: DateTime = DateTime.now): Boolean = deadline.withTimeAtStartOfDay == today.withTimeAtStartOfDay.plusDays(1)
+
+  private def getTargetGroups(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[IAMAlertTargetGroup] = {
+    val vulnerableUsers = findVulnerableUsers(report)
+    val vulnerableUsersToAlert = filterUsersToAlert(vulnerableUsers, awsAccount, dynamo)
+    getNotificationTargetGroups(vulnerableUsersToAlert)
+  }
+
+  private def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
+    outdatedKeysInfo(findOldAccessKeys(report)) ++ missingMfaInfo(findMissingMfa(report))
+  }
+
+  // if the user is not present in dynamo, that means they've never been alerted before, so mark them as ready to be alerted
+  private def filterUsersToAlert(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+    getExistingDeadlines(users, awsAccount, dynamo).filter { user =>
+      user.disableDeadline.exists(u => isWarningAlert(u) || isFinalAlert(u)) || user.disableDeadline.isEmpty
+    }
+  }
+
+  // adds deadline to users when this field is present in dynamoDB
+  private def getExistingDeadlines(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+    users.map { user =>
+      dynamo.getAlert(awsAccount, user.username).map { u =>
+        user.copy(user.username, user.tags, Some(getNearestDeadline(u.alerts)))
+      }.getOrElse(user)
+    }
+  }
+
+  def getNearestDeadline(alerts: List[IamAuditAlert], today: DateTime = DateTime.now): DateTime = {
+    val (nearestDeadline, _) = alerts.foldRight[(DateTime, Int)]((DateTime.now, iamAlertCadence)){ case (alert, (acc, startingNumberOfDays)) =>
+      val daysBetweenTodayAndDeadline: Int = Days.daysBetween(today, alert.disableDeadline).getDays
+      if (daysBetweenTodayAndDeadline < startingNumberOfDays) (alert.disableDeadline, daysBetweenTodayAndDeadline) else (acc, startingNumberOfDays)
+    }
+    nearestDeadline
   }
 
   /**
@@ -62,32 +115,6 @@ object IamAudit extends Logging {
       val targets = users.headOption.map(k => Tag.tagsToAnghammaradTargets(k.tags)).getOrElse(List())
 
       IAMAlertTargetGroup(targets, users)
-    }
-  }
-
-  private def createDeadline(date: Option[DateTime]): DateTime = date.getOrElse(DateTime.now.plusDays(iamAlertCadence))
-
-  def getTargetGroups(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[IAMAlertTargetGroup] = {
-    val vulnerableUsers = findVulnerableUsers(report)
-    val vulnerableUsersToAlert = getUsersNotRecentlyNotified(vulnerableUsers, awsAccount, dynamo)
-    getNotificationTargetGroups(vulnerableUsersToAlert)
-  }
-
-  def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
-    outdatedKeysInfo(findOldAccessKeys(report)) ++ missingMfaInfo(findMissingMfa(report))
-  }
-
-  def getUsersNotRecentlyNotified(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
-    users.filter { user =>
-      dynamo.getAlert(awsAccount, user.username).exists { notifiedUser =>
-        !isAlreadyAlerted(notifiedUser.alerts)
-      }
-    }
-  }
-
-  def isAlreadyAlerted(alerts: List[IamAuditAlert]): Boolean = {
-    alerts.exists { alert =>
-      Days.daysBetween(alert.dateNotificationSent.toLocalDate, DateTime.now.toLocalDate).getDays <= iamAlertCadence
     }
   }
 
