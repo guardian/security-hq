@@ -10,6 +10,7 @@ import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReport
 import logic.{CredentialsReportDisplay, Retry}
 import org.joda.time.DateTime
 import model.{AwsAccount, CredentialReportDisplay, IAMCredential, IAMCredentialsReport, Tag}
+import play.api.Logging
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
@@ -17,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConverters._
 
 
-object IAMClient {
+object IAMClient extends Logging {
 
   val SOLE_REGION = Regions.US_EAST_1
 
@@ -31,6 +32,10 @@ object IAMClient {
     handleAWSErrs(client)(awsToScala(client)(_.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
   }
 
+  /**
+    * Attempts to update 'credential' with tags fetched from AWS. If the request to AWS fails, return the original credential
+    * @return Updated or original credential
+    */
   private def enrichCredentialWithTags(credential: IAMCredential, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext) = {
     val request = new ListUserTagsRequest().withUserName(credential.user)
     val result = awsToScala(client)(_.listUserTagsAsync)(request)
@@ -38,13 +43,18 @@ object IAMClient {
       val tagsList = tagsResult.getTags.asScala.toList.map(t => Tag(t.getKey, t.getValue))
       credential.copy(tags = tagsList)
     }
+      // If the request to fetch tags fails, just return the original user
+      .recover { case error =>
+        logger.warn(s"Failed to fetch tags for user ${credential.user}. Storing user without tags.", error)
+        credential
+      }
   }
 
   private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
-    val updatedEntries = handleAWSErrs(client)(Future.sequence(report.entries.map(e => enrichCredentialWithTags(e, client))))
-    val updatedReportAttempt = updatedEntries.map(e => report.copy(entries = e))
-    // if the fetch tags request failed, just return the original report without tags
-    Attempt.fromFuture(updatedReportAttempt.fold(_ => report, updatedReport => updatedReport)){
+    val updatedEntries = Future.sequence(report.entries.map(e => enrichCredentialWithTags(e, client)))
+    val updatedReport = updatedEntries.map(e => report.copy(entries = e))
+    // Convert to an Attempt
+    Attempt.fromFuture(updatedReport){
       case throwable => Failure(throwable.getMessage, "failed to enrich report with tags", 500, throwable = Some(throwable)).attempt
     }
   }
