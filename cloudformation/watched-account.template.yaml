@@ -63,6 +63,7 @@ Resources:
             - iam:GetCredentialReport
             - cloudformation:DescribeStacks
             - iam:ListUserTags
+            - iam:UpdateAccessKey
             # get AWS inspector results
             - inspector:List*
             - inspector:Describe*
