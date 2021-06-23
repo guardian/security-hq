@@ -106,7 +106,8 @@ class AppComponents(context: Context)
   private val s3Clients = AWS.s3Clients(configuration)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
-  val securityCredentialsProvider = new AWSCredentialsProviderChain(DefaultAWSCredentialsProviderChain.getInstance(), new ProfileCredentialsProvider("security"))
+  val securityCredentialsProvider =
+    new AWSCredentialsProviderChain(new ProfileCredentialsProvider("security"), DefaultAWSCredentialsProviderChain.getInstance())
   private val securitySnsClient = AmazonSNSAsyncClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region)
@@ -114,20 +115,10 @@ class AppComponents(context: Context)
     .build()
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-  private val dynamoDbClient: AmazonDynamoDB = {
-    configuration.getOptional[String]("stage") match {
-      case Some("DEV") =>
-        AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
-          .withEndpointConfiguration(new EndpointConfiguration("http://127.0.0.1:8000", Config.region.getName))
-          .build()
-      case _ =>
-        AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
-          .withRegion(Config.region.getName)
-          .build()
-    }
-  }
+  private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
+    .withCredentials(securityCredentialsProvider)
+    .withRegion(Config.region.getName)
+    .build()
 
   private val cacheService = new CacheService(
     configuration,
@@ -164,7 +155,7 @@ class AppComponents(context: Context)
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration, googleAuthConfig),
-    new CredentialsController(configuration, cacheService, googleAuthConfig, iamJob),
+    new CredentialsController(configuration, cacheService, googleAuthConfig, iamJob, configuration, dynamo),
     new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),

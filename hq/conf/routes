@@ -8,6 +8,7 @@ GET        /healthcheck                               controllers.HQController.h
 
 GET        /iam                                       controllers.CredentialsController.iam
 GET        /iam/send-notifications                    controllers.CredentialsController.sendNotifications(send: Boolean)
+GET        /iam/get-notifications                     controllers.CredentialsController.getNotifications
 GET        /iam/:accountId                            controllers.CredentialsController.iamAccount(accountId)
 GET        /iam/refresh/all                           controllers.CredentialsController.refresh
 
