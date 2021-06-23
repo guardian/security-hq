@@ -64,6 +64,7 @@ Resources:
             - cloudformation:DescribeStacks
             - iam:ListUserTags
             - iam:ListAccessKeys
+            - iam:ListMFADevices
             - iam:UpdateAccessKey
             - iam:DeleteLoginProfile
             # get AWS inspector results
