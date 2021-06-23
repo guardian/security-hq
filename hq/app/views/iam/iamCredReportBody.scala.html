@@ -27,6 +27,7 @@
                     <th>Password/MFA</th>
                     <th>Last Activity</th>
                     <th>Status</th>
+                    <th>Stack</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,6 +67,7 @@
                         <span>@CredentialsReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
                     <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
+                    <td>@cred.tags.find(t => t.key == "Stack").map(_.value).getOrElse("")</td>
                 </tr>
             }
 
@@ -100,6 +102,7 @@
                         <span>@CredentialsReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
                     <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
+                    <td>@cred.tags.find(t => t.key == "Stack").map(_.value).getOrElse("")</td>
                 </tr>
             }
             </tbody>
