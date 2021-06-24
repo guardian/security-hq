@@ -46,8 +46,8 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
     Ok("Refreshing IAM credentials reports (may take a minute or so to appear)")
   }
 
-  def sendNotifications(send: Boolean) = authAction {
-    if (send) iamJob.run()
+  def testNotifications() = authAction {
+    iamJob.run(testMode = true)
     Ok("Triggered notifications job")
   }
 
