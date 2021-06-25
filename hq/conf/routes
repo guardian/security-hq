@@ -7,7 +7,7 @@ GET        /                                          controllers.HQController.i
 GET        /healthcheck                               controllers.HQController.healthcheck
 
 GET        /iam                                       controllers.CredentialsController.iam
-GET        /iam/send-notifications                    controllers.CredentialsController.sendNotifications(send: Boolean)
+GET        /iam/test-notifications                    controllers.CredentialsController.testNotifications
 GET        /iam/get-notifications                     controllers.CredentialsController.getNotifications
 GET        /iam/:accountId                            controllers.CredentialsController.iamAccount(accountId)
 GET        /iam/refresh/all                           controllers.CredentialsController.refresh

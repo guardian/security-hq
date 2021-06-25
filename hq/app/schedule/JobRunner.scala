@@ -13,5 +13,5 @@ abstract class JobRunner {
   val jobKey = new JobKey(name)
   val triggerKey = new TriggerKey(name)
 
-  def run(): Unit
+  def run(testMode: Boolean = false): Unit
 }

@@ -17,7 +17,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
   override val cronSchedule: CronSchedule = CronSchedules.firstMondayOfEveryMonth
   val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
 
-  def run(): Unit = {
+  def run(testMode: Boolean = false): Unit = {
     if (!enabled) {
       logger.info(s"Skipping scheduled $id job as it is not enabled")
     } else {
