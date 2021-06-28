@@ -34,20 +34,22 @@ object IamNotifier extends Logging {
     notification: IamNotification,
     topicArn: Option[String],
     snsClient: AmazonSNSAsync,
-    testMode: Boolean = false
+    testMode: Boolean
   )(implicit executionContext: ExecutionContext): Attempt[String] = {
     logger.info(s"attempting to send iam notification to topic arn: $topicArn to targets: ${notification.anghammaradNotification.target}")
     Attempt{
       topicArn match {
       case Some(arn) =>
-        val anghammaradNotification = if (testMode) notification.anghammaradNotification.copy(target = List(Stack("testing-alerts"))) else notification.anghammaradNotification
+        val anghammaradNotification = {
+          if (testMode) notification.anghammaradNotification.copy(target = List(Stack("testing-alerts"))) else notification.anghammaradNotification
+        }
         val response: Future[String] = Anghammarad.notify(anghammaradNotification, arn, snsClient)
         response.transformWith {
           case Success(id) =>
-            logger.info(s"Sent notification to ${notification.anghammaradNotification.target}: $id")
+            logger.info(s"Sent notification to ${anghammaradNotification.target}: $id")
             Future(Right(id))
           case Failure(err) =>
-            logger.error(s"Failed to send notification for username: ${notification.iamUser.username} in AWS account: ${notification.iamUser.awsAccount} with subject ${notification.anghammaradNotification.subject}", err)
+            logger.error(s"Failed to send notification for username: ${notification.iamUser.username} in AWS account: ${notification.iamUser.awsAccount} with subject ${anghammaradNotification.subject}", err)
             Future(Left(FailedAttempt(utils.attempt.Failure("", "", 1, None, Some(err)))))
         }
       case None =>

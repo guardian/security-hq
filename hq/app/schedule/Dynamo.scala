@@ -42,8 +42,8 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
       val alerts = r("alerts").getL.asScala.map { a =>
         val alertMap = a.getM.asScala
         IamAuditAlert(
-          new DateTime(alertMap("date").getS.toLong),
-          new DateTime(alertMap("disableDeadline").getS.toLong)
+          new DateTime(alertMap("date").getN.toLong),
+          new DateTime(alertMap("disableDeadline").getN.toLong)
         )
       }.toList
       IamAuditUser(
@@ -69,12 +69,11 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser] = {
     val key = Map("id" -> S(Dynamo.createId(awsAccount, username)))
     get(key).map { r =>
-
       val alerts = r("alerts").getL.asScala.map{ a =>
         val alertMap = a.getM.asScala
         IamAuditAlert(
-          new DateTime(alertMap("date").getS.toLong),
-          new DateTime(alertMap("disableDeadline").getS.toLong)
+          new DateTime(alertMap("date").getN.toLong),
+          new DateTime(alertMap("disableDeadline").getN.toLong)
         )
       }.toList
 

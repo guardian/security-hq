@@ -11,6 +11,6 @@ class JobWrapper extends Job with Logging {
     val job = jobData.get(JobDataKeys.Runner).asInstanceOf[JobRunner]
 
     logger.info(s"Running jobId=${job.id} - ${job.description}")
-    job.run()
+    job.run(testMode = false)
   }
 }
