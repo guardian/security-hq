@@ -51,7 +51,13 @@ object IAMClient extends Logging {
   }
 
   private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
-    val updatedEntries = Future.sequence(report.entries.map(e => enrichCredentialWithTags(e, client)))
+    val updatedEntries = Future.sequence(report.entries.map(e => {
+      // the root user isn't a normal IAM user - exclude from tag lookup
+      if (!IAMCredential.isRootUser(e.user)) {
+        enrichCredentialWithTags(e, client)
+      } else
+        Future.successful(e)
+    }))
     val updatedReport = updatedEntries.map(e => report.copy(entries = e))
     // Convert to an Attempt
     Attempt.fromFuture(updatedReport){

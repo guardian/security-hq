@@ -60,7 +60,11 @@ case class IAMCredential(
   cert2LastRotated: Option[DateTime],
   tags: List[Tag] = List()
                         ) {
-  val rootUser = user == "<root_account>"
+  val rootUser = IAMCredential.isRootUser(user)
+}
+
+object IAMCredential {
+  def isRootUser(user: String): Boolean = user == "<root_account>"
 }
 
 case class TrustedAdvisorCheck(
