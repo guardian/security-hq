@@ -67,6 +67,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   }
 
   def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser] = {
+    logger.info(s"Fetching alert for username ${username}, account ${awsAccount.id}")
     val key = Map("id" -> S(Dynamo.createId(awsAccount, username)))
     get(key).map { r =>
       val alerts = r("alerts").getL.asScala.map{ a =>
@@ -77,12 +78,14 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
         )
       }.toList
 
-      IamAuditUser(
+      val parsedUser = IamAuditUser(
         r("id").getS,
         r("awsAccount").getS,
         r("username").getS,
         alerts
       )
+      logger.info(s"found user $parsedUser for username ${username}, account ${awsAccount.id}")
+      parsedUser
     }
   }
 
