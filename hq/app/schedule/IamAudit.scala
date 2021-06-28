@@ -65,7 +65,9 @@ object IamAudit extends Logging {
   private def getTargetGroups(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[IAMAlertTargetGroup] = {
     val vulnerableUsers = findVulnerableUsers(report)
     val vulnerableUsersToAlert = filterUsersToAlert(vulnerableUsers, awsAccount, dynamo)
-    getNotificationTargetGroups(vulnerableUsersToAlert)
+    val targetGroups: Seq[IAMAlertTargetGroup] = getNotificationTargetGroups(vulnerableUsersToAlert)
+    logger.info(s"AWSAccount: ${awsAccount.name}, target groups: ${targetGroups.map(_.targets).mkString("/")}")
+    targetGroups
   }
 
   private def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
