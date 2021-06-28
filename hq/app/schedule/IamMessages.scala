@@ -8,8 +8,8 @@ object IamMessages {
 
   val sourceSystem = "Security HQ Credentials Notifier"
 
-  def warningSubject(account: AwsAccount): String = s"Action required: Insecure credentials in the ${account.name} AWS Account scheduled for deactivaton"
-  def finalSubject(account: AwsAccount): String = s"Action required: Insecure credentials to be deactivated tomorrow in the ${account.name} AWS Account"
+  def warningSubject(account: AwsAccount): String = s"Action ${account.name}: Insecure credentials"
+  def finalSubject(account: AwsAccount): String = s"Action ${account.name}: Deactivating credentials tomorrow"
 
   def message(account: AwsAccount) = {
     s"Please check the following permanent credentials in AWS Account ${account.name}/${account.accountNumber}, which have been flagged as either needing to be rotated or requiring multi-factor authentication (if you're already planning on doing this, please ignore this message). If this is not rectified before the deadline, Security HQ will automatically disable this user:"

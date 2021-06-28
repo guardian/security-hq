@@ -17,7 +17,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
   override val cronSchedule: CronSchedule = CronSchedules.firstMondayOfEveryMonth
   val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
 
-  def run(testMode: Boolean = false): Unit = {
+  def run(testMode: Boolean): Unit = {
     if (!enabled) {
       logger.info(s"Skipping scheduled $id job as it is not enabled")
     } else {
@@ -30,7 +30,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
 
     makeIamNotification(getFlaggedCredentialsReports(credsReport, dynamo)).foreach { notification: IamNotification =>
       for {
-        _ <- send(notification, topicArn, snsClient)
+        _ <- send(notification, topicArn, snsClient, testMode)
         _ = dynamo.putAlert(notification.iamUser)
       } yield ()
     }
