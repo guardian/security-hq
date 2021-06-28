@@ -76,13 +76,16 @@ object IamAudit extends Logging {
 
   // if the user is not present in dynamo, that means they've never been alerted before, so mark them as ready to be alerted
   private def filterUsersToAlert(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
-    getExistingDeadlines(users, awsAccount, dynamo).filter { user =>
+    val usersWithDeadline = enrichUsersWithDeadline(users, awsAccount, dynamo)
+    logger.info(s"(maybe) enriched users ${usersWithDeadline.map(_.username).mkString(",")}")
+    usersWithDeadline.filter { user =>
+
       user.disableDeadline.exists(u => isWarningAlert(u) || isFinalAlert(u)) || user.disableDeadline.isEmpty
     }
   }
 
   // adds deadline to users when this field is present in dynamoDB
-  private def getExistingDeadlines(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+  private def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
     users.map { user =>
       dynamo.getAlert(awsAccount, user.username).map { u =>
         user.copy(user.username, user.tags, Some(getNearestDeadline(u.alerts)))
