@@ -2,9 +2,7 @@ package schedule
 
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
-import com.gu.anghammarad.models.{Email, Notification, Preferred, Stack, Target}
-import model._
-import org.joda.time.DateTime
+import com.gu.anghammarad.models.{AwsAccount => _, _}
 import play.api.Logging
 import schedule.IamMessages.sourceSystem
 import utils.attempt.{Attempt, FailedAttempt}
@@ -16,32 +14,21 @@ import scala.util.{Failure, Success}
 object IamNotifier extends Logging {
   val channel = Preferred(Email)
 
-  def createNotification(
-    account: AwsAccount,
-    targets: List[Target],
-    message: String,
-    subject: String,
-    username: String,
-    disableDate: DateTime,
-  ): IamNotification = {
-    val alerts: List[IamAuditAlert] = List(IamAuditAlert(DateTime.now, disableDate))
-    val iamAuditUser: IamAuditUser = IamAuditUser(Dynamo.createId(account, username), account.name, username, alerts)
-    val anghammaradNotification = Notification(subject, message, List.empty, targets, channel, sourceSystem)
-    IamNotification(iamAuditUser, anghammaradNotification)
-  }
+  def notification(subject: String, message: String, targets: List[Target]): Notification =
+    Notification(subject, message, List.empty, targets, channel, sourceSystem)
 
   def send(
-    notification: IamNotification,
+    notification: Notification,
     topicArn: Option[String],
     snsClient: AmazonSNSAsync,
     testMode: Boolean
   )(implicit executionContext: ExecutionContext): Attempt[String] = {
-    logger.info(s"attempting to send iam notification to topic arn: $topicArn to targets: ${notification.anghammaradNotification.target}")
+    logger.info(s"attempting to send iam notification to topic arn: $topicArn to targets: ${notification.target}")
     Attempt{
       topicArn match {
       case Some(arn) =>
         val anghammaradNotification = {
-          if (testMode) notification.anghammaradNotification.copy(target = List(Stack("testing-alerts"))) else notification.anghammaradNotification
+          if (testMode) notification.copy(target = List(Stack("testing-alerts"))) else notification
         }
         val response: Future[String] = Anghammarad.notify(anghammaradNotification, arn, snsClient)
         response.transformWith {
@@ -49,7 +36,6 @@ object IamNotifier extends Logging {
             logger.info(s"Sent notification to ${anghammaradNotification.target}: $id")
             Future(Right(id))
           case Failure(err) =>
-            logger.error(s"Failed to send notification for username: ${notification.iamUser.username} in AWS account: ${notification.iamUser.awsAccount} with subject ${anghammaradNotification.subject}", err)
             Future(Left(FailedAttempt(utils.attempt.Failure("", "", 1, None, Some(err)))))
         }
       case None =>

@@ -78,18 +78,17 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
         )
       }.toList
 
-      val parsedUser = IamAuditUser(
+      IamAuditUser(
         r("id").getS,
         r("awsAccount").getS,
         r("username").getS,
         alerts
       )
-      logger.info(s"found user $parsedUser for username ${username}, account ${awsAccount.id}")
-      parsedUser
     }
   }
 
   def put(item: Map[String, AttributeValue]): Unit = try {
+    logger.info(s"putting item to dynamoDB table: $table")
     client.putItem(
       new PutItemRequest().withTableName(table).withItem(item.asJava))
   } catch {

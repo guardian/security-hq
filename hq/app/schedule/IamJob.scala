@@ -1,10 +1,11 @@
 package schedule
 
 import com.amazonaws.services.sns.AmazonSNSAsync
+import com.gu.anghammarad.models.Notification
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
-import schedule.IamAudit.{getFlaggedCredentialsReports, makeIamNotification}
+import schedule.IamAudit.{getFlaggedCredentialsReports, makeNotification}
 import schedule.IamNotifier.send
 import services.CacheService
 import utils.attempt.FailedAttempt
@@ -28,11 +29,16 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
     val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = getCredsReport(cacheService)
     logger.info(s"successfully collected credentials report for $id. Report is empty: ${credsReport.isEmpty}.")
 
-    makeIamNotification(getFlaggedCredentialsReports(credsReport, dynamo)).foreach { notification: IamNotification =>
+    def sendNotificationAndRecord(notification: Notification, users: Seq[IamAuditUser]): Unit = {
       for {
         _ <- send(notification, topicArn, snsClient, testMode)
-        _ = dynamo.putAlert(notification.iamUser)
+        _ = users.map(dynamo.putAlert)
       } yield ()
+    }
+
+    makeNotification(getFlaggedCredentialsReports(credsReport, dynamo)).foreach { notification =>
+      notification.warningN.foreach(sendNotificationAndRecord(_, notification.alertedUsers))
+      notification.finalN.foreach(sendNotificationAndRecord(_, notification.alertedUsers))
     }
   }
 }
