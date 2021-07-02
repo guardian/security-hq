@@ -150,7 +150,7 @@ class AppComponents(context: Context)
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
   val iamJob = new IamJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration)(executionContext)
   val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
-  jobScheduler.initialise()
+  //jobScheduler.initialise() TODO: uncomment when ready to release creds reaper feature in PROD
 
   override def router: Router = new Routes(
     httpErrorHandler,
