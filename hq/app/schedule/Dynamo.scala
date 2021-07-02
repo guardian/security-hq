@@ -67,6 +67,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   }
 
   def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser] = {
+    logger.info(s"Fetching alert for username ${username}, account ${awsAccount.id}")
     val key = Map("id" -> S(Dynamo.createId(awsAccount, username)))
     get(key).map { r =>
       val alerts = r("alerts").getL.asScala.map{ a =>
@@ -87,6 +88,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   }
 
   def put(item: Map[String, AttributeValue]): Unit = try {
+    logger.info(s"putting item to dynamoDB table: $table")
     client.putItem(
       new PutItemRequest().withTableName(table).withItem(item.asJava))
   } catch {

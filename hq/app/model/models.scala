@@ -288,5 +288,5 @@ case class IamAuditUser(id: String, awsAccount: String, username: String, alerts
 object IamAuditUser {
   implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
 }
-case class IamNotification(iamUser: IamAuditUser, anghammaradNotification: Notification)
+case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
 

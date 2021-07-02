@@ -142,7 +142,7 @@ class IamAuditTest extends FreeSpec with Matchers {
     "returns nothing when there are no old access keys or missing mfas" in {
       val allCreds = Map(AwsAccount("", "", "", "") -> Seq.empty)
       val result = List.empty
-      makeIamNotification(allCreds) shouldEqual result
+      makeNotification(allCreds) shouldEqual result
     }
     "returns true when the deadline is one week away" in {
       val deadline = DateTime.now.plusWeeks(1)
