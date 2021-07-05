@@ -4,9 +4,12 @@ import com.gu.anghammarad.models.Stack
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
-import schedule.IamAudit._
+import schedule.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
+import schedule.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
+import schedule.IamNotifications._
+import schedule.IamTargetGroups.getNotificationTargetGroups
 
-class IamAuditTest extends FreeSpec with Matchers {
+class IamNotificationsTest extends FreeSpec with Matchers {
   val outdatedUser1 = VulnerableUser("lesleyKnope", List())
   val outdatedUser2 = VulnerableUser("ronSwanson", List())
   val outdatedUser3 = VulnerableUser("tomHaverford", List())

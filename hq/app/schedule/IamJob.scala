@@ -5,7 +5,8 @@ import com.gu.anghammarad.models.Notification
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
-import schedule.IamAudit.{getFlaggedCredentialsReports, makeNotification}
+import schedule.IamNotifications.makeNotification
+import schedule.IamFlaggedUsers.getFlaggedCredentialsReports
 import schedule.IamNotifier.send
 import services.CacheService
 import utils.attempt.FailedAttempt
