@@ -111,7 +111,7 @@ There are further instructions in the [dev-nginx](https://github.com/guardian/de
 
 run each of these commands:
 
-`dev-nginx add-to-hosts-file`
+`dev-nginx add-to-hosts-file security-hq.local.dev-gutools.co.uk`
 
 `dev-nginx setup-cert security-hq.local.dev-gutools.co.uk`
 
