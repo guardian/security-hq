@@ -21,6 +21,8 @@ account's health from a security point of view.
 
 ### AWS Configuration
 
+_Note: this section is only necessary if you do not already have another means of accessing your account(s) with the required permissions. Particularly, that is true for Guardian developers, who can use temporary credentials from Janus in the usual way._
+
 The security-test-user CloudFormation template should create a user with all the required permissions.
 
 Once the CloudFormation is complete and the user created, you will need to create an access key for this user.
