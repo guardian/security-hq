@@ -58,13 +58,13 @@ class MetricService(
     }
 
     for {
-      allGcpFindings <- cacheService.getGcpFindings
+      gcpReport <- cacheService.getGcpReport
     } yield {
       Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
       Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
       Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
       Cloudwatch.logMetricsForCredentialsReport(allCredentials)
-      Cloudwatch.logMetricsForGCPFindings(allGcpFindings)
+      Cloudwatch.logMetricsForGCPReport(gcpReport)
     }
   }
 
