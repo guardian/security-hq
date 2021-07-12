@@ -1,12 +1,11 @@
 package logging
 
-import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
 import com.google.cloud.securitycenter.v1.Finding
 import logic.CredentialsReportDisplay
 import logic.CredentialsReportDisplay.reportStatusSummary
-import model.{AwsAccount, CredentialReportDisplay, GcpFinding}
+import model.{AwsAccount, CredentialReportDisplay, GcpFinding, GcpReport}
 import play.api.Logging
 import utils.attempt.FailedAttempt
 
@@ -30,10 +29,8 @@ object Cloudwatch extends Logging {
     val gcpHigh = Value("gcp/high")
   }
 
-  def logMetricsForGCPFindings(allGcpFindings: Seq[GcpFinding]): Unit = {
-    val gcpProjectToFinding = allGcpFindings.groupBy(_.project)
-
-    gcpProjectToFinding.toSeq.foreach {
+  def logMetricsForGCPReport(gcpReport: GcpReport): Unit = {
+    gcpReport.finding.toSeq.foreach {
       case (project: String, findings: Seq[GcpFinding]) =>
         val criticalFindings = findings.filter(_.severity == Finding.Severity.CRITICAL)
         val highFindings = findings.filter(_.severity == Finding.Severity.HIGH)
@@ -41,7 +38,6 @@ object Cloudwatch extends Logging {
         putGcpMetric(project, Cloudwatch.DataType.gcpHigh, highFindings.length)
         putGcpMetric(project, Cloudwatch.DataType.gcpTotal, criticalFindings.length + highFindings.length)
     }
-
   }
 
   def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] ) : Unit = {

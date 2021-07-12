@@ -26,6 +26,7 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import logging.Cloudwatch
+import org.joda.time.DateTime
 
 
 class CacheService(
@@ -50,7 +51,7 @@ class CacheService(
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
   private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
-  private val gcpBox: Box[Attempt[List[GcpFinding]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
+  private val gcpBox: Box[Attempt[GcpReport]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
 
@@ -90,7 +91,7 @@ class CacheService(
 
   def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
 
-  def getGcpFindings: Attempt[List[GcpFinding]] = gcpBox.get()
+  def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 
   def refreshCredentialsBox(): Unit = {
     logger.info("Started refresh of the Credentials data")
@@ -149,9 +150,11 @@ class CacheService(
     val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
     for {
       gcpFindings <- GcpDisplay.getGcpFindings(organisation, gcpClient, config)
+      gcpProjectToFinding = gcpFindings.groupBy(_.project)
+      report = GcpReport(DateTime.now, gcpProjectToFinding)
     } yield {
       logger.info("Sending the refreshed data to the GCP Box")
-      gcpBox.send(Attempt.Right(gcpFindings))
+      gcpBox.send(Attempt.Right(report))
     }
   }
 

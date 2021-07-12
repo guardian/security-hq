@@ -2,8 +2,6 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import com.gu.googleauth.GoogleAuthConfig
-import model.GcpReport
-import org.joda.time.DateTime
 import play.api.Configuration
 import play.api.libs.ws.WSClient
 import play.api.mvc.{AnyContent, BaseController, BodyParser, ControllerComponents}
@@ -18,11 +16,7 @@ class GcpController(val config: Configuration, val authConfig: GoogleAuthConfig,
 
   def all = authAction.async {
     attempt {
-      for {
-        allGcpFindings <- cacheService.getGcpFindings
-        gcpProjectToFinding = allGcpFindings.groupBy(_.project)
-        report = GcpReport(DateTime.now, gcpProjectToFinding)
-      } yield Ok(views.html.gcp.gcp(report))
+      cacheService.getGcpReport.map(report => Ok(views.html.gcp.gcp(report)))
     }
   }
 }
