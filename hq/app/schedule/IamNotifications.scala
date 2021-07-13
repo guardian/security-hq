@@ -49,8 +49,11 @@ object IamNotifications extends Logging {
   }
 
   def createNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]) = {
+    val usersWithDeadlineAddedIfMissing = users.map { user =>
+      user.copy(disableDeadline = Some(createDeadlineIfMissing(user.disableDeadline)))
+    }
     val subject = if (warning) warningSubject(awsAccount) else finalSubject(awsAccount)
-    val message = if (warning) createWarningMessage(awsAccount, users) else createFinalMessage(awsAccount, users)
+    val message = if (warning) createWarningMessage(awsAccount, usersWithDeadlineAddedIfMissing) else createFinalMessage(awsAccount, usersWithDeadlineAddedIfMissing)
     notification(subject, message, targets :+ Account(awsAccount.accountNumber))
   }
 }
