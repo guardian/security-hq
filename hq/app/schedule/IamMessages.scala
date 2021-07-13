@@ -38,6 +38,8 @@ object IamMessages {
   }
 
   val boilerPlateText = List(
+    "----------------------------------------------------------------------------------",
+    "",
     "To see why these keys have been flagged and how to rectify this, see Security HQ (https://security-hq.gutools.co.uk/iam).",
     "",
     "Here is some helpful documentation on:",
