@@ -5,6 +5,7 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
+import schedule.IamDisable.toDisableToday
 import schedule.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 import schedule.IamNotifications._
 import schedule.IamTargetGroups.getNotificationTargetGroups
@@ -171,6 +172,15 @@ class IamNotificationsTest extends FreeSpec with Matchers {
       val deadline = DateTime.now.plusDays(2)
       val today = DateTime.now
       isFinalAlert(deadline, today) shouldBe false
+    }
+    "returns true when the deadline is today" in {
+      val deadline = DateTime.now
+      val today = DateTime.now
+      toDisableToday(deadline, today) shouldBe true
+    }
+    "returns false when the deadline is not today" in {
+      val deadline = DateTime.now.minusDays(1)
+      toDisableToday(deadline) shouldBe false
     }
     "returns nearest deadline" in {
       val nearestDeadline = DateTime.now.plusDays(1).withTimeAtStartOfDay
