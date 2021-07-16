@@ -5,10 +5,10 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
-import schedule.IamDisable.toDisableToday
 import schedule.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 import schedule.IamNotifications._
 import schedule.IamTargetGroups.getNotificationTargetGroups
+import schedule.IamUsersToDisable.toDisableToday
 
 class IamNotificationsTest extends FreeSpec with Matchers {
   val outdatedUser1 = VulnerableUser("lesleyKnope", List())
