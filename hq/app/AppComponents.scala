@@ -148,7 +148,7 @@ class AppComponents(context: Context)
 
   //initialise IAM notification service
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val iamJob = new IamJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration)(executionContext)
+  val iamJob = new IamJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
   val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
   //jobScheduler.initialise() TODO: uncomment when ready to release creds reaper feature in PROD
 
