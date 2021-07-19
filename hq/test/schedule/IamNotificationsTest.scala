@@ -11,13 +11,13 @@ import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.IamUsersToDisable.toDisableToday
 
 class IamNotificationsTest extends FreeSpec with Matchers {
-  val outdatedUser1 = VulnerableUser("lesleyKnope", List())
-  val outdatedUser2 = VulnerableUser("ronSwanson", List())
-  val outdatedUser3 = VulnerableUser("tomHaverford", List())
+  val outdatedUser1 = VulnerableUser("lesleyKnope", tags = List())
+  val outdatedUser2 = VulnerableUser("ronSwanson", tags = List())
+  val outdatedUser3 = VulnerableUser("tomHaverford", tags = List())
 
-  val noMfaUser1 = VulnerableUser("april", List())
-  val noMfaUser2 = VulnerableUser("andy", List())
-  val noMfaUser3 = VulnerableUser("diane", List())
+  val noMfaUser1 = VulnerableUser("april", tags = List())
+  val noMfaUser2 = VulnerableUser("andy", tags = List())
+  val noMfaUser3 = VulnerableUser("diane", tags = List())
 
 
   "getNotificationTargetGroups" - {

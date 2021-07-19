@@ -271,7 +271,7 @@ case class IAMAlertTargetGroup(
   users: Seq[VulnerableUser]
 )
 
-case class VulnerableUser(username: String, tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
+case class VulnerableUser(username: String, key1: AccessKey = AccessKey(NoKey, None), key2: AccessKey = AccessKey(NoKey, None), tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
