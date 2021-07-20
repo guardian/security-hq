@@ -7,7 +7,6 @@ import com.gu.anghammarad.models.Notification
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
-import schedule.IamDisable.{deletePassword, disableAccessKey}
 import schedule.IamFlaggedUsers.getFlaggedCredentialsReports
 import schedule.IamNotifications.makeNotification
 import schedule.IamNotifier.send
@@ -22,6 +21,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
   override val description = "Automated emails for old permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
   val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
+
 
   def run(testMode: Boolean): Unit = {
     if (!enabled) {
@@ -50,9 +50,9 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
     }
 
     // disable user if still vulnerable after notifications have been sent and send a final notification stating this
-    usersToDisable(flaggedCredentials).foreach { user =>
-      disableAccessKey(iamClients, user)
-      deletePassword(iamClients, user)
+    usersToDisable(flaggedCredentials, dynamo).foreach { case (account, users) =>
+      IamRemovePassword.removePasswords(account, users, iamClients)
+      IamDisableAccessKeys.disableAccessKey(account, users, iamClients)
       val alertAwsAccountThatUserDisabled: Notification = ???
       send(alertAwsAccountThatUserDisabled, topicArn, snsClient, testMode)
     }

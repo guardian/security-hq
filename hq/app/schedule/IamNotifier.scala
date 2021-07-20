@@ -24,7 +24,7 @@ object IamNotifier extends Logging {
     testMode: Boolean
   )(implicit executionContext: ExecutionContext): Attempt[String] = {
     logger.info(s"attempting to send iam notification to topic arn: $topicArn to targets: ${notification.target}")
-    Attempt{
+    Attempt {
       topicArn match {
       case Some(arn) =>
         val anghammaradNotification = {
