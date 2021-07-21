@@ -18,7 +18,7 @@ object IamFlaggedUsers extends Logging {
     allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
       case Left(error) =>
         error.failures.foreach { failure =>
-          val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
+          val errorMessage = s"failed to collect credentials report display for ${awsAccount.name}: ${failure.friendlyMessage}"
           failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
         }
         (awsAccount, Left(error))
