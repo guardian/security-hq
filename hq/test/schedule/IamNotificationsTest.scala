@@ -5,20 +5,19 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
-import schedule.IamDisableAccessKeys.{areRotationDatesEqual, whichRotationDateIsOlder}
 import schedule.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 import schedule.IamNotifications._
 import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.IamUsersToDisable.toDisableToday
 
 class IamNotificationsTest extends FreeSpec with Matchers {
-  val outdatedUser1 = VulnerableUser("lesleyKnope", tags = List())
-  val outdatedUser2 = VulnerableUser("ronSwanson", tags = List())
-  val outdatedUser3 = VulnerableUser("tomHaverford", tags = List())
+  val outdatedUser1 = VulnerableUser("lesleyKnope", List())
+  val outdatedUser2 = VulnerableUser("ronSwanson", List())
+  val outdatedUser3 = VulnerableUser("tomHaverford", List())
 
-  val noMfaUser1 = VulnerableUser("april", tags = List())
-  val noMfaUser2 = VulnerableUser("andy", tags = List())
-  val noMfaUser3 = VulnerableUser("diane", tags = List())
+  val noMfaUser1 = VulnerableUser("april", List())
+  val noMfaUser2 = VulnerableUser("andy", List())
+  val noMfaUser3 = VulnerableUser("diane", List())
 
 
   "getNotificationTargetGroups" - {
@@ -188,31 +187,6 @@ class IamNotificationsTest extends FreeSpec with Matchers {
       val alert1 = IamAuditAlert(DateTime.now.minusWeeks(3), nearestDeadline)
       val alert2 = IamAuditAlert(DateTime.now.minusWeeks(3), DateTime.now.plusDays(2).withTimeAtStartOfDay)
       getNearestDeadline(List(alert1, alert2)) shouldEqual nearestDeadline
-    }
-    "returns true if the last rotation dates are the same" in {
-      val date1: DateTime = DateTime.now.minusMonths(3)
-      val date2: DateTime = DateTime.now.minusMonths(3)
-      areRotationDatesEqual(date1, date2) shouldBe true
-    }
-    "returns false if the last rotation dates are not the same" in {
-      val date1: DateTime = DateTime.now.minusMonths(3)
-      val date2: DateTime = DateTime.now.minusMonths(4)
-      areRotationDatesEqual(date1, date2) shouldBe false
-    }
-    "returns None when there are no dates to compare" in {
-      val date1 = None
-      val date2 = None
-      whichRotationDateIsOlder(date1, date2) shouldEqual None
-    }
-    "if only one date is supplied, it is returned" in {
-      val date1 = Some(DateTime.now.minusMonths(4))
-      val date2 = None
-      whichRotationDateIsOlder(date1, date2) shouldEqual date1
-    }
-    "returns the date that is furthest in the past" in {
-      val date1: Option[DateTime] = Some(DateTime.now.minusMonths(4))
-      val date2: Option[DateTime] = Some(DateTime.now.minusMonths(3))
-      whichRotationDateIsOlder(date1, date2) shouldEqual date1
     }
   }
 }

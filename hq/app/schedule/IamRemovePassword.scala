@@ -24,7 +24,6 @@ object IamRemovePassword extends Logging {
   def removePasswords(account: AwsAccount, users: Seq[IamAuditUser], iamClients: AwsClients[AmazonIdentityManagementAsync])
     (implicit ec: ExecutionContext): Unit = {
     users.map { user =>
-      logger.info(s"attempting to delete password for user ${user.username} in AWS account ${user.awsAccount}")
       iamClients.get(account, SOLE_REGION).map { client =>
         deleteUserLoginProfile(client, user)
       }
