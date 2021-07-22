@@ -3,13 +3,14 @@ package schedule
 import config.Config.iamAlertCadence
 import model.{AwsAccount, IamAuditAlert, VulnerableUser}
 import org.joda.time.{DateTime, Days}
+import play.api.Logging
 
 /**
   * Each permanent credential which has been flagged as being vulnerable (either it needs rotating or requires multi-factor authentication),
   * is given a deadline. On the deadline date, the permanent credential will automatically be disabled by Security HQ unless the vulnerability
   * is addressed (either by rotating it or adding mfa).
   */
-object IamDeadline {
+object IamDeadline extends Logging {
 
   def sortUsersIntoWarningOrFinalAlerts(users: Seq[VulnerableUser]): (Seq[VulnerableUser], Seq[VulnerableUser]) = {
     val warningAlerts = users.filter(user => isWarningAlert(createDeadlineIfMissing(user.disableDeadline)))

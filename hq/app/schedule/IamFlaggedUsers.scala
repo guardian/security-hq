@@ -14,29 +14,30 @@ import utils.attempt.FailedAttempt
   */
 object IamFlaggedUsers extends Logging {
 
-  def getFlaggedCredentialsReports(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]], dynamo: Dynamo): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
+  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
     allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
       case Left(error) =>
         error.failures.foreach { failure =>
-          val errorMessage = s"failed to collect credentials report for IAM notifier: ${failure.friendlyMessage}"
+          val errorMessage = s"failed to collect credentials display report for ${awsAccount.name}: ${failure.friendlyMessage}"
           failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
         }
         (awsAccount, Left(error))
       case Right(report) =>
         // alert the Ophan AWS account using tags to ensure that the Ophan and Data Tech teams who share the same AWS account receive the right emails
-        if (awsAccount.name == "Ophan") (awsAccount, Right(getTargetGroups(report, awsAccount, dynamo)))
-        else (awsAccount, Right(Seq(IAMAlertTargetGroup(List.empty, getUsersToAlert(report, awsAccount, dynamo)))))
+        if (awsAccount.name == "Ophan") (awsAccount, Right(getNotificationTargetGroups(findVulnerableUsers(report))))
+        else {
+          (awsAccount, Right(Seq(IAMAlertTargetGroup(List.empty, findVulnerableUsers(report)))))
+        }
     }
     }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
   }
 
-  def getUsersToAlert(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
-    val vulnerableUsers = findVulnerableUsers(report)
-    filterUsersToAlert(vulnerableUsers, awsAccount, dynamo)
-  }
-
-  def getTargetGroups(report: CredentialReportDisplay, awsAccount: AwsAccount, dynamo: Dynamo): Seq[IAMAlertTargetGroup] = {
-    getNotificationTargetGroups(getUsersToAlert(report, awsAccount, dynamo))
+  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: Dynamo): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
+    users.map { case (account, targetGroups) =>
+      account -> targetGroups.map { tg =>
+        tg.copy(users = filterUsersToAlert(targetGroups.flatMap(_.users), account, dynamo))
+      }
+    }
   }
 
   def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
