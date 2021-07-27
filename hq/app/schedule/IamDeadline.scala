@@ -37,7 +37,7 @@ object IamDeadline {
   def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
     users.map { user =>
       dynamo.getAlert(awsAccount, user.username).map { u =>
-        user.copy(user.username, user.tags, Some(getNearestDeadline(u.alerts)))
+        user.copy(user.username, user.key1, user.key2, tags = user.tags, disableDeadline = Some(getNearestDeadline(u.alerts)))
       }.getOrElse(user)
     }
   }

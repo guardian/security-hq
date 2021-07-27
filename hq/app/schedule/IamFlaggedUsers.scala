@@ -63,12 +63,18 @@ object IamFlaggedUsers extends Logging {
     val machines = users.machineUsers.map { user =>
       VulnerableUser(
         user.username,
+        user.key1,
+        user.key2,
+        humanUser = false,
         user.tags
       )
     }
     val humans = users.humanUsers.map { user =>
       VulnerableUser(
         user.username,
+        user.key1,
+        user.key2,
+        humanUser = true,
         user.tags
       )
     }
@@ -79,6 +85,9 @@ object IamFlaggedUsers extends Logging {
     users.humanUsers.map { user =>
       VulnerableUser(
         user.username,
+        user.key1,
+        user.key2,
+        humanUser = true,
         user.tags
       )
     }

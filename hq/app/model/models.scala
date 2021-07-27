@@ -271,7 +271,7 @@ case class IAMAlertTargetGroup(
   users: Seq[VulnerableUser]
 )
 
-case class VulnerableUser(username: String, tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
+case class VulnerableUser(username: String, key1: AccessKey = AccessKey(NoKey, None), key2: AccessKey = AccessKey(NoKey, None), humanUser: Boolean, tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
@@ -290,3 +290,4 @@ object IamAuditUser {
 }
 case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
 
+case class AccessKeyData(accessKeyId: String, createDate: DateTime, status: String, username: String)
