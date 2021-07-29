@@ -37,15 +37,22 @@ object IamDeadline {
   def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
     users.map { user =>
       dynamo.getAlert(awsAccount, user.username).map { u =>
-        user.copy(user.username, user.key1, user.key2, tags = user.tags, disableDeadline = Some(getNearestDeadline(u.alerts)))
+        user.copy(
+          username = user.username,
+          key1 = user.key1,
+          key2 = user.key2,
+          tags = user.tags,
+          disableDeadline = Some(getNearestDeadline(u.alerts)))
       }.getOrElse(user)
     }
   }
 
   def getNearestDeadline(alerts: List[IamAuditAlert], today: DateTime = DateTime.now): DateTime = {
-    val (nearestDeadline, _) = alerts.foldRight[(DateTime, Int)]((DateTime.now, iamAlertCadence)){ case (alert, (acc, startingNumberOfDays)) =>
+    val (nearestDeadline, _) = alerts.foldRight[(DateTime, Int)]((DateTime.now, iamAlertCadence))
+      { case (alert, (acc, startingNumberOfDays)) =>
       val daysBetweenTodayAndDeadline: Int = Days.daysBetween(today, alert.disableDeadline).getDays
-      if (daysBetweenTodayAndDeadline < startingNumberOfDays) (alert.disableDeadline, daysBetweenTodayAndDeadline) else (acc, startingNumberOfDays)
+      if (daysBetweenTodayAndDeadline < startingNumberOfDays) (alert.disableDeadline, daysBetweenTodayAndDeadline)
+      else (acc, startingNumberOfDays)
     }
     nearestDeadline
   }

@@ -57,35 +57,35 @@ class IamNotificationsTest extends FreeSpec with Matchers {
   }
   "findOldCredentialsAndMissingMfas" - {
     "returns CredentialReportDisplays with access keys greater than 90 days old" in {
-      val oldHumanAccessKeyEnabled: AccessKey = AccessKey(AccessKeyEnabled, Some(new DateTime(2021, 1, 15, 1, 1)))
-      val oldHumanAccessKeyDisabled: AccessKey = AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1)))
-      val oldMachineAccessKeyEnabled: AccessKey = AccessKey(AccessKeyEnabled, Some(new DateTime(2019, 1, 15, 1, 1)))
-      val oldMachineAccessKeyDisabled: AccessKey = AccessKey(AccessKeyDisabled, Some(new DateTime(2018, 9, 1, 1, 1)))
+      val oldHumanAccessKeyEnabled: AccessKey = AccessKeyFromCredsReport(AccessKeyEnabled, Some(new DateTime(2021, 1, 15, 1, 1)))
+      val oldHumanAccessKeyDisabled: AccessKey = AccessKeyFromCredsReport(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1)))
+      val oldMachineAccessKeyEnabled: AccessKey = AccessKeyFromCredsReport(AccessKeyEnabled, Some(new DateTime(2019, 1, 15, 1, 1)))
+      val oldMachineAccessKeyDisabled: AccessKey = AccessKeyFromCredsReport(AccessKeyDisabled, Some(new DateTime(2018, 9, 1, 1, 1)))
 
       val credsReport: CredentialReportDisplay =
         CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyEnabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", AccessKeyFromCredsReport(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyDisabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, AccessKeyFromCredsReport(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
           )
         )
       val result: CredentialReportDisplay =
         CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyEnabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyDisabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
           )
         )
       findOldAccessKeys(credsReport) shouldEqual result
@@ -94,10 +94,10 @@ class IamNotificationsTest extends FreeSpec with Matchers {
       val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq(
-          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(11))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          MachineUser("", AccessKeyFromCredsReport(AccessKeyDisabled, Some(DateTime.now().minusMonths(11))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         ),
         Seq(
-          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", true, AccessKeyFromCredsReport(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(
@@ -109,18 +109,18 @@ class IamNotificationsTest extends FreeSpec with Matchers {
       val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq(
-          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(10))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          MachineUser("", AccessKeyFromCredsReport(AccessKeyDisabled, Some(DateTime.now().minusMonths(10))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         ),
         Seq(
-          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
-          HumanUser("", false, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", true, AccessKeyFromCredsReport(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", false, AccessKeyFromCredsReport(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq.empty,
         Seq(
-          HumanUser("", false, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", false, AccessKeyFromCredsReport(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         )
       )
       findMissingMfa(credsReport) shouldEqual result
@@ -129,11 +129,11 @@ class IamNotificationsTest extends FreeSpec with Matchers {
       val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
         Seq(
-          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(9))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          MachineUser("", AccessKeyFromCredsReport(AccessKeyDisabled, Some(DateTime.now().minusMonths(9))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         ),
         Seq(
-          HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
-          HumanUser("", true, AccessKey(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", true, AccessKeyFromCredsReport(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
+          HumanUser("", true, AccessKeyFromCredsReport(AccessKeyDisabled, Some(new DateTime(2020, 9, 1, 1, 1))), AccessKeyFromCredsReport(NoKey, None), Red, None, None, List.empty),
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(

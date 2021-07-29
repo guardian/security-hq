@@ -13,11 +13,15 @@ object IamUsersToDisable {
 
   // filter the vulnerable users for those who have disablement deadlines marked as today in dynamoDB
   def getUsersToDisable(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
-    val auditUsersUsernames = users.flatMap{ user =>
-      dynamo.getAlert(awsAccount, user.username).filter(u => toDisableToday(getNearestDeadline(u.alerts)))
-    }.map(_.username)
+    users.filter { user =>
+      val auditUsername: String =
+        dynamo.getAlert(awsAccount, user.username)
+          .filter(u => toDisableToday(getNearestDeadline(u.alerts)))
+          .map(_.username)
+          .getOrElse("")
 
-    users.filter(user => auditUsersUsernames.contains(user.username))
+      user.username == auditUsername
+    }
   }
 
   def toDisableToday(deadline: DateTime, today: DateTime = DateTime.now): Boolean =

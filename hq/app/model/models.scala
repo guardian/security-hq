@@ -152,10 +152,21 @@ object AccessKeyEnabled extends KeyStatus
 object AccessKeyDisabled extends KeyStatus
 object NoKey extends KeyStatus
 
-case class AccessKey(
+trait AccessKey {
+  val keyStatus: KeyStatus
+  val lastRotated: Option[DateTime]
+}
+
+case class AccessKeyFromCredsReport(
   keyStatus: KeyStatus,
   lastRotated: Option[DateTime]
-)
+) extends AccessKey
+
+case class AccessKeyWithId(
+  keyStatus: KeyStatus,
+  lastRotated: Option[DateTime],
+  id: String
+) extends AccessKey
 
 sealed trait ReportStatus
 object Red extends ReportStatus
@@ -271,7 +282,20 @@ case class IAMAlertTargetGroup(
   users: Seq[VulnerableUser]
 )
 
-case class VulnerableUser(username: String, key1: AccessKey = AccessKey(NoKey, None), key2: AccessKey = AccessKey(NoKey, None), humanUser: Boolean, tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
+case class VulnerableUser(
+  username: String,
+  key1: AccessKey = AccessKeyFromCredsReport(NoKey, None),
+  key2: AccessKey = AccessKeyFromCredsReport(NoKey, None),
+  humanUser: Boolean,
+  tags: List[Tag],
+  disableDeadline: Option[DateTime] = None
+) extends IAMAlert
+
+case class VulnerableUserWithAccessKeyId(
+  username: String,
+  accessKey: AccessKeyWithId,
+  humanUser: Boolean
+)
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
@@ -289,5 +313,3 @@ object IamAuditUser {
   implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
 }
 case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
-
-case class AccessKeyData(accessKeyId: String, createDate: DateTime, status: String, username: String)
