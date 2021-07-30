@@ -19,18 +19,18 @@ object CredentialsReportDisplay {
 
   private[logic] def accessKey1Details(cred: IAMCredential): AccessKey = {
     if (cred.accessKey1Active)
-      AccessKeyFromCredsReport(AccessKeyEnabled, cred.accessKey1LastRotated)
+      AccessKey(AccessKeyEnabled, cred.accessKey1LastRotated)
     else if (!cred.accessKey1Active && cred.accessKey1LastUsedDate.nonEmpty)
-      AccessKeyFromCredsReport(AccessKeyDisabled, cred.accessKey1LastRotated)
-    else AccessKeyFromCredsReport(NoKey, None)
+      AccessKey(AccessKeyDisabled, cred.accessKey1LastRotated)
+    else AccessKey(NoKey, None)
   }
 
   private[logic] def accessKey2Details(cred: IAMCredential): AccessKey = {
     if (cred.accessKey2Active)
-      AccessKeyFromCredsReport(AccessKeyEnabled, cred.accessKey2LastRotated)
+      AccessKey(AccessKeyEnabled, cred.accessKey2LastRotated)
     else if (!cred.accessKey2Active && cred.accessKey2LastUsedDate.nonEmpty)
-      AccessKeyFromCredsReport(AccessKeyDisabled, cred.accessKey2LastRotated)
-    else AccessKeyFromCredsReport(NoKey, None)
+      AccessKey(AccessKeyDisabled, cred.accessKey2LastRotated)
+    else AccessKey(NoKey, None)
   }
 
   private[logic] def machineReportStatus(cred: IAMCredential): ReportStatus = {
