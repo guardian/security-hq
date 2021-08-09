@@ -114,12 +114,10 @@ object CredentialsReportDisplay {
   }
 
   def exposedKeysSummary(allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]): Map[AwsAccount, Boolean] = {
-    for {
-      (account, report) <- allReports
-    } yield (account, report match {
-        case Right(keys) if keys.nonEmpty => true
-        case _ => false
-    })
+    allReports.mapValues {
+      case Right(keys) if keys.nonEmpty => true
+      case _ => false
+    }
   }
 
   def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
