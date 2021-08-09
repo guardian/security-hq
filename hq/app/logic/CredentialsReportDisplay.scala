@@ -99,11 +99,13 @@ object CredentialsReportDisplay {
   }
 
   def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
-    val reportStatusSummary = (report.humanUsers ++ report.machineUsers).map(_.reportStatus)
+    val reportStatusSummary = (report.humanUsers ++ report.machineUsers)
+      .groupBy(_.reportStatus)
+      .withDefaultValue(Seq.empty)
 
-    val warnings = reportStatusSummary.collect({ case Amber => true }).size
-    val errors = reportStatusSummary.collect({ case Red => true }).size
-    val others = reportStatusSummary.collect({ case Blue => true }).size
+    val warnings = reportStatusSummary(Amber).size
+    val errors = reportStatusSummary(Red).size
+    val others = reportStatusSummary(Blue).size
 
     ReportSummary(warnings, errors, others)
   }
