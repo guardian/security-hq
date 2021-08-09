@@ -104,15 +104,13 @@ object CredentialsReportDisplay {
   }
 
   def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
-    val reportStatusSummary = report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)
+    val reportStatusSummary = (report.humanUsers ++ report.machineUsers).map(_.reportStatus)
 
-    val (warnings, errors, other) = reportStatusSummary.foldLeft(0,0,0) {
-      case ( (war, err, oth), Amber ) => (war+1, err, oth)
-      case ( (war, err, oth), Red ) => (war, err+1, oth)
-      case ( (war, err, oth), Blue ) => (war, err, oth+1)
-      case ( (war, err, oth), _ ) => (war, err, oth)
-    }
-    ReportSummary(warnings, errors, other)
+    val warnings = reportStatusSummary.count(_.isInstanceOf[Amber.type])
+    val errors = reportStatusSummary.count(_.isInstanceOf[Red.type])
+    val others = reportStatusSummary.count(_.isInstanceOf[Blue.type])
+
+    ReportSummary(warnings, errors, others)
   }
 
   def exposedKeysSummary(allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]): Map[AwsAccount, Boolean] = {
