@@ -57,7 +57,7 @@ object CredentialsReportDisplay {
   }
 
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
-    val humanUsers = report.entries.filterNot(_.rootUser).map {
+    val humanUsers = report.entries.filterNot(_.rootUser).collect {
       case cred if cred.passwordEnabled.contains(true) =>
         HumanUser(
           cred.user,
@@ -71,7 +71,7 @@ object CredentialsReportDisplay {
         )
     }
 
-    val machineUsers = report.entries.filterNot(_.rootUser).map {
+    val machineUsers = report.entries.filterNot(_.rootUser).collect {
       case cred if !cred.passwordEnabled.getOrElse(false) =>
         MachineUser(
           cred.user,
