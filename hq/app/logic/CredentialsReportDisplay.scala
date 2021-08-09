@@ -101,9 +101,9 @@ object CredentialsReportDisplay {
   def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
     val reportStatusSummary = (report.humanUsers ++ report.machineUsers).map(_.reportStatus)
 
-    val warnings = reportStatusSummary.count(_.isInstanceOf[Amber.type])
-    val errors = reportStatusSummary.count(_.isInstanceOf[Red.type])
-    val others = reportStatusSummary.count(_.isInstanceOf[Blue.type])
+    val warnings = reportStatusSummary.count({ case Amber => true })
+    val errors = reportStatusSummary.count({ case Red => true })
+    val others = reportStatusSummary.count({ case Blue => true })
 
     ReportSummary(warnings, errors, others)
   }
