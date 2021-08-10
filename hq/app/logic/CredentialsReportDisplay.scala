@@ -72,7 +72,7 @@ object CredentialsReportDisplay {
     }
 
     val machineUsers = report.entries.filterNot(_.rootUser).collect {
-      case cred if !cred.passwordEnabled.getOrElse(false) =>
+      case cred if !cred.passwordEnabled.contains(true) =>
         MachineUser(
           cred.user,
           accessKey1Details(cred),
