@@ -86,6 +86,11 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
       machineReportStatus(machineCred) shouldBe Amber
     }
 
+    "check machine report status red when key is outdated" in {
+      val machineCred = cred.copy(accessKey1LastRotated = Some(now.minusYears(2)))
+      machineReportStatus(machineCred) shouldBe Red
+    }
+
     "check human report status green when mfa active and no active access key" in {
       val humanCred = cred.copy(accessKey1Active = false, accessKey2Active = false, mfaActive = true)
       humanReportStatus(humanCred) shouldBe Green
@@ -108,6 +113,11 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
 
     "check human report status red when mfa not active" in {
       val humanCred = cred.copy(accessKey1Active = false, accessKey2Active = false, mfaActive = false)
+      humanReportStatus(humanCred) shouldBe Red
+    }
+
+    "check human report status red when key is outdated" in {
+      val humanCred = cred.copy(accessKey1LastRotated = Some(now.minusYears(1)))
       humanReportStatus(humanCred) shouldBe Red
     }
 

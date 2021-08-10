@@ -3,6 +3,7 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
+import schedule.IamFlaggedUsers
 import utils.attempt.FailedAttempt
 
 import java.net.URLEncoder
@@ -35,7 +36,10 @@ object CredentialsReportDisplay {
   }
 
   private[logic] def machineReportStatus(cred: IAMCredential): ReportStatus = {
-    if (!Seq(accessKey1Details(cred).keyStatus, accessKey2Details(cred).keyStatus).contains(AccessKeyEnabled))
+    val keys = List(accessKey1Details(cred), accessKey2Details(cred))
+    if (IamFlaggedUsers.hasOutdatedMachineKey(keys))
+      Red
+    else if (!keys.exists(_.keyStatus == AccessKeyEnabled))
       Amber
     else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
       Blue
@@ -43,9 +47,10 @@ object CredentialsReportDisplay {
   }
 
   private[logic] def humanReportStatus(cred: IAMCredential): ReportStatus = {
-    if (!cred.mfaActive)
+    val keys = List(accessKey1Details(cred), accessKey2Details(cred))
+    if (!cred.mfaActive || IamFlaggedUsers.hasOutdatedHumanKey(keys))
       Red
-    else if (Seq(accessKey1Details(cred).keyStatus, accessKey2Details(cred).keyStatus).contains(AccessKeyEnabled))
+    else if (keys.exists(_.keyStatus == AccessKeyEnabled))
       Amber
     else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
       Blue
