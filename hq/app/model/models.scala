@@ -157,11 +157,18 @@ case class AccessKey(
   lastRotated: Option[DateTime]
 )
 
-sealed trait ReportStatus
-object Red extends ReportStatus
-object Green extends ReportStatus
-object Amber extends ReportStatus
-object Blue extends ReportStatus
+sealed trait ReportStatus {
+  def reasons(): Seq[ReportStatusReason] = Seq.empty
+}
+case class Red(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
+case object Amber extends ReportStatus
+case object Green extends ReportStatus
+case object Blue extends ReportStatus
+
+
+sealed trait ReportStatusReason
+object MissingMfa extends ReportStatusReason
+object OutdatedKey extends ReportStatusReason
 
 case class Tag(key: String, value: String)
 object Tag {

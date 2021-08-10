@@ -15,7 +15,7 @@ object PublicBucketsDisplay {
 
     val (warnings, errors, other) = reportStatusSummary.foldLeft(0,0,0) {
       case ( (war, err, oth), Amber ) => (war+1, err, oth)
-      case ( (war, err, oth), Red ) => (war, err+1, oth)
+      case ( (war, err, oth), Red(_) ) => (war, err+1, oth)
       case ( (war, err, oth), Blue ) => (war, err, oth+1)
       case ( (war, err, oth), _ ) => (war, err, oth)
     }
@@ -34,7 +34,7 @@ object PublicBucketsDisplay {
     // permission properties that grant global access
     // The bucket ACL allows Upload/Delete access to anyone
     if (bucket.aclAllowsWrite)
-      Red
+      Red() //TODO: create a reason for red status here?
     // The bucket ACL allows List access to anyone, or a bucket policy allows any kind of open access
     else if (bucket.aclAllowsRead || bucket.policyAllowsAccess)
       Amber
@@ -45,7 +45,7 @@ object PublicBucketsDisplay {
 
   private[logic] def bucketDetailsSort(bucketDetail: BucketDetail): (Int, String) = {
     val severity = bucketDetail.reportStatus.getOrElse(Blue) match {
-      case Red => 0
+      case Red(_) => 0
       case Amber => 1
       case Blue => 2
       case Green => 3
