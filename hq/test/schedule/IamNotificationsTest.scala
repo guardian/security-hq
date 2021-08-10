@@ -66,26 +66,26 @@ class IamNotificationsTest extends FreeSpec with Matchers {
         CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Green, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            HumanUser("", true, AccessKey(AccessKeyEnabled, Some(DateTime.now().minusMonths(1))), AccessKey(NoKey, None), Amber, None, None, List.empty),
           )
         )
       val result: CredentialReportDisplay =
         CredentialReportDisplay(
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
-            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red, None, None, List.empty),
-            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red, None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
           )
         )
       findOldAccessKeys(credsReport) shouldEqual result

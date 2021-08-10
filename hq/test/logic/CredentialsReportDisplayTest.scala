@@ -150,7 +150,7 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   "sortAccountsByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None, List.empty)
+    val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), Some(1), None, List.empty)
     val humanAmber = HumanUser("humanAmber", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
     val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None, List.empty)
     val machineAmber = MachineUser("machineAmber", AccessKey(AccessKeyDisabled, None), AccessKey(NoKey, None), Amber, Some(1), None, List.empty)
@@ -265,7 +265,7 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
     }
 
     "returns individual counts for each report status" in {
-      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Red, Some(1), None, List.empty)
+      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Red(), Some(1), None, List.empty)
       val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None, List.empty)
       val machineAmber = MachineUser("machineAmber", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
       val machineBlue = MachineUser("machineGreen", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Blue, Some(1), None, List.empty)
@@ -282,8 +282,8 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   "sortUsersByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRedA = HumanUser("humanRedA", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None, List.empty)
-    val humanRedB = HumanUser("humanRedB", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None, List.empty)
+    val humanRedA = HumanUser("humanRedA", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), Some(1), None, List.empty)
+    val humanRedB = HumanUser("humanRedB", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), Some(1), None, List.empty)
     val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
     val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
     val humanGreenA = HumanUser("humanGreenA", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None, List.empty)
