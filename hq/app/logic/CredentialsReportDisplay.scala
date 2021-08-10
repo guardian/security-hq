@@ -50,7 +50,7 @@ object CredentialsReportDisplay {
     val keys = List(accessKey1Details(cred), accessKey2Details(cred))
     //TODO: Scala 2.13 has Option builder `when` which is a nicer syntax than Some(...).filter
     val redStatusReasons: Seq[ReportStatusReason] = Seq(
-      Some(MissingMfa).filter(_ => cred.mfaActive),
+      Some(MissingMfa).filterNot(_ => cred.mfaActive),
       Some(OutdatedKey).filter(_ => IamFlaggedUsers.hasOutdatedHumanKey(keys))
     ).flatten
 
