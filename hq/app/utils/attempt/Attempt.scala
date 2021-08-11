@@ -112,6 +112,13 @@ object Attempt {
   }
 
   /**
+    * Flattens the given list `List[Attempt[List[A]]]` to `Attempt[List[A]]`.
+    */
+  def flatSequence[A](as: List[Attempt[List[A]]])(implicit ec: ExecutionContext): Attempt[List[A]] = {
+    flatTraverse(as)(identity)
+  }
+
+  /**
     * As with `Future.sequence`, changes `List[Attempt[A]]` to `Attempt[List[A]]`.
     *
     * This implementation returns the first failure in the list, or the successful result.
