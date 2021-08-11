@@ -4,6 +4,7 @@ import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
 import utils.attempt.FailedAttempt
+
 import java.net.URLEncoder
 
 
@@ -56,40 +57,34 @@ object CredentialsReportDisplay {
   }
 
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
-
-    report.entries.filterNot(_.rootUser).foldLeft(CredentialReportDisplay(report.generatedAt)) { (report, cred) =>
-      val machineUser =
-        if (!cred.passwordEnabled.getOrElse(false)) {
-          Some(MachineUser(
-            cred.user,
-            accessKey1Details(cred),
-            accessKey2Details(cred),
-            machineReportStatus(cred),
-            dayDiff(lastActivityDate(cred)),
-            stack = cred.stack,
-            tags = cred.tags
-          ))
-        } else None
-
-      val humanUser =
-        if (cred.passwordEnabled.getOrElse(false)) {
-          Some(HumanUser(
-            cred.user,
-            cred.mfaActive,
-            accessKey1Details(cred),
-            accessKey2Details(cred),
-            humanReportStatus(cred),
-            dayDiff(lastActivityDate(cred)),
-            stack = cred.stack,
-            tags = cred.tags
-          ))
-        } else None
-
-      report.copy(
-        machineUsers = report.machineUsers ++ machineUser,
-        humanUsers = report.humanUsers ++ humanUser
-      )
+    val humanUsers = report.entries.filterNot(_.rootUser).collect {
+      case cred if cred.passwordEnabled.contains(true) =>
+        HumanUser(
+          cred.user,
+          cred.mfaActive,
+          accessKey1Details(cred),
+          accessKey2Details(cred),
+          humanReportStatus(cred),
+          dayDiff(lastActivityDate(cred)),
+          stack = cred.stack,
+          tags = cred.tags
+        )
     }
+
+    val machineUsers = report.entries.filterNot(_.rootUser).collect {
+      case cred if !cred.passwordEnabled.contains(true) =>
+        MachineUser(
+          cred.user,
+          accessKey1Details(cred),
+          accessKey2Details(cred),
+          machineReportStatus(cred),
+          dayDiff(lastActivityDate(cred)),
+          stack = cred.stack,
+          tags = cred.tags
+        )
+    }
+
+    CredentialReportDisplay(report.generatedAt, machineUsers, humanUsers)
   }
 
   def checkNoKeyExists(keyStatuses: AccessKey*): Boolean = {
@@ -104,24 +99,22 @@ object CredentialsReportDisplay {
   }
 
   def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
-    val reportStatusSummary = report.humanUsers.map(_.reportStatus) ++ report.machineUsers.map(_.reportStatus)
+    val reportStatusSummary = (report.humanUsers ++ report.machineUsers)
+      .groupBy(_.reportStatus)
+      .withDefaultValue(Seq.empty)
 
-    val (warnings, errors, other) = reportStatusSummary.foldLeft(0,0,0) {
-      case ( (war, err, oth), Amber ) => (war+1, err, oth)
-      case ( (war, err, oth), Red ) => (war, err+1, oth)
-      case ( (war, err, oth), Blue ) => (war, err, oth+1)
-      case ( (war, err, oth), _ ) => (war, err, oth)
-    }
-    ReportSummary(warnings, errors, other)
+    val warnings = reportStatusSummary(Amber).size
+    val errors = reportStatusSummary(Red).size
+    val others = reportStatusSummary(Blue).size
+
+    ReportSummary(warnings, errors, others)
   }
 
   def exposedKeysSummary(allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]): Map[AwsAccount, Boolean] = {
-    for {
-      (account, report) <- allReports
-    } yield (account, report match {
-        case Right(keys) if keys.nonEmpty => true
-        case _ => false
-    })
+    allReports.mapValues {
+      case Right(keys) if keys.nonEmpty => true
+      case _ => false
+    }
   }
 
   def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {

@@ -204,11 +204,11 @@ sealed trait IAMUser {
 
 case class HumanUser(
   username: String,
-  hasMFA : Boolean,
+  hasMFA: Boolean,
   key1: AccessKey,
   key2: AccessKey,
   reportStatus: ReportStatus,
-  lastActivityDay : Option[Long],
+  lastActivityDay: Option[Long],
   stack: Option[AwsStack],
   tags: List[Tag]
 ) extends IAMUser
