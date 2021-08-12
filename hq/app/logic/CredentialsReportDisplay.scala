@@ -110,12 +110,29 @@ object CredentialsReportDisplay {
   }
 
   def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
-    val reportStatusSummary = (report.humanUsers ++ report.machineUsers)
+    val reportStatuses = (report.humanUsers ++ report.machineUsers)
       .map(_.reportStatus)
 
-    val warnings = reportStatusSummary.collect({ case Amber => }).size
-    val errors = reportStatusSummary.collect({ case Red(_) => }).size
-    val others = reportStatusSummary.collect({ case Blue => }).size
+    val warnings = reportStatuses.collect({ case Amber => }).size
+    val errors = reportStatuses.collect({ case Red(_) => }).size
+    val others = reportStatuses.collect({ case Blue => }).size
+
+    ReportSummary(warnings, errors, others)
+  }
+
+  /*
+    This should be considered temporary (hence duplication of the above). It is to support a rollout
+    of the critical errors in security HQ (so we have visibility) without yet updating other dashboards
+   */
+  def reportStatusSummaryWithoutOutdatedKeys(report: CredentialReportDisplay): ReportSummary = {
+    val reportStatuses = (report.humanUsers ++ report.machineUsers)
+      .map(_.reportStatus)
+
+    val warnings = reportStatuses.collect({ case Amber => }).size
+    val errors = reportStatuses.collect({
+      case status: Red if !status.reasons.forall(_ == OutdatedKey) =>
+    }).size
+    val others = reportStatuses.collect({ case Blue => }).size
 
     ReportSummary(warnings, errors, others)
   }
