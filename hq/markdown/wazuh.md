@@ -1,5 +1,5 @@
 # Wazuh
-![Wazuh logo](./images/wazuh_logo.png)
+![Wazuh logo](https://github.com/guardian/security-hq/raw/main/hq/markdown/images/wazuh_logo.png)
 ## Introduction
 
 Wazuh is a security monitoring service managed by Infosec. It requires agents to be installed on our EC2 instances, which 
