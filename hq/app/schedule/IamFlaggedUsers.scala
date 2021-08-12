@@ -56,36 +56,10 @@ object IamFlaggedUsers extends Logging {
   }
 
   def outdatedKeysInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
-    val machines = users.machineUsers.map { user =>
-      VulnerableUser(
-        user.username,
-        user.key1,
-        user.key2,
-        humanUser = false,
-        user.tags
-      )
-    }
-    val humans = users.humanUsers.map { user =>
-      VulnerableUser(
-        user.username,
-        user.key1,
-        user.key2,
-        humanUser = true,
-        user.tags
-      )
-    }
-    machines ++ humans
+    (users.machineUsers ++ users.humanUsers).map(VulnerableUser.fromIamUser)
   }
 
   def missingMfaInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
-    users.humanUsers.map { user =>
-      VulnerableUser(
-        user.username,
-        user.key1,
-        user.key2,
-        humanUser = true,
-        user.tags
-      )
-    }
+    users.humanUsers.map(VulnerableUser.fromIamUser)
   }
 }

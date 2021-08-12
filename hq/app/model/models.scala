@@ -230,6 +230,7 @@ sealed trait IAMUser {
   def lastActivityDay: Option[Long]
   def stack: Option[AwsStack]
   def tags: List[Tag]
+  def isHuman: Boolean
 }
 
 case class HumanUser(
@@ -241,7 +242,9 @@ case class HumanUser(
   lastActivityDay: Option[Long],
   stack: Option[AwsStack],
   tags: List[Tag]
-) extends IAMUser
+) extends IAMUser {
+  val isHuman = true
+}
 
 case class MachineUser(
   username: String,
@@ -251,7 +254,9 @@ case class MachineUser(
   lastActivityDay: Option[Long],
   stack: Option[AwsStack],
   tags: List[Tag]
-) extends IAMUser
+) extends IAMUser {
+  val isHuman = false
+}
 
 case class SnykToken(value: String) extends AnyVal
 
@@ -309,6 +314,18 @@ case class VulnerableUser(
   tags: List[Tag],
   disableDeadline: Option[DateTime] = None
 ) extends IAMAlert
+
+object VulnerableUser {
+  def fromIamUser(iamUser: IAMUser): VulnerableUser = {
+    VulnerableUser(
+      iamUser.username,
+      iamUser.key1,
+      iamUser.key2,
+      iamUser.isHuman,
+      iamUser.tags
+    )
+  }
+}
 
 case class VulnerableAccessKey(
   username: String,
