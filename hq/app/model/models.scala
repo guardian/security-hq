@@ -1,10 +1,12 @@
 package model
 
 import com.amazonaws.regions.Region
+import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata
 import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
 import play.api.libs.json.{JsString, JsValue, Json, Writes}
+import schedule.IamFlaggedUsers.{hasOutdatedHumanKey, hasOutdatedMachineKey}
 
 
 case class AwsAccount(
@@ -157,6 +159,28 @@ case class AccessKey(
   lastRotated: Option[DateTime]
 )
 
+case class AccessKeyWithId(
+  accessKey: AccessKey,
+  id: String
+)
+
+object AccessKeyWithId {
+  def fromAwsAccessKeyMetadata(awsAccessKeyMetadata: AccessKeyMetadata): AccessKeyWithId =
+    AccessKeyWithId(
+      AccessKey(
+        keyStatusFromString(awsAccessKeyMetadata.getStatus),
+        Option(new DateTime(awsAccessKeyMetadata.getCreateDate))
+      ),
+      awsAccessKeyMetadata.getAccessKeyId
+    )
+
+  private def keyStatusFromString(awsKeyStatus: String): KeyStatus =  awsKeyStatus match {
+    case "Active" => AccessKeyEnabled
+    case "Inactive" => AccessKeyDisabled
+    case _ => NoKey
+  }
+}
+
 sealed trait ReportStatus {
   def reasons(): Seq[ReportStatusReason] = Seq.empty
 }
@@ -278,7 +302,29 @@ case class IAMAlertTargetGroup(
   users: Seq[VulnerableUser]
 )
 
-case class VulnerableUser(username: String, tags: List[Tag], disableDeadline: Option[DateTime] = None) extends IAMAlert
+case class VulnerableUser(
+  username: String,
+  key1: AccessKey = AccessKey(NoKey, None),
+  key2: AccessKey = AccessKey(NoKey, None),
+  humanUser: Boolean,
+  tags: List[Tag],
+  disableDeadline: Option[DateTime] = None
+) extends IAMAlert
+
+case class VulnerableAccessKey(
+  username: String,
+  accessKeyWithId: AccessKeyWithId,
+  humanUser: Boolean
+)
+
+object VulnerableAccessKey {
+  def isOutdated(user: VulnerableAccessKey): Boolean = {
+    if (user.humanUser) user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
+      hasOutdatedHumanKey(List(user.accessKeyWithId.accessKey))
+    else user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
+      hasOutdatedMachineKey(List(user.accessKeyWithId.accessKey))
+  }
+}
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
@@ -296,4 +342,3 @@ object IamAuditUser {
   implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
 }
 case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
-

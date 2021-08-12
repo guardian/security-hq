@@ -7,6 +7,7 @@ import com.gu.anghammarad.models.Notification
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
+import schedule.IamDisableAccessKeys.disableAccessKeys
 import schedule.IamFlaggedUsers.getVulnerableUsersToAlert
 import schedule.IamNotifications.makeNotification
 import schedule.IamNotifier.send
@@ -52,6 +53,9 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
     // disable user if still vulnerable after notifications have been sent and send a final notification stating this
     usersToDisable(flaggedCredentials, dynamo).foreach { case (account, users) =>
       removePasswords(account, users, iamClients)
+      disableAccessKeys(account, users, iamClients)
+      //val userDisabledAlert: Notification = ???
+      //send(userDisabledAlert, topicArn, snsClient, testMode)
     }
   }
 }
