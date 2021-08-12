@@ -6,7 +6,6 @@ import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
 import play.api.libs.json.{JsString, JsValue, Json, Writes}
-import schedule.IamFlaggedUsers.{hasOutdatedHumanKey, hasOutdatedMachineKey}
 
 
 case class AwsAccount(
@@ -316,15 +315,6 @@ case class VulnerableAccessKey(
   accessKeyWithId: AccessKeyWithId,
   humanUser: Boolean
 )
-
-object VulnerableAccessKey {
-  def isOutdated(user: VulnerableAccessKey): Boolean = {
-    if (user.humanUser) user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
-      hasOutdatedHumanKey(List(user.accessKeyWithId.accessKey))
-    else user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
-      hasOutdatedMachineKey(List(user.accessKeyWithId.accessKey))
-  }
-}
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}
