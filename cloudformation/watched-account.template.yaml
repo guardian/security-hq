@@ -1,3 +1,7 @@
+# This CloudFormation template is deployed as a CloudFormation Stack Set from the root account
+# The stack set is called "watched-account" and instances of the stack set are called something like "StackSet-abcde-12345".
+# It is easiest to find a stack set instance in a target account by filtering for stacks with a description matching this template's description.
+
 AWSTemplateFormatVersion: 2010-09-09
 Description: Sets up a role for monitoring via Security HQ and a Security Group lambda for real time alerting
 
