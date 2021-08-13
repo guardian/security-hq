@@ -6,7 +6,6 @@ import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
 import play.api.libs.json.{JsString, JsValue, Json, Writes}
-import schedule.IamFlaggedUsers.{hasOutdatedHumanKey, hasOutdatedMachineKey}
 
 
 case class AwsAccount(
@@ -181,11 +180,18 @@ object AccessKeyWithId {
   }
 }
 
-sealed trait ReportStatus
-object Red extends ReportStatus
-object Green extends ReportStatus
-object Amber extends ReportStatus
-object Blue extends ReportStatus
+sealed trait ReportStatus {
+  def reasons(): Seq[ReportStatusReason] = Seq.empty
+}
+case class Red(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
+case object Amber extends ReportStatus
+case object Green extends ReportStatus
+case object Blue extends ReportStatus
+
+
+sealed trait ReportStatusReason
+object MissingMfa extends ReportStatusReason
+object OutdatedKey extends ReportStatusReason
 
 case class Tag(key: String, value: String)
 object Tag {
@@ -224,6 +230,7 @@ sealed trait IAMUser {
   def lastActivityDay: Option[Long]
   def stack: Option[AwsStack]
   def tags: List[Tag]
+  def isHuman: Boolean
 }
 
 case class HumanUser(
@@ -235,7 +242,9 @@ case class HumanUser(
   lastActivityDay: Option[Long],
   stack: Option[AwsStack],
   tags: List[Tag]
-) extends IAMUser
+) extends IAMUser {
+  val isHuman = true
+}
 
 case class MachineUser(
   username: String,
@@ -245,7 +254,9 @@ case class MachineUser(
   lastActivityDay: Option[Long],
   stack: Option[AwsStack],
   tags: List[Tag]
-) extends IAMUser
+) extends IAMUser {
+  val isHuman = false
+}
 
 case class SnykToken(value: String) extends AnyVal
 
@@ -304,20 +315,23 @@ case class VulnerableUser(
   disableDeadline: Option[DateTime] = None
 ) extends IAMAlert
 
+object VulnerableUser {
+  def fromIamUser(iamUser: IAMUser): VulnerableUser = {
+    VulnerableUser(
+      iamUser.username,
+      iamUser.key1,
+      iamUser.key2,
+      iamUser.isHuman,
+      iamUser.tags
+    )
+  }
+}
+
 case class VulnerableAccessKey(
   username: String,
   accessKeyWithId: AccessKeyWithId,
   humanUser: Boolean
 )
-
-object VulnerableAccessKey {
-  def isOutdated(user: VulnerableAccessKey): Boolean = {
-    if (user.humanUser) user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
-      hasOutdatedHumanKey(List(user.accessKeyWithId.accessKey))
-    else user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
-      hasOutdatedMachineKey(List(user.accessKeyWithId.accessKey))
-  }
-}
 
 sealed trait IamAuditNotificationType {def name: String}
 object Warning extends IamAuditNotificationType {val name = "Warning"}

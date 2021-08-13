@@ -11,7 +11,7 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
     List(
       BucketDetail("eu-west-1", s"bucket-green-$id", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
       BucketDetail("eu-west-1", s"bucket-amber-$id", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber), isEncrypted = true),
-      BucketDetail("eu-west-1", s"bucket-red-$id", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, Some(Red), isEncrypted = true)
+      BucketDetail("eu-west-1", s"bucket-red-$id", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, Some(Red()), isEncrypted = true)
     )
   }
 
@@ -85,8 +85,8 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
     val accountWithErrors = (AwsAccount("account-with-errors", "name", "ARN", "123456789"),
       Right(BucketReportSummary(3, 1, 2, 0, 0),
         List(
-      BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red)),
-      BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red)),
+      BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red())),
+      BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red())),
       BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber))
     )))
     val accountWithWarnings = (AwsAccount("account-with-warnings", "name", "ARN", "123456789"),

@@ -86,6 +86,11 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
       machineReportStatus(machineCred) shouldBe Amber
     }
 
+    "check machine report status red when key is outdated" in {
+      val machineCred = cred.copy(accessKey1LastRotated = Some(now.minusYears(2)))
+      machineReportStatus(machineCred) shouldBe Red(Seq(OutdatedKey))
+    }
+
     "check human report status green when mfa active and no active access key" in {
       val humanCred = cred.copy(accessKey1Active = false, accessKey2Active = false, mfaActive = true)
       humanReportStatus(humanCred) shouldBe Green
@@ -108,7 +113,12 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
 
     "check human report status red when mfa not active" in {
       val humanCred = cred.copy(accessKey1Active = false, accessKey2Active = false, mfaActive = false)
-      humanReportStatus(humanCred) shouldBe Red
+      humanReportStatus(humanCred) shouldBe Red(Seq(MissingMfa))
+    }
+
+    "check human report status red when key is outdated" in {
+      val humanCred = cred.copy(accessKey1LastRotated = Some(now.minusYears(1)))
+      humanReportStatus(humanCred) shouldBe Red(Seq(OutdatedKey))
     }
 
     "check credential display report for human user" in {
@@ -140,7 +150,7 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   "sortAccountsByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None, List.empty)
+    val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), Some(1), None, List.empty)
     val humanAmber = HumanUser("humanAmber", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
     val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None, List.empty)
     val machineAmber = MachineUser("machineAmber", AccessKey(AccessKeyDisabled, None), AccessKey(NoKey, None), Amber, Some(1), None, List.empty)
@@ -255,7 +265,7 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
     }
 
     "returns individual counts for each report status" in {
-      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Red, Some(1), None, List.empty)
+      val humanRed = HumanUser("humanRed", hasMFA = false, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Red(), Some(1), None, List.empty)
       val humanGreen = HumanUser("humanGreen", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Green, Some(1), None, List.empty)
       val machineAmber = MachineUser("machineAmber", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
       val machineBlue = MachineUser("machineGreen", AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Blue, Some(1), None, List.empty)
@@ -272,8 +282,8 @@ class CredentialsReportDisplayTest extends FreeSpec with Matchers {
   "sortUsersByReportSummary" - {
     val now = DateTime.now()
 
-    val humanRedA = HumanUser("humanRedA", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None, List.empty)
-    val humanRedB = HumanUser("humanRedB", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red, Some(1), None, List.empty)
+    val humanRedA = HumanUser("humanRedA", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), Some(1), None, List.empty)
+    val humanRedB = HumanUser("humanRedB", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), Some(1), None, List.empty)
     val humanAmberA = HumanUser("humanAmberA", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
     val humanAmberB = HumanUser("humanAmberB", hasMFA = true, AccessKey(AccessKeyEnabled, None), AccessKey(AccessKeyEnabled, None), Amber, Some(1), None, List.empty)
     val humanGreenA = HumanUser("humanGreenA", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, Some(1), None, List.empty)
