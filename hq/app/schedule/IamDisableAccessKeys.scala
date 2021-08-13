@@ -5,7 +5,7 @@ import aws.iam.IAMClient.SOLE_REGION
 import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{UpdateAccessKeyRequest, UpdateAccessKeyResult}
-import model.VulnerableAccessKey.isOutdated
+import logic.VulnerableAccessKeys.isOutdated
 import model._
 import play.api.Logging
 import schedule.IamListAccessKeys.listAccountAccessKeys

@@ -3,7 +3,6 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
-import schedule.IamFlaggedUsers
 import utils.attempt.FailedAttempt
 
 import java.net.URLEncoder
@@ -37,7 +36,7 @@ object CredentialsReportDisplay {
 
   private[logic] def machineReportStatus(cred: IAMCredential): ReportStatus = {
     val keys = List(accessKey1Details(cred), accessKey2Details(cred))
-    if (IamFlaggedUsers.hasOutdatedMachineKey(keys))
+    if (VulnerableAccessKeys.hasOutdatedMachineKey(keys))
       Red(Seq(OutdatedKey))
     else if (!keys.exists(_.keyStatus == AccessKeyEnabled))
       Amber
@@ -51,7 +50,7 @@ object CredentialsReportDisplay {
     //TODO: Scala 2.13 has Option builder `when` which is a nicer syntax than Some(...).filter
     val redStatusReasons: Seq[ReportStatusReason] = Seq(
       Some(MissingMfa).filterNot(_ => cred.mfaActive),
-      Some(OutdatedKey).filter(_ => IamFlaggedUsers.hasOutdatedHumanKey(keys))
+      Some(OutdatedKey).filter(_ => VulnerableAccessKeys.hasOutdatedHumanKey(keys))
     ).flatten
 
     if (redStatusReasons.nonEmpty)
