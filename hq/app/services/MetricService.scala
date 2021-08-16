@@ -18,9 +18,11 @@ class MetricService(
     cacheService: CacheService
   )(implicit ec: ExecutionContext) extends Logging {
 
-  def dataMissingFrom[T](list: List[Map[AwsAccount, Either[FailedAttempt, T]]]): Boolean = {
-    list.exists { dataMap =>
-      dataMap.toSeq.exists(_._2.isLeft)
+  def collectFailures[T](list: List[Map[AwsAccount, Either[FailedAttempt, T]]]): List[(AwsAccount, FailedAttempt)] = {
+    list.flatMap { dataMap =>
+      dataMap.toSeq.collect {
+        case (account, Left(failedAttempt)) => (account, failedAttempt)
+      }
     }
   }
 
@@ -52,19 +54,21 @@ class MetricService(
     val allPublicBuckets = cacheService.getAllPublicBuckets
     val allCredentials = cacheService.getAllCredentials
 
-    if(dataMissingFrom(List(allSgs, allExposedKeys, allPublicBuckets, allCredentials))) {
-      logger.info("At least part of the data is missing - skipping cloudwatch update!")
-      return
-    }
+    val failures = collectFailures(List(allSgs, allExposedKeys, allPublicBuckets, allCredentials))
 
-    for {
-      gcpReport <- cacheService.getGcpReport
-    } yield {
-      Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
-      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
-      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
-      Cloudwatch.logMetricsForCredentialsReport(allCredentials)
-      Cloudwatch.logMetricsForGCPReport(gcpReport)
+    if (failures.nonEmpty) {
+      logger.warn(s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures")
+    } else {
+      logger.info("Posting new metrics to cloudwatch")
+      for {
+        gcpReport <- cacheService.getGcpReport
+      } yield {
+        Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
+        Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
+        Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
+        Cloudwatch.logMetricsForCredentialsReport(allCredentials)
+        Cloudwatch.logMetricsForGCPReport(gcpReport)
+      }
     }
   }
 
@@ -74,7 +78,6 @@ class MetricService(
       else Duration.Zero
 
     val cloudwatchSubscription = Observable.interval(initialDelay, 6.hours).subscribe { _ =>
-      logger.info("Posting new metrics to cloudwatch")
       postCachedContentsAsMetrics()
     }
 

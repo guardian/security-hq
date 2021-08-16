@@ -75,8 +75,8 @@ object Cloudwatch extends Logging {
     val request = new PutMetricDataRequest().withNamespace(namespace).withMetricData(datum)
 
     Try(cloudwatchClient.putMetricData(request)) match {
-      case Success(response) => logger.info(s"putMetric: ${datum}")
-      case Failure(e) => logger.error(s"putMetric failure: ${datum}", e)
+      case Success(_) => logger.debug(s"putMetric success: $datum")
+      case Failure(e) => logger.error(s"putMetric failure: $datum", e)
     }
   }
 }
