@@ -13,7 +13,7 @@ object IamNotifications extends Logging {
   def makeNotification(flaggedCredsToNotify: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
     flaggedCredsToNotify.toList.flatMap { case (awsAccount, targetGroups) =>
       if (targetGroups.isEmpty) {
-        logger.info(s"found no IAM user issues for ${awsAccount.name}. No notification required.")
+        logger.info(s"found no insecure IAM users for ${awsAccount.name}. No notification required.")
         None
       } else {
         targetGroups.map(tg => createWarningAndFinalNotification(tg, awsAccount, createIamAuditUsers(tg.users, awsAccount)))
@@ -36,24 +36,24 @@ object IamNotifications extends Logging {
 
     val warningNotifications = {
       if (usersToReceiveWarningAlerts.nonEmpty)
-        Some(createNotification(warning = true, usersToReceiveWarningAlerts, awsAccount, tg.targets))
+        Some(createInsecureCredentialsNotification(warning = true, usersToReceiveWarningAlerts, awsAccount, tg.targets))
       else None
     }
 
     val finalNotifications =
       if (usersToReceiveFinalAlerts.nonEmpty)
-        Some(createNotification(warning = false, usersToReceiveFinalAlerts, awsAccount, tg.targets))
+        Some(createInsecureCredentialsNotification(warning = false, usersToReceiveFinalAlerts, awsAccount, tg.targets))
       else None
 
     IamNotification(warningNotifications, finalNotifications, users)
   }
 
-  def createNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]) = {
+  def createInsecureCredentialsNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]) = {
     val usersWithDeadlineAddedIfMissing = users.map { user =>
       user.copy(disableDeadline = Some(createDeadlineIfMissing(user.disableDeadline)))
     }
-    val subject = if (warning) warningSubject(awsAccount) else finalSubject(awsAccount)
-    val message = if (warning) createWarningMessage(awsAccount, usersWithDeadlineAddedIfMissing) else createFinalMessage(awsAccount, usersWithDeadlineAddedIfMissing)
+    val subject = if (warning) InsecureCredentials.warningSubject(awsAccount) else InsecureCredentials.finalSubject(awsAccount)
+    val message = if (warning) InsecureCredentials.createWarningMessage(awsAccount, usersWithDeadlineAddedIfMissing) else InsecureCredentials.createFinalMessage(awsAccount, usersWithDeadlineAddedIfMissing)
     notification(subject, message, targets :+ Account(awsAccount.accountNumber))
   }
 }
