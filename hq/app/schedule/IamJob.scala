@@ -19,7 +19,7 @@ import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo,config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
+class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated notifications and disablement of vulnerable permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
@@ -33,8 +33,7 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
       logger.info(s"Running scheduled job: $description")
     }
 
-    def getCredsReport(cacheService: CacheService): Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
-    val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = getCredsReport(cacheService)
+    val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
     logger.info(s"successfully collected credentials report for $id. Report is empty: ${credsReport.isEmpty}.")
     val flaggedCredentials = IamFlaggedUsers.getVulnerableUsers(credsReport)
 
