@@ -2,7 +2,7 @@ package schedule
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, ScanRequest}
-import model.{AwsAccount, IamAuditAlert, IamAuditUser}
+import model.{AwsAccount, IamAuditAlert, IamAuditNotificationType, IamAuditUser}
 import org.joda.time.DateTime
 import play.api.Logging
 
@@ -42,6 +42,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
       val alerts = r("alerts").getL.asScala.map { a =>
         val alertMap = a.getM.asScala
         IamAuditAlert(
+          IamAuditNotificationType.fromName(alertMap("type").getS),
           new DateTime(alertMap("date").getN.toLong),
           new DateTime(alertMap("disableDeadline").getN.toLong)
         )
@@ -73,6 +74,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
       val alerts = r("alerts").getL.asScala.map{ a =>
         val alertMap = a.getM.asScala
         IamAuditAlert(
+          IamAuditNotificationType.fromName(alertMap("type").getS),
           new DateTime(alertMap("date").getN.toLong),
           new DateTime(alertMap("disableDeadline").getN.toLong)
         )
@@ -98,6 +100,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
 
   def alertToMap(e: IamAuditAlert): Map[String, AttributeValue] = {
     Map(
+      "type" -> S(e.`type`.name),
       "date" -> N(e.dateNotificationSent.getMillis),
       "disableDeadline" -> N(e.disableDeadline.getMillis)
     )

@@ -333,16 +333,21 @@ case class VulnerableAccessKey(
   humanUser: Boolean
 )
 
-sealed trait IamAuditNotificationType {def name: String}
-object Warning extends IamAuditNotificationType {val name = "Warning"}
-object Final extends IamAuditNotificationType {val name = "Final"}
+sealed trait IamAuditNotificationType { def name: String }
+object InsecureCredential extends IamAuditNotificationType { val name = "insecureCredential" }
+object UnrecognisedHumanUser extends IamAuditNotificationType { val name = "unrecognisedHumanUser" }
+object IamAuditNotificationType {
+  def fromName(name: String): IamAuditNotificationType =
+    Seq(InsecureCredential, UnrecognisedHumanUser)
+      .find(name == _.name)
+      .getOrElse(InsecureCredential)
+}
 
-case class IamAuditAlert(dateNotificationSent: DateTime, disableDeadline: DateTime)
+case class IamAuditAlert(`type`: IamAuditNotificationType, dateNotificationSent: DateTime, disableDeadline: DateTime)
 object IamAuditAlert {
-  implicit val jodaDateWrites: Writes[DateTime] = new Writes[DateTime] {
-    def writes(d: DateTime): JsValue = JsString(d.toString())
-  }
-  implicit val iamAuditAlerts = Json.writes[IamAuditAlert]
+  implicit val jodaDateWrites: Writes[DateTime] = (d: DateTime) => JsString(d.toString())
+  implicit val iamNotificationTypeWrites: Writes[IamAuditNotificationType] = (nt: IamAuditNotificationType) => JsString(nt.name)
+  implicit val iamAuditAlertWrites = Json.writes[IamAuditAlert]
 }
 case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
 object IamAuditUser {
