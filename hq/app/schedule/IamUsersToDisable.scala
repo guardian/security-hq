@@ -2,7 +2,7 @@ package schedule
 
 import model.{AwsAccount, IAMAlertTargetGroup, VulnerableUser}
 import org.joda.time.DateTime
-import schedule.IamDeadline.getNearestDeadline
+import schedule.vulnerable.IamDeadline.getNearestDeadline
 
 object IamUsersToDisable {
   def usersToDisable(flaggedUsers: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: Dynamo): Map[AwsAccount, Seq[VulnerableUser]] = {

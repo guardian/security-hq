@@ -4,7 +4,7 @@ import com.gu.anghammarad.models.{Target, AwsAccount => Account}
 import model._
 import org.joda.time.DateTime
 import play.api.Logging
-import schedule.IamDeadline.{createDeadlineIfMissing, sortUsersIntoWarningOrFinalAlerts}
+import schedule.vulnerable.IamDeadline.{createDeadlineIfMissing, sortUsersIntoWarningOrFinalAlerts}
 import schedule.IamMessages._
 import schedule.IamNotifier.notification
 

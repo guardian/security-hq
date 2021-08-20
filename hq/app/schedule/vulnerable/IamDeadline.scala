@@ -1,8 +1,9 @@
-package schedule
+package schedule.vulnerable
 
 import config.Config.iamAlertCadence
 import model.{AwsAccount, IamAuditAlert, VulnerableUser}
 import org.joda.time.{DateTime, Days}
+import schedule.Dynamo
 
 /**
   * Each permanent credential which has been flagged as being vulnerable (either it needs rotating or requires multi-factor authentication),

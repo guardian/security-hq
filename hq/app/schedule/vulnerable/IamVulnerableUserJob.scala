@@ -1,4 +1,4 @@
-package schedule
+package schedule.vulnerable
 
 import aws.AwsClients
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
@@ -7,19 +7,20 @@ import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
-import schedule.IamDisableAccessKeys.disableAccessKeys
-import schedule.IamFlaggedUsers.getVulnerableUsersToAlert
-import schedule.IamMessages.{disabledUsersMessage, disabledUsersSubject}
+import schedule.IamMessages.InsecureCredentials.{disabledUsersMessage, disabledUsersSubject}
 import schedule.IamNotifications.makeNotification
 import schedule.IamNotifier.{notification, send}
-import schedule.IamRemovePassword.removePasswords
 import schedule.IamUsersToDisable.usersToDisable
+import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
+import schedule.vulnerable.IamFlaggedUsers.getVulnerableUsersToAlert
+import schedule.vulnerable.IamRemovePassword.removePasswords
+import schedule.{CronSchedules, Dynamo, JobRunner}
 import services.CacheService
 import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
+class IamVulnerableUserJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "credentials report job"
   override val description = "Automated notifications and disablement of vulnerable permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay

@@ -4,8 +4,8 @@ import com.gu.anghammarad.models.Stack
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
-import schedule.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
-import schedule.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
+import schedule.vulnerable.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
+import schedule.vulnerable.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 import schedule.IamNotifications._
 import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.IamUsersToDisable.toDisableToday

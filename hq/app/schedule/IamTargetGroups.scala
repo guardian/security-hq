@@ -10,6 +10,7 @@ object IamTargetGroups {
     * @param vulnerableUsers
     * @return
     */
+    //TODO: simplify?
   def getNotificationTargetGroups(vulnerableUsers: Seq[VulnerableUser]): Seq[IAMAlertTargetGroup] = {
     val ssaStrings = vulnerableUsers.map(k => Tag.tagsToSSAID(k.tags)).distinct
     val groups = vulnerableUsers.groupBy(u => Tag.tagsToSSAID(u.tags))
