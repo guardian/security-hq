@@ -28,7 +28,7 @@ object IamDisableAccessKeys extends Logging {
         logger.info(s"attempting to disable access key id ${key.id}.")
         for {
           client <- iamClients.get(account, SOLE_REGION)
-          updateAccessKeyResult <- disableAccessKey(key, client) //TODO add some error handling here
+          updateAccessKeyResult <- disableAccessKey(key, client, user.username) //TODO add some error handling here
         } yield {
           val updateAccessKeyRequestId = updateAccessKeyResult.getSdkResponseMetadata.getRequestId
           logger.info(s"disabled access key for ${user.username} with access key id ${key.id} and request id: $updateAccessKeyRequestId.")
@@ -37,11 +37,12 @@ object IamDisableAccessKeys extends Logging {
     )
   }
 
-  def disableAccessKey(key: AccessKeyWithId, client: AwsClient[AmazonIdentityManagementAsync])
+  def disableAccessKey(key: AccessKeyWithId, client: AwsClient[AmazonIdentityManagementAsync], username: String)
     (implicit ec: ExecutionContext): Attempt[UpdateAccessKeyResult] = {
       val request = new UpdateAccessKeyRequest()
-      .withAccessKeyId(key.id)
-      .withStatus("Inactive")
+        .withUserName(username)
+        .withAccessKeyId(key.id)
+        .withStatus("Inactive")
       handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(request))
     }
 }

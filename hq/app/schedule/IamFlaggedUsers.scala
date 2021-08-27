@@ -40,7 +40,9 @@ object IamFlaggedUsers extends Logging {
   }
 
   def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
-    outdatedKeysInfo(findOldAccessKeys(report)) ++ missingMfaInfo(findMissingMfa(report))
+    outdatedKeysInfo(findOldAccessKeys(report))
+      .union(missingMfaInfo(findMissingMfa(report)))
+      .distinct
   }
 
   def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
