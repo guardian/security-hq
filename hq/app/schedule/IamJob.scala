@@ -52,10 +52,8 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
 
     // disable user if still vulnerable after notifications have been sent and send a final notification stating this
     usersToDisable(flaggedCredentials, dynamo).foreach { case (account, users) =>
-      removePasswords(account, users, iamClients)
-      disableAccessKeys(account, users, iamClients)
-      //val userDisabledAlert: Notification = ???
-      //send(userDisabledAlert, topicArn, snsClient, testMode)
+      removePasswords(account, users, iamClients, topicArn, snsClient, testMode)
+      disableAccessKeys(account, users, iamClients, topicArn, snsClient, testMode)
     }
   }
 }
