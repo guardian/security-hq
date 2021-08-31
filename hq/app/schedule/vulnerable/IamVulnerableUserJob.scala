@@ -9,7 +9,7 @@ import model._
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.InsecureCredentials.{disabledUsersMessage, disabledUsersSubject}
 import schedule.IamNotifications.makeNotification
-import schedule.IamNotifier.{notification, send}
+import schedule.Notifier.{notification, send}
 import schedule.IamUsersToDisable.usersToDisable
 import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
 import schedule.vulnerable.IamFlaggedUsers.getVulnerableUsersToAlert

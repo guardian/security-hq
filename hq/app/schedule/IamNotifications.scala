@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import play.api.Logging
 import schedule.vulnerable.IamDeadline.{createDeadlineIfMissing, sortUsersIntoWarningOrFinalAlerts}
 import schedule.IamMessages._
-import schedule.IamNotifier.notification
+import schedule.Notifier.notification
 
 object IamNotifications extends Logging {
 
