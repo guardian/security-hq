@@ -15,8 +15,11 @@ import scala.concurrent.ExecutionContext
 
 object IamDisableAccessKeys extends Logging {
 
-  def disableAccessKeys(account: AwsAccount, vulnerableUsers: Seq[VulnerableUser], iamClients: AwsClients[AmazonIdentityManagementAsync])
-    (implicit ec: ExecutionContext): Unit = {
+  def disableAccessKeys(
+    account: AwsAccount,
+    vulnerableUsers: Seq[VulnerableUser],
+    iamClients: AwsClients[AmazonIdentityManagementAsync]
+  )(implicit ec: ExecutionContext): Unit = {
     // this does the work of taking our vulnerable users who have been flagged as potentially needing their access keys disabled
     // and converts that vulnerableUser into a user that has it's access key id attached to it
     val vulnerableUserWithAccessKeyId: Attempt[List[VulnerableAccessKey]] = listAccountAccessKeys(account, vulnerableUsers, iamClients)
@@ -28,16 +31,17 @@ object IamDisableAccessKeys extends Logging {
         logger.info(s"attempting to disable access key id ${key.id}.")
         for {
           client <- iamClients.get(account, SOLE_REGION)
-          updateAccessKeyResult <- disableAccessKey(key, client, user.username) //TODO add some error handling here
+          updateAccessKeyResult <- disableAccessKey(key, client, user.username)
         } yield {
           val updateAccessKeyRequestId = updateAccessKeyResult.getSdkResponseMetadata.getRequestId
           logger.info(s"disabled access key for ${user.username} with access key id ${key.id} and request id: $updateAccessKeyRequestId.")
+          // TODO create failure case and trigger cloudwatch alarm
         }
       }
     )
   }
 
-  def disableAccessKey(key: AccessKeyWithId, client: AwsClient[AmazonIdentityManagementAsync], username: String)
+  private def disableAccessKey(key: AccessKeyWithId, client: AwsClient[AmazonIdentityManagementAsync], username: String)
     (implicit ec: ExecutionContext): Attempt[UpdateAccessKeyResult] = {
       val request = new UpdateAccessKeyRequest()
         .withUserName(username)
