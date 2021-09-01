@@ -3,14 +3,15 @@ package schedule
 import aws.AwsClients
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.sns.AmazonSNSAsync
-import com.gu.anghammarad.models.Notification
+import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
 import schedule.IamDisableAccessKeys.disableAccessKeys
 import schedule.IamFlaggedUsers.getVulnerableUsersToAlert
+import schedule.IamMessages.{disabledUsersMessage, disabledUsersSubject}
 import schedule.IamNotifications.makeNotification
-import schedule.IamNotifier.send
+import schedule.IamNotifier.{notification, send}
 import schedule.IamRemovePassword.removePasswords
 import schedule.IamUsersToDisable.usersToDisable
 import services.CacheService
@@ -52,8 +53,18 @@ class IamJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSA
 
     // disable user if still vulnerable after notifications have been sent and send a final notification stating this
     usersToDisable(flaggedCredentials, dynamo).foreach { case (account, users) =>
-      removePasswords(account, users, iamClients, topicArn, snsClient, testMode)
-      disableAccessKeys(account, users, iamClients, topicArn, snsClient, testMode)
+      removePasswords(account, users, iamClients)
+      disableAccessKeys(account, users, iamClients)
+
+      if (users.nonEmpty) {
+        logger.info(s"attempting to notify ${account.name} that the following users have been disabled: ${users.map(_.username)}")
+        send(
+          notification(disabledUsersSubject(account), disabledUsersMessage(users), List(Account(account.accountNumber))),
+          topicArn,
+          snsClient,
+          testMode
+        )
+      }
     }
   }
 }
