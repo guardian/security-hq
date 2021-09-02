@@ -3,9 +3,8 @@ import aws.{AWS, AwsClient}
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
@@ -16,8 +15,7 @@ import com.gu.configraun.models._
 import config.Config
 import controllers._
 import filters.HstsFilter
-import model.{AwsAccount, IamAuditAlert, IamAuditUser, Warning}
-import org.joda.time.DateTime
+import model.AwsAccount
 import org.quartz.impl.StdSchedulerFactory
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient

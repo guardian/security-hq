@@ -25,7 +25,7 @@ object IamNotifications extends Logging {
     users.map { user =>
       IamAuditUser(
         Dynamo.createId(account, user.username), account.name, user.username,
-        List(IamAuditAlert(DateTime.now, createDeadlineIfMissing(user.disableDeadline)))
+        List(IamAuditAlert(InsecureCredential, DateTime.now, createDeadlineIfMissing(user.disableDeadline)))
       )
     }
   }

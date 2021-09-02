@@ -8,6 +8,7 @@ import com.amazonaws.services.identitymanagement.model.{AccessKeyMetadata, ListA
 import model.{AccessKeyWithId, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import utils.attempt.Attempt
 
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 object IamListAccessKeys {
