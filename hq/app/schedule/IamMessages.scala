@@ -8,8 +8,8 @@ object IamMessages {
 
   object FormerStaff {
     private def message(account: AwsAccount): String = {
-      s"Please check the following permanent human credentials in AWS Account ${account.name}/${account.accountNumber}, " +
-      s"which have been flagged as not being recognised as a current staff member. If you believe these user(s) " +
+      s"Please check the following permanent human credentials in AWS Account ${account.name}, " +
+      s"which have been flagged as not being recognised as current staff members. If you believe these user(s) " +
       s"have left the organisation then no action is necessary and they will be automatically removed. If they belong to" +
       s"current employees then please ensure the IAM user is tagged [appropriately] and they appear in Janus [in the right place] "
       //TODO: finish the message once we decide on method for tagging and a source for this data
