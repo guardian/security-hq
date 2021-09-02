@@ -4,11 +4,11 @@ import com.gu.anghammarad.models.Stack
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
-import schedule.vulnerable.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
-import schedule.vulnerable.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 import schedule.IamNotifications._
 import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.IamUsersToDisable.toDisableToday
+import schedule.vulnerable.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
+import schedule.vulnerable.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 
 class IamNotificationsTest extends FreeSpec with Matchers {
   val outdatedUser1 = VulnerableUser("lesleyKnope", humanUser = true, tags = List())
@@ -184,8 +184,8 @@ class IamNotificationsTest extends FreeSpec with Matchers {
     }
     "returns nearest deadline" in {
       val nearestDeadline = DateTime.now.plusDays(1).withTimeAtStartOfDay
-      val alert1 = IamAuditAlert(DateTime.now.minusWeeks(3), nearestDeadline)
-      val alert2 = IamAuditAlert(DateTime.now.minusWeeks(3), DateTime.now.plusDays(2).withTimeAtStartOfDay)
+      val alert1 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), nearestDeadline)
+      val alert2 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), DateTime.now.plusDays(2).withTimeAtStartOfDay)
       getNearestDeadline(List(alert1, alert2)) shouldEqual nearestDeadline
     }
   }
