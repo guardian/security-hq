@@ -36,7 +36,7 @@ object IamMessages {
     }
   }
 
-  object InsecureCredentials {
+  object VulnerableCredentials {
     private def message(account: AwsAccount): String = {
       s"Please check the following permanent credentials in AWS Account ${account.name}, " +
       s"which have been flagged as either needing to be rotated or requiring multi-factor authentication (if you're " +
@@ -60,7 +60,7 @@ object IamMessages {
       "If you have any questions, please contact the Developer Experience team: devx@theguardian.com."
     ).mkString("\n")
 
-    def warningSubject(account: AwsAccount): String = s"Action ${account.name}: Insecure credentials"
+    def warningSubject(account: AwsAccount): String = s"Action ${account.name}: Vulnerable credentials"
     def finalSubject(account: AwsAccount): String = s"Action ${account.name}: Deactivating credentials tomorrow"
     def disabledUsersSubject(account: AwsAccount): String = s"AWS IAM User(s) DISABLED in ${account.name} Account"
 

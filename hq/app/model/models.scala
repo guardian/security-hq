@@ -5,7 +5,7 @@ import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata
 import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
-import play.api.libs.json.{JsString, JsValue, Json, Writes}
+import play.api.libs.json.{JsString, Json, Writes}
 
 
 case class AwsAccount(
@@ -334,13 +334,13 @@ case class VulnerableAccessKey(
 )
 
 sealed trait IamAuditNotificationType { def name: String }
-object InsecureCredential extends IamAuditNotificationType { val name = "insecureCredential" }
+object VulnerableCredential extends IamAuditNotificationType { val name = "vulnerableCredential" }
 object UnrecognisedHumanUser extends IamAuditNotificationType { val name = "unrecognisedHumanUser" }
 object IamAuditNotificationType {
   def fromName(name: String): IamAuditNotificationType =
-    Seq(InsecureCredential, UnrecognisedHumanUser)
+    Seq(VulnerableCredential, UnrecognisedHumanUser)
       .find(name == _.name)
-      .getOrElse(InsecureCredential)
+      .getOrElse(VulnerableCredential)
 }
 
 case class IamAuditAlert(`type`: IamAuditNotificationType, dateNotificationSent: DateTime, disableDeadline: DateTime)
