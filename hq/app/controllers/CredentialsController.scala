@@ -2,13 +2,11 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import logic.CredentialsReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
-import model.IamAuditUser
 import play.api._
-import play.api.libs.json.{Json, OWrites, Writes}
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import schedule.Dynamo
