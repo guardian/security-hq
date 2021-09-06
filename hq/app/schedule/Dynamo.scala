@@ -20,14 +20,14 @@ trait AttributeValues {
 
 class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends AttributeValues with Logging {
 
-  val table = tableName match {
+  private val table = tableName match {
     case Some(tableName) => tableName
     case None =>
       logger.error("unable to retrieve Iam Dynamo Table Name from config - check that table name is present in security-hq.conf in S3")
       "error"
   }
 
-  def scan: Seq[Map[String, AttributeValue]] = {
+  private def scan: Seq[Map[String, AttributeValue]] = {
     try {
       client.scan(new ScanRequest().withTableName(table)).getItems.asScala.map(_.asScala.toMap)
     } catch {
@@ -56,7 +56,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
     }
   }
 
-  def get(key: Map[String, AttributeValue]): Option[Map[String, AttributeValue]] = {
+  private def get(key: Map[String, AttributeValue]): Option[Map[String, AttributeValue]] = {
     try {
       Option(client.getItem(
         new GetItemRequest().withTableName(table).withKey(key.asJava)).getItem).map(_.asScala.toMap)
@@ -89,7 +89,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
     }
   }
 
-  def put(item: Map[String, AttributeValue]): Unit = try {
+  private def put(item: Map[String, AttributeValue]): Unit = try {
     logger.info(s"putting item to dynamoDB table: $table")
     client.putItem(
       new PutItemRequest().withTableName(table).withItem(item.asJava))
@@ -98,7 +98,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
     logger.error(s"unable to put item to dynamoDB table: ${e.getMessage}", e)
   }
 
-  def alertToMap(e: IamAuditAlert): Map[String, AttributeValue] = {
+  private def alertToMap(e: IamAuditAlert): Map[String, AttributeValue] = {
     Map(
       "type" -> S(e.`type`.name),
       "date" -> N(e.dateNotificationSent.getMillis),
