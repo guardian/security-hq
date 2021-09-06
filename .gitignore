@@ -146,3 +146,6 @@ node_modules/
 notes
 
 .DS_Store
+
+# Directory to contain provided jars e.g. DynamoDB Local jar used in tests
+hq/test/jars
