@@ -14,7 +14,7 @@ object IamMessages {
 
   def disabledUsersMessage(users: Seq[VulnerableUser]): String = {
     s"""
-       |The following Permanent IAM user(s) have been disabled today: ${users.map(_.username).mkString(",")}.
+       |The following Permanent IAM user(s) have been disabled today: ${users.map(_.username).mkString(", ")}.
        |Please check Security HQ to review the IAM users in your account (https://security-hq.gutools.co.uk/iam).
        |If you still require the disabled user, add new access keys(s) and rotate regularly going forwards, or add MFA for human users.
        |If you no longer require the disabled user, they should be deleted.
