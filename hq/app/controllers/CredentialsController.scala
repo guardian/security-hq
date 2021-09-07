@@ -15,7 +15,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc._
 import schedule.IamMessages.{createWarningMessage, warningSubject}
 import schedule.IamNotifier.notification
-import schedule.{Dynamo, IamJob, IamNotifier, IamTestNotifications}
+import schedule.{Dynamo, IamJob, IamNotifier, IamTestEmailFormatting}
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 
@@ -51,17 +51,17 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
   }
 
   def testWarningNotification() = authAction {
-    IamTestNotifications.sendTestNotification(snsClient, iamJob.topicArn, IamTestNotifications.Warning)
+    IamTestEmailFormatting.sendTestNotification(snsClient, iamJob.topicArn, IamTestEmailFormatting.Warning)
     Ok("Triggered warning notification emails")
   }
 
   def testFinalNotification() = authAction {
-    IamTestNotifications.sendTestNotification(snsClient, iamJob.topicArn, IamTestNotifications.Final)
+    IamTestEmailFormatting.sendTestNotification(snsClient, iamJob.topicArn, IamTestEmailFormatting.Final)
     Ok("Triggered final notification emails")
   }
 
   def testDisabledUserNotification() = authAction {
-    IamTestNotifications.sendTestNotification(snsClient, iamJob.topicArn, IamTestNotifications.Disabled)
+    IamTestEmailFormatting.sendTestNotification(snsClient, iamJob.topicArn, IamTestEmailFormatting.Disabled)
     Ok("Triggered disabled user notification emails")
   }
 

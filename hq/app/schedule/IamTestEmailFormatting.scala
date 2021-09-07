@@ -10,13 +10,14 @@ import utils.attempt.Attempt
 
 import scala.concurrent.ExecutionContext
 
-object IamTestNotifications {
+object IamTestEmailFormatting {
 
   sealed trait NotificationType
   object Warning extends NotificationType
   object Final extends NotificationType
   object Disabled extends NotificationType
 
+  //emails are sent to: https://groups.google.com/a/guardian.co.uk/g/anghammarad.test.alerts
   def sendTestNotification(snsClient: AmazonSNSAsync, topicArn: Option[String], notificationType: NotificationType)(implicit ec: ExecutionContext): Attempt[String] = {
     val account = AwsAccount("", "Test", "", "123456")
     val users: Seq[VulnerableUser] = Seq(
