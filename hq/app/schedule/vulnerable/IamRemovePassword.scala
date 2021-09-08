@@ -1,4 +1,4 @@
-package schedule
+package schedule.vulnerable
 
 import aws.AwsAsyncHandler.awsToScala
 import aws.iam.IAMClient.SOLE_REGION

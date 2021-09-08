@@ -1,4 +1,4 @@
-package schedule
+package schedule.vulnerable
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import aws.iam.IAMClient.SOLE_REGION
@@ -6,9 +6,9 @@ import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{UpdateAccessKeyRequest, UpdateAccessKeyResult}
 import logic.VulnerableAccessKeys.isOutdated
-import model._
+import model.{AccessKeyWithId, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import play.api.Logging
-import schedule.IamListAccessKeys.listAccountAccessKeys
+import IamListAccessKeys.listAccountAccessKeys
 import utils.attempt.Attempt
 
 import scala.concurrent.ExecutionContext

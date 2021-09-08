@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 
-object IamNotifier extends Logging {
+object Notifier extends Logging {
   val channel = Preferred(Email)
 
   def notification(subject: String, message: String, targets: List[Target]): Notification =

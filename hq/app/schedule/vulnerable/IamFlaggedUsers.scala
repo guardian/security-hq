@@ -1,10 +1,11 @@
-package schedule
+package schedule.vulnerable
 
 import logic.VulnerableAccessKeys
-import model._
+import model.{AwsAccount, CredentialReportDisplay, IAMAlertTargetGroup, VulnerableUser}
 import play.api.Logging
-import schedule.IamDeadline.filterUsersToAlert
+import schedule.Dynamo
 import schedule.IamTargetGroups.getNotificationTargetGroups
+import schedule.vulnerable.IamDeadline.filterUsersToAlert
 import utils.attempt.FailedAttempt
 
 /**

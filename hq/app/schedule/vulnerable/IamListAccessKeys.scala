@@ -1,11 +1,11 @@
-package schedule
+package schedule.vulnerable
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import aws.iam.IAMClient.SOLE_REGION
 import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{AccessKeyMetadata, ListAccessKeysRequest, ListAccessKeysResult}
-import model.{AccessKey, AccessKeyWithId, AwsAccount, VulnerableAccessKey, VulnerableUser}
+import model.{AccessKeyWithId, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
