@@ -81,10 +81,11 @@ class IamNotificationsTest extends FreeSpec with Matchers {
           new DateTime(2021, 1, 1, 1, 1),
           Seq(
             MachineUser("", oldMachineAccessKeyEnabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
-            MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            // We've only temporarily commented out these cases as the logic ought to be reverted to align the dashboard and scheduled job
+            // MachineUser("", oldMachineAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
           ),
           Seq(
-            HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+            // HumanUser("", true, oldHumanAccessKeyDisabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
             HumanUser("", true, oldHumanAccessKeyEnabled, AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
           )
         )
@@ -101,7 +102,26 @@ class IamNotificationsTest extends FreeSpec with Matchers {
         )
       )
       val result: CredentialReportDisplay = CredentialReportDisplay(
+        reportDate = new DateTime(2021, 1, 1, 1, 1),
+        machineUsers = Seq.empty,
+        humanUsers = Seq.empty
+      )
+      findOldAccessKeys(credsReport) shouldEqual result
+    }
+    "returns empty human user and machine user lists when there are no active access keys (even if older than 90/365 days)" in {
+      val credsReport: CredentialReportDisplay = CredentialReportDisplay(
         new DateTime(2021, 1, 1, 1, 1),
+        Seq(
+          MachineUser("", AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(18))), AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+        ),
+        Seq(
+          HumanUser("", true, AccessKey(AccessKeyDisabled, Some(DateTime.now().minusMonths(6))), AccessKey(NoKey, None), Red(Seq(OutdatedKey)), None, None, List.empty),
+        )
+      )
+      val result: CredentialReportDisplay = CredentialReportDisplay(
+        reportDate = new DateTime(2021, 1, 1, 1, 1),
+        machineUsers = Seq.empty,
+        humanUsers = Seq.empty
       )
       findOldAccessKeys(credsReport) shouldEqual result
     }
