@@ -35,7 +35,6 @@ object IamRemovePassword extends Logging {
       case Failure(exception) =>
         logger.warn(s"failed to delete password for username: ${user.username}.", exception)
         Cloudwatch.putIamRemovePasswordMetric(1)
-        // TODO trigger cloudwatch alarm for failure case
       case Success(result) =>
         logger.info(s"successfully deleted password for username: ${user.username}. DeleteLoginProfile Response: ${result.toString}.")
         Cloudwatch.putIamRemovePasswordMetric(0)
