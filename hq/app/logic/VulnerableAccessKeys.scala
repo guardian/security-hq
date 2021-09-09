@@ -21,7 +21,7 @@ object VulnerableAccessKeys {
   def hasOutdatedHumanKeyIncludingDisabled(keys: List[AccessKey]): Boolean =
     keys.exists(key => DateUtils.dayDiff(key.lastRotated).getOrElse(1L) > iamHumanUserRotationCadence)
 
-  def hasOutdatedMachineKeyIncludedDisabled(keys: List[AccessKey]): Boolean =
+  def hasOutdatedMachineKeyIncludingDisabled(keys: List[AccessKey]): Boolean =
     keys.exists(key => DateUtils.dayDiff(key.lastRotated).getOrElse(1L) > iamMachineUserRotationCadence)
 
   def isOutdated(user: VulnerableAccessKey): Boolean = {
