@@ -36,7 +36,7 @@ object CredentialsReportDisplay {
 
   private[logic] def machineReportStatus(cred: IAMCredential): ReportStatus = {
     val keys = List(accessKey1Details(cred), accessKey2Details(cred))
-    if (VulnerableAccessKeys.hasOutdatedMachineKeyIncludedDisabled(keys))
+    if (VulnerableAccessKeys.hasOutdatedMachineKeyIncludingDisabled(keys))
       Red(Seq(OutdatedKey))
     else if (!keys.exists(_.keyStatus == AccessKeyEnabled))
       Amber
