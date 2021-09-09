@@ -3,19 +3,14 @@ package controllers
 import auth.SecurityHQAuthActions
 import aws.AWS
 import com.amazonaws.services.sns.AmazonSNSAsync
-import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import logic.CredentialsReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
-import model.{AccessKey, AccessKeyDisabled, AccessKeyEnabled, AwsAccount, NoKey, VulnerableUser}
-import org.joda.time.DateTime
 import play.api._
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import schedule.IamMessages.{createWarningMessage, warningSubject}
-import schedule.IamNotifier.notification
-import schedule.{Dynamo, IamJob, IamNotifier, IamTestNotifications}
+import schedule.{Dynamo, IamJob}
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 
@@ -48,21 +43,6 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
   def refresh() = authAction {
     cacheService.refreshCredentialsBox()
     Ok("Refreshing IAM credentials reports (may take a minute or so to appear)")
-  }
-
-  def testWarningNotification() = authAction {
-    IamTestNotifications.sendTestNotification(snsClient, iamJob.topicArn, IamTestNotifications.Warning)
-    Ok("Triggered warning notification emails")
-  }
-
-  def testFinalNotification() = authAction {
-    IamTestNotifications.sendTestNotification(snsClient, iamJob.topicArn, IamTestNotifications.Final)
-    Ok("Triggered final notification emails")
-  }
-
-  def testDisabledUserNotification() = authAction {
-    IamTestNotifications.sendTestNotification(snsClient, iamJob.topicArn, IamTestNotifications.Disabled)
-    Ok("Triggered disabled user notification emails")
   }
 
   def testNotifications() = authAction {
