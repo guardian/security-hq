@@ -70,7 +70,7 @@ object Cloudwatch extends Logging {
   }
 
   def putIamRemovePasswordMetric(value: Int): Unit = {
-    putMetric("SecurityHQ", "IamDisableAccessKeyExecutionReturnCode", Seq(), value)
+    putMetric("SecurityHQ", "IamRemovePasswordExecutionReturnCode", Seq(), value)
   }
 
   def putIamDisableAccessKeyMetric(value: Int): Unit = {
