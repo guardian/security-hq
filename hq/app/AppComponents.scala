@@ -154,7 +154,7 @@ class AppComponents(context: Context)
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration, googleAuthConfig),
-    new CredentialsController(configuration, cacheService, googleAuthConfig, iamJob, configuration, dynamo, securitySnsClient),
+    new CredentialsController(configuration, cacheService, googleAuthConfig, iamJob, configuration, dynamo),
     new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),
