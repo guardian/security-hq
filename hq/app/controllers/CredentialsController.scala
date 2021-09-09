@@ -2,7 +2,6 @@ package controllers
 
 import auth.SecurityHQAuthActions
 import aws.AWS
-import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.googleauth.GoogleAuthConfig
 import config.Config
 import logic.CredentialsReportDisplay.{exposedKeysSummary, sortAccountsByReportSummary}
@@ -16,7 +15,7 @@ import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamJob, val configuration: Configuration, val dynamo: Dynamo, val snsClient: AmazonSNSAsync)
+class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamJob, val configuration: Configuration, val dynamo: Dynamo)
                            (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 
