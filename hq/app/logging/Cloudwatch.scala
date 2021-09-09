@@ -73,6 +73,10 @@ object Cloudwatch extends Logging {
     putMetric("SecurityHQ", "IamDisableAccessKeyExecutionReturnCode", Seq(), value)
   }
 
+  def putIamDisableAccessKeyMetric(value: Int): Unit = {
+    putMetric("SecurityHQ", "IamDisableAccessKeyExecutionReturnCode", Seq(), value)
+  }
+
   private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
     val dimension = metricDimensions.map( d => (new Dimension).withName(d._1).withValue(d._2)).toList
     val datum = new MetricDatum().withMetricName(metricName).withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)

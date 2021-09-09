@@ -5,6 +5,7 @@ import aws.iam.IAMClient.SOLE_REGION
 import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{UpdateAccessKeyRequest, UpdateAccessKeyResult}
+import logging.Cloudwatch
 import logic.VulnerableAccessKeys.isOutdated
 import model.{AccessKeyWithId, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import play.api.Logging
@@ -51,9 +52,10 @@ object IamDisableAccessKeys extends Logging {
       eventualResult.onComplete {
         case Failure(exception) =>
           logger.warn(s"failed to disable access key id ${key.id} for user $username.", exception)
-        // TODO trigger cloudwatch alarm for failure case
+          Cloudwatch.putIamDisableAccessKeyMetric(1)
         case Success(result) =>
           logger.info(s"successfully disabled access key id ${key.id} for user $username. Response: ${result.toString}.")
+          Cloudwatch.putIamDisableAccessKeyMetric(0)
       }
     handleAWSErrs(client)(eventualResult)
   }
