@@ -52,10 +52,10 @@ object IamDisableAccessKeys extends Logging {
       eventualResult.onComplete {
         case Failure(exception) =>
           logger.warn(s"failed to disable access key id ${key.id} for user $username.", exception)
-          Cloudwatch.putIamDisableAccessKeyMetric(1)
+          Cloudwatch.putIamDisableAccessKeyFailureMetric()
         case Success(result) =>
           logger.info(s"successfully disabled access key id ${key.id} for user $username. Response: ${result.toString}.")
-          Cloudwatch.putIamDisableAccessKeyMetric(0)
+          Cloudwatch.putIamDisableAccessKeySuccessMetric()
       }
     handleAWSErrs(client)(eventualResult)
   }

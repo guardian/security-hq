@@ -34,10 +34,10 @@ object IamRemovePassword extends Logging {
     awsToScala(client)(_.deleteLoginProfileAsync)(request).onComplete {
       case Failure(exception) =>
         logger.warn(s"failed to delete password for username: ${user.username}.", exception)
-        Cloudwatch.putIamRemovePasswordMetric(1)
+        Cloudwatch.putIamRemovePasswordFailureMetric()
       case Success(result) =>
         logger.info(s"successfully deleted password for username: ${user.username}. DeleteLoginProfile Response: ${result.toString}.")
-        Cloudwatch.putIamRemovePasswordMetric(0)
+        Cloudwatch.putIamRemovePasswordSuccessMetric()
     }
   }
 }

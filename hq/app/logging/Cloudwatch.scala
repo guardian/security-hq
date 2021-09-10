@@ -69,12 +69,20 @@ object Cloudwatch extends Logging {
     putMetric("SecurityHQ", "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
   }
 
-  def putIamRemovePasswordMetric(value: Int): Unit = {
-    putMetric("SecurityHQ", "IamRemovePasswordExecutionReturnCode", Seq(), value)
+  def putIamRemovePasswordSuccessMetric(): Unit = {
+    putMetric("SecurityHQ", "IamRemovePasswordExecution", Seq(("Status", "Success")), 1)
   }
 
-  def putIamDisableAccessKeyMetric(value: Int): Unit = {
-    putMetric("SecurityHQ", "IamDisableAccessKeyExecutionReturnCode", Seq(), value)
+  def putIamRemovePasswordFailureMetric(): Unit = {
+    putMetric("SecurityHQ", "IamRemovePasswordExecution", Seq(("Status", "Failure")), 1)
+  }
+
+  def putIamDisableAccessKeySuccessMetric(): Unit = {
+    putMetric("SecurityHQ", "IamDisableAccessKeyExecution", Seq(("Status", "Success")), 1)
+  }
+
+  def putIamDisableAccessKeyFailureMetric(): Unit = {
+    putMetric("SecurityHQ", "IamDisableAccessKeyExecution", Seq(("Status", "Failure")), 1)
   }
 
   private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
