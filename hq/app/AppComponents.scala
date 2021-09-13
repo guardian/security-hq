@@ -25,7 +25,8 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.{Dynamo, IamJob, JobScheduler}
+import schedule.vulnerable.IamVulnerableUserJob
+import schedule.{Dynamo, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -146,9 +147,9 @@ class AppComponents(context: Context)
 
   //initialise IAM notification service
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val iamJob = new IamJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
+  val iamJob = new IamVulnerableUserJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
   val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
-  //jobScheduler.initialise() TODO: uncomment when ready to release creds reaper feature in PROD
+  jobScheduler.initialise()
 
   override def router: Router = new Routes(
     httpErrorHandler,

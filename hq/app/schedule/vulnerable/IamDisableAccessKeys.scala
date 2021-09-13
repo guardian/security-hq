@@ -1,4 +1,4 @@
-package schedule
+package schedule.vulnerable
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import aws.iam.IAMClient.SOLE_REGION
@@ -6,12 +6,13 @@ import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{UpdateAccessKeyRequest, UpdateAccessKeyResult}
 import logic.VulnerableAccessKeys.isOutdated
-import model._
+import model.{AccessKeyWithId, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import play.api.Logging
-import schedule.IamListAccessKeys.listAccountAccessKeys
+import schedule.vulnerable.IamListAccessKeys.listAccountAccessKeys
 import utils.attempt.Attempt
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object IamDisableAccessKeys extends Logging {
 
@@ -35,7 +36,6 @@ object IamDisableAccessKeys extends Logging {
         } yield {
           val updateAccessKeyRequestId = updateAccessKeyResult.getSdkResponseMetadata.getRequestId
           logger.info(s"disabled access key for ${user.username} with access key id ${key.id} and request id: $updateAccessKeyRequestId.")
-          // TODO create failure case and trigger cloudwatch alarm
         }
       }
     )
@@ -47,6 +47,14 @@ object IamDisableAccessKeys extends Logging {
         .withUserName(username)
         .withAccessKeyId(key.id)
         .withStatus("Inactive")
-      handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(request))
-    }
+      val eventualResult: Future[UpdateAccessKeyResult] = awsToScala(client)(_.updateAccessKeyAsync)(request)
+      eventualResult.onComplete {
+        case Failure(exception) =>
+          logger.warn(s"failed to disable access key id ${key.id} for user $username.", exception)
+        // TODO trigger cloudwatch alarm for failure case
+        case Success(result) =>
+          logger.info(s"successfully disabled access key id ${key.id} for user $username. Response: ${result.toString}.")
+      }
+    handleAWSErrs(client)(eventualResult)
+  }
 }

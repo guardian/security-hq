@@ -5,7 +5,7 @@ import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata
 import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
-import play.api.libs.json.{JsString, JsValue, Json, Writes}
+import play.api.libs.json.{JsString, Json, Writes}
 
 
 case class AwsAccount(
@@ -333,16 +333,21 @@ case class VulnerableAccessKey(
   humanUser: Boolean
 )
 
-sealed trait IamAuditNotificationType {def name: String}
-object Warning extends IamAuditNotificationType {val name = "Warning"}
-object Final extends IamAuditNotificationType {val name = "Final"}
+sealed trait IamAuditNotificationType { def name: String }
+object VulnerableCredential extends IamAuditNotificationType { val name = "vulnerableCredential" }
+object UnrecognisedHumanUser extends IamAuditNotificationType { val name = "unrecognisedHumanUser" }
+object IamAuditNotificationType {
+  def fromName(name: String): IamAuditNotificationType =
+    Seq(VulnerableCredential, UnrecognisedHumanUser)
+      .find(name == _.name)
+      .getOrElse(VulnerableCredential)
+}
 
-case class IamAuditAlert(dateNotificationSent: DateTime, disableDeadline: DateTime)
+case class IamAuditAlert(`type`: IamAuditNotificationType, dateNotificationSent: DateTime, disableDeadline: DateTime)
 object IamAuditAlert {
-  implicit val jodaDateWrites: Writes[DateTime] = new Writes[DateTime] {
-    def writes(d: DateTime): JsValue = JsString(d.toString())
-  }
-  implicit val iamAuditAlerts = Json.writes[IamAuditAlert]
+  implicit val jodaDateWrites: Writes[DateTime] = (d: DateTime) => JsString(d.toString())
+  implicit val iamNotificationTypeWrites: Writes[IamAuditNotificationType] = (nt: IamAuditNotificationType) => JsString(nt.name)
+  implicit val iamAuditAlertWrites = Json.writes[IamAuditAlert]
 }
 case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
 object IamAuditUser {

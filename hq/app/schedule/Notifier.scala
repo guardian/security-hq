@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 
-object IamNotifier extends Logging {
+object Notifier extends Logging {
   val channel = Preferred(Email)
 
   def notification(subject: String, message: String, targets: List[Target]): Notification =
@@ -28,7 +28,8 @@ object IamNotifier extends Logging {
       topicArn match {
       case Some(arn) =>
         val anghammaradNotification = {
-          if (testMode) notification.copy(target = List(Stack("testing-alerts"))) else notification
+          if (testMode) notification.copy(target = List(Stack("testing-alerts")))
+          else notification.copy(target = notification.target :+ Stack("testing-alerts"))
         }
         val response: Future[String] = Anghammarad.notify(anghammaradNotification, arn, snsClient)
         response.transformWith {
