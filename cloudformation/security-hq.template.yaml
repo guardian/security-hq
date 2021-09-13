@@ -396,10 +396,10 @@ Resources:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicForAlerts}
       AlarmName: !Sub Security HQ failed to remove a vulnerable password
       AlarmDescription: !Sub The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be
-      MetricName: IamRemovePasswordExecution
+      MetricName: IamRemovePassword
       Namespace: SecurityHQ
       Dimensions:
-        - Name: Status
+        - Name: ReaperExecutionStatus
           Value: Failure
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -415,10 +415,10 @@ Resources:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicForAlerts}
       AlarmName: !Sub Security HQ failed to disable a vulnerable access key
       AlarmDescription: !Sub The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be
-      MetricName: IamDisableAccessKeyExecution
+      MetricName: IamDisableAccessKey
       Namespace: SecurityHQ
       Dimensions:
-        - Name: Status
+        - Name: ReaperExecutionStatus
           Value: Failure
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
