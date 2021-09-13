@@ -1,6 +1,8 @@
 package schedule
 
 import model.{AwsAccount, VulnerableUser}
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 object IamMessages {
 
@@ -24,7 +26,6 @@ object IamMessages {
     ).mkString("\n")
 
     def warningSubject(account: AwsAccount): String = s"Action ${account.name}: IAM credentials belonging to unrecognised user"
-  }
 
     def createWarningMessage(account: AwsAccount, users: Seq[VulnerableUser]): String = {
       s"""
