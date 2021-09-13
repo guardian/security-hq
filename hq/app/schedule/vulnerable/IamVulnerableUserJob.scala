@@ -36,9 +36,10 @@ class IamVulnerableUserJob(enabled: Boolean, cacheService: CacheService, snsClie
 
     val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
     logger.info(s"successfully collected credentials report for $id. Report is empty: ${credsReport.isEmpty}.")
-    val betaTestAccounts = List("frontend", "mobile", "deploy-tools")
+    val betaTestAccounts = List("Frontend", "Mobile", "Deploy Tools")
     val flaggedCredentials = IamFlaggedUsers.getVulnerableUsers(credsReport)
       .filterKeys(account => betaTestAccounts.contains(account.name)) //TODO remove after beta-testing
+    logger.info(s"****Names of flagged creds aws accounts: ${flaggedCredentials.map(_._1.name)}")
 
     def sendNotificationAndRecord(notification: Notification, users: Seq[IamAuditUser]): Unit = {
       for {
