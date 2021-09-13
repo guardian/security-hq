@@ -1,11 +1,9 @@
 package schedule
 
-import com.gu.anghammarad.models.Stack
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.IamNotifications._
-import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.IamUsersToDisable.toDisableToday
 import schedule.vulnerable.IamDeadline.{getNearestDeadline, isFinalAlert, isWarningAlert}
 import schedule.vulnerable.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
@@ -20,41 +18,7 @@ class IamNotificationsTest extends FreeSpec with Matchers {
   val noMfaUser3 = VulnerableUser("diane", humanUser = true, tags = List())
 
 
-  "getNotificationTargetGroups" - {
-    "correctly builds target groups when users have no tags " in {
-      val targetGroups = getNotificationTargetGroups(Seq(outdatedUser1, outdatedUser2, noMfaUser1, noMfaUser2))
-      targetGroups.length shouldEqual 1
-      targetGroups.head.users.length shouldEqual 4
-    }
 
-    "correctly builds target groups when users have tags" in {
-      val parks = Tag("Stack", "parks")
-      val recreation = Tag("Stack", "recreation")
-
-      val users = Seq(
-        outdatedUser1,
-        outdatedUser2.copy(tags=List(parks)),
-        outdatedUser3.copy(tags=List(recreation))
-      )
-
-      val targetGroups = getNotificationTargetGroups(users)
-
-      targetGroups.length shouldEqual 3
-
-      val parkGroup = targetGroups.find(t => t.targets.exists{
-        case Stack(stack) => stack == "parks"
-        case _ => false
-      })
-      parkGroup shouldBe defined
-      val parkGroupUsers = parkGroup.get.users
-      parkGroupUsers.head.username shouldBe outdatedUser2.username
-
-      val noTagGroup = targetGroups.find(t => t.targets.isEmpty)
-      noTagGroup shouldBe defined
-      noTagGroup.get.users shouldEqual List(outdatedUser1)
-
-    }
-  }
   "findOldCredentialsAndMissingMfas" - {
     "returns CredentialReportDisplays with access keys greater than 90 days old" in {
       val oldHumanAccessKeyEnabled: AccessKey = AccessKey(AccessKeyEnabled, Some(new DateTime(2021, 1, 15, 1, 1)))
