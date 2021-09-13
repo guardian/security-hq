@@ -6,7 +6,7 @@ import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.DeleteLoginProfileRequest
 import logging.Cloudwatch
-import logging.Cloudwatch.{DataType, ReaperExecutionStatus}
+import logging.Cloudwatch.ReaperExecutionStatus
 import model.{AwsAccount, VulnerableUser}
 import play.api.Logging
 
