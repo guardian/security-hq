@@ -28,7 +28,8 @@ object Notifier extends Logging {
       topicArn match {
       case Some(arn) =>
         val anghammaradNotification = {
-          if (testMode) notification.copy(target = List(Stack("testing-alerts"))) else notification
+          if (testMode) notification.copy(target = List(Stack("testing-alerts")))
+          else notification.copy(target = notification.target :+ Stack("testing-alerts"))
         }
         val response: Future[String] = Anghammarad.notify(anghammaradNotification, arn, snsClient)
         response.transformWith {
