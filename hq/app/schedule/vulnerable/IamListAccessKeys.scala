@@ -40,7 +40,7 @@ object IamListAccessKeys {
   }
 
     // get the access key details for one user
-  def listAccessKeys(client: AwsClient[AmazonIdentityManagementAsync], user: VulnerableUser)
+  private def listAccessKeys(client: AwsClient[AmazonIdentityManagementAsync], user: VulnerableUser)
     (implicit ec: ExecutionContext): Attempt[ListAccessKeysResult] = {
     val request = new ListAccessKeysRequest().withUserName(user.username)
     handleAWSErrs(client)(awsToScala(client)(_.listAccessKeysAsync)(request))

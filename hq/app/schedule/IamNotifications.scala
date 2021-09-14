@@ -1,6 +1,6 @@
 package schedule
 
-import com.gu.anghammarad.models.{Target, AwsAccount => Account}
+import com.gu.anghammarad.models.{Notification, Target, AwsAccount => Account}
 import model._
 import org.joda.time.DateTime
 import play.api.Logging
@@ -21,7 +21,7 @@ object IamNotifications extends Logging {
     }
   }
 
-  def createIamAuditUsers(users: Seq[VulnerableUser], account: AwsAccount): Seq[IamAuditUser] = {
+  private def createIamAuditUsers(users: Seq[VulnerableUser], account: AwsAccount): Seq[IamAuditUser] = {
     users.map { user =>
       IamAuditUser(
         Dynamo.createId(account, user.username), account.name, user.username,
@@ -30,7 +30,7 @@ object IamNotifications extends Logging {
     }
   }
 
-  def createWarningAndFinalNotification(tg: IAMAlertTargetGroup, awsAccount: AwsAccount, users: Seq[IamAuditUser]): IamNotification = {
+  private def createWarningAndFinalNotification(tg: IAMAlertTargetGroup, awsAccount: AwsAccount, users: Seq[IamAuditUser]): IamNotification = {
     logger.info(s"for ${awsAccount.name}, generating iam notification message for ${tg.users.length} user(s) with outdated keys and and/or missing mfa")
     val (usersToReceiveWarningAlerts, usersToReceiveFinalAlerts) = sortUsersIntoWarningOrFinalAlerts(tg.users)
 
@@ -48,7 +48,7 @@ object IamNotifications extends Logging {
     IamNotification(warningNotifications, finalNotifications, users)
   }
 
-  def createVulnerableCredentialsNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]) = {
+  private def createVulnerableCredentialsNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]): Notification = {
     val usersWithDeadlineAddedIfMissing = users.map { user =>
       user.copy(disableDeadline = Some(createDeadlineIfMissing(user.disableDeadline)))
     }
