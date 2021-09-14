@@ -17,6 +17,8 @@ object Cloudwatch extends Logging {
 
   val cloudwatchClient = AmazonCloudWatchClientBuilder.defaultClient
 
+  val defaultNamespace = "SecurityHQ"
+
   object DataType extends Enumeration {
     val s3Total = Value("s3/total")
     val iamCredentialsTotal = Value("iam/credentials/total")
@@ -27,6 +29,11 @@ object Cloudwatch extends Logging {
     val gcpTotal = Value("gcp/total")
     val gcpCritical = Value("gcp/critical")
     val gcpHigh = Value("gcp/high")
+  }
+
+  object ReaperExecutionStatus extends Enumeration {
+    val success = Value("Success")
+    val failure = Value("Failure")
   }
 
   def logMetricsForGCPReport(gcpReport: GcpReport): Unit = {
@@ -62,11 +69,19 @@ object Cloudwatch extends Logging {
   }
 
   def putAwsMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
-    putMetric("SecurityHQ", "Vulnerabilities", Seq(("Account", account.name),("DataType", dataType.toString)), value)
+    putMetric(defaultNamespace, "Vulnerabilities", Seq(("Account", account.name),("DataType", dataType.toString)), value)
   }
 
   def putGcpMetric(project: String, dataType: DataType.Value , value: Int): Unit = {
-    putMetric("SecurityHQ", "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
+    putMetric(defaultNamespace, "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
+  }
+
+  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
+    putMetric(defaultNamespace, "IamRemovePassword", Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)), 1)
+  }
+
+  def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
+    putMetric(defaultNamespace, "IamDisableAccessKey", Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)), 1)
   }
 
   private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
