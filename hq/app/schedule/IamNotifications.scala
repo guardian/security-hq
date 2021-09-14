@@ -24,7 +24,7 @@ object IamNotifications extends Logging {
   private def createIamAuditUsers(users: Seq[VulnerableUser], account: AwsAccount): Seq[IamAuditUser] = {
     users.map { user =>
       IamAuditUser(
-        Dynamo.createId(account, user.username), account.name, user.username,
+        DynamoAlerts.createId(account, user.username), account.name, user.username,
         List(IamAuditAlert(VulnerableCredential, DateTime.now, createDeadlineIfMissing(user.disableDeadline)))
       )
     }

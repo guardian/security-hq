@@ -17,8 +17,12 @@ trait AttributeValues {
   def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
   def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
 }
-
-class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends AttributeValues with Logging {
+trait DynamoAlertService {
+  def scanAlert(): Seq[IamAuditUser]
+  def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser]
+  def putAlert(alert: IamAuditUser): Unit
+}
+class AwsDynamoAlertService(client: AmazonDynamoDB, tableName: Option[String]) extends DynamoAlertService with AttributeValues with Logging {
 
   private val table = tableName match {
     case Some(tableName) => tableName
@@ -69,7 +73,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
 
   def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser] = {
     logger.info(s"Fetching alert for username ${username}, account ${awsAccount.id}")
-    val key = Map("id" -> S(Dynamo.createId(awsAccount, username)))
+    val key = Map("id" -> S(DynamoAlerts.createId(awsAccount, username)))
     get(key).map { r =>
       val alerts = r("alerts").getL.asScala.map{ a =>
         val alertMap = a.getM.asScala
@@ -114,7 +118,7 @@ class Dynamo(client: AmazonDynamoDB, tableName: Option[String]) extends Attribut
   ))
 }
 
-object Dynamo {
+object DynamoAlerts {
   def createId(awsAccount: AwsAccount, username: String) = s"${awsAccount.id}/$username"
 }
 
