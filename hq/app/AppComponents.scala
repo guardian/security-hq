@@ -25,6 +25,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
+import schedule.unrecognised.IamUnrecognisedUserJob
 import schedule.vulnerable.IamVulnerableUserJob
 import schedule.{Dynamo, JobScheduler}
 import services.{CacheService, MetricService}
@@ -145,16 +146,19 @@ class AppComponents(context: Context)
   val iamDynamoDbTableName = Config.getIamDynamoTableName(configuration)
   val dynamo = new Dynamo(dynamoDbClient, iamDynamoDbTableName)
 
-  //initialise IAM notification service
+  //initialise job to alert on and remove vulnerable IAM users
+  val vulnerableUserJob = new IamVulnerableUserJob(cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
+  //initialise job to check for and remove unrecognised human IAM users
+  val unrecognisedUserJob = new IamUnrecognisedUserJob() //TODO set enable to true when ready to start job
+
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val iamJob = new IamVulnerableUserJob(enabled = true, cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
-  val jobScheduler = new JobScheduler(quartzScheduler, List(iamJob))
+  val jobScheduler = new JobScheduler(quartzScheduler, List(vulnerableUserJob, unrecognisedUserJob))
   jobScheduler.initialise()
 
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration, googleAuthConfig),
-    new CredentialsController(configuration, cacheService, googleAuthConfig, iamJob, configuration, dynamo),
+    new CredentialsController(configuration, cacheService, googleAuthConfig, vulnerableUserJob, configuration, dynamo),
     new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new SnykController(configuration, cacheService, googleAuthConfig),

@@ -20,15 +20,15 @@ import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class IamVulnerableUserJob(enabled: Boolean, cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
-  override val id = "credentials report job"
+class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
+  override val id = "vulnerable-iam-users"
   override val description = "Automated notifications and disablement of vulnerable permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
   val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
 
 
   def run(testMode: Boolean): Unit = {
-    if (!enabled) {
+    if (testMode) {
       logger.info(s"Skipping scheduled $id job as it is not enabled")
     } else {
       logger.info(s"Running scheduled job: $description")
