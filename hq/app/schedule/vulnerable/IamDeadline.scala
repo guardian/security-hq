@@ -35,7 +35,7 @@ object IamDeadline {
   }
 
   // adds deadline to users when this field is present in dynamoDB
-  def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+  private def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
     users.map { user =>
       dynamo.getAlert(awsAccount, user.username).map { u =>
         user.copy(

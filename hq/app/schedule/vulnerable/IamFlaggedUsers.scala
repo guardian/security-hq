@@ -40,7 +40,7 @@ object IamFlaggedUsers extends Logging {
     }
   }
 
-  def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
+  private def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
     outdatedKeysInfo(findOldAccessKeys(report))
       .union(missingMfaInfo(findMissingMfa(report)))
       .distinct
@@ -58,11 +58,11 @@ object IamFlaggedUsers extends Logging {
     credsReport.copy(machineUsers = removeMachineUsers, humanUsers = filteredHumans)
   }
 
-  def outdatedKeysInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
+  private def outdatedKeysInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
     (users.machineUsers ++ users.humanUsers).map(VulnerableUser.fromIamUser)
   }
 
-  def missingMfaInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
+  private def missingMfaInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
     users.humanUsers.map(VulnerableUser.fromIamUser)
   }
 }

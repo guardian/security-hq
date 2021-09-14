@@ -12,7 +12,7 @@ object IamUsersToDisable {
   }
 
   // filter the vulnerable users for those who have disablement deadlines marked as today in dynamoDB
-  def getUsersToDisable(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+  private def getUsersToDisable(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
     users.filter { user =>
       val auditUsername: String =
         dynamo.getAlert(awsAccount, user.username)
