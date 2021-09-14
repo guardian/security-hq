@@ -11,7 +11,7 @@ import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers}
 import scala.collection.JavaConverters._
 
 
-class DynamoTest extends FreeSpec with BeforeAndAfterAll with Matchers with AttributeValues {
+class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterAll with Matchers with AttributeValues {
 
   private val client = {
     val conf = new EndpointConfiguration("http://localhost:8000", config.Config.region.name)
@@ -50,7 +50,7 @@ class DynamoTest extends FreeSpec with BeforeAndAfterAll with Matchers with Attr
   }
 
   "Dynamo" - {
-    val dynamo = new Dynamo(client, Some(tableName))
+    val dynamo = new AwsDynamoAlertService(client, Some(tableName))
 
     "scan method" -  {
       "can scan an empty table for alerts" in {

@@ -9,14 +9,14 @@ import play.api._
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import schedule.Dynamo
+import schedule.DynamoAlertService
 import schedule.vulnerable.IamVulnerableUserJob
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamVulnerableUserJob, val configuration: Configuration, val dynamo: Dynamo)
+class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamVulnerableUserJob, val configuration: Configuration, val dynamo: DynamoAlertService)
                            (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 

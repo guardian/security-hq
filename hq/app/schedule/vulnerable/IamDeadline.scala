@@ -3,7 +3,7 @@ package schedule.vulnerable
 import config.Config.iamAlertCadence
 import model.{AwsAccount, IamAuditAlert, VulnerableUser}
 import org.joda.time.{DateTime, Days}
-import schedule.Dynamo
+import schedule.DynamoAlertService
 
 /**
   * Each permanent credential which has been flagged as being vulnerable (either it needs rotating or requires multi-factor authentication),
@@ -27,7 +27,7 @@ object IamDeadline {
   def isFinalAlert(deadline: DateTime, today: DateTime = DateTime.now): Boolean = deadline.withTimeAtStartOfDay == today.withTimeAtStartOfDay.plusDays(1)
 
   // if the user is not present in dynamo, that means they've never been alerted before, so mark them as ready to be alerted
-  def filterUsersToAlert(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+  def filterUsersToAlert(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: DynamoAlertService): Seq[VulnerableUser] = {
     val usersWithDeadline = enrichUsersWithDeadline(users, awsAccount, dynamo)
     usersWithDeadline.filter { user =>
       user.disableDeadline.exists(deadline => isWarningAlert(deadline) || isFinalAlert(deadline)) || user.disableDeadline.isEmpty
@@ -35,7 +35,7 @@ object IamDeadline {
   }
 
   // adds deadline to users when this field is present in dynamoDB
-  private def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: Dynamo): Seq[VulnerableUser] = {
+  private def enrichUsersWithDeadline(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: DynamoAlertService): Seq[VulnerableUser] = {
     users.map { user =>
       dynamo.getAlert(awsAccount, user.username).map { u =>
         user.copy(

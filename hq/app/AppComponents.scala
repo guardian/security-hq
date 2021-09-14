@@ -27,7 +27,7 @@ import play.filters.csrf.CSRFComponents
 import router.Routes
 import schedule.unrecognised.IamUnrecognisedUserJob
 import schedule.vulnerable.IamVulnerableUserJob
-import schedule.{Dynamo, JobScheduler}
+import schedule.{AwsDynamoAlertService, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -144,7 +144,7 @@ class AppComponents(context: Context)
   )
 
   val iamDynamoDbTableName = Config.getIamDynamoTableName(configuration)
-  val dynamo = new Dynamo(dynamoDbClient, iamDynamoDbTableName)
+  val dynamo = new AwsDynamoAlertService(dynamoDbClient, iamDynamoDbTableName)
 
   //initialise job to alert on and remove vulnerable IAM users
   val vulnerableUserJob = new IamVulnerableUserJob(cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)

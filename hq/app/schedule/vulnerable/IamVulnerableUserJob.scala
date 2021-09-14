@@ -14,13 +14,13 @@ import schedule.Notifier.{notification, send}
 import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
 import schedule.vulnerable.IamFlaggedUsers.getVulnerableUsersToAlert
 import schedule.vulnerable.IamRemovePassword.removePasswords
-import schedule.{CronSchedules, Dynamo, JobRunner}
+import schedule.{CronSchedules, DynamoAlertService, JobRunner}
 import services.CacheService
 import utils.attempt.FailedAttempt
 
 import scala.concurrent.ExecutionContext
 
-class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: Dynamo, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
+class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: DynamoAlertService, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "vulnerable-iam-users"
   override val description = "Automated notifications and disablement of vulnerable permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay

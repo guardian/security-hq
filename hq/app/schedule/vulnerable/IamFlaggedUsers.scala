@@ -3,7 +3,7 @@ package schedule.vulnerable
 import logic.VulnerableAccessKeys
 import model.{AwsAccount, CredentialReportDisplay, IAMAlertTargetGroup, VulnerableUser}
 import play.api.Logging
-import schedule.Dynamo
+import schedule.DynamoAlertService
 import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.vulnerable.IamDeadline.filterUsersToAlert
 import utils.attempt.FailedAttempt
@@ -32,7 +32,7 @@ object IamFlaggedUsers extends Logging {
     }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
   }
 
-  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: Dynamo): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
+  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: DynamoAlertService): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
     users.map { case (account, targetGroups) =>
       account -> targetGroups.map { tg =>
         tg.copy(users = filterUsersToAlert(targetGroups.flatMap(_.users), account, dynamo))
