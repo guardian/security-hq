@@ -4,7 +4,7 @@ import model.{AwsAccount, IamAuditUser}
 import java.util.concurrent.atomic.AtomicReference
 
 class MockDynamoAlertService extends DynamoAlertService {
-  protected val alerts = new AtomicReference[List[IamAuditUser]](List.empty)
+  protected val alerts = new AtomicReference[Seq[IamAuditUser]](List.empty)
 
   override def scanAlert(): Seq[IamAuditUser] = alerts.get()
 
