@@ -149,7 +149,7 @@ class AppComponents(context: Context)
   //initialise job to alert on and remove vulnerable IAM users
   val vulnerableUserJob = new IamVulnerableUserJob(cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
   //initialise job to check for and remove unrecognised human IAM users
-  val unrecognisedUserJob = new IamUnrecognisedUserJob() //TODO set enable to true when ready to start job
+  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService) //TODO set enable to true when ready to start job
 
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
   val jobScheduler = new JobScheduler(quartzScheduler, List(vulnerableUserJob, unrecognisedUserJob))
