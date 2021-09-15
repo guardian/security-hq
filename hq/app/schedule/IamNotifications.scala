@@ -48,7 +48,8 @@ object IamNotifications extends Logging {
     IamNotification(warningNotifications, finalNotifications, users)
   }
 
-  private def createVulnerableCredentialsNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]): Notification = {
+  // TODO: this should be private as it's only used by tests and internally
+  def createVulnerableCredentialsNotification(warning: Boolean, users: Seq[VulnerableUser], awsAccount: AwsAccount, targets: List[Target]): Notification = {
     val usersWithDeadlineAddedIfMissing = users.map { user =>
       user.copy(disableDeadline = Some(createDeadlineIfMissing(user.disableDeadline)))
     }
