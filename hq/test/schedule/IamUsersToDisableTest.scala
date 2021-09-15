@@ -38,9 +38,18 @@ class IamUsersToDisableTest extends FreeSpec with Matchers {
       }
     }
 
-    "does not return a user when the deadline is not today" in {
+    "does not return a user when the deadline is before today" in {
       val now = DateTime.now
       val deadline = now.minusDays(1)
+      val today = now
+
+      val users = usersToDisable(flaggedUsersWithDeadline(Some(deadline)), dynamo, today)
+      users shouldBe empty
+    }
+
+    "does not return a user when the deadline is after today" in {
+      val now = DateTime.now
+      val deadline = now.plusDays(1)
       val today = now
 
       val users = usersToDisable(flaggedUsersWithDeadline(Some(deadline)), dynamo, today)
