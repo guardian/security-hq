@@ -6,7 +6,7 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.{AwsAccount => TargetAccount}
 import com.gu.janus.model.{ACL, AwsAccount, JanusData, SupportACL}
 import config.Config.getAnghammaradSNSTopicArn
-import model.{CronSchedule, VulnerableUser}
+import model.{CronSchedule, VulnerableUser, AwsAccount => Account}
 import org.joda.time.Seconds
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.FormerStaff.disabledUsersMessage
@@ -17,6 +17,7 @@ import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
 import schedule.vulnerable.IamRemovePassword.removePasswords
 import schedule.{CronSchedules, JobRunner}
 import services.CacheService
+import utils.attempt.Attempt
 
 import scala.concurrent.ExecutionContext
 
@@ -49,24 +50,22 @@ class IamUnrecognisedUserJob(cacheService: CacheService, snsClient: AmazonSNSAsy
         val humanUsers = credsReport.humanUsers
         val unrecognisedIamUsers: Seq[VulnerableUser] = filterUnrecognisedIamUsers(humanUsers, "name", janusUsers)
 
-        //TODO these should return a value that we can inspect for success/error handling
-        disableAccessKeys(account, unrecognisedIamUsers, iamClients)
-        removePasswords(account, unrecognisedIamUsers, iamClients)
-
-        if (unrecognisedIamUsers.nonEmpty) {
-          val message = notification(
-            disabledUsersSubject(account),
-            disabledUsersMessage(unrecognisedIamUsers),
-            List(TargetAccount(account.accountNumber))
-          )
-          send(
-            message,
-            topicArn,
-            snsClient,
-            testMode
-          )
+        if(unrecognisedIamUsers.nonEmpty) {
+          //TODO these should return a value that we can inspect to only send notification when successful
+          disableAccessKeys(account, unrecognisedIamUsers, iamClients)
+          removePasswords(account, unrecognisedIamUsers, iamClients)
+          sendNotification(account, unrecognisedIamUsers, testMode)
         }
       }
     }
+  }
+
+  private def sendNotification(account: Account, unrecognisedIamUsers: Seq[VulnerableUser], testMode: Boolean): Attempt[String] = {
+    val message = notification(
+      disabledUsersSubject(account),
+      disabledUsersMessage(unrecognisedIamUsers),
+      List(TargetAccount(account.accountNumber))
+    )
+    send(message, topicArn, snsClient, testMode)
   }
 }
