@@ -53,7 +53,7 @@ class IamUnrecognisedUserJob(cacheService: CacheService, snsClient: AmazonSNSAsy
         disableAccessKeys(account, unrecognisedIamUsers, iamClients)
         removePasswords(account, unrecognisedIamUsers, iamClients)
 
-        if(unrecognisedIamUsers.nonEmpty) {
+        if (unrecognisedIamUsers.nonEmpty) {
           val message = notification(
             disabledUsersSubject(account),
             disabledUsersMessage(unrecognisedIamUsers),
@@ -67,5 +67,6 @@ class IamUnrecognisedUserJob(cacheService: CacheService, snsClient: AmazonSNSAsy
           )
         }
       }
+    }
   }
 }
