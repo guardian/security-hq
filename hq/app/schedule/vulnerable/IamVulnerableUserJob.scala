@@ -11,8 +11,8 @@ import schedule.IamMessages.VulnerableCredentials.{disabledUsersMessage, disable
 import schedule.IamNotifications.makeNotification
 import schedule.IamUsersToDisable.usersToDisable
 import schedule.Notifier.{notification, send}
+import schedule.vulnerable.IamDeadline.getVulnerableUsersToAlert
 import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
-import schedule.vulnerable.IamFlaggedUsers.getVulnerableUsersToAlert
 import schedule.vulnerable.IamRemovePassword.removePasswords
 import schedule.{CronSchedules, DynamoAlertService, JobRunner}
 import services.CacheService
