@@ -43,6 +43,7 @@ object IamFlaggedUsers extends Logging {
   }
 
   def findMissingMfa(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
+    //TODO: change this filter, apply transform functions (below) here
     val removeMachineUsers = credsReport.machineUsers.filterNot(_.username == "")
     val filteredHumans = credsReport.humanUsers.filterNot(_.hasMFA)
     credsReport.copy(machineUsers = removeMachineUsers, humanUsers = filteredHumans)
