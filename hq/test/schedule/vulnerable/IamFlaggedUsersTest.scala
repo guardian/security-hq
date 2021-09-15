@@ -6,7 +6,7 @@ import org.scalatest.{FreeSpec, Matchers}
 import schedule.vulnerable.IamFlaggedUsers.{findMissingMfa, findOldAccessKeys}
 
 class IamFlaggedUsersTest extends FreeSpec with Matchers {
-  "findOldCredentialsAndMissingMfas" - {
+  "IamFlaggedUsers" - {
     "findOldAccessKeys" - {
       "returns CredentialReportDisplays with access keys greater than 90 days old" in {
         val oldHumanAccessKeyEnabled: AccessKey = AccessKey(AccessKeyEnabled, Some(new DateTime(2021, 1, 15, 1, 1)))
