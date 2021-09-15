@@ -31,9 +31,9 @@ class IamUnrecognisedUserTest extends FreeSpec with Matchers {
       getJanusUsernames(dummyJanusData) shouldEqual List("firstName.secondName")
     }
     "get unrecognised human users" in {
-      val permanentIamUsers: List[HumanUser] = List(humanUser1, humanUser2, humanUser3, humanUser4)
-      val vulnerableUsers: List[VulnerableUser] = List(VulnerableUser.fromIamUser(humanUser4))
-      val janusUsers: List[String] = List("ade.bimbola", "john.akindele", "khadija.omodara")
+      val permanentIamUsers: Seq[HumanUser] = List(humanUser1, humanUser2, humanUser3, humanUser4)
+      val vulnerableUsers: Seq[VulnerableUser] = List(VulnerableUser.fromIamUser(humanUser4))
+      val janusUsers: Seq[String] = List("ade.bimbola", "john.akindele", "khadija.omodara")
       filterUnrecognisedIamUsers(permanentIamUsers, "name", janusUsers) shouldEqual vulnerableUsers
     }
   }
