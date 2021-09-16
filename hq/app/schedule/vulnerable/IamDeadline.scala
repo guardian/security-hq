@@ -1,7 +1,7 @@
 package schedule.vulnerable
 
 import config.Config.iamAlertCadence
-import model.{AwsAccount, IAMAlertTargetGroup, IamAuditAlert, VulnerableUser}
+import model.{AwsAccount, IamAuditAlert, VulnerableUser}
 import org.joda.time.{DateTime, Days}
 import schedule.DynamoAlertService
 
@@ -26,11 +26,9 @@ object IamDeadline {
   }
   def isFinalAlert(deadline: DateTime, today: DateTime = DateTime.now): Boolean = deadline.withTimeAtStartOfDay == today.withTimeAtStartOfDay.plusDays(1)
 
-  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: DynamoAlertService): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
-    users.map { case (account, targetGroups) =>
-      account -> targetGroups.map { tg =>
-        tg.copy(users = filterUsersToAlert(targetGroups.flatMap(_.users), account, dynamo))
-      }
+  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[VulnerableUser]], dynamo: DynamoAlertService): Map[AwsAccount, Seq[VulnerableUser]] = {
+    users.map { case (account, users) =>
+      account -> filterUsersToAlert(users, account, dynamo)
     }
   }
 

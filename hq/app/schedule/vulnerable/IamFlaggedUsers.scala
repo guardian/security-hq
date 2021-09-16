@@ -1,9 +1,8 @@
 package schedule.vulnerable
 
 import logic.VulnerableAccessKeys
-import model.{AwsAccount, CredentialReportDisplay, IAMAlertTargetGroup, VulnerableUser}
+import model.{AwsAccount, CredentialReportDisplay, VulnerableUser}
 import play.api.Logging
-import schedule.IamTargetGroups.getNotificationTargetGroups
 import utils.attempt.FailedAttempt
 
 /**
@@ -12,22 +11,19 @@ import utils.attempt.FailedAttempt
   */
 object IamFlaggedUsers extends Logging {
 
-  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
-    allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
-      case Left(error) =>
+  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[VulnerableUser]] = {
+    // Error handling for when no credentials report. N.B. could be placed elsewhere
+    allCreds.foreach { case (awsAccount, eitherReportOrFailure) =>
+      eitherReportOrFailure.left.foreach { error =>
         error.failures.foreach { failure =>
           val errorMessage = s"failed to collect credentials report display for ${awsAccount.name}: ${failure.friendlyMessage}"
           failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
         }
-        (awsAccount, Left(error))
-      case Right(report) =>
-        // alert the Ophan AWS account using tags to ensure that the Ophan and Data Tech teams who share the same AWS account receive the right emails
-        if (awsAccount.name == "Ophan") (awsAccount, Right(getNotificationTargetGroups(findVulnerableUsers(report))))
-        else {
-          (awsAccount, Right(Seq(IAMAlertTargetGroup(List.empty, findVulnerableUsers(report)))))
-        }
+      }
     }
-    }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
+
+    // Filter out any accounts we failed to grab the credentials report for
+    allCreds.collect { case (awsAccount, Right(report)) => (awsAccount, findVulnerableUsers(report)) }
   }
 
   private[vulnerable] def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] =

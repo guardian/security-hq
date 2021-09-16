@@ -5,18 +5,29 @@ import model._
 import org.joda.time.DateTime
 import play.api.Logging
 import schedule.IamMessages._
+import schedule.IamTargetGroups.getNotificationTargetGroups
 import schedule.Notifier.notification
 import schedule.vulnerable.IamDeadline.{createDeadlineIfMissing, sortUsersIntoWarningOrFinalAlerts}
 
 object IamNotifications extends Logging {
 
-  def makeNotification(flaggedCredsToNotify: Map[AwsAccount, Seq[IAMAlertTargetGroup]]): List[IamNotification] = {
-    flaggedCredsToNotify.toList.flatMap { case (awsAccount, targetGroups) =>
-      if (targetGroups.isEmpty) {
+  def makeNotifications(flaggedCredsToNotify: Map[AwsAccount, Seq[VulnerableUser]]): List[IamNotification] = {
+    flaggedCredsToNotify.toList.flatMap { case (awsAccount, users) =>
+      if (users.isEmpty) {
         logger.info(s"found no vulnerable IAM users for ${awsAccount.name}. No notification required.")
         None
       } else {
-        targetGroups.map(tg => createWarningAndFinalNotification(tg, awsAccount, createIamAuditUsers(tg.users, awsAccount)))
+        // TODO: can we just apply getNotificationTargetGroups for all accounts?
+        val targetGroupsFromTags: Seq[IAMAlertTargetGroup] =
+          if(awsAccount.name == "Ophan") getNotificationTargetGroups(users)
+          else Seq(IAMAlertTargetGroup(List.empty, users))
+
+        targetGroupsFromTags.map(tg => {
+          // Always include the account as a notification target
+          val targetGroupWithAccounts = tg.copy(targets = tg.targets :+ Account(awsAccount.accountNumber))
+          val iamAuditUsers = createIamAuditUsers(targetGroupWithAccounts.users, awsAccount)
+          createWarningAndFinalNotification(targetGroupWithAccounts, awsAccount, iamAuditUsers)
+        })
       }
     }
   }
