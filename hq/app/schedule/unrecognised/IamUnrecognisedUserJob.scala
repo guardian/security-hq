@@ -45,8 +45,8 @@ class IamUnrecognisedUserJob(cacheService: CacheService, snsClient: AmazonSNSAsy
     val janusUsers: Seq[String] = getJanusUsernames(dummyJanusData)
     val allCredsReports = cacheService.getAllCredentials
 
-    allCredsReports.map { case (account, eitherCredsReportOrFailure) =>
-      eitherCredsReportOrFailure.map { credsReport =>
+    allCredsReports.foreach { case (account, eitherCredsReportOrFailure) =>
+      eitherCredsReportOrFailure.foreach { credsReport =>
         val humanUsers = credsReport.humanUsers
         val unrecognisedIamUsers: Seq[VulnerableUser] = filterUnrecognisedIamUsers(humanUsers, janusUsers)
 
