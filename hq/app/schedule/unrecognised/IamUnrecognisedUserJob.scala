@@ -48,7 +48,7 @@ class IamUnrecognisedUserJob(cacheService: CacheService, snsClient: AmazonSNSAsy
     allCredsReports.map { case (account, eitherCredsReportOrFailure) =>
       eitherCredsReportOrFailure.map { credsReport =>
         val humanUsers = credsReport.humanUsers
-        val unrecognisedIamUsers: Seq[VulnerableUser] = filterUnrecognisedIamUsers(humanUsers, "name", janusUsers)
+        val unrecognisedIamUsers: Seq[VulnerableUser] = filterUnrecognisedIamUsers(humanUsers, janusUsers)
 
         if(unrecognisedIamUsers.nonEmpty) {
           //TODO these should return a value that we can inspect to only send notification when successful
