@@ -4,13 +4,13 @@ import com.gu.janus.model.{ACL, AwsAccount, JanusData, SupportACL}
 import model._
 import org.joda.time.{DateTime, Seconds}
 import org.scalatest.{FreeSpec, Matchers}
-import schedule.unrecognised.IamUnrecognisedUsers.{filterUnrecognisedIamUsers, getJanusUsernames}
+import schedule.unrecognised.IamUnrecognisedUsers.{USERNAME_TAG_KEY, filterUnrecognisedIamUsers, getJanusUsernames}
 
 class IamUnrecognisedUserTest extends FreeSpec with Matchers {
   val humanUser1 = HumanUser("", true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, List(Tag("name", "ade.bimbola")))
-  val humanUser2 = humanUser1.copy(tags = List(Tag("name", "john.akindele")))
-  val humanUser3 = humanUser1.copy(tags = List(Tag("name", "khadija.omodara")))
-  val humanUser4 = humanUser1.copy(tags = List(Tag("name", "nneka.obi")))
+  val humanUser2 = humanUser1.copy(tags = List(Tag(USERNAME_TAG_KEY, "john.akindele")))
+  val humanUser3 = humanUser1.copy(tags = List(Tag(USERNAME_TAG_KEY, "khadija.omodara")))
+  val humanUser4 = humanUser1.copy(tags = List(Tag(USERNAME_TAG_KEY, "nneka.obi")))
 
   val credsReportDisplay = CredentialReportDisplay(
     DateTime.now,
