@@ -4,10 +4,9 @@ import aws.AwsClients
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.{AwsAccount => TargetAccount}
-import com.gu.janus.model.{ACL, AwsAccount, JanusData, SupportACL}
+import com.gu.janus.model.JanusData
 import config.Config.getAnghammaradSNSTopicArn
 import model.{CronSchedule, VulnerableUser, AwsAccount => Account}
-import org.joda.time.Seconds
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.FormerStaff.disabledUsersMessage
 import schedule.IamMessages.disabledUsersSubject
@@ -34,13 +33,7 @@ class IamUnrecognisedUserJob(cacheService: CacheService, snsClient: AmazonSNSAsy
       logger.info(s"Running scheduled job: $description")
     }
 
-    val dummyJanusData = JanusData(
-      Set(AwsAccount("Deploy Tools", "deployTools")),
-      ACL(Map("firstName.secondName" -> Set.empty)),
-      ACL(Map.empty),
-      SupportACL(Map.empty, Set.empty, Seconds.ZERO),
-      None
-    )
+    val dummyJanusData: JanusData = ???
 
     val janusUsers: Seq[String] = getJanusUsernames(dummyJanusData)
     val allCredsReports = cacheService.getAllCredentials
