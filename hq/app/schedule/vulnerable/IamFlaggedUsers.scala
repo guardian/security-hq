@@ -30,30 +30,17 @@ object IamFlaggedUsers extends Logging {
     }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
   }
 
-  private def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
-    outdatedKeysInfo(findOldAccessKeys(report))
-      .union(missingMfaInfo(findMissingMfa(report)))
-      .distinct
-  }
+  private[vulnerable] def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] =
+    (findOldAccessKeys(report) union findMissingMfa(report)).distinct
 
-  def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
+  private[vulnerable] def findOldAccessKeys(credsReport: CredentialReportDisplay): Seq[VulnerableUser] = {
     val filteredMachines = credsReport.machineUsers.filter(user => VulnerableAccessKeys.hasOutdatedMachineKey(List(user.key1, user.key2)))
     val filteredHumans = credsReport.humanUsers.filter(user => VulnerableAccessKeys.hasOutdatedHumanKey(List(user.key1, user.key2)))
-    credsReport.copy(machineUsers = filteredMachines, humanUsers = filteredHumans)
+    (filteredMachines ++ filteredHumans).map(VulnerableUser.fromIamUser)
   }
 
-  def findMissingMfa(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
-    //TODO: change this filter, apply transform functions (below) here
-    val removeMachineUsers = credsReport.machineUsers.filterNot(_.username == "")
+  private[vulnerable] def findMissingMfa(credsReport: CredentialReportDisplay): Seq[VulnerableUser] = {
     val filteredHumans = credsReport.humanUsers.filterNot(_.hasMFA)
-    credsReport.copy(machineUsers = removeMachineUsers, humanUsers = filteredHumans)
-  }
-
-  private def outdatedKeysInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
-    (users.machineUsers ++ users.humanUsers).map(VulnerableUser.fromIamUser)
-  }
-
-  private def missingMfaInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
-    users.humanUsers.map(VulnerableUser.fromIamUser)
+    filteredHumans.map(VulnerableUser.fromIamUser)
   }
 }
