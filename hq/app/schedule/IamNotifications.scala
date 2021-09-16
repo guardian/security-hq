@@ -66,6 +66,6 @@ object IamNotifications extends Logging {
     }
     val subject = if (warning) VulnerableCredentials.warningSubject(awsAccount) else VulnerableCredentials.finalSubject(awsAccount)
     val message = if (warning) VulnerableCredentials.createWarningMessage(awsAccount, usersWithDeadlineAddedIfMissing) else VulnerableCredentials.createFinalMessage(awsAccount, usersWithDeadlineAddedIfMissing)
-    notification(subject, message, targets :+ Account(awsAccount.accountNumber))
+    notification(subject, message, targets)
   }
 }
