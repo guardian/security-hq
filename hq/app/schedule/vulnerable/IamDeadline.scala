@@ -57,8 +57,8 @@ object IamDeadline {
   def getNearestDeadline(alerts: List[IamAuditAlert], today: DateTime = DateTime.now): DateTime = {
     val (nearestDeadline, _) = alerts.foldRight[(DateTime, Int)]((DateTime.now, iamAlertCadence)) {
       case (alert, (acc, startingNumberOfDays)) =>
-        val daysBetweenTodayAndDeadline: Int = Days.daysBetween(today, alert.disableDeadline).getDays
-        if (daysBetweenTodayAndDeadline < startingNumberOfDays) (alert.disableDeadline, daysBetweenTodayAndDeadline)
+        val daysBetweenTodayAndDeadline: Int = Days.daysBetween(today.withTimeAtStartOfDay, alert.disableDeadline).getDays
+        if (daysBetweenTodayAndDeadline < startingNumberOfDays && daysBetweenTodayAndDeadline >= 0) (alert.disableDeadline, daysBetweenTodayAndDeadline)
         else (acc, startingNumberOfDays)
     }
     nearestDeadline
