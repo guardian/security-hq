@@ -27,7 +27,7 @@ object IamDisableAccessKeys extends Logging {
     // and converts that vulnerableUser into a user that has it's access key id attached to it
     val vulnerableUserWithAccessKeyId: Attempt[List[VulnerableAccessKey]] = listAccountAccessKeys(account, vulnerableUsers, iamClients)
     vulnerableUserWithAccessKeyId.fold ({ failure =>
-      logger.warn(s"about to disable access keys of vulnerable users, but unable to: ${failure.failures.map(_.friendlyMessage)}")
+      logger.warn(s"about to disable access keys, but unable to: ${failure.failures.map(_.friendlyMessage)}")
     },  users =>
       users.filter(isOutdated).map { user =>
         val key = user.accessKeyWithId

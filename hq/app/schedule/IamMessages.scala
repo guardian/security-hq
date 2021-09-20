@@ -7,31 +7,14 @@ import org.joda.time.format.DateTimeFormat
 object IamMessages {
 
   object FormerStaff {
-    private def message(account: AwsAccount): String = {
-      s"Please check the following permanent human credentials in AWS Account ${account.name}, " +
-      s"which have been flagged as not being recognised as current staff members. If you believe these user(s) " +
-      s"have left the organisation then no action is necessary and they will be automatically removed. If they belong to" +
-      s"current employees then please ensure the IAM user is tagged [appropriately] and they appear in Janus [in the right place] "
-      //TODO: finish the message once we decide on method for tagging and a source for this data
-    }
-
-    private val boilerPlateText = List(
-      "----------------------------------------------------------------------------------",
-      "",
-      "Here is some helpful documentation on:",
-      "",
-      "IAM user best practice including setting up human IAM users: https://security-hq.gutools.co.uk/documentation/[best practice],", //TODO: add location of docs
-      "",
-      "If you have any questions, please contact the Developer Experience team: devx@theguardian.com."
-    ).mkString("\n")
-
-    def warningSubject(account: AwsAccount): String = s"Action ${account.name}: IAM credentials belonging to unrecognised user"
-
-    def createWarningMessage(account: AwsAccount, users: Seq[VulnerableUser]): String = {
+    def disabledUsersMessage(users: Seq[VulnerableUser]): String = {
       s"""
-         |${message(account)}
-         |${users.map(printFormat).mkString("\n")}
-         |$boilerPlateText
+         |The following Permanent IAM user(s) have been disabled today: ${users.map(_.username).mkString(",")}.
+         |Please check Security HQ to review the IAM users in your account (https://security-hq.gutools.co.uk/iam).
+         |If you still require the disabled user, ensure they are tagged correctly with their Google username
+         |and have an entry in Janus.
+         |If the disabled user has left the organisation, they should be deleted.
+         |If you have any questions, contact devx@theguardian.com.
          |""".stripMargin
     }
   }
@@ -62,7 +45,6 @@ object IamMessages {
 
     def warningSubject(account: AwsAccount): String = s"Action ${account.name}: Vulnerable credentials"
     def finalSubject(account: AwsAccount): String = s"Action ${account.name}: Deactivating credentials tomorrow"
-    def disabledUsersSubject(account: AwsAccount): String = s"AWS IAM User(s) DISABLED in ${account.name} Account"
 
     def disabledUsersMessage(users: Seq[VulnerableUser]): String = {
       s"""
@@ -92,6 +74,8 @@ object IamMessages {
   }
 
   val sourceSystem = "Security HQ Credentials Notifier"
+
+  def disabledUsersSubject(account: AwsAccount): String = s"AWS IAM User(s) DISABLED in ${account.name} Account"
 
   private def printFormat(user: VulnerableUser): String = {
     s"""

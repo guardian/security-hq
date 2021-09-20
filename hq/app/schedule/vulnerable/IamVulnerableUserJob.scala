@@ -7,7 +7,8 @@ import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
 import config.Config.getAnghammaradSNSTopicArn
 import model._
 import play.api.{Configuration, Logging}
-import schedule.IamMessages.VulnerableCredentials.{disabledUsersMessage, disabledUsersSubject}
+import schedule.IamMessages.VulnerableCredentials.disabledUsersMessage
+import schedule.IamMessages.disabledUsersSubject
 import schedule.IamNotifications.makeNotifications
 import schedule.IamUsersToDisable.usersToDisable
 import schedule.Notifier.{notification, send}
