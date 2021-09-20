@@ -12,7 +12,8 @@ import org.scalatest.{DoNotDiscover, FreeSpec, Matchers}
 import org.scalatestplus.play.components.OneAppPerSuiteWithComponents
 import play.api.routing.Router
 import play.api.{BuiltInComponents, BuiltInComponentsFromContext, NoHttpFiltersComponents}
-import schedule.IamMessages.VulnerableCredentials.{disabledUsersMessage, disabledUsersSubject}
+import schedule.IamMessages.VulnerableCredentials.disabledUsersMessage
+import schedule.IamMessages.disabledUsersSubject
 import schedule.Notifier.notification
 import utils.attempt.{Attempt, AttemptValues}
 
