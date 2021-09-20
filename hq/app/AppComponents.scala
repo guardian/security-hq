@@ -25,7 +25,6 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.unrecognised.IamUnrecognisedUserJob
 import schedule.vulnerable.IamVulnerableUserJob
 import schedule.{AwsDynamoAlertService, JobScheduler}
 import services.{CacheService, MetricService}
@@ -149,10 +148,11 @@ class AppComponents(context: Context)
   //initialise job to alert on and remove vulnerable IAM users
   val vulnerableUserJob = new IamVulnerableUserJob(cacheService, securitySnsClient, dynamo, configuration, iamClients)(executionContext)
   //initialise job to check for and remove unrecognised human IAM users
-  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService) //TODO set enable to true when ready to start job
+  //TODO enable this and add to scheduler when ready to start job
+  //val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, iamClients, configuration)
 
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
-  val jobScheduler = new JobScheduler(quartzScheduler, List(vulnerableUserJob, unrecognisedUserJob))
+  val jobScheduler = new JobScheduler(quartzScheduler, List(vulnerableUserJob))
   jobScheduler.initialise()
 
   override def router: Router = new Routes(
