@@ -1,6 +1,5 @@
 package schedule
 
-import com.gu.anghammarad.models.Stack
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
@@ -11,17 +10,14 @@ class IamUsersToDisableTest extends FreeSpec with Matchers {
   private val dynamo: DynamoAlertService = new MockDynamoAlertService()
 
   private val account = AwsAccount("accountId","accountName","accountRole","accountNumber")
-  def flaggedUserWithUsername(username: String) = Map(
-     account -> Seq(
-      IAMAlertTargetGroup(
-        List(Stack("test-stack")),
-        Seq(
-          VulnerableUser(
-            username = username,
-            humanUser = true,
-            tags = List.empty,
-            disableDeadline = None
-  )))))
+  def flaggedUserWithUsername(username: String) =
+    Map(account -> Seq(
+      VulnerableUser(
+        username = username,
+        humanUser = true,
+        tags = List.empty,
+        disableDeadline = None))
+    )
 
   "usersToDisable" - {
     "returns the user when the deadline is today" in {

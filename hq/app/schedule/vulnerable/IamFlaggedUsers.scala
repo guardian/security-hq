@@ -1,11 +1,8 @@
 package schedule.vulnerable
 
 import logic.VulnerableAccessKeys
-import model.{AwsAccount, CredentialReportDisplay, IAMAlertTargetGroup, VulnerableUser}
+import model.{AwsAccount, CredentialReportDisplay, VulnerableUser}
 import play.api.Logging
-import schedule.DynamoAlertService
-import schedule.IamTargetGroups.getNotificationTargetGroups
-import schedule.vulnerable.IamDeadline.filterUsersToAlert
 import utils.attempt.FailedAttempt
 
 /**
@@ -14,55 +11,32 @@ import utils.attempt.FailedAttempt
   */
 object IamFlaggedUsers extends Logging {
 
-  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
-    allCreds.map { case (awsAccount, maybeReport) => maybeReport match {
-      case Left(error) =>
+  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[VulnerableUser]] = {
+    // Error handling for when no credentials report. N.B. could be placed elsewhere
+    allCreds.foreach { case (awsAccount, eitherReportOrFailure) =>
+      eitherReportOrFailure.left.foreach { error =>
         error.failures.foreach { failure =>
           val errorMessage = s"failed to collect credentials report display for ${awsAccount.name}: ${failure.friendlyMessage}"
           failure.throwable.fold(logger.error(errorMessage))(throwable => logger.error(errorMessage, throwable))
         }
-        (awsAccount, Left(error))
-      case Right(report) =>
-        // alert the Ophan AWS account using tags to ensure that the Ophan and Data Tech teams who share the same AWS account receive the right emails
-        if (awsAccount.name == "Ophan") (awsAccount, Right(getNotificationTargetGroups(findVulnerableUsers(report))))
-        else {
-          (awsAccount, Right(Seq(IAMAlertTargetGroup(List.empty, findVulnerableUsers(report)))))
-        }
-    }
-    }.collect { case (awsAccount, Right(report)) => (awsAccount, report) }
-  }
-
-  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: DynamoAlertService): Map[AwsAccount, Seq[IAMAlertTargetGroup]] = {
-    users.map { case (account, targetGroups) =>
-      account -> targetGroups.map { tg =>
-        tg.copy(users = filterUsersToAlert(targetGroups.flatMap(_.users), account, dynamo))
       }
     }
+
+    // Filter out any accounts we failed to grab the credentials report for
+    allCreds.collect { case (awsAccount, Right(report)) => (awsAccount, findVulnerableUsers(report)) }
   }
 
-  private def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] = {
-    outdatedKeysInfo(findOldAccessKeys(report))
-      .union(missingMfaInfo(findMissingMfa(report)))
-      .distinct
-  }
+  private[vulnerable] def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] =
+    (findOldAccessKeys(report) union findMissingMfa(report)).distinct
 
-  def findOldAccessKeys(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
+  private[vulnerable] def findOldAccessKeys(credsReport: CredentialReportDisplay): Seq[VulnerableUser] = {
     val filteredMachines = credsReport.machineUsers.filter(user => VulnerableAccessKeys.hasOutdatedMachineKey(List(user.key1, user.key2)))
     val filteredHumans = credsReport.humanUsers.filter(user => VulnerableAccessKeys.hasOutdatedHumanKey(List(user.key1, user.key2)))
-    credsReport.copy(machineUsers = filteredMachines, humanUsers = filteredHumans)
+    (filteredMachines ++ filteredHumans).map(VulnerableUser.fromIamUser)
   }
 
-  def findMissingMfa(credsReport: CredentialReportDisplay): CredentialReportDisplay = {
-    val removeMachineUsers = credsReport.machineUsers.filterNot(_.username == "")
+  private[vulnerable] def findMissingMfa(credsReport: CredentialReportDisplay): Seq[VulnerableUser] = {
     val filteredHumans = credsReport.humanUsers.filterNot(_.hasMFA)
-    credsReport.copy(machineUsers = removeMachineUsers, humanUsers = filteredHumans)
-  }
-
-  private def outdatedKeysInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
-    (users.machineUsers ++ users.humanUsers).map(VulnerableUser.fromIamUser)
-  }
-
-  private def missingMfaInfo(users: CredentialReportDisplay): Seq[VulnerableUser] = {
-    users.humanUsers.map(VulnerableUser.fromIamUser)
+    filteredHumans.map(VulnerableUser.fromIamUser)
   }
 }

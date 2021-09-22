@@ -9,11 +9,11 @@ import model._
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.VulnerableCredentials.disabledUsersMessage
 import schedule.IamMessages.disabledUsersSubject
-import schedule.IamNotifications.makeNotification
+import schedule.IamNotifications.makeNotifications
 import schedule.IamUsersToDisable.usersToDisable
 import schedule.Notifier.{notification, send}
+import schedule.vulnerable.IamDeadline.getVulnerableUsersToAlert
 import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
-import schedule.vulnerable.IamFlaggedUsers.getVulnerableUsersToAlert
 import schedule.vulnerable.IamRemovePassword.removePasswords
 import schedule.{CronSchedules, DynamoAlertService, JobRunner}
 import services.CacheService
@@ -42,6 +42,8 @@ class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync
       .filterKeys(account => betaTestAccounts.contains(account.name)) //TODO remove after beta-testing
     logger.info(s"****Names of flagged creds aws accounts: ${flaggedCredentials.map(_._1.name)}")
 
+    val usersToAlert = getVulnerableUsersToAlert(flaggedCredentials, dynamo)
+
     def sendNotificationAndRecord(notification: Notification, users: Seq[IamAuditUser]): Unit = {
       for {
         _ <- send(notification, topicArn, snsClient, testMode)
@@ -50,7 +52,7 @@ class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync
     }
 
     // send warning and final notifications
-    makeNotification(getVulnerableUsersToAlert(flaggedCredentials, dynamo)).foreach { notification =>
+    makeNotifications(usersToAlert).foreach { notification =>
       notification.warningN.foreach(sendNotificationAndRecord(_, notification.alertedUsers))
       notification.finalN.foreach(sendNotificationAndRecord(_, notification.alertedUsers))
     }

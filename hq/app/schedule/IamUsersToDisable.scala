@@ -1,13 +1,13 @@
 package schedule
 
-import model.{AwsAccount, IAMAlertTargetGroup, VulnerableUser}
+import model.{AwsAccount, VulnerableUser}
 import org.joda.time.DateTime
 import schedule.vulnerable.IamDeadline.getNearestDeadline
 
 object IamUsersToDisable {
-  def usersToDisable(flaggedUsers: Map[AwsAccount, Seq[IAMAlertTargetGroup]], dynamo: DynamoAlertService, today: DateTime = DateTime.now): Map[AwsAccount, Seq[VulnerableUser]] = {
-    flaggedUsers.map { case (awsAccount, targetGroups) =>
-      awsAccount -> getUsersToDisable(targetGroups.flatMap(_.users), awsAccount, dynamo, today)
+  def usersToDisable(flaggedUsers: Map[AwsAccount, Seq[VulnerableUser]], dynamo: DynamoAlertService, today: DateTime = DateTime.now): Map[AwsAccount, Seq[VulnerableUser]] = {
+    flaggedUsers.map { case (awsAccount, users) =>
+      awsAccount -> getUsersToDisable(users, awsAccount, dynamo, today)
     }
   }
 

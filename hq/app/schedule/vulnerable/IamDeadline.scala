@@ -26,6 +26,12 @@ object IamDeadline {
   }
   def isFinalAlert(deadline: DateTime, today: DateTime = DateTime.now): Boolean = deadline.withTimeAtStartOfDay == today.withTimeAtStartOfDay.plusDays(1)
 
+  def getVulnerableUsersToAlert(users: Map[AwsAccount, Seq[VulnerableUser]], dynamo: DynamoAlertService): Map[AwsAccount, Seq[VulnerableUser]] = {
+    users.map { case (account, users) =>
+      account -> filterUsersToAlert(users, account, dynamo)
+    }
+  }
+
   // if the user is not present in dynamo, that means they've never been alerted before, so mark them as ready to be alerted
   def filterUsersToAlert(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: DynamoAlertService): Seq[VulnerableUser] = {
     val usersWithDeadline = enrichUsersWithDeadline(users, awsAccount, dynamo)
@@ -51,11 +57,10 @@ object IamDeadline {
   def getNearestDeadline(alerts: List[IamAuditAlert], today: DateTime = DateTime.now): DateTime = {
     val (nearestDeadline, _) = alerts.foldRight[(DateTime, Int)]((DateTime.now, iamAlertCadence)) {
       case (alert, (acc, startingNumberOfDays)) =>
-        val daysBetweenTodayAndDeadline: Int = Days.daysBetween(today, alert.disableDeadline).getDays
-        if (daysBetweenTodayAndDeadline < startingNumberOfDays) (alert.disableDeadline, daysBetweenTodayAndDeadline)
+        val daysBetweenTodayAndDeadline: Int = Days.daysBetween(today.withTimeAtStartOfDay, alert.disableDeadline).getDays
+        if (daysBetweenTodayAndDeadline < startingNumberOfDays && daysBetweenTodayAndDeadline >= 0) (alert.disableDeadline, daysBetweenTodayAndDeadline)
         else (acc, startingNumberOfDays)
     }
     nearestDeadline
   }
-
 }
