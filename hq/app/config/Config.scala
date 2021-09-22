@@ -114,6 +114,8 @@ object Config {
     config.getOptional[String]("snykSSOUrl")
   }
 
-  def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("anghammaradSnsArn")
-  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("iamDynamoTableName")
+  def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("alert.anghammaradSnsArn")
+  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
+  def getIamUnrecognisedUserS3Bucket(config: Configuration): Option[String] = config.getOptional[String]("alert.iamUnrecognisedUserS3Bucket")
+  def getIamUnrecognisedUserS3Key(config: Configuration): Option[String] = config.getOptional[String]("alert.iamUnrecognisedUserS3Key")
 }

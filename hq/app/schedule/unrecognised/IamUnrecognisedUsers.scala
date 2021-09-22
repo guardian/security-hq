@@ -2,8 +2,10 @@ package schedule.unrecognised
 
 import com.gu.janus.model.JanusData
 import model.{HumanUser, VulnerableUser}
+import play.api.Logging
+import utils.attempt.FailedAttempt
 
-object IamUnrecognisedUsers {
+object IamUnrecognisedUsers extends Logging {
   val USERNAME_TAG_KEY = "GoogleUsername"
 
   def getJanusUsernames(janusData: JanusData): Seq[String] =
@@ -17,4 +19,14 @@ object IamUnrecognisedUsers {
         case None => true
       }
     }.map(VulnerableUser.fromIamUser)
+
+  def getCredsReportDisplayForAccount[A, B](allCreds: Map[A, Either[FailedAttempt, B]]): List[(A, B)] = {
+    allCreds.toList.foldLeft[List[(A, B)]](Nil) {
+      case (acc, (_, Left(failure))) =>
+        logger.error(s"unable to generate credential report display: ${failure.logMessage}")
+        acc
+      case (acc, (account, Right(credReportDisplay))) =>
+        (account, credReportDisplay) :: acc
+    }
+  }
 }
