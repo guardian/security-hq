@@ -38,10 +38,24 @@ class IamDeadlineTest extends FreeSpec with Matchers {
   }
 
   "getNearestDeadline" - {
-    "returns nearest deadline" in {
+    "for two alerts in the future returns nearest deadline" in {
       val nearestDeadline = DateTime.now.plusDays(1).withTimeAtStartOfDay
       val alert1 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), nearestDeadline)
       val alert2 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), DateTime.now.plusDays(2).withTimeAtStartOfDay)
+      getNearestDeadline(List(alert1, alert2)) shouldEqual nearestDeadline
+    }
+
+    "for two alerts, one in the past, returns nearest (future) deadline" in {
+      val nearestDeadline = DateTime.now.plusDays(10).withTimeAtStartOfDay
+      val alert1 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), nearestDeadline)
+      val alert2 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), DateTime.now.minusDays(1).withTimeAtStartOfDay)
+      getNearestDeadline(List(alert1, alert2)) shouldEqual nearestDeadline
+    }
+
+    "for two alerts, one today, returns nearest deadline" in {
+      val nearestDeadline = DateTime.now.withTimeAtStartOfDay
+      val alert1 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), nearestDeadline)
+      val alert2 = IamAuditAlert(VulnerableCredential, DateTime.now.minusWeeks(3), DateTime.now.plusDays(1).withTimeAtStartOfDay)
       getNearestDeadline(List(alert1, alert2)) shouldEqual nearestDeadline
     }
   }
