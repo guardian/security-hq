@@ -5,7 +5,6 @@ import model._
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
-import com.gu.configraun.models.Configuration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
@@ -59,39 +58,22 @@ object Snyk {
       FailedAttempt(failure)
   }
 
-  def allSnykRuns(configraun: Configuration, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
+  def allSnykRuns(snykConfig: SnykConfig, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
     for {
-      token <- getSnykToken(configraun)
-      requiredOrganisation <- getSnykOrganisation(configraun)
+      organisationResponse <- Snyk.getSnykOrganisations(snykConfig.snykToken, wsClient)
+      organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, snykConfig.snykGroupId)
 
-      organisationResponse <- Snyk.getSnykOrganisations(token, wsClient)
-      organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, requiredOrganisation)
-
-      projectResponses <- Snyk.getProjects(token, organisations, wsClient)
+      projectResponses <- Snyk.getProjects(snykConfig.snykToken, organisations, wsClient)
       organisationAndProjects <- SnykDisplay.parseProjectResponses(projectResponses)
       labelledProjects = SnykDisplay.labelOrganisations(organisationAndProjects)
 
-      vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(labelledProjects, token, wsClient)
+      vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(labelledProjects, snykConfig.snykToken, wsClient)
       vulnerabilitiesResponseBodies = vulnerabilitiesResponse.map(a => a.body)
 
       parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)
 
       results = SnykDisplay.labelProjects(labelledProjects, parsedVulnerabilitiesResponse)
     } yield results
-  }
-
-  def getSnykToken(configraun: Configuration): Attempt[SnykToken] = configraun.getAsString("/snyk/token") match {
-    case Left(error) =>
-      val failure = Failure(error.message, "Could not read Snyk token from aws parameter store", 500, None, Some(error.e))
-      Attempt.Left(failure)
-    case Right(token) => Attempt.Right(SnykToken(token))
-  }
-
-  def getSnykOrganisation(configraun: Configuration): Attempt[SnykGroupId] = configraun.getAsString("/snyk/organisation") match {
-    case Left(error) =>
-      val failure = Failure(error.message, "Could not read Snyk organisation from aws parameter store", 500, None, Some(error.e))
-      Attempt.Left(failure)
-    case Right(groupId) => Attempt.Right(SnykGroupId(groupId))
   }
 
 }

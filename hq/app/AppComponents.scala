@@ -51,27 +51,6 @@ class AppComponents(context: Context)
   private val stack = configuration.get[String]("stack")
   implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(Config.region.getName, stack)
 
-  val configraun: Configuration = {
-
-    configuration.getOptional[String]("stage") match {
-      case Some("DEV") =>
-        val app = configuration.get[String]("app")
-        val stage = "DEV"
-        Configraun.loadConfig(Identifier(Stack(stack), App(app), Stage.fromString(stage).get)) match {
-          case Left(a) =>
-            logger.error(s"Unable to load Configraun configuration from AWS (${a.message})")
-            sys.exit(1)
-          case Right(a) => a
-        }
-      case _ => Configraun.loadConfig match {
-        case Left(a) =>
-          logger.error(s"Unable to load Configraun configuration from AWS tags (${a.message})")
-          sys.exit(1)
-        case Right(a: com.gu.configraun.models.Configuration) => a
-      }
-    }
-  }
-
   // the aim of this is to get a list of available regions that we are able to access
   // note that:
   //  - Regions.values() returns Chinese and US government regions that are not accessible with the same AWS account
@@ -97,7 +76,7 @@ class AppComponents(context: Context)
     logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
-
+  private val snykConfig = Config.getSnykConfig(configuration)
   private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
@@ -123,7 +102,7 @@ class AppComponents(context: Context)
     configuration,
     applicationLifecycle,
     environment,
-    configraun,
+    snykConfig,
     wsClient,
     ec2Clients,
     cfnClients,
