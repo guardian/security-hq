@@ -13,7 +13,6 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.support.AWSSupportAsync
 import com.google.cloud.securitycenter.v1.{OrganizationName, SecurityCenterClient}
-import com.gu.Box
 import config.Config
 import logic.GcpDisplay
 import model._
@@ -25,9 +24,19 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import logging.Cloudwatch
 import org.joda.time.DateTime
 
+import java.util.concurrent.atomic.AtomicReference
+
+object Box {
+  def apply[T](initialValue: T): Box[T] = new Box[T](initialValue)
+}
+
+class Box[T](t: T) {
+  private val ref: AtomicReference[T] = new AtomicReference[T](t)
+  def get(): T = ref.get()
+  def send(t: T): Unit = ref.set(t)
+}
 
 class CacheService(
     config: Configuration,
