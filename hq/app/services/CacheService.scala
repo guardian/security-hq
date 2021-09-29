@@ -25,18 +25,7 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
-
-import java.util.concurrent.atomic.AtomicReference
-
-object Box {
-  def apply[T](initialValue: T): Box[T] = new Box[T](initialValue)
-}
-
-class Box[T](t: T) {
-  private val ref: AtomicReference[T] = new AtomicReference[T](t)
-  def get(): T = ref.get()
-  def send(t: T): Unit = ref.set(t)
-}
+import utils.Box
 
 class CacheService(
     config: Configuration,
