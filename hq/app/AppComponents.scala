@@ -6,12 +6,8 @@ import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsPro
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
-import com.gu.configraun.Configraun
-import com.gu.configraun.aws.AWSSimpleSystemsManagementFactory
-import com.gu.configraun.models._
 import config.Config
 import controllers._
 import filters.HstsFilter
@@ -49,7 +45,6 @@ class AppComponents(context: Context)
   )
 
   private val stack = configuration.get[String]("stack")
-  implicit val awsClient: AWSSimpleSystemsManagement = AWSSimpleSystemsManagementFactory(Config.region.getName, stack)
 
   // the aim of this is to get a list of available regions that we are able to access
   // note that:
