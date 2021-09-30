@@ -110,8 +110,15 @@ object Config {
     } yield AwsAccount(id, name, roleArn, number)
   }
 
+  def getSnykConfig(config: Configuration): SnykConfig = {
+    SnykConfig(
+      SnykToken(requiredString(config, "snyk.token")),
+      SnykGroupId(requiredString(config, "snyk.organisation"))
+    )
+  }
+
   def getSnykSSOUrl(config: Configuration): Option[String] = {
-    config.getOptional[String]("snykSSOUrl")
+    config.getOptional[String]("snyk.ssoUrl")
   }
 
   def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("anghammaradSnsArn")

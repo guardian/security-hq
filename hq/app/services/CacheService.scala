@@ -31,7 +31,7 @@ class CacheService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    configraun: com.gu.configraun.models.Configuration,
+    snykConfig: SnykConfig,
     wsClient: WSClient,
     ec2Clients: AwsClients[AmazonEC2Async],
     cfnClients: AwsClients[AmazonCloudFormationAsync],
@@ -136,7 +136,7 @@ class CacheService(
   def refreshSnykBox(): Unit = {
     logger.info("Started refresh of the Snyk data")
     for {
-      allSnykRuns <- Snyk.allSnykRuns(configraun, wsClient)
+      allSnykRuns <- Snyk.allSnykRuns(snykConfig, wsClient)
     } yield {
       logger.info("Sending the refreshed data to the Snyk Box")
       snykBox.send(Attempt.Right(allSnykRuns))

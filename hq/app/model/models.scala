@@ -258,9 +258,9 @@ case class MachineUser(
   val isHuman = false
 }
 
-case class SnykToken(value: String) extends AnyVal
+case class SnykConfig(snykToken: SnykToken, snykGroupId: SnykGroupId)
 
-case class SnykOrganisationName(value: String) extends AnyVal
+case class SnykToken(value: String) extends AnyVal
 
 case class SnykGroupId(value: String) extends AnyVal
 
