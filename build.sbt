@@ -43,7 +43,6 @@ lazy val hq = (project in file("hq"))
       "com.vladsch.flexmark" % "flexmark" % "0.62.2",
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",
-      "com.gu" %% "box" % "0.1.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
       "org.quartz-scheduler" % "quartz" % "2.3.2",
