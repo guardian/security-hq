@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Centralised security reporting for AWS
+
+Mappings:
+  Constants:
+    Stack:
+      Value: security
+    App:
+      Value: security-hq
+
+Resources:
+  SecurityHqIamDynamoTableDev:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub security-hq-iam-DEV
+      AttributeDefinitions:
+        - { AttributeName: id, AttributeType: S }
+      KeySchema:
+        - { AttributeName: id, KeyType: HASH }
+      ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 }
+      Tags:
+        - Key: Stage
+          Value: DEV
+        - Key: Stack
+          Value:
+            Fn::FindInMap: [ Constants, Stack, Value ]
+        - Key: App
+          Value:
+            Fn::FindInMap: [ Constants, App, Value ]
