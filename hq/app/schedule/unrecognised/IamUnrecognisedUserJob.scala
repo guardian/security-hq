@@ -3,7 +3,6 @@ package schedule.unrecognised
 import aws.AwsClients
 import aws.s3.S3.getS3Object
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileResult, UpdateAccessKeyResult}
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.{AwsAccount => TargetAccount}

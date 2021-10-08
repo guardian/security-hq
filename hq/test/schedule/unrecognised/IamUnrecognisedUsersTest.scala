@@ -3,13 +3,11 @@ package schedule.unrecognised
 import com.gu.janus
 import com.gu.janus.model.{ACL, JanusData, SupportACL}
 import model._
-import org.apache.commons.io.IOUtils
 import org.joda.time.{DateTime, Seconds}
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.unrecognised.IamUnrecognisedUsers._
 import utils.attempt.{FailedAttempt, Failure}
 
-import java.io.FileInputStream
 import scala.io.Source
 
 class IamUnrecognisedUsersTest extends FreeSpec with Matchers {
