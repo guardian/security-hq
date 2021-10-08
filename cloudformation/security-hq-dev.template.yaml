@@ -1,13 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Centralised security reporting for AWS
 
-Mappings:
-  Constants:
-    Stack:
-      Value: security
-    App:
-      Value: security-hq
-
 Resources:
   SecurityHqIamDynamoTableDev:
     Type: AWS::DynamoDB::Table
@@ -23,8 +16,6 @@ Resources:
         - Key: Stage
           Value: DEV
         - Key: Stack
-          Value:
-            Fn::FindInMap: [ Constants, Stack, Value ]
+          Value: security
         - Key: App
-          Value:
-            Fn::FindInMap: [ Constants, App, Value ]
+          Value: security-hq
