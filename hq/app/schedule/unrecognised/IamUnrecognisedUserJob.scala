@@ -69,7 +69,9 @@ class IamUnrecognisedUserJob(
     for {
       disableKeyResult <- disableAccessKeys(account, users, iamClients)
       removePasswordResults <- Attempt.traverse(users)(removePasswords(account, _, iamClients))
-    } yield disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.map(_.getSdkResponseMetadata.getRequestId)
+    } yield {
+      disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.map(_.getSdkResponseMetadata.getRequestId)
+    }
   }
 
   private def sendNotification(accountCrd: (Account, Seq[VulnerableUser]), testMode: Boolean): Attempt[String] = {
