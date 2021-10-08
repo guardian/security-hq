@@ -6,7 +6,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Retain
     Properties:
-      TableName: !Sub security-hq-iam-DEV
+      TableName: security-hq-iam-DEV
       AttributeDefinitions:
         - { AttributeName: id, AttributeType: S }
       KeySchema:
