@@ -11,7 +11,7 @@ class IamUsersToDisableTest extends FreeSpec with Matchers {
 
   private val account = AwsAccount("accountId","accountName","accountRole","accountNumber")
   def flaggedUserWithUsername(username: String) =
-    Map(account -> Seq(
+    Map(account -> List(
       VulnerableUser(
         username = username,
         humanUser = true,

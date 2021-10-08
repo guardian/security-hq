@@ -11,7 +11,7 @@ import utils.attempt.FailedAttempt
   */
 object IamFlaggedUsers extends Logging {
 
-  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, Seq[VulnerableUser]] = {
+  def getVulnerableUsers(allCreds: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Map[AwsAccount, List[VulnerableUser]] = {
     // Error handling for when no credentials report. N.B. could be placed elsewhere
     allCreds.foreach { case (awsAccount, eitherReportOrFailure) =>
       eitherReportOrFailure.left.foreach { error =>
@@ -26,8 +26,8 @@ object IamFlaggedUsers extends Logging {
     allCreds.collect { case (awsAccount, Right(report)) => (awsAccount, findVulnerableUsers(report)) }
   }
 
-  private[vulnerable] def findVulnerableUsers(report: CredentialReportDisplay): Seq[VulnerableUser] =
-    (findOldAccessKeys(report) union findMissingMfa(report)).distinct
+  private[vulnerable] def findVulnerableUsers(report: CredentialReportDisplay): List[VulnerableUser] =
+    (findOldAccessKeys(report) union findMissingMfa(report)).distinct.toList
 
   private[vulnerable] def findOldAccessKeys(credsReport: CredentialReportDisplay): Seq[VulnerableUser] = {
     val filteredMachines = credsReport.machineUsers.filter(user => VulnerableAccessKeys.hasOutdatedMachineKey(List(user.key1, user.key2)))
