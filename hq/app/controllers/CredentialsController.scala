@@ -9,14 +9,12 @@ import play.api._
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import schedule.DynamoAlertService
-import schedule.vulnerable.IamVulnerableUserJob
 import services.CacheService
 import utils.attempt.PlayIntegration.attempt
 
 import scala.concurrent.ExecutionContext
 
-class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig, val iamJob: IamVulnerableUserJob, val configuration: Configuration, val dynamo: DynamoAlertService)
+class CredentialsController(val config: Configuration, cacheService: CacheService, val authConfig: GoogleAuthConfig)
                            (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController  with SecurityHQAuthActions {
 
@@ -43,15 +41,5 @@ class CredentialsController(val config: Configuration, cacheService: CacheServic
   def refresh() = authAction {
     cacheService.refreshCredentialsBox()
     Ok("Refreshing IAM credentials reports (may take a minute or so to appear)")
-  }
-
-  def testNotifications() = authAction {
-    iamJob.run(testMode = true)
-    Ok("Triggered notifications job")
-  }
-
-  def getNotifications() = authAction {
-    val result = dynamo.scanAlert()
-    Ok(Json.toJson(result))
   }
 }
