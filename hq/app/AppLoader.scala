@@ -19,12 +19,6 @@ class AppLoader extends ApplicationLoader {
 
     val components = new AppComponents(context)
 
-    components.quartzScheduler.start()
-
-    components.applicationLifecycle.addStopHook { () =>
-      Future.successful(components.quartzScheduler.shutdown())
-    }
-
     components.application
   }
 }
