@@ -20,7 +20,7 @@ object IamRemovePassword extends Logging {
     users: Seq[VulnerableUser],
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext): Unit = {
-    users.map { user =>
+    users.filter(_.humanUser).map { user =>
       iamClients.get(account, SOLE_REGION).map { client =>
         deleteUserLoginProfile(client, user)
       }
