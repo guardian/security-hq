@@ -184,7 +184,7 @@ sealed trait ReportStatus {
   def reasons(): Seq[ReportStatusReason] = Seq.empty
 }
 case class Red(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
-case object Amber extends ReportStatus
+case class Amber(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
 case object Green extends ReportStatus
 case object Blue extends ReportStatus
 
@@ -192,6 +192,8 @@ case object Blue extends ReportStatus
 sealed trait ReportStatusReason
 object MissingMfa extends ReportStatusReason
 object OutdatedKey extends ReportStatusReason
+object ActiveAccessKey extends ReportStatusReason
+object MissingUsernameTag extends ReportStatusReason
 
 case class Tag(key: String, value: String)
 object Tag {
