@@ -86,6 +86,15 @@
     <div class="accounts__container">
         <div class="container">
             <div class="row">
+                <div class="accounts__filter z-depth-1">
+                    <form>
+                        <div class="input-field" >
+                            <i class="material-icons prefix accounts__filter-icon">search</i>
+                            <input type="text" placeholder="Name or number" id="account-number-filter" />
+                            <label for="account-number-filter">Filter accounts</label>
+                        </div>
+                    </form>
+                </div>
                 <div class="accounts__header">
                     <h2 class="white-text">Individual accounts</h2>
                 </div>
@@ -94,6 +103,9 @@
                         <div class="accounts__account z-depth-2">
                             <div class="accounts__account-heading">
                                 <span>@awsAccount.name</span>
+                            </div>
+                            <div class="accounts__account-number">
+                                <span>@awsAccount.accountNumber</span>
                             </div>
                             <div class="accounts__account-actions">
                                 <a href="/security-groups/@awsAccount.id" class="btn-flat accounts__link tooltipped" data-position="top" data-delay="50" data-tooltip="Security Groups">
