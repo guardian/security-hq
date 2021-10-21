@@ -26,6 +26,46 @@ $(document).ready(function() {
     $('.collapsible-body').css('display', 'none');
   });
 
+  // Filter accounts by account number on the homepage
+  $('.accounts__container').each(function(i, el) {
+    const container = $(el);
+    const filterIcon = container.find('.accounts__filter-icon');
+    const filterInput = container.find('#account-number-filter');
+    const accountContainers = container.find('.accounts__account');
+    filterIcon.css('cursor', 'pointer');
+
+    function updateFilter() {
+      const filterTerm = filterInput.val();
+      if (filterTerm === '') {
+        filterIcon.html("search");
+      } else {
+        filterIcon.html("close");
+      }
+      accountContainers.css('display', 'block');
+      if (filterTerm) {
+        const nonMatching = accountContainers.filter(function(i, el) {
+          const accountContainer = $(el);
+          const matchesNumber = accountContainer.find('.accounts__account-number').text().includes(filterTerm);
+          const matchesName = accountContainer.find('.accounts__account-heading').text().toLowerCase().includes(filterTerm);
+          // we want accounts that do not match either category
+          return !matchesNumber && !matchesName;
+        });
+        nonMatching.css('display', 'none');
+      }
+    }
+
+    filterInput.on("input", updateFilter);
+    filterInput.on("blur", updateFilter);
+    filterIcon.click(function() {
+      if (filterInput.val() === '') {
+        filterInput.focus();
+      } else {
+        filterInput.val('');
+      }
+      updateFilter();
+    });
+  });
+
   // Extra interactions for the dropdowns on the Security Groups page
   $('.js-finding-details').hover(
     function() {
