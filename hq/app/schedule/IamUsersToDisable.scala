@@ -5,14 +5,14 @@ import org.joda.time.DateTime
 import schedule.vulnerable.IamDeadline.getNearestDeadline
 
 object IamUsersToDisable {
-  def usersToDisable(flaggedUsers: Map[AwsAccount, Seq[VulnerableUser]], dynamo: DynamoAlertService, today: DateTime = DateTime.now): Map[AwsAccount, Seq[VulnerableUser]] = {
+  def usersToDisable(flaggedUsers: Map[AwsAccount, List[VulnerableUser]], dynamo: DynamoAlertService, today: DateTime = DateTime.now): Map[AwsAccount, List[VulnerableUser]] = {
     flaggedUsers.map { case (awsAccount, users) =>
       awsAccount -> getUsersToDisable(users, awsAccount, dynamo, today)
     }
   }
 
   // filter the vulnerable users for those who have disablement deadlines marked as today in dynamoDB
-  private def getUsersToDisable(users: Seq[VulnerableUser], awsAccount: AwsAccount, dynamo: DynamoAlertService, today: DateTime = DateTime.now): Seq[VulnerableUser] = {
+  private def getUsersToDisable(users: List[VulnerableUser], awsAccount: AwsAccount, dynamo: DynamoAlertService, today: DateTime = DateTime.now): List[VulnerableUser] = {
     users.filter { user =>
       val auditUsername: Option[String] =
         dynamo.getAlert(awsAccount, user.username)

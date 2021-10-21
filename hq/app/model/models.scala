@@ -1,6 +1,6 @@
 package model
 
-import com.amazonaws.regions.Region
+import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata
 import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
@@ -354,3 +354,11 @@ object IamAuditUser {
   implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
 }
 case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
+
+case class UnrecognisedJobConfigProperties(
+  allowedAccounts: List[String],
+  janusDataFileKey: String,
+  janusUserBucket: String,
+  janusUserBucketRegion: Regions,
+  securityAccount: AwsAccount
+)
