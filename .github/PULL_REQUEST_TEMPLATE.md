@@ -15,6 +15,13 @@
 
 <!-- Has the CloudFormation or StackSet update been completed? -->
 
+## Will this require changes to config?
+
+
+<!-- Have you updated the PROD and local config files in S3? -->
+
+<!-- Have you alerted colleagues that they will need to pull the latest local conf file? -->
+
 ## Any additional notes?
 
 
