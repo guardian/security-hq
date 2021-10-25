@@ -10,7 +10,7 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
   def createExampleBuckets(id: Int): List[BucketDetail] = {
     List(
       BucketDetail("eu-west-1", s"bucket-green-$id", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
-      BucketDetail("eu-west-1", s"bucket-amber-$id", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber), isEncrypted = true),
+      BucketDetail("eu-west-1", s"bucket-amber-$id", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber()), isEncrypted = true),
       BucketDetail("eu-west-1", s"bucket-red-$id", "Red", aclAllowsRead = false, aclAllowsWrite = true, policyAllowsAccess = false, isSuppressed = false, Some(Red()), isEncrypted = true)
     )
   }
@@ -25,8 +25,8 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
     "includes the number of suppressed reports" in {
       val examples: List[BucketDetail] =
         createExampleBuckets(1) ++
-          List(BucketDetail("eu-west-1", s"bucket-suppressed-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber), isEncrypted = true),
-            BucketDetail("eu-west-1", s"bucket-suppressed-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber), isEncrypted = true)
+          List(BucketDetail("eu-west-1", s"bucket-suppressed-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber()), isEncrypted = true),
+            BucketDetail("eu-west-1", s"bucket-suppressed-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = true, Some(Amber()), isEncrypted = true)
           )
 
       reportSummary(examples) shouldEqual BucketReportSummary(5, 1, 1, 0, 2)
@@ -47,11 +47,11 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
     "puts an amber bucket before green" in {
       val buckets = List(
         BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true),
-        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber))
+        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber()))
       )
 
       buckets.sortBy(bucketDetailsSort) shouldEqual List(
-        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
+        BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber())),
         BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true)
       )
     }
@@ -87,13 +87,13 @@ class PublicBucketsDisplayTest extends FreeSpec with Matchers {
         List(
       BucketDetail("eu-west-1", s"bucket-red-1", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red())),
       BucketDetail("eu-west-1", s"bucket-red-2", "Red", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = true, isSuppressed = false, Some(Red())),
-      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber))
+      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber()))
     )))
     val accountWithWarnings = (AwsAccount("account-with-warnings", "name", "ARN", "123456789"),
       Right(BucketReportSummary(3, 2, 1, 0, 0),
         List(
-      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
-      BucketDetail("eu-west-1", s"bucket-amber-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber)),
+      BucketDetail("eu-west-1", s"bucket-amber-1", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber())),
+      BucketDetail("eu-west-1", s"bucket-amber-2", "Amber", aclAllowsRead = true, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Amber())),
       BucketDetail("eu-west-1", s"bucket-green-1", "Green", aclAllowsRead = false, aclAllowsWrite = false, policyAllowsAccess = false, isSuppressed = false, Some(Green), isEncrypted = true)
     )))
     val accountWithOtherIssues = (AwsAccount("account-with-blue", "name", "ARN", "123456789"),

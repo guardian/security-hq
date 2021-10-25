@@ -1,6 +1,8 @@
 @import model.ReportStatus
 @import model.OutdatedKey
 @import model.MissingMfa
+@import model.ActiveAccessKey
+@import model.MissingUsernameTag
 @(status: ReportStatus)
 
 @status match {
@@ -14,9 +16,14 @@
         }
         <a class="modal-trigger iam-modal__trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
     }
-    case model.Amber => {
+    case model.Amber(reasons) => {
         <i class="material-icons left amber-text">warning</i>
-        <span>Has active access keys</span>
+        @if(reasons.contains(ActiveAccessKey)) {
+            <span>Has active access keys</span>
+        }
+        @if(reasons.contains(MissingUsernameTag)) {
+            <span>Missing Google username Tag</span>
+        }
         <a class="modal-trigger iam-modal__trigger right" href="#credentials-help--human"><i class="material-icons black-text">help_outline</i></a>
     }
     case model.Blue => {

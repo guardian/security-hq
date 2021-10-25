@@ -1,13 +1,14 @@
 package schedule.unrecognised
 
 import com.gu.janus.model.JanusData
-import model.{AwsAccount, CredentialReportDisplay, HumanUser, VulnerableUser}
+import model.{AwsAccount, CredentialReportDisplay, HumanUser, Tag, VulnerableUser}
 import play.api.Logging
 import utils.attempt.FailedAttempt
 
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+
 
 object IamUnrecognisedUsers extends Logging {
   val USERNAME_TAG_KEY = "GoogleUsername"
@@ -39,7 +40,7 @@ object IamUnrecognisedUsers extends Logging {
     janusUsernames: List[String],
     allowedAccountIds: List[String]
   ): List[(AwsAccount, List[VulnerableUser])] = {
-    val unrecognisedUsers =  accountCredsReports.map { case (acc, crd) => (acc, filterUnrecognisedIamUsers(crd.humanUsers, janusUsernames))}
+    val unrecognisedUsers = accountCredsReports.map { case (acc, crd) => (acc, filterUnrecognisedIamUsers(crd.humanUsers, janusUsernames)) }
     unrecognisedIamUsersInAllowedAccounts(unrecognisedUsers, allowedAccountIds)
   }
 
@@ -65,4 +66,12 @@ object IamUnrecognisedUsers extends Logging {
       s3Object.getBytes(StandardCharsets.UTF_8)
     ).toFile
   }
+
+    def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
+      tags.exists(t =>
+        t.key == IamUnrecognisedUsers.USERNAME_TAG_KEY &&
+          t.value != "" &&
+          t.value.contains(".")
+      )
+    }
 }

@@ -3,13 +3,12 @@ package schedule.unrecognised
 import com.gu.janus
 import com.gu.janus.model.{ACL, JanusData, SupportACL}
 import model._
-import org.apache.commons.io.IOUtils
 import org.joda.time.{DateTime, Seconds}
 import org.scalatest.{FreeSpec, Matchers}
 import schedule.unrecognised.IamUnrecognisedUsers._
+import schedule.unrecognised.IamUnrecognisedUsers.{USERNAME_TAG_KEY, getCredsReportDisplayForAccount, getJanusUsernames, isTaggedForUnrecognisedUser, unrecognisedUsersForAllowedAccounts}
 import utils.attempt.{FailedAttempt, Failure}
 
-import java.io.FileInputStream
 import scala.io.Source
 
 class IamUnrecognisedUsersTest extends FreeSpec with Matchers {
@@ -120,12 +119,35 @@ class IamUnrecognisedUsersTest extends FreeSpec with Matchers {
       result.flatMap(_._2.map(_.username)) shouldEqual Nil
     }
   }
+
   "makeFile" - {
     "creates a file with the correct contents" in {
       val file = makeFile("Hello World!")
       val source = Source.fromFile(file)
       val output = try source.mkString finally source.close()
       output shouldEqual "Hello World!"
+    }
+  }
+
+  "isTaggedForUnrecognisedUser" - {
+    "returns true when list of tags contains unrecognised user tag key and the value is not an empty string and contains a fullstop" in {
+      val tags = List(Tag(USERNAME_TAG_KEY, "amina.adewusi"), Tag("test", "test"))
+      isTaggedForUnrecognisedUser(tags) shouldBe true
+    }
+    "returns false when list of tags is empty" in {
+      isTaggedForUnrecognisedUser(Nil) shouldBe false
+    }
+    "returns false when list of tags does not contain unrecognised user tag" in {
+      val tags = List(Tag("test", "test"), Tag("testAgain", "amina.adewusi"))
+      isTaggedForUnrecognisedUser(tags) shouldBe false
+    }
+    "returns false when unrecognised user tag value does not contain full stop" in {
+      val tags = List(Tag(USERNAME_TAG_KEY, "aminaadewusi"))
+      isTaggedForUnrecognisedUser(tags) shouldBe false
+    }
+    "returns false when when unrecognised user tag value is an empty string" in {
+      val tags = List(Tag(USERNAME_TAG_KEY, ""))
+      isTaggedForUnrecognisedUser(tags) shouldBe false
     }
   }
 }
