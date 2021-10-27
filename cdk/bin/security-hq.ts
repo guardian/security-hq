@@ -6,6 +6,4 @@ import { App } from '@aws-cdk/core';
 import { SecurityHQ } from '../lib/security-hq';
 
 const app = new App();
-//  TODO: Add stack name
-//   e.g. { stack: "SomeStack" }
-new SecurityHQ(app, 'Security', { stack: 'security' });
+new SecurityHQ(app, 'security-hq', { stack: 'security' });
