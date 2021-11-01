@@ -186,6 +186,8 @@ If you have it installed, you can run:
 
 `cfn_nag_scan --input-path cloudformation/*`
 
+## Introduction to Security HQ's features
+
 ### Credentials Reaper
 The Credentials Reaper is a feature in Security HQ which automatically disables vulnerable permanent IAM users. 
 It considers a vulnerable user to be a user that has a password, but no mfa and/or access keys which haven’t been rotated within 90 days for users with a password (human users) or 365 days for users without a password (machine users). 
@@ -193,6 +195,14 @@ It disables users in the following way: if there’s a password, it will be remo
 
 The reaper sends email notifications to the AWS account the user is in, before disabling a user. The emails are sent via Anghammarad and uses it's AWS Account to email address mappings.
 
-To quickly see the contents of Security HQ's DynamoDB table, which contains a record of users that have been flagged as vulnerable use the `/iam/get-notifications` route. 
 You can also find the dynamo table in the Security AWS Account. 
-To send test notifications based on the current contents of Security HQ's DynamoDB table, use `/iam/test-notifications`. This will send emails to this google group: https://groups.google.com/a/guardian.co.uk/g/anghammarad.test.alerts. 
+
+### Lambda
+Security HQ holds a Lambda, which checks for security groups that are open to the world, except ELB groups. This data is used for `https://security-hq.gutools.co.uk/security-groups`.
+
+It is deployed as a stack set and is defined in  `cloudformation/watched-account.template.yaml`. 
+This lambda is deployed manually by creating a JAR file locally and uploading it to S3: `s3://guardian-dist/guardian/PROD/securitygroups-lambda/`. The version name is important, because
+the cloudformation has a paramter, `version`, which is used to locate the correct S3 file. The stackset is then deployed manually again to all accounts from the root account.
+
+The build and deploy process is manual at present. The lambda was deployed once in 2018 and hasn't been updated since. Health tickets have been put onto the backlog to try to improve this process.
+
