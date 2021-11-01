@@ -7,13 +7,14 @@ import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.{AwsAccount => TargetAccount}
 import com.gu.janus.JanusConfig
-import config.Config.{getAnghammaradSNSTopicArn, getIamUnrecognisedUserConfig}
+import config.Config.getIamUnrecognisedUserConfig
+import logic.VulnerableIamUser.getCredsReportDisplayForAccount
 import model.{CronSchedule, VulnerableUser, AwsAccount => Account}
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.FormerStaff.disabledUsersMessage
 import schedule.IamMessages.disabledUsersSubject
 import schedule.Notifier.{notification, send}
-import schedule.unrecognised.IamUnrecognisedUsers.{getCredsReportDisplayForAccount, getJanusUsernames, makeFile, unrecognisedUsersForAllowedAccounts}
+import schedule.unrecognised.IamUnrecognisedUsers.{getJanusUsernames, makeFile, unrecognisedUsersForAllowedAccounts}
 import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
 import schedule.vulnerable.IamRemovePassword.removePasswords
 import schedule.{CronSchedules, JobRunner}
@@ -32,7 +33,6 @@ class IamUnrecognisedUserJob(
   override val id: String = "unrecognised-iam-users"
   override val description: String = "Check for and remove unrecognised human IAM users"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
-  private val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
   private val allCredsReports = cacheService.getAllCredentials
 
   def run(testMode: Boolean): Unit = {
@@ -51,7 +51,7 @@ class IamUnrecognisedUserJob(
       accountCredsReports = getCredsReportDisplayForAccount(allCredsReports)
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
       _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableUser)
-      notificationIds <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(sendNotification(_, testMode))
+      notificationIds <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(sendNotification(_, testMode, config.anghammaradSnsTopic))
     } yield notificationIds
     result.fold(
       { failure =>
@@ -63,7 +63,7 @@ class IamUnrecognisedUserJob(
     )
   }
 
-  private def disableUser(accountCrd: (Account, List[VulnerableUser])): Attempt[List[String]] = {
+   def disableUser(accountCrd: (Account, List[VulnerableUser])): Attempt[List[String]] = {
     val (account, users) = accountCrd
     for {
       disableKeyResult <- disableAccessKeys(account, users, iamClients)
@@ -73,13 +73,13 @@ class IamUnrecognisedUserJob(
     }
   }
 
-  private def sendNotification(accountCrd: (Account, Seq[VulnerableUser]), testMode: Boolean): Attempt[String] = {
+  private def sendNotification(accountCrd: (Account, Seq[VulnerableUser]), testMode: Boolean, snsTopic: String): Attempt[String] = {
     val (account, users) = accountCrd
     val message = notification(
       disabledUsersSubject(account),
       disabledUsersMessage(users),
       List(TargetAccount(account.accountNumber))
     )
-    send(message, topicArn, snsClient, testMode)
+    send(message, snsTopic, snsClient, testMode)
   }
 }

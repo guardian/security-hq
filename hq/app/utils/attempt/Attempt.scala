@@ -81,6 +81,22 @@ object Attempt {
     Attempt.traverse(as)(a => f(a).map((a, _)))
   }
 
+  /** Traverses a list of tuples, where an effectful function is run on the second element of the tuple
+    * and the first element is returned unchanged.
+    */
+  def tupleTraverse[A, B, C, D](abs: List[(A, B, C)])(f: C => Attempt[D])(implicit ec: ExecutionContext): Attempt[List[(A, B, D)]] = {
+    Attempt.traverse(abs){ case (a, b, c) =>
+      f(c).map(c => (a, b, c))
+    }
+  }
+
+  //TODO
+  def tupleTraverseAgain[A, B, C](abs: List[(A, List[B])])(f: B => Attempt[C])(implicit ec: ExecutionContext): Attempt[List[(A, List[C])]] = {
+    Attempt.traverse(abs){ case (a, bs) =>
+      ???
+    }
+  }
+
   /** Traverses the given list `List[A]` with the function f, A => Attempt[List[B]]` and flattens the generated result into Attempt[List[B]]`
     * This implementation returns the first failure in the resulting list,
     * or the successful result.

@@ -123,9 +123,6 @@ object Config {
     config.getOptional[String]("snyk.ssoUrl")
   }
 
-  def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("alert.anghammaradSnsArn")
-  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
-
   def getIamUnrecognisedUserConfig(config: Configuration)(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
     for {
       accounts <- getAllowedAccountsForStage(config)
@@ -133,7 +130,8 @@ object Config {
       bucket <- getIamUnrecognisedUserBucket(config)
       region <- getIamUnrecognisedUserBucketRegion(config)
       securityAccount <- getSecurityAccount(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount)
+      anghammaradSnsTopic <- getAnghammaradSnsTopic(config)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount, anghammaradSnsTopic)
   }
 
 
@@ -185,4 +183,23 @@ object Config {
         500))
     )
   }
+
+  def getAnghammaradSnsTopic(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.anghammaradSnsArn"),
+      FailedAttempt(Failure("unable to retrieve Anghammarad SNS Topic from config",
+        "I haven't been able to get the Anghammarad SNS Topic from config",
+        500))
+    )
+  }
+
+  def getIamDynamoTableName(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.iamDynamoTableName"),
+      FailedAttempt(Failure("unable to retrieve DynamoDB table name from config",
+        "I haven't been able to get the DynamoDB table name from config for the IAM vulnerable user job.",
+        500))
+    )
+  }
+
 }

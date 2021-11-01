@@ -1,73 +1,71 @@
 package schedule.vulnerable
 
 import aws.AwsClients
+import aws.iam.IAMClient.SOLE_REGION
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.sns.AmazonSNSAsync
-import com.gu.anghammarad.models.{Notification, AwsAccount => Account}
-import config.Config.getAnghammaradSNSTopicArn
+import config.Config.{getAnghammaradSnsTopic, getIamDynamoTableName}
+import logic.OldVulnerableIamUser._
+import logic.VulnerableIamUser.getCredsReportDisplayForAccount
 import model._
 import play.api.{Configuration, Logging}
-import schedule.IamMessages.VulnerableCredentials.disabledUsersMessage
-import schedule.IamMessages.disabledUsersSubject
-import schedule.IamNotifications.makeNotifications
-import schedule.IamUsersToDisable.usersToDisable
-import schedule.Notifier.{notification, send}
-import schedule.vulnerable.IamDeadline.getVulnerableUsersToAlert
-import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
-import schedule.vulnerable.IamRemovePassword.removePasswords
-import schedule.{CronSchedules, DynamoAlertService, JobRunner}
+import schedule.Notifier.send
+import schedule.{AwsDynamoAlertService, CronSchedules, JobRunner}
 import services.CacheService
-import utils.attempt.FailedAttempt
+import utils.attempt.Attempt
 
 import scala.concurrent.ExecutionContext
 
-class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: DynamoAlertService, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
+class IamVulnerableUserJob(cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: AwsDynamoAlertService, config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit val executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id = "vulnerable-iam-users"
   override val description = "Automated notifications and disablement of vulnerable permanent credentials"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
-  val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
-
 
   def run(testMode: Boolean): Unit = {
-    if (testMode) {
-      logger.info(s"Skipping scheduled $id job as it is not enabled")
-    } else {
-      logger.info(s"Running scheduled job: $description")
-    }
+    if (testMode) logger.info(s"Skipping scheduled $id job as it is not enabled")
+    else logger.info(s"Running scheduled job: $description")
 
-    val credsReport: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = cacheService.getAllCredentials
-    logger.info(s"successfully collected credentials report for $id. Report is empty: ${credsReport.isEmpty}.")
-    val flaggedCredentials = IamFlaggedUsers.getVulnerableUsers(credsReport)
+    for {
+      topicArn <- getAnghammaradSnsTopic(config)
+      dynamoTable <- getIamDynamoTableName(config)
+      credsReports = cacheService.getAllCredentials
+      accountCredsReports = getCredsReportDisplayForAccount(credsReports)
+      accountVulnerableUser = accountCredsReports.map { case (account, display) => (account, getAccountVulnerableUsers(display)) } // test
+      accountCandidateVulnerableUsersForDynamo = accountDynamoRequests(accountVulnerableUser, dynamoTable) // test
+      getFromDynamo <- Attempt.tupleTraverse(accountCandidateVulnerableUsersForDynamo)(dynamo.get)
+      accountIamAuditUsers = getIamAuditUsers(getFromDynamo) // test
+      // consider Map or write in tests we expect 1 account per list users. If Map, we can write MapTraverse
+      dynamoUsersWithDeadline = vulnerableUsersWithDynamoDeadline(accountIamAuditUsers) // test
+      operations = triageCandidates(dynamoUsersWithDeadline) // test
+      _ <- Attempt.traverse(operations)(performOperation(_, topicArn, testMode, dynamoTable))
+    } yield ()
+  }
 
-    val usersToAlert = getVulnerableUsersToAlert(flaggedCredentials, dynamo)
-
-    def sendNotificationAndRecord(notification: Notification, users: Seq[IamAuditUser]): Unit = {
-      for {
-        _ <- send(notification, topicArn, snsClient, testMode)
-        _ = users.map(dynamo.putAlert)
-      } yield ()
-    }
-
-    // send warning and final notifications
-    makeNotifications(usersToAlert).foreach { notification =>
-      notification.warningN.foreach(sendNotificationAndRecord(_, notification.alertedUsers))
-      notification.finalN.foreach(sendNotificationAndRecord(_, notification.alertedUsers))
-    }
-
-    // disable user if still vulnerable after notifications have been sent and send a final notification stating this
-    usersToDisable(flaggedCredentials, dynamo).foreach { case (account, users) =>
-      users.map(removePasswords(account, _, iamClients))
-      disableAccessKeys(account, users, iamClients)
-
-      if (users.nonEmpty) {
-        logger.info(s"attempting to notify ${account.name} that the following users have been disabled: ${users.map(_.username)}")
-        send(
-          notification(disabledUsersSubject(account), disabledUsersMessage(users), List(Account(account.accountNumber))),
-          topicArn,
-          snsClient,
-          testMode
-        )
-      }
+  // TODO what happens when one of these operations fails? Atm essential dependent steps. Might not be appropriate.
+  def performOperation(accountOperations: (AwsAccount, VulnerableUserOperation), topicArn: String, testMode: Boolean, table: String): Attempt[String] = {
+    val (account, operation) = accountOperations
+    operation match {
+      case w: WarningAlert =>
+        for {
+          sendId <- send(generateNotifications(account, w), topicArn, snsClient, testMode)
+          request = putRequest(w.user, table)
+          putResult <- dynamo.put(request)
+          putResultId = putResult.getSdkResponseMetadata.getRequestId
+        } yield sendId ++ putResultId
+      case f: FinalAlert =>
+        for {
+          sendId <- send(generateNotifications(account, f), topicArn, snsClient, testMode)
+          request = putRequest(f.user, table)
+          putResult <- dynamo.put(request)
+          putResultId = putResult.getSdkResponseMetadata.getRequestId
+        } yield sendId ++ putResultId
+      case disableUser @ Disable(username, accessKeyId) =>
+        for {
+          client <- iamClients.get(account, SOLE_REGION)
+          _ <- disableAccessKey(account, username, accessKeyId, client.client)
+          _ <- removePassword(account, username, client.client)
+          id <- send(generateNotifications(account, disableUser), topicArn, snsClient, testMode)
+        } yield id
     }
   }
 }
