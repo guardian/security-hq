@@ -96,8 +96,6 @@ lazy val hq = (project in file("hq"))
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
 
-    riffRaffAwsRegion := "eu-west-1", // Needed for GHA while we improve how the plugin works here.
-
     riffRaffAddManifestDir := Option("hq/public"),
     riffRaffArtifactResources  := Seq(
       riffRaffPackageType.value -> s"${name.value}/${name.value}.deb",
