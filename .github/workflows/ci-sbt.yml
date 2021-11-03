@@ -44,6 +44,6 @@ jobs:
       # See https://github.com/github/scripts-to-rule-them-all
       - name: Run script/ci
         run: |
-          LAST_TEAMCITY_BUILD=0
+          LAST_TEAMCITY_BUILD=1265
           export GITHUB_RUN_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))
           ./script/ci
