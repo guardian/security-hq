@@ -4,10 +4,8 @@ set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-source ${DIR}/setup
-source ${DIR}/test
+yarn install --frozen-lockfile # prevent updates
+yarn lint
+yarn test
 
-for file in bin/*; do
-  stackName=$(basename "$file" ".ts")
-  source ${DIR}/generate "$stackName"
-done
+source ${DIR}/generate security-hq

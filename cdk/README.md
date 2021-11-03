@@ -8,7 +8,7 @@ We follow the [`script/task`](https://github.com/github/scripts-to-rule-them-all
 find useful scripts within the [`script`](./script) directory for common tasks.
 
 - `./script/setup` to install dependencies
-- `./script/tsc [-w]` to compile the Typescript and check for errors
+- `./script/build [-w]` to compile the Typescript and check for errors
 - `./script/test [-w]` wrapper to lint, and run tests
 - `./script/lint [-fix]` to lint the code using ESLint
 - `./script/generate` to build a CDK stack into the `cdk.out` directory

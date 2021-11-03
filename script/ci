@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-pushd cdk > /dev/null || exit
-./script/ci
-popd > /dev/null
+(
+    cd cdk
+    ./script/ci
+)
 
 ./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'
