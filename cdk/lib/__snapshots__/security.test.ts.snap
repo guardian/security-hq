@@ -141,7 +141,7 @@ Object {
           Object {
             "Key": "gu:cdk:version",
             "PropagateAtLaunch": true,
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
@@ -277,7 +277,7 @@ Object {
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
@@ -412,7 +412,7 @@ dpkg -i /tmp/installer.deb
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
@@ -458,7 +458,7 @@ dpkg -i /tmp/installer.deb
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
@@ -518,7 +518,7 @@ dpkg -i /tmp/installer.deb
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
@@ -722,7 +722,7 @@ dpkg -i /tmp/installer.deb
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
@@ -819,7 +819,7 @@ dpkg -i /tmp/installer.deb
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "27.2.0",
+            "Value": "TEST",
           },
           Object {
             "Key": "gu:repo",
