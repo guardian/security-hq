@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
-./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'
+
+pushd cdk > /dev/null || exit
+./script/ci
+popd > /dev/null
+
+#./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'
