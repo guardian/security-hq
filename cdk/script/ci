@@ -4,7 +4,9 @@ set -e
 
 yarn build
 
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
 for file in bin/*; do
   stackName=$(basename "$file" ".ts")
-  yarn generate "$stackName"
+  source ${DIR}/generate "$stackName"
 done
