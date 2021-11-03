@@ -8,17 +8,12 @@ We follow the [`script/task`](https://github.com/github/scripts-to-rule-them-all
 find useful scripts within the [`script`](./script) directory for common tasks.
 
 - `./script/setup` to install dependencies
-- `./script/start` to run the Jest unit tests in watch mode
-- `./script/lint` to lint the code using ESLint
-- `./script/test` to lint, run tests and generate templates of the CDK stacks
-- `./script/ci` to compile TypeScript to JS and generate templates of the CDK stacks
-- `./script/diff` to print the diff between a traditional CloudFormation template and a CDK stack
+- `./script/tsc [-w]` to compile the Typescript and check for errors
+- `./script/test [-w]` wrapper to lint, and run tests
+- `./script/lint [-fix]` to lint the code using ESLint
 - `./script/generate` to build a CDK stack into the `cdk.out` directory
+- `./script/ci` to lint and run tests, and generate templates of the CDK stacks
+- `./script/diff` to print the diff between a traditional CloudFormation template and a CDK stack
 
-There are also some other commands defined in `package.json`, including:
-
-- `yarn lint --fix` attempt to autofix any linter errors
-- `yarn format` format the code using Prettier
-- `yarn watch` watch for changes and compile
-
-However, it's advised you configure your IDE to format on save to avoid horrible "correct linting" commits.
+`-w` is supported as an optional 'watch' flag for various commands.
+`-fix` is supported as 'fix' for linting.

@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
+    "tsc": "tsc",
     "test": "jest",
     "format": "prettier --write \"{lib,bin}/**/*.ts\"",
     "cdk": "cdk",

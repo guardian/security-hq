@@ -2,4 +2,9 @@
 
 set -e
 
-yarn lint
+if [ "$1" == '-fix' ]
+then
+  yarn lint --fix
+else
+  yarn lint
+fi

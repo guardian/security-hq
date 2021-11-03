@@ -4,7 +4,8 @@ set -e
 
 if [ "$1" == '-w' ]
 then
-  yarn test --watch
+  yarn tsc -w
 else
-  yarn test
+  yarn tsc
 fi
+
