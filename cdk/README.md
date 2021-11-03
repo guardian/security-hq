@@ -11,7 +11,7 @@ find useful scripts within the [`script`](./script) directory for common tasks.
 - `./script/start` to run the Jest unit tests in watch mode
 - `./script/lint` to lint the code using ESLint
 - `./script/test` to lint, run tests and generate templates of the CDK stacks
-- `./script/build` to compile TypeScript to JS and generate templates of the CDK stacks
+- `./script/ci` to compile TypeScript to JS and generate templates of the CDK stacks
 - `./script/diff` to print the diff between a traditional CloudFormation template and a CDK stack
 - `./script/generate` to build a CDK stack into the `cdk.out` directory
 

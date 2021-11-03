@@ -2,9 +2,10 @@
 
 set -e
 
-yarn build
-
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+source ${DIR}/setup
+source ${DIR}/test
 
 for file in bin/*; do
   stackName=$(basename "$file" ".ts")
