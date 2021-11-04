@@ -37,6 +37,12 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
 
+      # (Respects .nvmrc)
+      - name: Setup Node
+        uses: guardian/actions-setup-node@v2.4.1
+        with:
+          cache: 'yarn'
+
       # 1. Seed the build number with last number from TeamCity.
       #    Update `LAST_TEAMCITY_BUILD` as needed or remove entirely if changing Riff-Raff project name.
       # 2. Execute `script/ci`, a script that will compile, run tests etc.
