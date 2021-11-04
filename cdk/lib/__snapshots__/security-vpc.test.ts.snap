@@ -1,0 +1,800 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`VPC stack matches the snapshot 1`] = `
+Object {
+  "Parameters": Object {
+    "Stage": Object {
+      "AllowedValues": Array [
+        "CODE",
+        "PROD",
+      ],
+      "Default": "CODE",
+      "Description": "Stage name",
+      "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "SecurityVpcC9F88B5F": Object {
+      "Properties": Object {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+    "SecurityVpcIGW1FA8C444": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "SecurityVpcVPCGW04B79F1B": Object {
+      "Properties": Object {
+        "InternetGatewayId": Object {
+          "Ref": "SecurityVpcIGW1FA8C444",
+        },
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+    "SecurityVpcapplicationSubnet1DefaultRoute49AD2D3C": Object {
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": Object {
+          "Ref": "SecurityVpcingressSubnet1NATGateway438B0307",
+        },
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcapplicationSubnet1RouteTable2D39C8C6",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "SecurityVpcapplicationSubnet1RouteTable2D39C8C6": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/applicationSubnet1",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "SecurityVpcapplicationSubnet1RouteTableAssociation53813CE4": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcapplicationSubnet1RouteTable2D39C8C6",
+        },
+        "SubnetId": Object {
+          "Ref": "SecurityVpcapplicationSubnet1Subnet892DAC9A",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "SecurityVpcapplicationSubnet1Subnet892DAC9A": Object {
+      "Properties": Object {
+        "AvailabilityZone": Object {
+          "Fn::Select": Array [
+            0,
+            Object {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.128.0/18",
+        "MapPublicIpOnLaunch": false,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "application",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/applicationSubnet1",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "SecurityVpcapplicationSubnet2DefaultRouteB442138F": Object {
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": Object {
+          "Ref": "SecurityVpcingressSubnet2NATGatewayF3D0D1A4",
+        },
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcapplicationSubnet2RouteTable7C5FA2DB",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "SecurityVpcapplicationSubnet2RouteTable7C5FA2DB": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/applicationSubnet2",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "SecurityVpcapplicationSubnet2RouteTableAssociation101749FD": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcapplicationSubnet2RouteTable7C5FA2DB",
+        },
+        "SubnetId": Object {
+          "Ref": "SecurityVpcapplicationSubnet2Subnet424B60D5",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "SecurityVpcapplicationSubnet2Subnet424B60D5": Object {
+      "Properties": Object {
+        "AvailabilityZone": Object {
+          "Fn::Select": Array [
+            1,
+            Object {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.192.0/18",
+        "MapPublicIpOnLaunch": false,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "application",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/applicationSubnet2",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "SecurityVpcdynamodbA5EDFBD1": Object {
+      "Properties": Object {
+        "RouteTableIds": Array [
+          Object {
+            "Ref": "SecurityVpcapplicationSubnet1RouteTable2D39C8C6",
+          },
+          Object {
+            "Ref": "SecurityVpcapplicationSubnet2RouteTable7C5FA2DB",
+          },
+          Object {
+            "Ref": "SecurityVpcingressSubnet1RouteTable61C07043",
+          },
+          Object {
+            "Ref": "SecurityVpcingressSubnet2RouteTable2F4574FC",
+          },
+        ],
+        "ServiceName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "com.amazonaws.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".dynamodb",
+            ],
+          ],
+        },
+        "VpcEndpointType": "Gateway",
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::VPCEndpoint",
+    },
+    "SecurityVpcingressSubnet1DefaultRoute57910054": Object {
+      "DependsOn": Array [
+        "SecurityVpcVPCGW04B79F1B",
+      ],
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": Object {
+          "Ref": "SecurityVpcIGW1FA8C444",
+        },
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcingressSubnet1RouteTable61C07043",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "SecurityVpcingressSubnet1EIP434574C0": Object {
+      "Properties": Object {
+        "Domain": "vpc",
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet1",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "SecurityVpcingressSubnet1NATGateway438B0307": Object {
+      "Properties": Object {
+        "AllocationId": Object {
+          "Fn::GetAtt": Array [
+            "SecurityVpcingressSubnet1EIP434574C0",
+            "AllocationId",
+          ],
+        },
+        "SubnetId": Object {
+          "Ref": "SecurityVpcingressSubnet1Subnet05FBA99B",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet1",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::EC2::NatGateway",
+    },
+    "SecurityVpcingressSubnet1RouteTable61C07043": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet1",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "SecurityVpcingressSubnet1RouteTableAssociation2F959041": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcingressSubnet1RouteTable61C07043",
+        },
+        "SubnetId": Object {
+          "Ref": "SecurityVpcingressSubnet1Subnet05FBA99B",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "SecurityVpcingressSubnet1Subnet05FBA99B": Object {
+      "Properties": Object {
+        "AvailabilityZone": Object {
+          "Fn::Select": Array [
+            0,
+            Object {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.0.0/18",
+        "MapPublicIpOnLaunch": true,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "ingress",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet1",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "SecurityVpcingressSubnet2DefaultRoute96BDDAF3": Object {
+      "DependsOn": Array [
+        "SecurityVpcVPCGW04B79F1B",
+      ],
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": Object {
+          "Ref": "SecurityVpcIGW1FA8C444",
+        },
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcingressSubnet2RouteTable2F4574FC",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "SecurityVpcingressSubnet2EIP50487DC3": Object {
+      "Properties": Object {
+        "Domain": "vpc",
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet2",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "SecurityVpcingressSubnet2NATGatewayF3D0D1A4": Object {
+      "Properties": Object {
+        "AllocationId": Object {
+          "Fn::GetAtt": Array [
+            "SecurityVpcingressSubnet2EIP50487DC3",
+            "AllocationId",
+          ],
+        },
+        "SubnetId": Object {
+          "Ref": "SecurityVpcingressSubnet2Subnet1FFC175C",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet2",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::EC2::NatGateway",
+    },
+    "SecurityVpcingressSubnet2RouteTable2F4574FC": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet2",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "SecurityVpcingressSubnet2RouteTableAssociation48414133": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "SecurityVpcingressSubnet2RouteTable2F4574FC",
+        },
+        "SubnetId": Object {
+          "Ref": "SecurityVpcingressSubnet2Subnet1FFC175C",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "SecurityVpcingressSubnet2Subnet1FFC175C": Object {
+      "Properties": Object {
+        "AvailabilityZone": Object {
+          "Fn::Select": Array [
+            1,
+            Object {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.64.0/18",
+        "MapPublicIpOnLaunch": true,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "ingress",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "security-vpc/SecurityVpc/ingressSubnet2",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "SecurityVpcs3AB4B81E1": Object {
+      "Properties": Object {
+        "RouteTableIds": Array [
+          Object {
+            "Ref": "SecurityVpcapplicationSubnet1RouteTable2D39C8C6",
+          },
+          Object {
+            "Ref": "SecurityVpcapplicationSubnet2RouteTable7C5FA2DB",
+          },
+          Object {
+            "Ref": "SecurityVpcingressSubnet1RouteTable61C07043",
+          },
+          Object {
+            "Ref": "SecurityVpcingressSubnet2RouteTable2F4574FC",
+          },
+        ],
+        "ServiceName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "com.amazonaws.",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ".s3",
+            ],
+          ],
+        },
+        "VpcEndpointType": "Gateway",
+        "VpcId": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::EC2::VPCEndpoint",
+    },
+    "privateSubnetsEA64D674": Object {
+      "Properties": Object {
+        "Name": "/account/vpc/primary/subnets/private",
+        "Tags": Object {
+          "Stack": "security",
+          "Stage": Object {
+            "Ref": "Stage",
+          },
+          "gu:cdk:version": "TEST",
+          "gu:repo": "guardian/security-hq",
+        },
+        "Type": "StringList",
+        "Value": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "SecurityVpcapplicationSubnet1Subnet892DAC9A",
+              },
+              ",",
+              Object {
+                "Ref": "SecurityVpcapplicationSubnet2Subnet424B60D5",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "publicSubnetsFE05F27B": Object {
+      "Properties": Object {
+        "Name": "/account/vpc/primary/subnets/public",
+        "Tags": Object {
+          "Stack": "security",
+          "Stage": Object {
+            "Ref": "Stage",
+          },
+          "gu:cdk:version": "TEST",
+          "gu:repo": "guardian/security-hq",
+        },
+        "Type": "StringList",
+        "Value": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "SecurityVpcingressSubnet1Subnet05FBA99B",
+              },
+              ",",
+              Object {
+                "Ref": "SecurityVpcingressSubnet2Subnet1FFC175C",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "vpcIDEC623FC3": Object {
+      "Properties": Object {
+        "Name": "/account/vpc/primary/id",
+        "Tags": Object {
+          "Stack": "security",
+          "Stage": Object {
+            "Ref": "Stage",
+          },
+          "gu:cdk:version": "TEST",
+          "gu:repo": "guardian/security-hq",
+        },
+        "Type": "String",
+        "Value": Object {
+          "Ref": "SecurityVpcC9F88B5F",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+  },
+}
+`;

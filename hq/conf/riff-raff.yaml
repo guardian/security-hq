@@ -10,6 +10,14 @@ deployments:
       bucket: security-dist
     dependencies: [security-hq-cfn]
 
+  security-vpc-cfn:
+    type: cloud-formation
+    app: security-vpc
+    parameters:
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: security-vpc
+      templatePath: cfn.json
+
   security-hq-cfn:
     type: cloud-formation
     app: security-hq
