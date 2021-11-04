@@ -100,7 +100,7 @@ lazy val hq = (project in file("hq"))
     riffRaffArtifactResources  := Seq(
       riffRaffPackageType.value -> s"${name.value}/${name.value}.deb",
       baseDirectory.value / "conf" / "riff-raff.yaml" -> "riff-raff.yaml",
-      file("cloudformation/security-hq.template.yaml") -> s"${name.value}-cfn/cfn.yaml"
+      file("cdk/cdk.out/security-hq.template.json") -> s"${name.value}-cfn/cfn.json"
     ),
 
     javaOptions in Universal ++= Seq(

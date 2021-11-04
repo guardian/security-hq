@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ "$1" == '-w' ]
+then
+  yarn tsc -w
+else
+  yarn tsc
+fi
+
