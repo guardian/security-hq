@@ -92,7 +92,7 @@ class AppComponents(context: Context)
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
 
-  private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region.name, stage)
+  private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region, stage)
   val dynamo = new AwsDynamoAlertService(dynamoDbClient, stage)
 
   private val cacheService = new CacheService(

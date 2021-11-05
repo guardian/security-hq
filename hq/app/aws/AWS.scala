@@ -52,7 +52,7 @@ object AWS {
     } yield AwsClient(client, account, region)
   }
 
-  def dynamoDbClient(securityCredentialsProvider: AWSCredentialsProvider, region: String, stage: Stage): AmazonDynamoDB = {
+  def dynamoDbClient(securityCredentialsProvider: AWSCredentialsProvider, region: Regions, stage: Stage): AmazonDynamoDB = {
     stage match {
       case PROD =>
         AmazonDynamoDBClientBuilder.standard()
@@ -62,7 +62,7 @@ object AWS {
       case _ =>
         AmazonDynamoDBClientBuilder.standard()
           .withCredentials(securityCredentialsProvider)
-          .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region))
+          .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region.name))
           .build()
     }
   }

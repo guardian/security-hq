@@ -3,6 +3,7 @@ package schedule
 import aws.AWS
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.{AttributeDefinition, KeySchemaElement, KeyType, ScalarAttributeType}
 import config.Config
@@ -17,7 +18,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   private val stage = TEST
   val expectedTableName = "security-hq-iam-TEST"
   val securityCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("dummy", "credentials"))
-  private val client = AWS.dynamoDbClient(securityCredentialsProvider, "eu-west-1", stage)
+  private val client = AWS.dynamoDbClient(securityCredentialsProvider, Regions.EU_WEST_1, stage)
 
   // Always reset our dynamo' state before each test
   // That way we write the tests can be written on the assumption that dynamo is a blank slate
@@ -90,7 +91,6 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
     }
 
     "put and get methods" - {
-
       "can write and read multiple alerts" in {
         val dynamo = new AwsDynamoAlertService(client, stage)
         val iamAuditUserVulnerable = IamAuditUser(
