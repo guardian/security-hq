@@ -2,6 +2,28 @@
 
 exports[`VPC stack matches the snapshot 1`] = `
 Object {
+  "Conditions": Object {
+    "AwsCdkKinesisEncryptedStreamsUnsupportedRegions": Object {
+      "Fn::Or": Array [
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AWS::Region",
+            },
+            "cn-north-1",
+          ],
+        },
+        Object {
+          "Fn::Equals": Array [
+            Object {
+              "Ref": "AWS::Region",
+            },
+            "cn-northwest-1",
+          ],
+        },
+      ],
+    },
+  },
   "Parameters": Object {
     "Stage": Object {
       "AllowedValues": Array [
@@ -11,6 +33,47 @@ Object {
       "Default": "CODE",
       "Description": "Stage name",
       "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "NevergonnahappenF0CA0A60": Object {
+      "Properties": Object {
+        "RetentionPeriodHours": 24,
+        "ShardCount": 1,
+        "StreamEncryption": Object {
+          "Fn::If": Array [
+            "AwsCdkKinesisEncryptedStreamsUnsupportedRegions",
+            Object {
+              "Ref": "AWS::NoValue",
+            },
+            Object {
+              "EncryptionType": "KMS",
+              "KeyId": "alias/aws/kinesis",
+            },
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Kinesis::Stream",
     },
   },
 }
