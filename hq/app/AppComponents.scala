@@ -3,6 +3,7 @@ import aws.{AWS, AwsClient}
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
@@ -46,6 +47,7 @@ class AppComponents(context: Context)
   )
 
   private val stack = configuration.get[String]("stack")
+  private val stage = configuration.get[String]("stage")
 
   // the aim of this is to get a list of available regions that we are able to access
   // note that:
@@ -89,10 +91,21 @@ class AppComponents(context: Context)
     .build()
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-  private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
-    .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region.getName)
-    .build()
+
+  private val dynamoDbClient = {
+    if(stage == "PROD" || stage == "CODE") {
+      AmazonDynamoDBClientBuilder.standard()
+        .withCredentials(securityCredentialsProvider)
+        .withRegion(Config.region.getName)
+        .build()
+    }
+    else {
+      AmazonDynamoDBClientBuilder.standard()
+        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", config.Config.region.name))
+        .withCredentials(securityCredentialsProvider)
+        .build()
+    }
+  }
 
   private val cacheService = new CacheService(
     configuration,
@@ -129,3 +142,4 @@ class AppComponents(context: Context)
     new GcpController(configuration, googleAuthConfig, cacheService)
   )
 }
+
