@@ -124,7 +124,6 @@ object Config {
   }
 
   def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("alert.anghammaradSnsArn")
-  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
 
   def getIamUnrecognisedUserConfig(config: Configuration)(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
     for {

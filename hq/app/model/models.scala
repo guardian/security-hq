@@ -139,6 +139,7 @@ case class UnknownUsage(
 ) extends SGInUse
 
 sealed trait Stage
+case object TEST extends Stage
 case object DEV extends Stage
 case object PROD extends Stage
 

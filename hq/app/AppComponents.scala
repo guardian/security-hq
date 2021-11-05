@@ -12,7 +12,7 @@ import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterS
 import config.Config
 import controllers._
 import filters.HstsFilter
-import model.AwsAccount
+import model.{AwsAccount, PROD}
 import org.quartz.impl.StdSchedulerFactory
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
@@ -47,7 +47,7 @@ class AppComponents(context: Context)
   )
 
   private val stack = configuration.get[String]("stack")
-  private val stage = configuration.get[String]("stage")
+  private val stage = Config.getStage(configuration)
 
   // the aim of this is to get a list of available regions that we are able to access
   // note that:
@@ -92,20 +92,8 @@ class AppComponents(context: Context)
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
 
-  private val dynamoDbClient = {
-    if(stage == "PROD" || stage == "CODE") {
-      AmazonDynamoDBClientBuilder.standard()
-        .withCredentials(securityCredentialsProvider)
-        .withRegion(Config.region.getName)
-        .build()
-    }
-    else {
-      AmazonDynamoDBClientBuilder.standard()
-        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", config.Config.region.name))
-        .withCredentials(securityCredentialsProvider)
-        .build()
-    }
-  }
+  private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region.name, stage)
+  val dynamo = new AwsDynamoAlertService(dynamoDbClient, stage)
 
   private val cacheService = new CacheService(
     configuration,

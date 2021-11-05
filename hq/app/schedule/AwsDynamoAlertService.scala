@@ -1,12 +1,14 @@
 package schedule
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, ScanRequest}
-import model.{AwsAccount, IamAuditAlert, IamAuditNotificationType, IamAuditUser}
+import com.amazonaws.services.dynamodbv2.model._
+import model.{AwsAccount, IamAuditAlert, IamAuditNotificationType, IamAuditUser, Stage}
 import org.joda.time.DateTime
 import play.api.Logging
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.util.Try
 import scala.util.control.NonFatal
 
 trait AttributeValues {
@@ -22,13 +24,41 @@ trait DynamoAlertService {
   def getAlert(awsAccount: AwsAccount, username: String): Option[IamAuditUser]
   def putAlert(alert: IamAuditUser): Unit
 }
-class AwsDynamoAlertService(client: AmazonDynamoDB, tableName: Option[String]) extends DynamoAlertService with AttributeValues with Logging {
 
-  private val table = tableName match {
-    case Some(tableName) => tableName
-    case None =>
-      logger.error("unable to retrieve Iam Dynamo Table Name from config - check that table name is present in security-hq.conf in S3")
-      "error"
+class AwsDynamoAlertService(client: AmazonDynamoDB, stage: Stage) extends DynamoAlertService with AttributeValues with Logging {
+  def table = s"security-hq-iam-$stage"
+
+  createTableIfDoesNotExist()
+
+  private def createTableIfDoesNotExist(): Unit = {
+    if (Try(client.describeTable(table)).isFailure) {
+      logger.info(s"Creating Dynamo table $table ...")
+      createTable(table)
+      waitForTableToBecomeActive(table)
+    } else {
+      logger.info(s"Found Dynamo table $table")
+    }
+  }
+
+  def createTable(name: String): Unit = {
+    val createTableRequest = new CreateTableRequest()
+      .withAttributeDefinitions(new AttributeDefinition("id", ScalarAttributeType.S))
+      .withTableName(name)
+      .withKeySchema(new KeySchemaElement("id", KeyType.HASH))
+      .withProvisionedThroughput(new ProvisionedThroughput(5L, 5L))
+
+    client.createTable(createTableRequest)
+  }
+
+  @tailrec
+  private def waitForTableToBecomeActive(name: String): Unit = {
+    Try(Option(client.describeTable(name).getTable)).toOption.flatten match {
+      case Some(table) if table.getTableStatus == TableStatus.ACTIVE.toString => ()
+      case _ =>
+        logger.info(s"Waiting for table $name to become active ...")
+        Thread.sleep(500L)
+        waitForTableToBecomeActive(name)
+    }
   }
 
   private def scan: Seq[Map[String, AttributeValue]] = {
