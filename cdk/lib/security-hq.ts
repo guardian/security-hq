@@ -13,7 +13,6 @@ import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
 import {
   GuDistributionBucketParameter,
   GuParameter,
-  GuPrivateConfigBucketParameter,
   GuStack,
 } from '@guardian/cdk/lib/constructs/core';
 import {
