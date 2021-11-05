@@ -15,6 +15,7 @@ deployments:
     app: security-vpc
     parameters:
       prependStackToCloudFormationStackName: false
+      cloudFormationStackByTags: false
       cloudFormationStackName: security-vpc
       templatePath: cfn.json
 
