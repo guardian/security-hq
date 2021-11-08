@@ -115,7 +115,7 @@ class AwsDynamoAlertService(client: AmazonDynamoDB, table: String) extends Dynam
 }
 
 object AwsDynamoAlertService extends Logging {
-  def initTable(client: AmazonDynamoDB, stage: Stage): AwsDynamoAlertService = {
+  def init(client: AmazonDynamoDB, stage: Stage): AwsDynamoAlertService = {
     def table = s"security-hq-iam-$stage"
     createTableIfDoesNotExist(client, table)
     new AwsDynamoAlertService(client, table)

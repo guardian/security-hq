@@ -37,7 +37,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   "Dynamo" - {
     "initTable method" - {
       "creates a table with the correct name and properties" in {
-        AwsDynamoAlertService.initTable(client, stage)
+        AwsDynamoAlertService.init(client, stage)
 
         val tableDescription = client.describeTable(expectedTableName).getTable
         tableDescription.getAttributeDefinitions.asScala.toList shouldEqual List(new AttributeDefinition("id", ScalarAttributeType.S))
@@ -51,8 +51,8 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
         val initialNumberOfTables = client.listTables().getTableNames.size
         val expectedNumberOfTables = initialNumberOfTables + 1
 
-        AwsDynamoAlertService.initTable(client, stage)
-        AwsDynamoAlertService.initTable(client, stage)
+        AwsDynamoAlertService.init(client, stage)
+        AwsDynamoAlertService.init(client, stage)
 
         client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
       }
@@ -61,12 +61,12 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
 
     "scan method" -  {
       "can scan an empty table for alerts" in {
-        val dynamo = AwsDynamoAlertService.initTable(client, stage)
+        val dynamo = AwsDynamoAlertService.init(client, stage)
         dynamo.scanAlert() shouldEqual Seq.empty
       }
 
       "can scan a non-empty table for alerts" in {
-        val dynamo = AwsDynamoAlertService.initTable(client, stage)
+        val dynamo = AwsDynamoAlertService.init(client, stage)
         val iamAuditUser = IamAuditUser(
           "accountid/username",
           "accountid",
@@ -87,7 +87,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
 
     "put and get methods" - {
       "can write and read multiple alerts" in {
-        val dynamo = AwsDynamoAlertService.initTable(client, stage)
+        val dynamo = AwsDynamoAlertService.init(client, stage)
         val iamAuditUserVulnerable = IamAuditUser(
           "accountid/username1",
           "accountid",
