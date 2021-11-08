@@ -93,7 +93,8 @@ class AppComponents(context: Context)
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
 
   private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region, stage)
-  AwsDynamoAlertService.init(dynamoDbClient, stage)
+  val dynamoAttempt = AwsDynamoAlertService.init(dynamoDbClient, stage)
+
 
   private val cacheService = new CacheService(
     configuration,

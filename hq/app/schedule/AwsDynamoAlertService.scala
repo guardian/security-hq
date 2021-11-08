@@ -5,9 +5,11 @@ import com.amazonaws.services.dynamodbv2.model._
 import model.{AwsAccount, IamAuditAlert, IamAuditNotificationType, IamAuditUser, Stage}
 import org.joda.time.DateTime
 import play.api.Logging
+import utils.attempt.Attempt
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -115,10 +117,10 @@ class AwsDynamoAlertService(client: AmazonDynamoDB, table: String) extends Dynam
 }
 
 object AwsDynamoAlertService extends Logging {
-  def init(client: AmazonDynamoDB, stage: Stage): AwsDynamoAlertService = {
+  def init(client: AmazonDynamoDB, stage: Stage)(implicit ec: ExecutionContext): Attempt[AwsDynamoAlertService] = {
     def table = s"security-hq-iam-$stage"
     createTableIfDoesNotExist(client, table)
-    new AwsDynamoAlertService(client, table)
+    Attempt.Right(new AwsDynamoAlertService(client, table))
   }
 
   private def createTableIfDoesNotExist(client: AmazonDynamoDB, table: String): Unit = {

@@ -2,18 +2,18 @@ package schedule
 
 import aws.AWS
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.{AttributeDefinition, KeySchemaElement, KeyType, ScalarAttributeType}
-import config.Config
 import model._
 import org.joda.time.DateTime
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FreeSpec, Matchers}
+import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with BeforeAndAfterAll with Matchers with AttributeValues {
+
+class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeAndAfterEach with BeforeAndAfterAll with Matchers with AttributeValues {
 
   private val stage = TEST
   val expectedTableName = "security-hq-iam-TEST"
@@ -37,7 +37,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   "Dynamo" - {
     "initTable method" - {
       "creates a table with the correct name and properties" in {
-        AwsDynamoAlertService.init(client, stage)
+        AwsDynamoAlertService.init(client, stage).value
 
         val tableDescription = client.describeTable(expectedTableName).getTable
         tableDescription.getAttributeDefinitions.asScala.toList shouldEqual List(new AttributeDefinition("id", ScalarAttributeType.S))
@@ -51,8 +51,8 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
         val initialNumberOfTables = client.listTables().getTableNames.size
         val expectedNumberOfTables = initialNumberOfTables + 1
 
-        AwsDynamoAlertService.init(client, stage)
-        AwsDynamoAlertService.init(client, stage)
+        AwsDynamoAlertService.init(client, stage).value
+        AwsDynamoAlertService.init(client, stage).value
 
         client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
       }
@@ -61,12 +61,12 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
 
     "scan method" -  {
       "can scan an empty table for alerts" in {
-        val dynamo = AwsDynamoAlertService.init(client, stage)
+        val dynamo = AwsDynamoAlertService.init(client, stage).value
         dynamo.scanAlert() shouldEqual Seq.empty
       }
 
       "can scan a non-empty table for alerts" in {
-        val dynamo = AwsDynamoAlertService.init(client, stage)
+        val dynamo = AwsDynamoAlertService.init(client, stage).value
         val iamAuditUser = IamAuditUser(
           "accountid/username",
           "accountid",
@@ -87,7 +87,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
 
     "put and get methods" - {
       "can write and read multiple alerts" in {
-        val dynamo = AwsDynamoAlertService.init(client, stage)
+        val dynamo = AwsDynamoAlertService.init(client, stage).value
         val iamAuditUserVulnerable = IamAuditUser(
           "accountid/username1",
           "accountid",
