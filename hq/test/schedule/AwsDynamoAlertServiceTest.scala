@@ -20,8 +20,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   val securityCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("dummy", "credentials"))
   private val client = AWS.dynamoDbClient(securityCredentialsProvider, Regions.EU_WEST_1, stage)
 
-  // Always reset our dynamo' state before each test
-  // That way we write the tests can be written on the assumption that dynamo is a blank slate
+  // Always reset our dynamo state before each test, so every test starts with a blank slate
   override def beforeEach () {
     if( client.listTables().getTableNames.contains(expectedTableName) )
       client.deleteTable(expectedTableName)
