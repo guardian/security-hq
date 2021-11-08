@@ -15,7 +15,7 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.sns.{AmazonSNSAsync, AmazonSNSAsyncClientBuilder}
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import config.Config
-import model.{AwsAccount, PROD, Stage}
+import model._
 import play.api.Configuration
 import utils.attempt.{Attempt, Failure}
 
@@ -59,7 +59,7 @@ object AWS {
           .withCredentials(securityCredentialsProvider)
           .withRegion(region)
           .build()
-      case _ =>
+      case DEV | TEST =>
         AmazonDynamoDBClientBuilder.standard()
           .withCredentials(securityCredentialsProvider)
           .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region.name))
