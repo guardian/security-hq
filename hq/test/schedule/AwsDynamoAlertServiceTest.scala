@@ -47,14 +47,9 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
         tableDescription.getTableName shouldEqual expectedTableName
       }
 
-      "only creates a table when one is missing" in {
-        val initialNumberOfTables = client.listTables().getTableNames.size
-        val expectedNumberOfTables = initialNumberOfTables + 1
-
+      "is idempotent - can be executed multiple times without changing the initial result or failing" in {
         AwsDynamoAlertService.init(client, stage).value
-        AwsDynamoAlertService.init(client, stage).value
-
-        client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
+        AwsDynamoAlertService.init(client, stage).isFailedAttempt shouldEqual false
       }
 
     }
