@@ -3,16 +3,17 @@ import {
   Metric,
   TreatMissingData,
 } from '@aws-cdk/aws-cloudwatch';
-import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
+import type { CfnTable } from '@aws-cdk/aws-dynamodb';
 import { InstanceClass, InstanceSize, InstanceType } from '@aws-cdk/aws-ec2';
-import { Duration, RemovalPolicy } from '@aws-cdk/core';
-import type { App, CfnElement } from '@aws-cdk/core';
+import type { CfnTopic } from '@aws-cdk/aws-sns';
+import { CfnInclude } from '@aws-cdk/cloudformation-include';
+import { Duration } from '@aws-cdk/core';
+import type { App } from '@aws-cdk/core';
 import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
 import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
 import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
 import {
   GuDistributionBucketParameter,
-  GuParameter,
   GuStack,
 } from '@guardian/cdk/lib/constructs/core';
 import {
@@ -26,9 +27,24 @@ export class SecurityHQ extends GuStack {
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
 
-    const table = new Table(this, 'DynamoTable', {
+    // Import old stuff
+    const template = new CfnInclude(this, `security-hq-PROD`, {
+      templateFile: '../cloudformation/security-hq.template.yaml',
+      parameters: {
+        Stage: this.stage,
+      },
+    });
+
+    // Import the existing template, though note we have removed some
+    // overlapping resources - such as the stage parameter.
+    const cfnTable = template.getResource(
+      'SecurityHqIamDynamoTable'
+    ) as CfnTable;
+
+    // TODO use below once old template is gone instead of importing above.
+    /*     const table = new Table(this, 'DynamoTable', {
       tableName: `security-hq-iam-${this.stage}`,
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.RETAIN, // TODO set update+delete policy too.
       readCapacity: 5,
       writeCapacity: 5,
       partitionKey: {
@@ -36,17 +52,15 @@ export class SecurityHQ extends GuStack {
         type: AttributeType.STRING,
       },
     });
-
-    // Required as migrated from existing Cloudformation stack.
     const defaultChild = table.node.defaultChild as unknown as CfnElement;
-    defaultChild.overrideLogicalId('SecurityHqIamDynamoTable');
+    defaultChild.overrideLogicalId('SecurityHqIamDynamoTable'); */
 
     const distBucket = GuDistributionBucketParameter.getInstance(this);
 
     // Create new ALB-based app, that will live in the new VPC. This will run
     // simultaneously with the old service. Once confident, DNS can be switched
     // and the old app deleted.
-    new GuEc2App(this, {
+    const app = new GuEc2App(this, {
       access: { scope: AccessScope.PUBLIC },
       app: 'security-hq',
       applicationPort: GuApplicationPorts.Play,
@@ -79,26 +93,23 @@ dpkg -i /tmp/installer.deb`,
       roleConfiguration: {
         additionalPolicies: [
           new GuDynamoDBReadPolicy(this, 'DynamoRead', {
-            tableName: table.tableName,
+            tableName: cfnTable.tableName as string,
           }),
           new GuDynamoDBWritePolicy(this, 'DynamoWrite', {
-            tableName: table.tableName,
+            tableName: cfnTable.tableName as string,
           }),
         ],
       },
     });
 
-    // TODO add this to GuCDK standard SSM parameters.
-    const alarmTopic = new GuParameter(this, 'TopicName', {
-      type: 'string',
-      description: "ARN for Anghammarad's SNS topic",
-    });
+    // TODO replace once template deleted.
+    const alarmTopic = template.getResource('NotificationTopic') as CfnTopic;
 
     new GuAlarm(this, 'RemovePasswordExecutionFailureAlarm', {
       alarmName: 'Security HQ failed to remove a vulnerable password',
       alarmDescription:
         'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
-      snsTopicName: alarmTopic.value.toString(),
+      snsTopicName: alarmTopic.topicName as string,
       threshold: 1,
       evaluationPeriods: 1,
       metric: new Metric({
@@ -118,7 +129,7 @@ dpkg -i /tmp/installer.deb`,
       alarmName: 'Security HQ failed to disable a vulnerable access key',
       alarmDescription:
         'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
-      snsTopicName: alarmTopic.value.toString(),
+      snsTopicName: alarmTopic.topicName as string,
       threshold: 1,
       evaluationPeriods: 1,
       metric: new Metric({
