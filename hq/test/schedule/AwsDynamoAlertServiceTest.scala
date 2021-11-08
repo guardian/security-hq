@@ -21,41 +21,25 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   private val client = AWS.dynamoDbClient(securityCredentialsProvider, Regions.EU_WEST_1, stage)
   private val dynamo = new AwsDynamoAlertService(client, stage)
 
-  // Always reset our dynamo state before each test, so every test starts with a blank slate
+  // Always reset our dynamo state before and after each test, so every test starts with a blank slate
   override def beforeEach () {
-    if( client.listTables().getTableNames.contains(expectedTableName) )
-      client.deleteTable(expectedTableName)
-    client.listTables().getTableNames should not contain(expectedTableName)
+    deleteTestTable()
   }
 
-  // Clean up at the end, after all tests have run (regardless of what order they run in)
-  override def afterAll () {
-    if(client.listTables().getTableNames.contains(expectedTableName))
+  override def afterEach () {
+    deleteTestTable()
+  }
+
+  def deleteTestTable(): Unit = {
+    if( client.listTables().getTableNames.contains(expectedTableName) )
       client.deleteTable(expectedTableName)
   }
 
   "Dynamo" - {
-    "initTable" - {
-      "creates a table with the right name when one is missing" in {
-        val currentNumberOfTables = client.listTables().getTableNames.size
-        val expectedNumberOfTables = currentNumberOfTables + 1
-
+    "initTable method" - {
+      "creates a table with the correct name and properties" in {
         dynamo.initTable()
 
-        client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
-        client.listTables().getTableNames should contain(expectedTableName)
-      }
-
-      "does not create a table when one already exists" in {
-        dynamo.initTable()
-        val expectedNumberOfTables = client.listTables().getTableNames.size
-
-        dynamo.initTable()
-        client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
-      }
-
-      "creates a table according to the PROD specification" in {
-        dynamo.initTable()
         val tableDescription = client.describeTable(expectedTableName).getTable
         tableDescription.getAttributeDefinitions.asScala.toList shouldEqual List(new AttributeDefinition("id", ScalarAttributeType.S))
         tableDescription.getKeySchema.asScala.toList shouldEqual  List(new KeySchemaElement("id", KeyType.HASH))
@@ -63,6 +47,17 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
         tableDescription.getProvisionedThroughput.getWriteCapacityUnits shouldEqual 5
         tableDescription.getTableName shouldEqual expectedTableName
       }
+
+      "only creates a table when one is missing" in {
+        val initialNumberOfTables = client.listTables().getTableNames.size
+        val expectedNumberOfTables = initialNumberOfTables + 1
+
+        dynamo.initTable()
+        dynamo.initTable()
+
+        client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
+      }
+
     }
 
     "scan method" -  {
