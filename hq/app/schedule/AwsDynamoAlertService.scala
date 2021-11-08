@@ -28,7 +28,9 @@ trait DynamoAlertService {
 class AwsDynamoAlertService(client: AmazonDynamoDB, stage: Stage) extends DynamoAlertService with AttributeValues with Logging {
   def table = s"security-hq-iam-$stage"
 
-  createTableIfDoesNotExist()
+  def initTable(): Unit = {
+    createTableIfDoesNotExist()
+  }
 
   private def createTableIfDoesNotExist(): Unit = {
     if (Try(client.describeTable(table)).isFailure) {
