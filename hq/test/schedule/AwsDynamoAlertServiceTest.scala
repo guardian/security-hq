@@ -19,7 +19,6 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   val expectedTableName = "security-hq-iam-TEST"
   val securityCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("dummy", "credentials"))
   private val client = AWS.dynamoDbClient(securityCredentialsProvider, Regions.EU_WEST_1, stage)
-  private val dynamo = new AwsDynamoAlertService(client, stage)
 
   // Always reset our dynamo state before and after each test, so every test starts with a blank slate
   override def beforeEach () {
@@ -38,7 +37,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
   "Dynamo" - {
     "initTable method" - {
       "creates a table with the correct name and properties" in {
-        dynamo.initTable()
+        AwsDynamoAlertService.initTable(client, stage)
 
         val tableDescription = client.describeTable(expectedTableName).getTable
         tableDescription.getAttributeDefinitions.asScala.toList shouldEqual List(new AttributeDefinition("id", ScalarAttributeType.S))
@@ -52,8 +51,8 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
         val initialNumberOfTables = client.listTables().getTableNames.size
         val expectedNumberOfTables = initialNumberOfTables + 1
 
-        dynamo.initTable()
-        dynamo.initTable()
+        AwsDynamoAlertService.initTable(client, stage)
+        AwsDynamoAlertService.initTable(client, stage)
 
         client.listTables().getTableNames.size() shouldEqual expectedNumberOfTables
       }
@@ -62,12 +61,12 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
 
     "scan method" -  {
       "can scan an empty table for alerts" in {
-        dynamo.initTable()
+        val dynamo = AwsDynamoAlertService.initTable(client, stage)
         dynamo.scanAlert() shouldEqual Seq.empty
       }
 
       "can scan a non-empty table for alerts" in {
-        dynamo.initTable()
+        val dynamo = AwsDynamoAlertService.initTable(client, stage)
         val iamAuditUser = IamAuditUser(
           "accountid/username",
           "accountid",
@@ -88,7 +87,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with BeforeAndAfterEach with Be
 
     "put and get methods" - {
       "can write and read multiple alerts" in {
-        dynamo.initTable()
+        val dynamo = AwsDynamoAlertService.initTable(client, stage)
         val iamAuditUserVulnerable = IamAuditUser(
           "accountid/username1",
           "accountid",

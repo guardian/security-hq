@@ -25,43 +25,7 @@ trait DynamoAlertService {
   def putAlert(alert: IamAuditUser): Unit
 }
 
-class AwsDynamoAlertService(client: AmazonDynamoDB, stage: Stage) extends DynamoAlertService with AttributeValues with Logging {
-  def table = s"security-hq-iam-$stage"
-
-  def initTable(): Unit = {
-    createTableIfDoesNotExist()
-  }
-
-  private def createTableIfDoesNotExist(): Unit = {
-    if (Try(client.describeTable(table)).isFailure) {
-      logger.info(s"Creating Dynamo table $table ...")
-      createTable(table)
-      waitForTableToBecomeActive(table)
-    } else {
-      logger.info(s"Found Dynamo table $table")
-    }
-  }
-
-  def createTable(name: String): Unit = {
-    val createTableRequest = new CreateTableRequest()
-      .withAttributeDefinitions(new AttributeDefinition("id", ScalarAttributeType.S))
-      .withTableName(name)
-      .withKeySchema(new KeySchemaElement("id", KeyType.HASH))
-      .withProvisionedThroughput(new ProvisionedThroughput(5L, 5L))
-
-    client.createTable(createTableRequest)
-  }
-
-  @tailrec
-  private def waitForTableToBecomeActive(name: String): Unit = {
-    Try(Option(client.describeTable(name).getTable)).toOption.flatten match {
-      case Some(table) if table.getTableStatus == TableStatus.ACTIVE.toString => ()
-      case _ =>
-        logger.info(s"Waiting for table $name to become active ...")
-        Thread.sleep(500L)
-        waitForTableToBecomeActive(name)
-    }
-  }
+class AwsDynamoAlertService(client: AmazonDynamoDB, table: String) extends DynamoAlertService with AttributeValues with Logging {
 
   private def scan: Seq[Map[String, AttributeValue]] = {
     try {
@@ -148,6 +112,45 @@ class AwsDynamoAlertService(client: AmazonDynamoDB, stage: Stage) extends Dynamo
     "username" -> S(alert.username),
     "alerts" -> L(alert.alerts.map(alert => M(alertToMap(alert))))
   ))
+}
+
+object AwsDynamoAlertService extends Logging {
+  def initTable(client: AmazonDynamoDB, stage: Stage): AwsDynamoAlertService = {
+    def table = s"security-hq-iam-$stage"
+    createTableIfDoesNotExist(client, table)
+    new AwsDynamoAlertService(client, table)
+  }
+
+  private def createTableIfDoesNotExist(client: AmazonDynamoDB, table: String): Unit = {
+    if (Try(client.describeTable(table)).isFailure) {
+      logger.info(s"Creating Dynamo table $table ...")
+      createTable(client, table)
+      waitForTableToBecomeActive(client, table)
+    } else {
+      logger.info(s"Found Dynamo table $table")
+    }
+  }
+
+  private def createTable(client: AmazonDynamoDB, name: String): Unit = {
+    val createTableRequest = new CreateTableRequest()
+      .withAttributeDefinitions(new AttributeDefinition("id", ScalarAttributeType.S))
+      .withTableName(name)
+      .withKeySchema(new KeySchemaElement("id", KeyType.HASH))
+      .withProvisionedThroughput(new ProvisionedThroughput(5L, 5L))
+
+    client.createTable(createTableRequest)
+  }
+
+  @tailrec
+  private def waitForTableToBecomeActive(client: AmazonDynamoDB, name: String): Unit = {
+    Try(Option(client.describeTable(name).getTable)).toOption.flatten match {
+      case Some(table) if table.getTableStatus == TableStatus.ACTIVE.toString => ()
+      case _ =>
+        logger.info(s"Waiting for table $name to become active ...")
+        Thread.sleep(500L)
+        waitForTableToBecomeActive(client, name)
+    }
+  }
 }
 
 object DynamoAlerts {
