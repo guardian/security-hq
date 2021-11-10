@@ -60,7 +60,7 @@ case class IAMCredential(
   cert2Active: Boolean,
   cert2LastRotated: Option[DateTime],
   tags: List[Tag] = List()
-                        ) {
+) {
   val rootUser = IAMCredential.isRootUser(user)
 }
 
@@ -338,12 +338,6 @@ case class VulnerableAccessKey(
 sealed trait IamAuditNotificationType { def name: String }
 object VulnerableCredential extends IamAuditNotificationType { val name = "vulnerableCredential" }
 object UnrecognisedHumanUser extends IamAuditNotificationType { val name = "unrecognisedHumanUser" }
-object IamAuditNotificationType {
-  def fromName(name: String): IamAuditNotificationType =
-    Seq(VulnerableCredential, UnrecognisedHumanUser)
-      .find(name == _.name)
-      .getOrElse(VulnerableCredential)
-}
 
 case class IamAuditAlert(`type`: IamAuditNotificationType, dateNotificationSent: DateTime, disableDeadline: DateTime)
 object IamAuditAlert {

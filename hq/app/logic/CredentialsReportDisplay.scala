@@ -3,7 +3,6 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
-import schedule.unrecognised.IamUnrecognisedUsers.isTaggedForUnrecognisedUser
 import utils.attempt.FailedAttempt
 
 import java.net.URLEncoder
@@ -165,6 +164,15 @@ object CredentialsReportDisplay {
     report.copy(
       machineUsers = report.machineUsers.sortBy(user => (user.reportStatus, user.username)),
       humanUsers = report.humanUsers.sortBy(user => (user.reportStatus, user.username))
+    )
+  }
+
+  val USERNAME_TAG_KEY = "GoogleUsername"
+  def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
+    tags.exists(t =>
+      t.key == USERNAME_TAG_KEY &&
+        t.value != "" &&
+        t.value.contains(".")
     )
   }
 

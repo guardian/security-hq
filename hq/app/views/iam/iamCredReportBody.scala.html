@@ -1,6 +1,6 @@
 @import logic.{CredentialsReportDisplay, DateUtils}
 @import model._
-@import schedule.unrecognised.IamUnrecognisedUsers.isTaggedForUnrecognisedUser
+@import logic.CredentialsReportDisplay.isTaggedForUnrecognisedUser
 @(report: CredentialReportDisplay)
 @message = @{s"Report generated at ${DateUtils.printTime(report.reportDate)} (refreshed every four hours)"}
 @warning = @{". Warning: this data is over a day old."}

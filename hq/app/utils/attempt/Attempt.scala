@@ -90,13 +90,6 @@ object Attempt {
     }
   }
 
-  //TODO
-  def tupleTraverseAgain[A, B, C](abs: List[(A, List[B])])(f: B => Attempt[C])(implicit ec: ExecutionContext): Attempt[List[(A, List[C])]] = {
-    Attempt.traverse(abs){ case (a, bs) =>
-      ???
-    }
-  }
-
   /** Traverses the given list `List[A]` with the function f, A => Attempt[List[B]]` and flattens the generated result into Attempt[List[B]]`
     * This implementation returns the first failure in the resulting list,
     * or the successful result.
