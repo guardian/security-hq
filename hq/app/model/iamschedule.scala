@@ -44,22 +44,6 @@ case class VulnerableAccessKey(
   humanUser: Boolean
 )
 
-sealed trait IamAuditNotificationType { def name: String }
-object VulnerableCredential extends IamAuditNotificationType { val name = "vulnerableCredential" }
-object UnrecognisedHumanUser extends IamAuditNotificationType { val name = "unrecognisedHumanUser" }
-
-case class IamAuditAlert(`type`: IamAuditNotificationType, dateNotificationSent: DateTime, disableDeadline: DateTime)
-object IamAuditAlert {
-  implicit val jodaDateWrites: Writes[DateTime] = (d: DateTime) => JsString(d.toString())
-  implicit val iamNotificationTypeWrites: Writes[IamAuditNotificationType] = (nt: IamAuditNotificationType) => JsString(nt.name)
-  implicit val iamAuditAlertWrites = Json.writes[IamAuditAlert]
-}
-case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
-object IamAuditUser {
-  implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
-}
-case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
-
 case class UnrecognisedJobConfigProperties(
   allowedAccounts: List[String],
   janusDataFileKey: String,

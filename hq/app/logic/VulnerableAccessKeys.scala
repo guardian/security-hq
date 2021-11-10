@@ -1,7 +1,7 @@
 package logic
 
 import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
-import model.{AccessKey, AccessKeyEnabled, VulnerableAccessKey}
+import model.{AccessKey, AccessKeyEnabled}
 
 object VulnerableAccessKeys {
   /**
@@ -32,13 +32,6 @@ object VulnerableAccessKeys {
     */
   def hasOutdatedMachineKeyIncludingDisabled(keys: List[AccessKey]): Boolean =
     hasOutdatedKey(keys, iamMachineUserRotationCadence, flagInactiveKeys = true)
-
-  def isOutdated(user: VulnerableAccessKey): Boolean = {
-    if (user.humanUser) user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
-      hasOutdatedHumanKey(List(user.accessKeyWithId.accessKey))
-    else user.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled &&
-      hasOutdatedMachineKey(List(user.accessKeyWithId.accessKey))
-  }
 
   private def hasOutdatedKey(keys: List[AccessKey], thresholdInDays: Long, flagInactiveKeys: Boolean): Boolean =
     keys.exists { key =>

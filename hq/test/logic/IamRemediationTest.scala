@@ -4,6 +4,7 @@ import logic.IamRemediation.getCredsReportDisplayForAccount
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{FailedAttempt, Failure}
 
+
 class IamRemediationTest extends FreeSpec with Matchers {
   "getCredsReportDisplayForAccount" - {
     val failedAttempt: FailedAttempt = FailedAttempt(Failure("error", "error", 500))
