@@ -1,8 +1,9 @@
 package logic
 
-import logic.VulnerableIamUser.getCredsReportDisplayForAccount
+import logic.IamRemediation.getCredsReportDisplayForAccount
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{FailedAttempt, Failure}
+
 
 class IamRemediationTest extends FreeSpec with Matchers {
    "getCredsReportDisplayForAccount" - {
