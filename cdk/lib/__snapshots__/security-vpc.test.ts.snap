@@ -16,7 +16,7 @@ Object {
   "Resources": Object {
     "SecurityVpcC9F88B5F": Object {
       "Properties": Object {
-        "CidrBlock": "10.0.0.0/16",
+        "CidrBlock": "10.248.208.0/21",
         "EnableDnsHostnames": true,
         "EnableDnsSupport": true,
         "InstanceTenancy": "default",
@@ -152,7 +152,7 @@ Object {
             },
           ],
         },
-        "CidrBlock": "10.0.128.0/18",
+        "CidrBlock": "10.248.212.0/23",
         "MapPublicIpOnLaunch": false,
         "Tags": Array [
           Object {
@@ -257,7 +257,7 @@ Object {
             },
           ],
         },
-        "CidrBlock": "10.0.192.0/18",
+        "CidrBlock": "10.248.214.0/23",
         "MapPublicIpOnLaunch": false,
         "Tags": Array [
           Object {
@@ -468,7 +468,7 @@ Object {
             },
           ],
         },
-        "CidrBlock": "10.0.0.0/18",
+        "CidrBlock": "10.248.208.0/23",
         "MapPublicIpOnLaunch": true,
         "Tags": Array [
           Object {
@@ -644,7 +644,7 @@ Object {
             },
           ],
         },
-        "CidrBlock": "10.0.64.0/18",
+        "CidrBlock": "10.248.210.0/23",
         "MapPublicIpOnLaunch": true,
         "Tags": Array [
           Object {
