@@ -21,13 +21,24 @@ import {
   GuDynamoDBWritePolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 
+/**
+ * Migration steps:
+ *
+ * - ensure new stack is working okay
+ * - make DNS switch (defined in domains account)
+ * - include full definitions for adopted resources (dynamo, alarm topic) + stop
+ *   importing old template
+ * - finally delete old template + stack
+ */
 export class SecurityHQ extends GuStack {
   migratedFromCloudFormation = true;
 
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
 
-    // Import old stuff
+    // Import old stuff. Note, this template has been modified slightly to avoid
+    // a clash on the VpcId parameter - as the new service runs in a different
+    // VPC to the old.
     const template = new CfnInclude(this, `security-hq-PROD`, {
       templateFile: '../cloudformation/security-hq.template.yaml',
       parameters: {
@@ -55,12 +66,11 @@ export class SecurityHQ extends GuStack {
     const defaultChild = table.node.defaultChild as unknown as CfnElement;
     defaultChild.overrideLogicalId('SecurityHqIamDynamoTable'); */
 
+    // The new stack below...
+
     const distBucket = GuDistributionBucketParameter.getInstance(this);
 
-    // Create new ALB-based app, that will live in the new VPC. This will run
-    // simultaneously with the old service. Once confident, DNS can be switched
-    // and the old app deleted.
-    const app = new GuEc2App(this, {
+    new GuEc2App(this, {
       access: { scope: AccessScope.PUBLIC },
       app: 'security-hq',
       applicationPort: GuApplicationPorts.Play,
@@ -102,14 +112,26 @@ dpkg -i /tmp/installer.deb`,
       },
     });
 
-    // TODO replace once template deleted.
-    const alarmTopic = template.getResource('NotificationTopic') as CfnTopic;
+    // TODO replace once template deleted with commented code below.
+    const notificationTopic = template.getResource(
+      'NotificationTopic'
+    ) as CfnTopic;
+
+    /*     const notificationTopic = new GuSnsTopic(this, 'NotificationTopic', {
+      displayName: 'Security HQ notifications',
+    });
+    const emailDest = new GuParameter(this, 'CloudwatchAlarmEmailDestination', {
+      description: 'Send Security HQ cloudwatch alarms to this email address',
+    });
+    notificationTopic.addSubscription(
+      new EmailSubscription(emailDest.valueAsString)
+    ); */
 
     new GuAlarm(this, 'RemovePasswordExecutionFailureAlarm', {
       alarmName: 'Security HQ failed to remove a vulnerable password',
       alarmDescription:
         'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
-      snsTopicName: alarmTopic.topicName as string,
+      snsTopicName: notificationTopic.topicName as string,
       threshold: 1,
       evaluationPeriods: 1,
       metric: new Metric({
@@ -129,7 +151,7 @@ dpkg -i /tmp/installer.deb`,
       alarmName: 'Security HQ failed to disable a vulnerable access key',
       alarmDescription:
         'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
-      snsTopicName: alarmTopic.topicName as string,
+      snsTopicName: notificationTopic.topicName as string,
       threshold: 1,
       evaluationPeriods: 1,
       metric: new Metric({
