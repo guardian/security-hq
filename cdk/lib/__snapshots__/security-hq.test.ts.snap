@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`The Security stack matches the snapshot 1`] = `
+exports[`HQ stack matches the snapshot 1`] = `
 Object {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Centralised security reporting for AWS",
