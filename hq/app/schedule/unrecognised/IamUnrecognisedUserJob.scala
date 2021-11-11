@@ -18,9 +18,10 @@ import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
 import schedule.vulnerable.IamRemovePassword.removePasswords
 import schedule.{CronSchedules, JobRunner}
 import services.CacheService
-import utils.attempt.Attempt
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 class IamUnrecognisedUserJob(
   cacheService: CacheService,
@@ -32,7 +33,6 @@ class IamUnrecognisedUserJob(
   override val id: String = "unrecognised-iam-users"
   override val description: String = "Check for and remove unrecognised human IAM users"
   override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
-  private val topicArn: Option[String] = getAnghammaradSNSTopicArn(config)
   private val allCredsReports = cacheService.getAllCredentials
 
   def run(testMode: Boolean): Unit = {
@@ -51,7 +51,7 @@ class IamUnrecognisedUserJob(
       accountCredsReports = getCredsReportDisplayForAccount(allCredsReports)
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
       _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableUser)
-      notificationIds <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(sendNotification(_, testMode))
+      notificationIds <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(sendNotification(_, testMode, config.anghammaradSnsTopicArn))
     } yield notificationIds
     result.fold(
       { failure =>
@@ -69,17 +69,24 @@ class IamUnrecognisedUserJob(
       disableKeyResult <- disableAccessKeys(account, users, iamClients)
       removePasswordResults <- Attempt.traverse(users)(removePasswords(account, _, iamClients))
     } yield {
-      disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.map(_.getSdkResponseMetadata.getRequestId)
+      disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
+          case Some(result) => result.getSdkResponseMetadata.getRequestId
+        }
     }
   }
 
-  private def sendNotification(accountCrd: (Account, Seq[VulnerableUser]), testMode: Boolean): Attempt[String] = {
+  private def sendNotification(accountCrd: (Account, Seq[VulnerableUser]), testMode: Boolean, topicArn: String): Attempt[Option[String]] = {
     val (account, users) = accountCrd
-    val message = notification(
-      disabledUsersSubject(account),
-      disabledUsersMessage(users),
-      List(TargetAccount(account.accountNumber))
-    )
-    send(message, topicArn, snsClient, testMode)
+    if (users.isEmpty) {
+      Attempt.Right(None)
+    } else {
+      val message = notification(disabledUsersSubject(account), disabledUsersMessage(users), List(TargetAccount(account.accountNumber)))
+
+      Attempt.fromFuture(
+        send(message, topicArn, snsClient, testMode).fold(_ => None, success => Some(success))
+      ) {
+        case NonFatal(e) => FailedAttempt(Failure(e.getMessage, s"Could not send IAM unrecognised job notification", 500, None, Some(e)))
+      }
+    }
   }
 }

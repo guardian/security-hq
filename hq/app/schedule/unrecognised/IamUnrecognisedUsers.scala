@@ -41,7 +41,8 @@ object IamUnrecognisedUsers extends Logging {
     allowedAccountIds: List[String]
   ): List[(AwsAccount, List[VulnerableUser])] = {
     val unrecognisedUsers = accountCredsReports.map { case (acc, crd) => (acc, filterUnrecognisedIamUsers(crd.humanUsers, janusUsernames)) }
-    unrecognisedIamUsersInAllowedAccounts(unrecognisedUsers, allowedAccountIds)
+    val unrecognisedUsersInAllowedAccounts = filterAllowedAccounts(unrecognisedUsers, allowedAccountIds)
+    unrecognisedUsersInAllowedAccounts.filter { case (_, users) => users.nonEmpty} // remove accounts with an empty list of users
   }
 
   private def filterUnrecognisedIamUsers(iamHumanUsersWithTargetTag: Seq[HumanUser], janusUsernames: List[String]): List[VulnerableUser] =
@@ -53,7 +54,7 @@ object IamUnrecognisedUsers extends Logging {
       }
     }.map(VulnerableUser.fromIamUser).toList
 
-  private def unrecognisedIamUsersInAllowedAccounts(
+  private def filterAllowedAccounts(
     unrecognisedUsers: List[(AwsAccount, List[VulnerableUser])],
     allowedAccountIds: List[String]
   ): List[(AwsAccount, List[VulnerableUser])] = {

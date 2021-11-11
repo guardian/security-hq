@@ -49,7 +49,7 @@ class SendTestNotifications extends FreeSpec with OneAppPerSuiteWithComponents w
     .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
     .build()
 
-  private def sendTestNotification(snsClient: AmazonSNSAsync, topicArn: Option[String], notificationType: NotificationType)(implicit ec: ExecutionContext): Attempt[String] = {
+  private def sendTestNotification(snsClient: AmazonSNSAsync, topicArn: String, notificationType: NotificationType)(implicit ec: ExecutionContext): Attempt[String] = {
     val account = AwsAccount("", "Test", "", "123456")
     val users: Seq[VulnerableUser] = Seq(
       VulnerableUser(
@@ -74,21 +74,5 @@ class SendTestNotifications extends FreeSpec with OneAppPerSuiteWithComponents w
     case Warning => IamNotifications.createVulnerableCredentialsNotification(warning = true, users, account, List.empty)
     case Final => IamNotifications.createVulnerableCredentialsNotification(warning = false, users, account, List.empty)
     case Disabled => notification(disabledUsersSubject(account), disabledUsersMessage(users), List(Account(account.accountNumber)))
-  }
-
-  "Trigger real email notification to 'anghammarad.test.alerts' Google group " - {
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    "of type Warning" ignore {
-      sendTestNotification(securitySnsClient, anghammaradTopicArn, Warning).isFailedAttempt shouldBe false
-    }
-
-    "of type Final" ignore {
-      sendTestNotification(securitySnsClient, anghammaradTopicArn, Final).isFailedAttempt shouldBe false
-    }
-
-    "of type Disabled" ignore {
-      sendTestNotification(securitySnsClient, anghammaradTopicArn, Disabled).isFailedAttempt shouldBe false
-    }
   }
 }
