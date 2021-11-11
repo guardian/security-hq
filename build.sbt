@@ -80,6 +80,9 @@ lazy val hq = (project in file("hq"))
     dynamoDBLocalDownloadDir := baseDirectory.value / "test" / "jars" / "dynamodb-local",
     dynamoDBLocalDownloadUrl :=
       Some(s"https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/dynamodb_local_${dynamoDBLocalVersion.value}.tar.gz"),
+    dynamoDBLocalInMemory := false,
+    dynamoDBLocalCleanAfterStop := false,
+    dynamoDBLocalDBPath := Some(dynamoDBLocalDownloadDir.value.getPath),
     startDynamoDBLocal in Compile := startDynamoDBLocal.dependsOn(compile in Compile).value,
     run in Compile := (run in Compile).dependsOn(startDynamoDBLocal).evaluated,
     startDynamoDBLocal in Test := startDynamoDBLocal.dependsOn(compile in Test).value,
