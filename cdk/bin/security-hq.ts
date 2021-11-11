@@ -7,5 +7,5 @@ import { SecurityHQ } from '../lib/security-hq';
 import { SecurityVpc } from '../lib/security-vpc';
 
 const app = new App();
-new SecurityVpc(app, 'security-vpc', { stack: 'security ' });
+new SecurityVpc(app, 'security-vpc', { stack: 'security' });
 new SecurityHQ(app, 'security-hq', { stack: 'security' });
