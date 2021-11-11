@@ -2,7 +2,7 @@ package aws
 
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.auth.{AWSCredentialsProvider, AWSCredentialsProviderChain, STSAssumeRoleSessionCredentialsProvider}
+import com.amazonaws.auth.{AWSCredentialsProvider, AWSCredentialsProviderChain, AWSStaticCredentialsProvider, BasicAWSCredentials, STSAssumeRoleSessionCredentialsProvider}
 import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
@@ -61,7 +61,7 @@ object AWS {
           .build()
       case DEV | TEST =>
         AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
+          .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("security-hq-local-dynamo", "credentials")))
           .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region.name))
           .build()
     }

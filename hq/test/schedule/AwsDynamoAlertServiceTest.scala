@@ -17,7 +17,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
 
   private val stage = TEST
   val expectedTableName = "security-hq-iam-TEST"
-  val securityCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("dummy", "credentials"))
+  val securityCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("security-hq-local-dynamo", "credentials"))
   private val client = AWS.dynamoDbClient(securityCredentialsProvider, Regions.EU_WEST_1, stage)
 
   // Always reset our dynamo state before and after each test, so every test starts with a blank slate
@@ -35,9 +35,9 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
   }
 
   "Dynamo" - {
-    "initTable method" - {
+    "init method" - {
       "creates a table with the correct name and properties" in {
-        AwsDynamoAlertService.init(client, stage).value
+        AwsDynamoAlertService.init(client, stage, None)
 
         val tableDescription = client.describeTable(expectedTableName).getTable
         tableDescription.getAttributeDefinitions.asScala.toList shouldEqual List(new AttributeDefinition("id", ScalarAttributeType.S))
@@ -48,20 +48,20 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
       }
 
       "is idempotent - can be executed multiple times without changing the initial result or failing" in {
-        AwsDynamoAlertService.init(client, stage).value
-        AwsDynamoAlertService.init(client, stage).isFailedAttempt shouldEqual false
+        AwsDynamoAlertService.init(client, stage, None)
+        AwsDynamoAlertService.init(client, stage, None).isRight shouldEqual true
       }
 
     }
 
     "scan method" -  {
       "can scan an empty table for alerts" in {
-        val dynamo = AwsDynamoAlertService.init(client, stage).value
+        val dynamo = AwsDynamoAlertService.init(client, stage, None).right.get
         dynamo.scanAlert() shouldEqual Seq.empty
       }
 
       "can scan a non-empty table for alerts" in {
-        val dynamo = AwsDynamoAlertService.init(client, stage).value
+        val dynamo = AwsDynamoAlertService.init(client, stage, None).right.get
         val iamAuditUser = IamAuditUser(
           "accountid/username",
           "accountid",
@@ -82,7 +82,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
 
     "put and get methods" - {
       "can write and read multiple alerts" in {
-        val dynamo = AwsDynamoAlertService.init(client, stage).value
+        val dynamo = AwsDynamoAlertService.init(client, stage, None).right.get
         val iamAuditUserVulnerable = IamAuditUser(
           "accountid/username1",
           "accountid",

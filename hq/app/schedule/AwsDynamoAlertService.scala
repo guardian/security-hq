@@ -2,10 +2,10 @@ package schedule
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model._
-import model.{AwsAccount, IamAuditAlert, IamAuditNotificationType, IamAuditUser, Stage}
+import model._
 import org.joda.time.DateTime
 import play.api.Logging
-import utils.attempt.Attempt
+import utils.attempt.{FailedAttempt, Failure}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -117,19 +117,24 @@ class AwsDynamoAlertService(client: AmazonDynamoDB, table: String) extends Dynam
 }
 
 object AwsDynamoAlertService extends Logging {
-  def init(client: AmazonDynamoDB, stage: Stage)(implicit ec: ExecutionContext): Attempt[AwsDynamoAlertService] = {
-    def table = s"security-hq-iam-$stage"
-    createTableIfDoesNotExist(client, table)
-    Attempt.Right(new AwsDynamoAlertService(client, table))
-  }
 
-  private def createTableIfDoesNotExist(client: AmazonDynamoDB, table: String): Unit = {
-    if (Try(client.describeTable(table)).isFailure) {
-      logger.info(s"Creating Dynamo table $table ...")
-      createTable(client, table)
-      waitForTableToBecomeActive(client, table)
-    } else {
-      logger.info(s"Found Dynamo table $table")
+  def init(client: AmazonDynamoDB, stage: Stage, tableName: Option[String])(implicit ec: ExecutionContext): Either[FailedAttempt, AwsDynamoAlertService] = {
+    stage match {
+      case PROD =>
+        tableName.toRight(FailedAttempt(Failure(
+          "Unable to retrieve Iam Dynamo Table Name from config - check that table name is present in security-hq.conf in S3",
+          "Iam Dynamo Table Name is missing from config",
+          500))).map(new AwsDynamoAlertService(client, _))
+      case DEV | TEST =>
+        val table = s"security-hq-iam-$stage"
+        if (Try(client.describeTable(table)).isFailure) {
+          logger.info(s"Creating Dynamo table $table ...")
+          createTable(client, table)
+          waitForTableToBecomeActive(client, table)
+          Right(new AwsDynamoAlertService(client, table))
+        } else {
+          Right(new AwsDynamoAlertService(client, table))
+        }
     }
   }
 
