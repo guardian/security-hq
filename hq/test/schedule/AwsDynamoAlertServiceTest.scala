@@ -8,6 +8,7 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FreeSpec, Matchers}
 import utils.attempt.AttemptValues
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,7 +17,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeAndAfterEach with BeforeAndAfterAll with Matchers with AttributeValues {
 
   private val stage = TEST
-  val expectedTableName = "security-hq-iam-TEST"
+  val tableName = "security-hq-iam-TEST"
+  val prodTableName = "security-hq-iam-PROD"
   val securityCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("security-hq-local-dynamo", "credentials"))
   private val client = AWS.dynamoDbClient(securityCredentialsProvider, Regions.EU_WEST_1, stage)
 
@@ -30,28 +32,40 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
   }
 
   def deleteTestTable(): Unit = {
-    if( client.listTables().getTableNames.contains(expectedTableName) )
-      client.deleteTable(expectedTableName)
+    if( client.listTables().getTableNames.contains(tableName) )
+      client.deleteTable(tableName)
   }
 
   "Dynamo" - {
     "init method" - {
-      "creates a table with the correct name and properties" in {
-        AwsDynamoAlertService.init(client, stage, None)
+      "returns a valid AwsDynamoAlertService without creating a table when running in PROD" in {
+        a [ResourceNotFoundException] should be thrownBy client.describeTable(prodTableName)
 
-        val tableDescription = client.describeTable(expectedTableName).getTable
-        tableDescription.getAttributeDefinitions.asScala.toList shouldEqual List(new AttributeDefinition("id", ScalarAttributeType.S))
-        tableDescription.getKeySchema.asScala.toList shouldEqual  List(new KeySchemaElement("id", KeyType.HASH))
-        tableDescription.getProvisionedThroughput.getReadCapacityUnits shouldEqual 5
-        tableDescription.getProvisionedThroughput.getWriteCapacityUnits shouldEqual 5
-        tableDescription.getTableName shouldEqual expectedTableName
+        AwsDynamoAlertService.init(client, PROD, Some(prodTableName)) should be ('right)
+
+        a [ResourceNotFoundException] should be thrownBy client.describeTable(prodTableName)
+      }
+
+      "requires specifying the table name when running in PROD, but not in local development" in {
+        AwsDynamoAlertService.init(client, PROD, None) should be ('left)
+        AwsDynamoAlertService.init(client, PROD, Some(prodTableName)) should be ('right)
+
+        AwsDynamoAlertService.init(client, DEV, None) should be ('right)
+        AwsDynamoAlertService.init(client, TEST, None) should be ('right)
+      }
+
+      "creates the necessary table and returns a valid AwsDynamoAlertService when running locally" in {
+        a [ResourceNotFoundException] should be thrownBy client.describeTable(tableName)
+
+        AwsDynamoAlertService.init(client, stage, None) should be ('right)
+
+        noException should be thrownBy client.describeTable(tableName)
       }
 
       "is idempotent - can be executed multiple times without changing the initial result or failing" in {
-        AwsDynamoAlertService.init(client, stage, None)
-        AwsDynamoAlertService.init(client, stage, None).isRight shouldEqual true
+        AwsDynamoAlertService.init(client, stage, None) should be ('right)
+        AwsDynamoAlertService.init(client, stage, None) should be ('right)
       }
-
     }
 
     "scan method" -  {
@@ -76,7 +90,7 @@ class AwsDynamoAlertServiceTest extends FreeSpec with AttemptValues with BeforeA
         dynamo.scanAlert().headOption shouldBe Some(iamAuditUser)
 
         // clean up
-        client.deleteItem(expectedTableName, Map(("id", S(iamAuditUser.id))).asJava)
+        client.deleteItem(tableName, Map(("id", S(iamAuditUser.id))).asJava)
       }
     }
 
