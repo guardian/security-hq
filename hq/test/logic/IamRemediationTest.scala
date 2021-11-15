@@ -29,4 +29,24 @@ class IamRemediationTest extends FreeSpec with Matchers {
       getCredsReportDisplayForAccount(accountCredsAllRight) should have length 3
     }
   }
+
+  "identifyUsersWithOutdatedCredentials" - {
+    "TODO" ignore {}
+  }
+
+  "calculateOutstandingOperations" - {
+    "TODO" ignore {}
+  }
+
+  "partitionOperationsByAllowedAccounts" - {
+    "TODO" ignore {}
+  }
+
+  "lookupCredentialId" - {
+    "TODO" ignore {}
+  }
+
+  "formatRemediationOperation" - {
+    "TODO" ignore {}
+  }
 }

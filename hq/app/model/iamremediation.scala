@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 /**
   * Description of an IAM user with the remediation activity SHQ has previously performed for that user.
   */
-case class RemediationHistory(
+case class IamUserRemediationHistory(
   awsAccount: AwsAccount,
   iamUser: IAMUser,
   activityHistory: List[IamRemediationActivity],
@@ -15,12 +15,14 @@ case class RemediationHistory(
 /**
   * An IAM remediation operation that was performed in the past.
   *
+  * This case class is used as a database record.
+  *
   * These DB records are to keep track of whether users have been notified about IAM problems
   * ahead of SHQ's automatic interventions.
   */
 case class IamRemediationActivity(
-  // in the DB, primary key is a composite, equal to s"$awsAccount/$username"
-  awsAccount: String,
+  // in the DB, primary key is a composite, equal to s"$awsAccountId/$username"
+  awsAccountId: String,
   username: String,
   dateNotificationSent: DateTime, // range key in the DB
   iamRemediationActivityType: IamRemediationActivityType,
@@ -29,10 +31,10 @@ case class IamRemediationActivity(
 )
 
 /**
-  * Represents an operation yet to be performed.
+  * Represents a potential remediation operation
   */
 case class RemediationOperation(
-  vulnerableCandidate: RemediationHistory,
+  vulnerableCandidate: IamUserRemediationHistory,
   iamRemediationActivityType: IamRemediationActivityType,
   iamProblem: IamProblem,
   problemCreationDate: DateTime,

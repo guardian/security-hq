@@ -19,7 +19,6 @@ object S3 {
           "unable to get S3 object for the unrecognised user job",
           "I haven't been able to get the S3 object for the unrecognised user job, which contains the Janus data",
           500,
-          context = Some(e.getMessage),
           throwable = Some(e)
         )))
     }
