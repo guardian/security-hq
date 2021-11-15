@@ -94,10 +94,10 @@ class AppComponents(context: Context)
 
   private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region, stage)
   val iamDynamoDbTableName = Config.getIamDynamoTableName(configuration)
-val dynamo =
-  AwsDynamoAlertService.init(dynamoDbClient, stage, iamDynamoDbTableName) match {
-    case Right(dynamoAlertService) => dynamoAlertService
-    case Left(failedAttempt) => throw new Exception(failedAttempt.failures.map(_.message).mkString(","))
+  val dynamo =
+    AwsDynamoAlertService.init(dynamoDbClient, stage, iamDynamoDbTableName) match {
+      case Right(dynamoAlertService) => dynamoAlertService
+      case Left(failedAttempt) => throw new Exception(failedAttempt.failures.map(_.message).mkString(","))
   }
 
   private val cacheService = new CacheService(
