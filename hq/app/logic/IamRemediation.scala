@@ -1,8 +1,7 @@
 package logic
 
-import com.gu.anghammarad.models.Notification
 import db.IamRemediationDb
-import model.iamremediation.{CredentialMetadata, IamProblem, IamRemediationActivityType, PartitionedRemediationOperations, RemediationHistory, RemediationOperation}
+import model.iamremediation.{CredentialMetadata, PartitionedRemediationOperations, IamUserRemediationHistory, RemediationOperation}
 import model.{AwsAccount, CredentialReportDisplay, IAMUser}
 import org.joda.time.DateTime
 import play.api.Logging
@@ -28,39 +27,55 @@ object IamRemediation extends Logging {
   }
 
   /**
-    * Look through all the credentials reports to
+    * Look through all credentials reports to find users with expired credentials,
+    * see below for more detail (`identifyUsersWithOutdatedCredentials`).
     */
-  def identifyAllUsersWithOutdatedCredentials(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)]): List[(AwsAccount, List[IAMUser])] = {
+  def identifyAllUsersWithOutdatedCredentials(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)], now: DateTime): List[(AwsAccount, List[IAMUser])] = {
     accountCredentialReports.map { case (awsAccount, credentialReport) =>
-      (awsAccount, identifyUsersWithOutdatedCredentials(awsAccount, credentialReport))
+      (awsAccount, identifyUsersWithOutdatedCredentials(awsAccount, credentialReport, now))
     }
   }
 
-  def identifyUsersWithOutdatedCredentials(awsAccount: AwsAccount, credentialReportDisplay: CredentialReportDisplay): List[IAMUser] = {
+  /**
+    * Looks through the credentials report to identify users with Access Keys that are older than we allow.
+    */
+  def identifyUsersWithOutdatedCredentials(awsAccount: AwsAccount, credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
     ???
   }
 
   /**
     * Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
     */
-  def lookupActivityHistory(accountIdentifiedUsers: List[(AwsAccount, List[IAMUser])], dynamo: IamRemediationDb)(implicit ec: ExecutionContext): Attempt[List[RemediationHistory]] = {
-    Attempt.traverse(accountIdentifiedUsers) { case (awsAccount, identifiedUsers) =>
-      Attempt.traverse(identifiedUsers) { identifiedUser =>
-        dynamo.lookupIamUserNotifications(identifiedUser, awsAccount).map { userActivityHistory =>
-          RemediationHistory(awsAccount, identifiedUser, userActivityHistory)
+  def lookupActivityHistory(accountIdentifiedUsers: List[(AwsAccount, List[IAMUser])], dynamo: IamRemediationDb)(implicit ec: ExecutionContext): Attempt[List[IamUserRemediationHistory]] = {
+    for {
+      remediationHistoryByAccount <- Attempt.traverse(accountIdentifiedUsers) { case (awsAccount, identifiedUsers) =>
+        // for each account with vulnerable user(s), do a DB lookup for each identified user to get activity history
+        Attempt.traverse(identifiedUsers) { identifiedUser =>
+          dynamo.lookupIamUserNotifications(identifiedUser, awsAccount).map { userActivityHistory =>
+            IamUserRemediationHistory(awsAccount, identifiedUser, userActivityHistory)
+          }
         }
       }
-    }.map(_.flatten)
+    } yield {
+      // no need to have these separated by account any more
+      remediationHistoryByAccount.flatten
+    }
   }
 
   /**
     * Looks through the candidates with their remediation history to decide what work needs to be done.
+    *
+    * By comparing the current date with
     */
-  def calculateOutstandingOperations(remediationHistory: List[RemediationHistory]): List[RemediationOperation] = {
+  def calculateOutstandingOperations(remediationHistory: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = {
     ???
   }
 
-  def partitionOperationsByAllowedAccounts(operations: List[RemediationOperation]): PartitionedRemediationOperations = {
+  /**
+    * To prevent non-PROD application instances from making changes to production AWS accounts, SHQ is
+    * configured with a list of the AWS accounts that this instance is allowed to affect.
+    */
+  def partitionOperationsByAllowedAccounts(operations: List[RemediationOperation], allowedAwsAccountIds: List[String]): PartitionedRemediationOperations = {
     ???
   }
 
@@ -69,7 +84,7 @@ object IamRemediation extends Logging {
     * From the full metadata for all a user's keys, we can look up the AccessKey's ID by comparing the
     * creation dates with the key we are expecting.
     *
-    * This might fail, because it may be that no matchign key exists.
+    * This might fail, because it may be that no matching key exists.
     */
   def lookupCredentialId(badKeyCreationDate: DateTime, userCredentials: List[CredentialMetadata]): Attempt[CredentialMetadata] = {
     ???

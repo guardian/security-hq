@@ -6,7 +6,7 @@ import utils.attempt.{FailedAttempt, Failure}
 
 
 class IamRemediationTest extends FreeSpec with Matchers {
-   "getCredsReportDisplayForAccount" - {
+  "getCredsReportDisplayForAccount" - {
     val failedAttempt: FailedAttempt = FailedAttempt(Failure("error", "error", 500))
 
     "if the either is a left, an empty list is output" in {
@@ -28,5 +28,25 @@ class IamRemediationTest extends FreeSpec with Matchers {
       val accountCredsAllRight = Map(1 -> Right(1), 2 -> Right(2), 3 -> Right(3))
       getCredsReportDisplayForAccount(accountCredsAllRight) should have length 3
     }
+  }
+
+  "identifyUsersWithOutdatedCredentials" - {
+    "TODO" ignore {}
+  }
+
+  "calculateOutstandingOperations" - {
+    "TODO" ignore {}
+  }
+
+  "partitionOperationsByAllowedAccounts" - {
+    "TODO" ignore {}
+  }
+
+  "lookupCredentialId" - {
+    "TODO" ignore {}
+  }
+
+  "formatRemediationOperation" - {
+    "TODO" ignore {}
   }
 }

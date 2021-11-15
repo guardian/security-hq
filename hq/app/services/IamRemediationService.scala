@@ -7,9 +7,9 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import config.Config.getAllowedAccountsForStage
 import db.IamRemediationDb
 import logic.IamRemediation._
-import model.AwsAccount
 import model.iamremediation._
-import notifications.{AnghammaradNotifications, IamRemediationNotifications}
+import notifications.AnghammaradNotifications
+import org.joda.time.DateTime
 import play.api.{Configuration, Logging}
 import utils.attempt.Attempt
 
@@ -39,6 +39,7 @@ class IamRemediationService(
     * After both these notifications have been ignored, the credential will be automatically disabled.
     */
   def disableOutdatedCredentials()(implicit ec: ExecutionContext): Attempt[Unit] = {
+    val now = new DateTime()
     val result = for {
       // lookup essential configuration
       allowedAwsAccountIds <- getAllowedAccountsForStage(config) // this tells us which AWS accounts we are allowed to make changes to
@@ -46,13 +47,13 @@ class IamRemediationService(
       rawCredsReports = cacheService.getAllCredentials
       accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
       // identify users with outdated credentials for each account, from the credentials report
-      accountUsersWithOutdatedCredentials = identifyAllUsersWithOutdatedCredentials(accountsCredReports)
+      accountUsersWithOutdatedCredentials = identifyAllUsersWithOutdatedCredentials(accountsCredReports, now)
       // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
       vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(accountUsersWithOutdatedCredentials, dynamo)
       // based on activity history, decide which of these candidates have outstanding SHQ operations
-      outstandingOperations = calculateOutstandingOperations(vulnerabilitiesWithRemediationHistory)
-      // we'll only perform operations on "allowlisted" accounts
-      filteredOperations = partitionOperationsByAllowedAccounts(outstandingOperations)
+      outstandingOperations = calculateOutstandingOperations(vulnerabilitiesWithRemediationHistory, now)
+      // we'll only perform operations on accounts that have been configured as eligible
+      filteredOperations = partitionOperationsByAllowedAccounts(outstandingOperations, allowedAwsAccountIds)
       // we won't execute these operations, but can log them instead
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
@@ -102,45 +103,70 @@ class IamRemediationService(
     * - disable an IAM credential and send a notification that this has been done
     * - remove an IAM password and send a notification that this has been done
     */
-  def performRemediationOperation(remediationOperation: RemediationOperation)(implicit ec: ExecutionContext): Attempt[String] = {
+  def performRemediationOperation(remediationOperation: RemediationOperation, now: DateTime)(implicit ec: ExecutionContext): Attempt[String] = {
     val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
     val iamUser = remediationOperation.vulnerableCandidate.iamUser
     val problemCreationDate = remediationOperation.problemCreationDate
+    // if successful, this record will be added to the database
+    val thisRemediationActivity = IamRemediationActivity(
+      awsAccount.id,
+      iamUser.username,
+      now,
+      remediationOperation.iamRemediationActivityType,
+      remediationOperation.iamProblem,
+      remediationOperation.problemCreationDate
+    )
 
     (remediationOperation.iamRemediationActivityType, remediationOperation.iamProblem) match {
     // Outdated credentials
       case (Warning, OutdatedCredential) =>
-        val notification = IamRemediationNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate)
-        AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        val notification = AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate)
+        for {
+          snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
+        } yield snsId
 
       case (FinalWarning, OutdatedCredential) =>
-        val notification = IamRemediationNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate)
-        AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        val notification = AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate)
+        for {
+          snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
+        } yield snsId
 
       case (Remediation, OutdatedCredential) =>
-        val notification = IamRemediationNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
+        val notification = AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
         for {
           // disable the correct credential
           userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
           credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
           _ <- IAMClient.disableAccessKey(awsAccount, credentialToDisable.username, credentialToDisable.accessKeyId, iamClients)
+          // send a notification to say this is what we have done
           notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          // save a record of the change
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
         } yield notificationId
 
     // passwords without MFA
       case (Warning, PasswordMissingMFA) =>
-        val notification = IamRemediationNotifications.passwordWithoutMfaWarning(awsAccount, iamUser, problemCreationDate)
-        AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        val notification = AnghammaradNotifications.passwordWithoutMfaWarning(awsAccount, iamUser, problemCreationDate)
+        for {
+          snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
+        } yield snsId
 
       case (FinalWarning, PasswordMissingMFA) =>
-        val notification = IamRemediationNotifications.passwordWithoutMfaFinalWarning(awsAccount, iamUser, problemCreationDate)
-        AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        val notification = AnghammaradNotifications.passwordWithoutMfaFinalWarning(awsAccount, iamUser, problemCreationDate)
+        for {
+          snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
+        } yield snsId
 
       case (Remediation, PasswordMissingMFA) =>
-        val notification = IamRemediationNotifications.passwordWithoutMfaRemediation(awsAccount, iamUser, problemCreationDate)
+        val notification = AnghammaradNotifications.passwordWithoutMfaRemediation(awsAccount, iamUser, problemCreationDate)
         for {
           // TODO: add functionality to disable the user's password when we implement this job
           notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
         } yield notificationId
     }
   }

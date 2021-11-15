@@ -27,18 +27,7 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
     ???
   }
 
-  private def lookupScanRequest(username: String, accountId: String): ScanRequest = {
-    ???
-  }
-
-  private def writePutRequest(iamRemediationActivity: IamRemediationActivity): PutItemRequest = {
-    ???
-  }
-
-  /**
-    * Attempts to turn the database result into our case class
-    */
-  private def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue]): Attempt[IamRemediationActivity] = {
+  private def scan(request: ScanRequest)(implicit ec: ExecutionContext): Attempt[List[Map[String, AttributeValue]]] = {
     ???
   }
 
@@ -48,10 +37,10 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
     } catch {
       case NonFatal(e) =>
         Attempt.Left(
-          Failure(s"unable to get item from dynamoDB table",
+          Failure(
+            s"unable to get item from dynamoDB table",
             s"I haven't been able to get the item you were looking for from the dynamo table for the vulnerable user job",
             500,
-            context = Some(e.getMessage),
             throwable = Some(e)
           )
         )
@@ -67,7 +56,6 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
           Failure(s"unable to put item to dynamoDB table",
             s"I haven't been able to put the item into the dynamo table for the vulnerable user job",
             500,
-            context = Some(e.getMessage),
             throwable = Some(e)
           )
         )
@@ -80,4 +68,21 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
   private def N(number: Double) = new AttributeValue().withN(number.toString)
   private def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
   private def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
+}
+
+object IamRemediationDb {
+  private[db] def lookupScanRequest(username: String, accountId: String): ScanRequest = {
+    ???
+  }
+
+  private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity): PutItemRequest = {
+    ???
+  }
+
+  /**
+    * Attempts to deserialise a database query result into our case class.
+    */
+  private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue]): Attempt[IamRemediationActivity] = {
+    ???
+  }
 }
