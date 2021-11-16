@@ -57,7 +57,7 @@ class IamRemediationService(
       // we won't execute these operations, but can log them instead
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
-      results <- Attempt.traverse(filteredOperations.allowedOperations)(performRemediationOperation)
+      results <- Attempt.traverse(filteredOperations.allowedOperations)(performRemediationOperation(_, now))
     } yield results
     result.tap {
       case Left(failedAttempt) =>
