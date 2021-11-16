@@ -71,11 +71,11 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
 }
 
 object IamRemediationDb {
-  private[db] def lookupScanRequest(username: String, accountId: String): ScanRequest = {
+  private[db] def lookupScanRequest(username: String, accountId: String, tableName: String): ScanRequest = {
     ???
   }
 
-  private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity): PutItemRequest = {
+  private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity, tableName: String): PutItemRequest = {
     ???
   }
 
