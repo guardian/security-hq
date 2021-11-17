@@ -24,8 +24,7 @@ object IamDisableAccessKeys extends Logging {
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResult]] = {
     val result = for {
       accessKeys <- listAccountAccessKeys(account, vulnerableUsers, iamClients)
-      outdatedAccessKeys = getOutdatedKeys(accessKeys)
-      updateAccessKeyRequests = outdatedAccessKeys.map(updateAccessKeyRequest)
+      updateAccessKeyRequests = accessKeys.map(updateAccessKeyRequest)
       client <- iamClients.get(account, SOLE_REGION)
       updateAccessKeyResults <- Attempt.traverse(updateAccessKeyRequests)(req => handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(req)))
     } yield updateAccessKeyResults
@@ -42,7 +41,6 @@ object IamDisableAccessKeys extends Logging {
     result
   }
 
-  private def getOutdatedKeys(keys: List[VulnerableAccessKey]): List[VulnerableAccessKey] = keys.filter(isOutdated)
   private def updateAccessKeyRequest(key: VulnerableAccessKey): UpdateAccessKeyRequest = {
     new UpdateAccessKeyRequest()
       .withUserName(key.username)
