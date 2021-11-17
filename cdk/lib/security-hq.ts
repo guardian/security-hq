@@ -98,8 +98,7 @@ export class SecurityHQ extends GuStack {
         CODE: { minimumInstances: 1 },
         PROD: { minimumInstances: 1 },
       },
-      userData: `
-#!/bin/bash -ev
+      userData: `#!/bin/bash -ev
 # setup security-hq
 mkdir -p /etc/gu
 
