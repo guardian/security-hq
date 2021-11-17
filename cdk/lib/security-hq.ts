@@ -4,7 +4,12 @@ import {
   TreatMissingData,
 } from '@aws-cdk/aws-cloudwatch';
 import type { CfnTable } from '@aws-cdk/aws-dynamodb';
-import { InstanceClass, InstanceSize, InstanceType } from '@aws-cdk/aws-ec2';
+import {
+  InstanceClass,
+  InstanceSize,
+  InstanceType,
+  Peer,
+} from '@aws-cdk/aws-ec2';
 import type { CfnTopic } from '@aws-cdk/aws-sns';
 import { CfnInclude } from '@aws-cdk/cloudformation-include';
 import { Duration } from '@aws-cdk/core';
@@ -70,8 +75,17 @@ export class SecurityHQ extends GuStack {
 
     const distBucket = GuDistributionBucketParameter.getInstance(this);
 
+    // TODO replace with config repo once token access for GHA is sorted
+    // (https://trello.com/c/zhdgXpmk/903-allow-github-actions-to-clone-private-infrastructure-config).
+    const accessRestrictionCidr = template.getParameter(
+      'AccessRestrictionCidr'
+    ).valueAsString;
+
     new GuEc2App(this, {
-      access: { scope: AccessScope.PUBLIC },
+      access: {
+        scope: AccessScope.RESTRICTED,
+        cidrRanges: [Peer.ipv4(accessRestrictionCidr)],
+      },
       app: 'security-hq',
       applicationPort: GuApplicationPorts.Play,
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
