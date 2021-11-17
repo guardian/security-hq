@@ -141,8 +141,9 @@ dpkg -i /tmp/installer.deb`,
       new EmailSubscription(emailDest.valueAsString)
     ); */
 
-    new GuAlarm(this, 'RemovePasswordExecutionFailureAlarm', {
-      alarmName: 'Security HQ failed to remove a vulnerable password',
+    new GuAlarm(this, 'RemovePasswordFailureAlarm', {
+      alarmName:
+        'Security HQ failed to remove a vulnerable password (new stack)',
       alarmDescription:
         'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
       snsTopicName: notificationTopic.topicName as string,
@@ -161,8 +162,9 @@ dpkg -i /tmp/installer.deb`,
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
 
-    new GuAlarm(this, 'DisableAccessKeyExecutionFailureAlarm', {
-      alarmName: 'Security HQ failed to disable a vulnerable access key',
+    new GuAlarm(this, 'DisableAccessKeyFailureAlarm', {
+      alarmName:
+        'Security HQ failed to disable a vulnerable access key (new stack)',
       alarmDescription:
         'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
       snsTopicName: notificationTopic.topicName as string,
