@@ -51,8 +51,7 @@ export class SecurityHQ extends GuStack {
       },
     });
 
-    // Import the existing template, though note we have removed some
-    // overlapping resources - such as the stage parameter.
+    // Import the existing Dynamo table.
     const cfnTable = template.getResource(
       'SecurityHqIamDynamoTable'
     ) as CfnTable;
