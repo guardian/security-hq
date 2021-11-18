@@ -10,17 +10,21 @@ import {
   InstanceType,
   Peer,
 } from '@aws-cdk/aws-ec2';
+import type { CfnLoadBalancer } from '@aws-cdk/aws-elasticloadbalancing';
 import type { CfnTopic } from '@aws-cdk/aws-sns';
 import { CfnInclude } from '@aws-cdk/cloudformation-include';
 import { Duration } from '@aws-cdk/core';
 import type { App } from '@aws-cdk/core';
 import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
+import { Stage } from '@guardian/cdk/lib/constants/stage';
 import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
 import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
 import {
   GuDistributionBucketParameter,
   GuStack,
 } from '@guardian/cdk/lib/constructs/core';
+import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
+import { GuCname } from '@guardian/cdk/lib/constructs/dns';
 import {
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
@@ -36,6 +40,10 @@ import {
  * - finally delete old template + stack
  */
 export class SecurityHQ extends GuStack {
+  private static app: AppIdentity = {
+    app: 'security-hq',
+  };
+
   migratedFromCloudFormation = true;
 
   constructor(scope: App, id: string, props: GuStackProps) {
@@ -80,6 +88,11 @@ export class SecurityHQ extends GuStack {
       'AccessRestrictionCidr'
     ).valueAsString;
 
+    const domainNames = {
+      [Stage.CODE]: { domainName: 'security-hq.code.dev-gutools.co.uk' },
+      [Stage.PROD]: { domainName: 'security-hq.gutools.co.uk' },
+    };
+
     new GuEc2App(this, {
       access: {
         scope: AccessScope.RESTRICTED,
@@ -88,10 +101,7 @@ export class SecurityHQ extends GuStack {
       app: 'security-hq',
       applicationPort: GuApplicationPorts.Play,
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
-      certificateProps: {
-        PROD: { domainName: 'security-hq.gutools.co.uk' },
-        CODE: { domainName: 'security-hq.code.dev-gutools.co.uk' }, // Note, Security HQ does not in fact have a CODE stage.
-      },
+      certificateProps: domainNames,
       monitoringConfiguration: { noMonitoring: true },
       scaling: {
         CODE: { minimumInstances: 1 },
@@ -118,6 +128,16 @@ dpkg -i /tmp/installer.deb`,
       },
     });
 
+    // TODO reduce TTL and point to new ALB after going live.
+    const oldElb = template.getResource('LoadBalancer') as CfnLoadBalancer;
+
+    new GuCname(this, 'security-hq.gutools.co.uk', {
+      app: SecurityHQ.app.app,
+      domainNameProps: domainNames,
+      ttl: Duration.hours(1),
+      resourceRecord: oldElb.attrDnsName,
+    });
+
     // TODO replace once template deleted with commented code below.
     const notificationTopic = template.getResource(
       'NotificationTopic'
@@ -134,6 +154,7 @@ dpkg -i /tmp/installer.deb`,
     ); */
 
     new GuAlarm(this, 'RemovePasswordFailureAlarm', {
+      app: SecurityHQ.app.app,
       alarmName:
         'Security HQ failed to remove a vulnerable password (new stack)',
       alarmDescription:
@@ -155,6 +176,7 @@ dpkg -i /tmp/installer.deb`,
     });
 
     new GuAlarm(this, 'DisableAccessKeyFailureAlarm', {
+      app: SecurityHQ.app.app,
       alarmName:
         'Security HQ failed to disable a vulnerable access key (new stack)',
       alarmDescription:
