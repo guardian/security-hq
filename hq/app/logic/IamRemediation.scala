@@ -92,7 +92,8 @@ object IamRemediation extends Logging {
     * configured with a list of the AWS accounts that this instance is allowed to affect.
     */
   def partitionOperationsByAllowedAccounts(operations: List[RemediationOperation], allowedAwsAccountIds: List[String]): PartitionedRemediationOperations = {
-    ???
+    val (allowed, forbidden) = operations.partition(remediationOperation => allowedAwsAccountIds.contains(remediationOperation.vulnerableCandidate.awsAccount.id))
+    PartitionedRemediationOperations(allowed, forbidden)
   }
 
   /**
