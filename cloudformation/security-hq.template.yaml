@@ -15,7 +15,7 @@ Metadata:
     - Label:
         default: Networking
       Parameters:
-      - VpcId
+      - OldVpcId
       - Subnets
       - TLSCertArn
 
@@ -23,7 +23,7 @@ Parameters:
   SecurityHQSourceBundleBucket:
     Type: String
     Description: S3 bucket containing Security HQ's source bundle
-  VpcId:
+  OldVpcId:
     Type: AWS::EC2::VPC::Id
     Description: ID of the VPC Security HQ will run in
   Subnets:
@@ -236,7 +236,7 @@ Resources:
     Properties:
       GroupDescription: HTTP access to the load balancer from within the Guardian (for now)
       VpcId:
-        Ref: VpcId
+        Ref: OldVpcId
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 443
@@ -298,7 +298,7 @@ Resources:
     Properties:
       GroupDescription: security-hq instance
       VpcId:
-        Ref: VpcId
+        Ref: OldVpcId
       SecurityGroupIngress:
         # allow ELB to talk to instance
       - IpProtocol: tcp
