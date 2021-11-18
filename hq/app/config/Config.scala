@@ -1,16 +1,15 @@
 package config
 
-import java.io.FileInputStream
 import com.amazonaws.regions.Regions
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import model._
-import org.apache.commons.lang3.exception.ExceptionContext
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
+import java.io.FileInputStream
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -19,7 +18,6 @@ import scala.util.Try
 object Config {
   val iamHumanUserRotationCadence: Long = 90
   val iamMachineUserRotationCadence: Long = 365
-  val iamAlertCadence: Int = 21
   val daysBetweenWarningAndFinalNotification = 21
   val daysBetweenFinalNotificationAndRemediation = 7
 
