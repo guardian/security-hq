@@ -1,8 +1,9 @@
 package logic
 
+import config.Config
 import db.IamRemediationDb
-import model.iamremediation.{CredentialMetadata, PartitionedRemediationOperations, IamUserRemediationHistory, RemediationOperation}
-import model.{AwsAccount, CredentialReportDisplay, IAMUser}
+import model.iamremediation.{CredentialMetadata, IamUserRemediationHistory, PartitionedRemediationOperations, RemediationOperation}
+import model.{AccessKey, AccessKeyEnabled, AwsAccount, CredentialReportDisplay, IAMUser}
 import org.joda.time.DateTime
 import play.api.Logging
 import utils.attempt.{Attempt, FailedAttempt}
@@ -40,8 +41,23 @@ object IamRemediation extends Logging {
     * Looks through the credentials report to identify users with Access Keys that are older than we allow.
     */
   def identifyUsersWithOutdatedCredentials(awsAccount: AwsAccount, credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
-    ???
+    credentialReportDisplay.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2), now)).toList ++
+      credentialReportDisplay.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2), now))
   }
+
+  private def hasOutdatedHumanKey(keys: List[AccessKey], now: DateTime): Boolean = keys.exists { key =>
+      key.lastRotated.exists { date =>
+        // using minus 1 so that we return true if the last rotated date is exactly on the cadence date
+        date.isBefore(now.minusDays(Config.iamHumanUserRotationCadence.toInt - 1))
+      } && key.keyStatus == AccessKeyEnabled
+    }
+
+  private def hasOutdatedMachineKey(keys: List[AccessKey], now: DateTime): Boolean = keys.exists { key =>
+      key.lastRotated.exists { date =>
+        // using minus 1 so that we return true if the last rotated date is exactly on the cadence date
+        date.isBefore(now.minusDays(Config.iamMachineUserRotationCadence.toInt - 1))
+      } && key.keyStatus == AccessKeyEnabled
+    }
 
   /**
     * Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
