@@ -98,36 +98,37 @@ class IamRemediationTest extends FreeSpec with Matchers {
     "if allowedAccounts is empty" - {
       val allowedAccounts = Nil
       "then all operations are not allowed" in {
-        val result = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
-        result shouldEqual operations
+        val forbidden = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+        forbidden shouldEqual operations
       }
       "then allowed operations is empty" in {
-        val result = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
-        result shouldEqual Nil
+        val allowed = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
+        allowed shouldEqual Nil
       }
 
       "if there is one allowed account provided" - {
         val allowedAccounts = List("a")
-        "allowed operations matches provided allowed account" in {
-          val result = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
-          result shouldEqual List(operationsForAccountA)
+        "then all operations that don't match provided allowed account are forbidden" in {
+          val forbidden = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+          forbidden shouldEqual List(operationsForAccountB, operationsForAccountC)
         }
-        "operationsOnAccountsThatAreNotAllowed contains all operations that do not match provided allowed account" in {
-          val result = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
-          result shouldEqual List(operationsForAccountB, operationsForAccountC)
+        "then allowed operations matches provided allowed account" in {
+          val allowed = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
+          allowed shouldEqual List(operationsForAccountA)
         }
       }
 
       "if multiple allowed accounts are provided" - {
         val allowedAccounts = List("a", "b")
-        "matching operations are allowed" in {
-          val result = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
-          result shouldEqual List(operationsForAccountA, operationsForAccountB)
+        "then all operations that don't match any allowed accounts are forbidden" in {
+          val forbidden = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+          forbidden shouldEqual List(operationsForAccountC)
         }
-        "operations that don't match any account are forbidden" in {
-          val result = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
-          result shouldEqual List(operationsForAccountC)
+        "then matching operations are allowed" in {
+          val allowed = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
+          allowed shouldEqual List(operationsForAccountA, operationsForAccountB)
         }
+
       }
 
     }
