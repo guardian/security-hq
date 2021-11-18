@@ -134,7 +134,7 @@ dpkg -i /tmp/installer.deb`,
     new GuCname(this, 'security-hq.gutools.co.uk', {
       app: SecurityHQ.app.app,
       domainNameProps: domainNames,
-      ttl: Duration.hours(1),
+      ttl: Duration.minutes(1), // Temporarily low during DNS migration.
       resourceRecord: oldElb.attrDnsName,
     });
 

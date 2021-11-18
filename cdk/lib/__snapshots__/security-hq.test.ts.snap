@@ -1953,7 +1953,7 @@ dpkg -i /tmp/installer.deb
         "Stage": Object {
           "Ref": "Stage",
         },
-        "TTL": 3600,
+        "TTL": 60,
       },
       "Type": "Guardian::DNS::RecordSet",
     },
