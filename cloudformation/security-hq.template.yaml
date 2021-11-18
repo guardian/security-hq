@@ -373,7 +373,8 @@ Resources:
       - Ref: LoadBalancer
       Tags:
       - Key: Stage
-        Value: OLD
+        Value:
+          Ref: Stage
         PropagateAtLaunch: true
       - Key: Stack
         Value:
