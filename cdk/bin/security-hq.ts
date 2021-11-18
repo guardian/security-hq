@@ -4,8 +4,6 @@
 import 'source-map-support/register';
 import { App } from '@aws-cdk/core';
 import { SecurityHQ } from '../lib/security-hq';
-import { SecurityVpc } from '../lib/security-vpc';
 
 const app = new App();
-new SecurityVpc(app, 'security-vpc', { stack: 'security' });
 new SecurityHQ(app, 'security-hq', { stack: 'security' });

@@ -27,7 +27,15 @@ There are two stacks:
     SecurityVpc - the security account VPC
     SecurityHQ - the EC2 app, load balancer, etc.
 
-Both are continuously built and deployed.
+`SecurityHQ` is continuously built and deployed, but `SecurityVpc` needs to be
+synthed locally and changes committed because it is
+['environment-aware'](https://docs.aws.amazon.com/cdk/latest/guide/environments.html).
+
+You can do this by:
+
+    $ ./script/generate security-vpc
+
+(Janus credentials for the security account are required for this to work.)
 
 As `SecurityHQ` depends on the output of `SecurityVpc`, if creating a new
 staging environment, you will need to deploy only the VPC step in Riffraff
