@@ -10,7 +10,6 @@ import {
   InstanceType,
   Peer,
 } from '@aws-cdk/aws-ec2';
-import type { CfnLoadBalancer } from '@aws-cdk/aws-elasticloadbalancing';
 import type { CfnTopic } from '@aws-cdk/aws-sns';
 import { CfnInclude } from '@aws-cdk/cloudformation-include';
 import { Duration } from '@aws-cdk/core';
@@ -93,7 +92,7 @@ export class SecurityHQ extends GuStack {
       [Stage.PROD]: { domainName: 'security-hq.gutools.co.uk' },
     };
 
-    new GuEc2App(this, {
+    const ec2App = new GuEc2App(this, {
       access: {
         scope: AccessScope.RESTRICTED,
         cidrRanges: [Peer.ipv4(accessRestrictionCidr)],
@@ -128,14 +127,11 @@ dpkg -i /tmp/installer.deb`,
       },
     });
 
-    // TODO reduce TTL and point to new ALB after going live.
-    const oldElb = template.getResource('LoadBalancer') as CfnLoadBalancer;
-
     new GuCname(this, 'security-hq.gutools.co.uk', {
       app: SecurityHQ.app.app,
       domainNameProps: domainNames,
       ttl: Duration.minutes(1), // Temporarily low during DNS migration.
-      resourceRecord: oldElb.attrDnsName,
+      resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
     });
 
     // TODO replace once template deleted with commented code below.
