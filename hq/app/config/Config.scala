@@ -123,7 +123,6 @@ object Config {
     config.getOptional[String]("snyk.ssoUrl")
   }
 
-  def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("alert.anghammaradSnsArn")
   def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
 
   def getIamUnrecognisedUserConfig(config: Configuration)(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
@@ -133,9 +132,19 @@ object Config {
       bucket <- getIamUnrecognisedUserBucket(config)
       region <- getIamUnrecognisedUserBucketRegion(config)
       securityAccount <- getSecurityAccount(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount)
+      anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount, anghammaradSnsTopicArn)
   }
 
+  def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.anghammaradSnsArn"),
+      FailedAttempt(Failure("unable to get Anghammarad topic ARN",
+        "unable to get Anghammarad topic ARN for IAM jobs",
+        500
+      ))
+    )
+  }
 
   def getAllowedAccountsForStage(config: Configuration): Attempt[List[String]] = {
     Attempt.fromOption(

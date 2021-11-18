@@ -5,10 +5,10 @@ import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{AwsAccount => _, _}
 import play.api.Logging
 import schedule.IamMessages.sourceSystem
-import utils.attempt.{Attempt, FailedAttempt}
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 
 object Notifier extends Logging {
@@ -19,30 +19,18 @@ object Notifier extends Logging {
 
   def send(
     notification: Notification,
-    topicArn: Option[String],
+    topicArn: String,
     snsClient: AmazonSNSAsync,
     testMode: Boolean
   )(implicit executionContext: ExecutionContext): Attempt[String] = {
     logger.info(s"attempting to send iam notification to topic arn: $topicArn to targets: ${notification.target}")
-    Attempt{
-      topicArn match {
-      case Some(arn) =>
-        val anghammaradNotification = {
-          if (testMode) notification.copy(target = List(Stack("testing-alerts")))
-          else notification
-        }
-        val response: Future[String] = Anghammarad.notify(anghammaradNotification, arn, snsClient)
-        response.transformWith {
-          case Success(id) =>
-            logger.info(s"Sent notification to ${anghammaradNotification.target}: $id")
-            Future(Right(id))
-          case Failure(err) =>
-            Future(Left(FailedAttempt(utils.attempt.Failure("", "", 1, None, Some(err)))))
-        }
-      case None =>
-        logger.error("Failed to send notification: no SNS topic provided")
-        Future(Left(FailedAttempt(utils.attempt.Failure("", "", 1, None, None))))
-      }
+    val anghammaradNotification = {
+      if (testMode) notification.copy(target = List(Stack("testing-alerts")))
+      else notification
+    }
+    Attempt.fromFuture(Anghammarad.notify(anghammaradNotification, topicArn, snsClient)){
+      case NonFatal(e) =>
+        FailedAttempt(Failure(e.getMessage, s"Failed to send Anghammarad notification", 500, None, Some(e)))
     }
   }
 }

@@ -362,5 +362,6 @@ case class UnrecognisedJobConfigProperties(
   janusDataFileKey: String,
   janusUserBucket: String,
   janusUserBucketRegion: Regions,
-  securityAccount: AwsAccount
+  securityAccount: AwsAccount,
+  anghammaradSnsTopicArn: String
 )
