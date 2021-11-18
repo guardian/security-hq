@@ -13,7 +13,7 @@ Object {
         "Value": "security",
       },
     },
-    "stagemapping": Object {
+    "securityhq": Object {
       "CODE": Object {
         "alarmActionsEnabled": false,
         "domainName": "security-hq.code.dev-gutools.co.uk",
@@ -169,7 +169,7 @@ Object {
         },
         "MaxSize": Object {
           "Fn::FindInMap": Array [
-            "stagemapping",
+            "securityhq",
             Object {
               "Ref": "Stage",
             },
@@ -178,7 +178,7 @@ Object {
         },
         "MinSize": Object {
           "Fn::FindInMap": Array [
-            "stagemapping",
+            "securityhq",
             Object {
               "Ref": "Stage",
             },
@@ -391,7 +391,7 @@ dpkg -i /tmp/installer.deb",
       "Properties": Object {
         "DomainName": Object {
           "Fn::FindInMap": Array [
-            "stagemapping",
+            "securityhq",
             Object {
               "Ref": "Stage",
             },
@@ -509,7 +509,7 @@ dpkg -i /tmp/installer.deb",
       "Properties": Object {
         "ActionsEnabled": Object {
           "Fn::FindInMap": Array [
-            "stagemapping",
+            "securityhq",
             Object {
               "Ref": "Stage",
             },
@@ -1385,7 +1385,7 @@ dpkg -i /tmp/installer.deb
       "Properties": Object {
         "ActionsEnabled": Object {
           "Fn::FindInMap": Array [
-            "stagemapping",
+            "securityhq",
             Object {
               "Ref": "Stage",
             },
@@ -1872,6 +1872,10 @@ dpkg -i /tmp/installer.deb
             "Key": "deregistration_delay.timeout_seconds",
             "Value": "30",
           },
+          Object {
+            "Key": "stickiness.enabled",
+            "Value": "false",
+          },
         ],
         "TargetType": "instance",
         "UnhealthyThresholdCount": 2,
@@ -1925,6 +1929,33 @@ dpkg -i /tmp/installer.deb
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
+    },
+    "securityhqgutoolscouk": Object {
+      "Properties": Object {
+        "Name": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "domainName",
+          ],
+        },
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "LoadBalancer",
+              "DNSName",
+            ],
+          },
+        ],
+        "Stage": Object {
+          "Ref": "Stage",
+        },
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
     },
   },
 }

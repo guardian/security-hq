@@ -13,11 +13,11 @@
     "lint": "eslint lib/** bin/** --ext .ts --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.127.0",
+    "@aws-cdk/assert": "1.132.0",
     "@guardian/eslint-config-typescript": "^0.7.0",
     "@types/jest": "^26.0.20",
     "@types/node": "14.14.37",
-    "aws-cdk": "1.127.0",
+    "aws-cdk": "1.132.0",
     "eslint": "^7.18.0",
     "jest": "^26.6.3",
     "prettier": "^2.2.0",
@@ -26,15 +26,15 @@
     "typescript": "~4.2.2"
   },
   "dependencies": {
-    "@aws-cdk/aws-ec2": "1.127.0",
-    "@aws-cdk/aws-cloudwatch": "1.127.0",
-    "@aws-cdk/aws-events-targets": "1.127.0",
-    "@aws-cdk/aws-iam": "1.127.0",
-    "@aws-cdk/aws-lambda": "1.127.0",
-    "@aws-cdk/aws-s3": "1.127.0",
-    "@aws-cdk/cloudformation-include": "^1.128.0",
-    "@aws-cdk/core": "1.127.0",
-    "@guardian/cdk": "27.2.0",
+    "@aws-cdk/aws-ec2": "1.132.0",
+    "@aws-cdk/aws-cloudwatch": "1.132.0",
+    "@aws-cdk/aws-events-targets": "1.132.0",
+    "@aws-cdk/aws-iam": "1.132.0",
+    "@aws-cdk/aws-lambda": "1.132.0",
+    "@aws-cdk/aws-s3": "1.132.0",
+    "@aws-cdk/cloudformation-include": "^1.132.0",
+    "@aws-cdk/core": "1.132.0",
+    "@guardian/cdk": "31.0.0",
     "source-map-support": "^0.5.16"
   }
 }
