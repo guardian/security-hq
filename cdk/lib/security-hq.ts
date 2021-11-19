@@ -1,34 +1,34 @@
-import {
+/* import {
   ComparisonOperator,
   Metric,
   TreatMissingData,
 } from '@aws-cdk/aws-cloudwatch';
-import type { CfnTable } from '@aws-cdk/aws-dynamodb';
-import {
+import type { CfnTable } from '@aws-cdk/aws-dynamodb'; */
+/* import {
   InstanceClass,
   InstanceSize,
   InstanceType,
   Peer,
-} from '@aws-cdk/aws-ec2';
+} from '@aws-cdk/aws-ec2'; */
 import type { CfnLoadBalancer } from '@aws-cdk/aws-elasticloadbalancing';
-import type { CfnTopic } from '@aws-cdk/aws-sns';
+// import type { CfnTopic } from '@aws-cdk/aws-sns';
 import { CfnInclude } from '@aws-cdk/cloudformation-include';
 import { Duration } from '@aws-cdk/core';
 import type { App } from '@aws-cdk/core';
-import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
+//import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
 import { Stage } from '@guardian/cdk/lib/constants/stage';
-import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
+// import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
 import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
 import {
-  GuDistributionBucketParameter,
+  //GuDistributionBucketParameter,
   GuStack,
 } from '@guardian/cdk/lib/constructs/core';
 import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
 import { GuCname } from '@guardian/cdk/lib/constructs/dns';
-import {
+/* import {
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
-} from '@guardian/cdk/lib/constructs/iam';
+} from '@guardian/cdk/lib/constructs/iam'; */
 
 /**
  * Migration steps:
@@ -60,9 +60,9 @@ export class SecurityHQ extends GuStack {
     });
 
     // Import the existing Dynamo table.
-    const cfnTable = template.getResource(
+    /*     const cfnTable = template.getResource(
       'SecurityHqIamDynamoTable'
-    ) as CfnTable;
+    ) as CfnTable; */
 
     // TODO use below once old template is gone instead of importing above.
     /*     const table = new Table(this, 'DynamoTable', {
@@ -80,20 +80,20 @@ export class SecurityHQ extends GuStack {
 
     // The new stack below...
 
-    const distBucket = GuDistributionBucketParameter.getInstance(this);
+    /*     const distBucket = GuDistributionBucketParameter.getInstance(this);
 
     // TODO replace with config repo once token access for GHA is sorted
     // (https://trello.com/c/zhdgXpmk/903-allow-github-actions-to-clone-private-infrastructure-config).
     const accessRestrictionCidr = template.getParameter(
       'AccessRestrictionCidr'
-    ).valueAsString;
+    ).valueAsString; */
 
     const domainNames = {
       [Stage.CODE]: { domainName: 'security-hq.code.dev-gutools.co.uk' },
       [Stage.PROD]: { domainName: 'security-hq.gutools.co.uk' },
     };
 
-    new GuEc2App(this, {
+    /*     new GuEc2App(this, {
       access: {
         scope: AccessScope.RESTRICTED,
         cidrRanges: [Peer.ipv4(accessRestrictionCidr)],
@@ -126,7 +126,7 @@ dpkg -i /tmp/installer.deb`,
           }),
         ],
       },
-    });
+    }); */
 
     // TODO reduce TTL and point to new ALB after going live.
     const oldElb = template.getResource('LoadBalancer') as CfnLoadBalancer;
@@ -139,9 +139,9 @@ dpkg -i /tmp/installer.deb`,
     });
 
     // TODO replace once template deleted with commented code below.
-    const notificationTopic = template.getResource(
+    /*     const notificationTopic = template.getResource(
       'NotificationTopic'
-    ) as CfnTopic;
+    ) as CfnTopic; */
 
     /*     const notificationTopic = new GuSnsTopic(this, 'NotificationTopic', {
       displayName: 'Security HQ notifications',
@@ -153,7 +153,7 @@ dpkg -i /tmp/installer.deb`,
       new EmailSubscription(emailDest.valueAsString)
     ); */
 
-    new GuAlarm(this, 'RemovePasswordFailureAlarm', {
+    /*     new GuAlarm(this, 'RemovePasswordFailureAlarm', {
       app: SecurityHQ.app.app,
       alarmName:
         'Security HQ failed to remove a vulnerable password (new stack)',
@@ -195,6 +195,6 @@ dpkg -i /tmp/installer.deb`,
       }),
       treatMissingData: TreatMissingData.NOT_BREACHING,
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-    });
+    }); */
   }
 }
