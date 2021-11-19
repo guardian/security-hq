@@ -8,7 +8,7 @@ import com.amazonaws.services.identitymanagement.model.{UpdateAccessKeyRequest, 
 import logging.Cloudwatch
 import logging.Cloudwatch.ReaperExecutionStatus
 import logic.VulnerableAccessKeys.isOutdated
-import model.{AwsAccount, VulnerableAccessKey, VulnerableUser}
+import model.{AccessKeyEnabled, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import play.api.Logging
 import schedule.vulnerable.IamListAccessKeys.listAccountAccessKeys
 import utils.attempt.Attempt
@@ -24,7 +24,8 @@ object IamDisableAccessKeys extends Logging {
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResult]] = {
     val result = for {
       accessKeys <- listAccountAccessKeys(account, vulnerableUsers, iamClients)
-      updateAccessKeyRequests = accessKeys.map(updateAccessKeyRequest)
+      activeAccessKeys = accessKeys.filter(_.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled)
+      updateAccessKeyRequests = activeAccessKeys.map(updateAccessKeyRequest)
       client <- iamClients.get(account, SOLE_REGION)
       updateAccessKeyResults <- Attempt.traverse(updateAccessKeyRequests)(req => handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(req)))
     } yield updateAccessKeyResults

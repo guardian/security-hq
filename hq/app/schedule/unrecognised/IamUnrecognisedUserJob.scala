@@ -8,7 +8,7 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.models.{AwsAccount => TargetAccount}
 import com.gu.janus.JanusConfig
 import config.Config.{getAnghammaradSNSTopicArn, getIamUnrecognisedUserConfig}
-import model.{CronSchedule, VulnerableUser, AwsAccount => Account}
+import model.{AccessKeyEnabled, CronSchedule, VulnerableUser, AwsAccount => Account}
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.FormerStaff.disabledUsersMessage
 import schedule.IamMessages.disabledUsersSubject
@@ -77,11 +77,15 @@ class IamUnrecognisedUserJob(
 
   private def sendNotification(accountCrd: (Account, Seq[VulnerableUser]), testMode: Boolean, topicArn: String): Attempt[Option[String]] = {
     val (account, users) = accountCrd
-    if (users.isEmpty) {
+    val usersWithAtLeastOneEnabledKeyOrHuman = users.filter( user =>
+      user.key1.keyStatus == AccessKeyEnabled ||
+        user.key2.keyStatus == AccessKeyEnabled ||
+        user.humanUser
+    )
+      if (usersWithAtLeastOneEnabledKeyOrHuman.isEmpty) {
       Attempt.Right(None)
     } else {
-      val message = notification(disabledUsersSubject(account), disabledUsersMessage(users), List(TargetAccount(account.accountNumber)))
-
+      val message = notification(disabledUsersSubject(account), disabledUsersMessage(usersWithAtLeastOneEnabledKeyOrHuman), List(TargetAccount(account.accountNumber)))
       Attempt.fromFuture(
         send(message, topicArn, snsClient, testMode).fold(_ => None, success => Some(success))
       ) {
