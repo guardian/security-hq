@@ -8,7 +8,6 @@ deployments:
     type: autoscaling
     parameters:
       bucket: security-dist
-      asgMigrationInProgress: true
     dependencies: [security-hq-cfn]
 
   security-vpc-cfn:
