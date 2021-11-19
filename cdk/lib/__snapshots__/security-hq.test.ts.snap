@@ -228,6 +228,11 @@ Object {
             "Value": "guardian/security-hq",
           },
           Object {
+            "Key": "gu:riffraff:new-asg",
+            "PropagateAtLaunch": true,
+            "Value": "true",
+          },
+          Object {
             "Key": "Name",
             "PropagateAtLaunch": true,
             "Value": "security-hq/AutoScalingGroupSecurityhq",

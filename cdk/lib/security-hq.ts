@@ -13,7 +13,7 @@ import {
 import type { CfnLoadBalancer } from '@aws-cdk/aws-elasticloadbalancing';
 import type { CfnTopic } from '@aws-cdk/aws-sns';
 import { CfnInclude } from '@aws-cdk/cloudformation-include';
-import { Duration } from '@aws-cdk/core';
+import { Duration, Tags } from '@aws-cdk/core';
 import type { App } from '@aws-cdk/core';
 import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
 import { Stage } from '@guardian/cdk/lib/constants/stage';
@@ -94,7 +94,7 @@ export class SecurityHQ extends GuStack {
       [Stage.PROD]: { domainName: 'security-hq.gutools.co.uk' },
     };
 
-    new GuEc2App(this, {
+    const ec2App = new GuEc2App(this, {
       access: {
         scope: AccessScope.RESTRICTED,
         cidrRanges: [Peer.ipv4(accessRestrictionCidr)],
@@ -157,6 +157,9 @@ dpkg -i /tmp/installer.deb`,
         ],
       },
     });
+
+    // Required to support 2 ASGs at the same time in a RR deploy.
+    Tags.of(ec2App.autoScalingGroup).add('gu:riffraff:new-asg', 'true');
 
     // TODO reduce TTL and point to new ALB after going live.
     const oldElb = template.getResource('LoadBalancer') as CfnLoadBalancer;
