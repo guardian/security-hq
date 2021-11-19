@@ -21,9 +21,8 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
+import schedule.JobScheduler
 import schedule.unrecognised.IamUnrecognisedUserJob
-import schedule.vulnerable.IamVulnerableUserJob
-import schedule.{AwsDynamoAlertService, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -116,6 +115,12 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
+
+  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, s3Clients, iamClients, configuration)
+
+  val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
+  val jobScheduler = new JobScheduler(quartzScheduler, List(unrecognisedUserJob))
+  jobScheduler.initialise()
 
   override def router: Router = new Routes(
     httpErrorHandler,
