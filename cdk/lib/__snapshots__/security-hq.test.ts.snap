@@ -2028,7 +2028,7 @@ dpkg -i /tmp/installer.deb
         "ResourceRecords": Array [
           Object {
             "Fn::GetAtt": Array [
-              "LoadBalancer",
+              "LoadBalancerSecurityhqF59D9B82",
               "DNSName",
             ],
           },
