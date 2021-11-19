@@ -12,11 +12,11 @@ import model.{AccessKeyEnabled, CronSchedule, VulnerableUser, AwsAccount => Acco
 import play.api.{Configuration, Logging}
 import schedule.IamMessages.FormerStaff.disabledUsersMessage
 import schedule.IamMessages.disabledUsersSubject
+import schedule.JobRunner
 import schedule.Notifier.{notification, send}
 import schedule.unrecognised.IamUnrecognisedUsers.{getCredsReportDisplayForAccount, getJanusUsernames, makeFile, unrecognisedUsersForAllowedAccounts}
 import schedule.vulnerable.IamDisableAccessKeys.disableAccessKeys
 import schedule.vulnerable.IamRemovePassword.removePasswords
-import schedule.{CronSchedules, JobRunner}
 import services.CacheService
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -32,7 +32,8 @@ class IamUnrecognisedUserJob(
 )(implicit executionContext: ExecutionContext) extends JobRunner with Logging {
   override val id: String = "unrecognised-iam-users"
   override val description: String = "Check for and remove unrecognised human IAM users"
-  override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
+  //override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
+  override val cronSchedule: CronSchedule = CronSchedule("0 0/15 10 ? * MON *", "Every 15 minutes from 10am until 11am, on Monday (for testing only)")
   private val allCredsReports = cacheService.getAllCredentials
 
   def run(testMode: Boolean): Unit = {
