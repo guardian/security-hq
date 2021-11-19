@@ -26,6 +26,7 @@ import {
 import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
 import { GuCname } from '@guardian/cdk/lib/constructs/dns';
 import {
+  GuAllowPolicy,
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
 } from '@guardian/cdk/lib/constructs/iam';
@@ -123,6 +124,35 @@ dpkg -i /tmp/installer.deb`,
           }),
           new GuDynamoDBWritePolicy(this, 'DynamoWrite', {
             tableName: cfnTable.tableName as string,
+          }),
+          new GuAllowPolicy(this, 'SsmCommands', {
+            resources: ['*'],
+            actions: [
+              'ec2messages:AcknowledgeMessage',
+              'ec2messages:DeleteMessage',
+              'ec2messages:FailMessage',
+              'ec2messages:GetEndpoint',
+              'ec2messages:GetMessages',
+              'ec2messages:SendReply',
+              'ssm:UpdateInstanceInformation',
+              'ssm:ListInstanceAssociations',
+              'ssm:DescribeInstanceProperties',
+              'ssm:DescribeDocumentParameters',
+              'ssmmessages:CreateControlChannel',
+              'ssmmessages:CreateDataChannel',
+              'ssmmessages:OpenControlChannel',
+              'ssmmessages:OpenDataChannel',
+            ],
+          }),
+          // Allow security HQ to assume roles in watched accounts.
+          new GuAllowPolicy(this, 'AssumeRole', {
+            resources: ['*'],
+            actions: ['sts:AssumeRole'],
+          }),
+          // Get the list of regions.
+          new GuAllowPolicy(this, 'DescribeRegions', {
+            resources: ['*'],
+            actions: ['ec2:DescribeRegions'],
           }),
         ],
       },
