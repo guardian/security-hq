@@ -4,14 +4,14 @@ import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAd
 import aws.{AwsClient, AwsClients}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.support.AWSSupportAsync
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model._
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Success, Try}
 
 object TrustedAdvisorS3 {
   private val S3_Bucket_Permissions = "Pfx0RwqBli"
@@ -31,25 +31,26 @@ object TrustedAdvisorS3 {
 
 //  When you use server-side encryption, Amazon S3 encrypts an object before saving
 //  it to disk in its data centers and decrypts it when you download the object
-  private def addEncryptionStatus(bucket: BucketDetail, client: AwsClient[AmazonS3])(implicit ec: ExecutionContext): BucketDetail = {
+  private def addEncryptionStatus(bucket: BucketDetail, account: AwsAccount, clients: AwsClients[AmazonS3])(implicit ec: ExecutionContext): Attempt[BucketDetail] = {
     // If there is no bucket encryption, AWS returns an error...
     // Assume bucket is not encrypted if we cannot successfully getBucketEncryption
-    try {
-      client.client.getBucketEncryption(bucket.bucketName)
-      bucket.copy(isEncrypted = true)
-    } catch {
-        case e: AmazonS3Exception => {
-          bucket
-        }
+    val attemptFindEncryptionStatus = for {
+      region <- Try(Regions.fromName(bucket.region))
+      encryptionStatus <- Try(clients.get(account, region).map(_.client.getBucketEncryption(bucket.bucketName)))
+    } yield encryptionStatus
+
+    attemptFindEncryptionStatus match {
+      // If we fail to retrieve the correct client, then assume no encryption
+      case Success(attempt) => Attempt.Async.Right(attempt.fold(_ => bucket, _ => bucket.copy(isEncrypted = true)))
+      case scala.util.Failure(_) => Attempt.Right(bucket)
     }
   }
 
   private def publicBucketsForAccount(account: AwsAccount, taClients: AwsClients[AWSSupportAsync], s3Clients: AwsClients[AmazonS3])(implicit ec: ExecutionContext): Attempt[List[BucketDetail]] = {
     for {
       supportClient <- taClients.get(account)
-      s3Client <- s3Clients.get(account, Regions.US_EAST_1)
       bucketResult <- getBucketReport(supportClient)
-      enhancedBuckets = bucketResult.flaggedResources.map(addEncryptionStatus(_, s3Client))
+      enhancedBuckets <- Attempt.traverse(bucketResult.flaggedResources)(addEncryptionStatus(_, account, s3Clients))
     } yield enhancedBuckets
   }
 
@@ -72,7 +73,7 @@ object TrustedAdvisorS3 {
         }
       case metadata =>
         Attempt.Left {
-          Failure(s"Could not parse S3 Bucket report from TrustedAdvisorResourceDetail with metadata $metadata", "Could not parse public S3 Buckets", 500).attempt
+          utils.attempt.Failure(s"Could not parse S3 Bucket report from TrustedAdvisorResourceDetail with metadata $metadata", "Could not parse public S3 Buckets", 500).attempt
         }
     }
   }
