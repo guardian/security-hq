@@ -133,6 +133,11 @@ dpkg -i /tmp/installer.deb`,
             resources: ['*'],
             actions: ['ec2:DescribeRegions'],
           }),
+          // Allow security HQ to post metrics to cloudwatch
+          new GuAllowPolicy(this, 'CloudwatchPutMetric', {
+            resources: ['*'],
+            actions: ['cloudwatch:PutMetricData'],
+          }),
         ],
       },
     });
