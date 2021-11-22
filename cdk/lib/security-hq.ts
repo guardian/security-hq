@@ -28,6 +28,7 @@ import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
+  GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 
