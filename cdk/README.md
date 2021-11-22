@@ -9,16 +9,17 @@ We follow the
 find useful scripts within the [`script`](./script) directory for common tasks.
 
 - `./script/setup` to install dependencies
-- `./script/build [-w]` to compile the Typescript and check for errors
-- `./script/test [-w]` wrapper to lint, and run tests
-- `./script/lint [-fix]` to lint the code using ESLint
+- `./script/build [--watch]` to compile the Typescript and check for errors
+- `./script/test [-u] [--watch]` wrapper to lint, and run tests
+- `./script/lint [--fix]` to lint the code using ESLint
 - `./script/generate` to build a CDK stack into the `cdk.out` directory
 - `./script/ci` to lint and run tests, and generate templates of the CDK stacks
 - `./script/diff` to print the diff between a traditional CloudFormation
   template and a CDK stack
 
-`-w` is supported as an optional 'watch' flag for various commands.
-`-fix` is supported as 'fix' for linting.
+`-u` updates the snapshot tests, which is needed for any change in the cdk.
+`--watch` is supported as an optional 'watch' flag for various commands.
+`--fix` is supported as 'fix' for linting.
 
 ## Deployment
 
