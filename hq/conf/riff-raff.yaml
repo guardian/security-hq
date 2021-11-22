@@ -26,6 +26,7 @@ deployments:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: security-hq
       templatePath: cfn.json
+      amiParameter: AMISecurityhq
       amiEncrypted: true
       amiTags:
         Recipe: security-java-lts-arm64
