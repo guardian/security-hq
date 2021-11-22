@@ -29,6 +29,7 @@ import {
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
   GuPutCloudwatchMetricsPolicy,
+  GuGetS3ObjectsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 
@@ -105,6 +106,10 @@ dpkg -i /tmp/installer.deb`,
           }),
           new GuDynamoDBWritePolicy(this, 'DynamoWrite', {
             tableName: table.tableName,
+          }),
+          new GuGetS3ObjectsPolicy(this, 'S3AuditRead', {
+            bucketName: 'gu-security-hq-audit',
+            paths: ['security/PROD/*'],
           }),
           // Allow security HQ to assume roles in watched accounts.
           new GuAllowPolicy(this, 'AssumeRole', {

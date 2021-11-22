@@ -1061,6 +1061,27 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
+    "S3AuditRead9DF4AE59": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::gu-security-hq-audit/security/PROD/janus-data-export/janusData.conf",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "S3AuditRead9DF4AE59",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "SSMRunCommandPolicy244E1613": Object {
       "Properties": Object {
         "PolicyDocument": Object {
