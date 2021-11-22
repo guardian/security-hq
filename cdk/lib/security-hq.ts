@@ -133,7 +133,7 @@ dpkg -i /tmp/installer.deb`,
           new GuAllowPolicy(this, 'DescribeRegions', {
             resources: ['*'],
             actions: ['ec2:DescribeRegions'],
-          })
+          }),
         ],
       },
     });
