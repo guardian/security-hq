@@ -98,6 +98,7 @@ aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.st
 dpkg -i /tmp/installer.deb`,
       roleConfiguration: {
         additionalPolicies: [
+          new GuPutCloudwatchMetricsPolicy(this),
           new GuDynamoDBReadPolicy(this, 'DynamoRead', {
             tableName: table.tableName,
           }),
@@ -132,12 +133,7 @@ dpkg -i /tmp/installer.deb`,
           new GuAllowPolicy(this, 'DescribeRegions', {
             resources: ['*'],
             actions: ['ec2:DescribeRegions'],
-          }),
-          // Allow security HQ to post metrics to cloudwatch
-          new GuAllowPolicy(this, 'CloudwatchPutMetric', {
-            resources: ['*'],
-            actions: ['cloudwatch:PutMetricData'],
-          }),
+          })
         ],
       },
     });
