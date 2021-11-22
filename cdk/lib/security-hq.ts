@@ -1,16 +1,29 @@
-import {ComparisonOperator, Metric, TreatMissingData,} from '@aws-cdk/aws-cloudwatch';
-import {AttributeType, Table} from '@aws-cdk/aws-dynamodb';
-import {InstanceClass, InstanceSize, InstanceType, Peer,} from '@aws-cdk/aws-ec2';
-import {EmailSubscription} from '@aws-cdk/aws-sns-subscriptions';
-import type {App, CfnElement} from '@aws-cdk/core';
-import {Duration, RemovalPolicy} from '@aws-cdk/core';
-import {AccessScope, GuApplicationPorts, GuEc2App} from '@guardian/cdk';
-import {Stage} from '@guardian/cdk/lib/constants/stage';
-import {GuAlarm} from '@guardian/cdk/lib/constructs/cloudwatch';
-import type {GuStackProps} from '@guardian/cdk/lib/constructs/core';
-import {GuDistributionBucketParameter, GuParameter, GuStack,} from '@guardian/cdk/lib/constructs/core';
-import type {AppIdentity} from '@guardian/cdk/lib/constructs/core/identity';
-import {GuCname} from '@guardian/cdk/lib/constructs/dns';
+import {
+  ComparisonOperator,
+  Metric,
+  TreatMissingData,
+} from '@aws-cdk/aws-cloudwatch';
+import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
+import {
+  InstanceClass,
+  InstanceSize,
+  InstanceType,
+  Peer,
+} from '@aws-cdk/aws-ec2';
+import { EmailSubscription } from '@aws-cdk/aws-sns-subscriptions';
+import type { App, CfnElement } from '@aws-cdk/core';
+import { Duration, RemovalPolicy } from '@aws-cdk/core';
+import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
+import { Stage } from '@guardian/cdk/lib/constants/stage';
+import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
+import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
+import {
+  GuDistributionBucketParameter,
+  GuParameter,
+  GuStack,
+} from '@guardian/cdk/lib/constructs/core';
+import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
+import { GuCname } from '@guardian/cdk/lib/constructs/dns';
 import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
@@ -18,7 +31,7 @@ import {
   GuGetS3ObjectsPolicy,
   GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
-import {GuSnsTopic} from '@guardian/cdk/lib/constructs/sns';
+import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
