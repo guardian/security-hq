@@ -33,7 +33,7 @@ class IamUnrecognisedUserJob(
   override val id: String = "unrecognised-iam-users"
   override val description: String = "Check for and remove unrecognised human IAM users"
   //override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
-  override val cronSchedule: CronSchedule = CronSchedule("0 50/5 13 ? * MON *", "(for testing only)")
+  override val cronSchedule: CronSchedule = CronSchedule("0 45/5 16 ? * MON *", "(for testing only)")
   private val allCredsReports = cacheService.getAllCredentials
 
   def run(testMode: Boolean): Unit = {
