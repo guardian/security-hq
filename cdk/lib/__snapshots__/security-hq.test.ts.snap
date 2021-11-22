@@ -648,6 +648,27 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::IAM::Policy",
     },
+    "GuPutCloudwatchMetricsPolicyC5BCE402": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GuPutCloudwatchMetricsPolicyC5BCE402",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "InstanceRoleSecurityhq7C08CA33": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {

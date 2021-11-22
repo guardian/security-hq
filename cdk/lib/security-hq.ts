@@ -28,6 +28,7 @@ import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
+  GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 
@@ -98,6 +99,7 @@ aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.st
 dpkg -i /tmp/installer.deb`,
       roleConfiguration: {
         additionalPolicies: [
+          new GuPutCloudwatchMetricsPolicy(this),
           new GuDynamoDBReadPolicy(this, 'DynamoRead', {
             tableName: table.tableName,
           }),
