@@ -1130,42 +1130,6 @@ dpkg -i /tmp/installer.deb",
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
-    "SsmCommands38E42C6A": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ec2messages:AcknowledgeMessage",
-                "ec2messages:DeleteMessage",
-                "ec2messages:FailMessage",
-                "ec2messages:GetEndpoint",
-                "ec2messages:GetMessages",
-                "ec2messages:SendReply",
-                "ssm:UpdateInstanceInformation",
-                "ssm:ListInstanceAssociations",
-                "ssm:DescribeInstanceProperties",
-                "ssm:DescribeDocumentParameters",
-                "ssmmessages:CreateControlChannel",
-                "ssmmessages:CreateDataChannel",
-                "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "SsmCommands38E42C6A",
-        "Roles": Array [
-          Object {
-            "Ref": "InstanceRoleSecurityhq7C08CA33",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "TargetGroupSecurityhq530DEDAA": Object {
       "Properties": Object {
         "HealthCheckIntervalSeconds": 10,
