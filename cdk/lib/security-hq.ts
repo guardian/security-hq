@@ -11,7 +11,7 @@ import {
   Peer,
 } from '@aws-cdk/aws-ec2';
 import { EmailSubscription } from '@aws-cdk/aws-sns-subscriptions';
-import { Duration, RemovalPolicy, Tags } from '@aws-cdk/core';
+import { Duration, RemovalPolicy } from '@aws-cdk/core';
 import type { App, CfnElement } from '@aws-cdk/core';
 import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
 import { Stage } from '@guardian/cdk/lib/constants/stage';
