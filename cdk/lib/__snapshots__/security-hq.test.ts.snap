@@ -1068,7 +1068,7 @@ dpkg -i /tmp/installer.deb",
             Object {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::gu-security-hq-audit/security/PROD/janus-data-export/janusData.conf",
+              "Resource": "arn:aws:s3:::gu-security-hq-audit/security/PROD/*",
             },
           ],
           "Version": "2012-10-17",
