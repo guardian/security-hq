@@ -116,7 +116,7 @@ class AppComponents(context: Context)
     cacheService
   )
 
-  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, s3Clients, iamClients, configuration)
+  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, s3Clients, iamClients, configuration)(executionContext)
 
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
   val jobScheduler = new JobScheduler(quartzScheduler, List(unrecognisedUserJob))
