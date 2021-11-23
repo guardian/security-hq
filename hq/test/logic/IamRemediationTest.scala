@@ -7,10 +7,11 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
-import utils.attempt.{FailedAttempt, Failure}
+import utils.attempt.{AttemptValues, FailedAttempt, Failure}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class IamRemediationTest extends FreeSpec with Matchers with OptionValues {
+class IamRemediationTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
   val humanAccessKeyOldAndEnabled1 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
   val humanAccessKeyOldAndEnabled2 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
@@ -50,6 +51,17 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues {
   }
 
   "identifyUsersWithOutdatedCredentials" - {
+    val humanAccessKeyOldAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
+    val machineAccessKeyOldAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(13)))
+    val machineAccessKeyOldAndEnabledOnTimeThreshold = AccessKey(AccessKeyEnabled, Some(date.minusDays(Config.iamMachineUserRotationCadence.toInt)))
+    val humanEnabledAccessKeyHealthy = AccessKey(AccessKeyEnabled, Some(date.minusMonths(1)))
+    val noAccessKey = AccessKey(NoKey, None)
+    val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
+    val humanWithOneOldEnabledAccessKey = HumanUser("amina.adewusi", true, humanAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
+    val humanWithHealthyKey = HumanUser("jon.soul", true, noAccessKey, humanEnabledAccessKeyHealthy, Green, None, None, Nil)
+    val machineWithOneOldEnabledAccessKey = MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
+    val machineWithOneOldEnabledAccessKey2 = MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, None, Nil)
+
     "given a vulnerable human user, return that user" in {
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanWithOneOldEnabledAccessKey))
       identifyUsersWithOutdatedCredentials(account, credsReport, date).map(_.username) shouldEqual List("amina.adewusi")
@@ -302,7 +314,38 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues {
   }
 
   "lookupCredentialId" - {
-    "TODO" ignore {}
+    val nonMatchingAccessKey = CredentialMetadata("adam.fisher", "AKIAIOSFODNN1EXAMPLE", date.minusDays(1), CredentialActive)
+    val matchingAccessKey = CredentialMetadata("amina.adewusi", "AKIAIOSFODNN2EXAMPLE", date, CredentialActive)
+    val matchingAccessKey2 = CredentialMetadata("amina.adewusi", "AKIAIOSFODNN3EXAMPLE", date, CredentialActive)
+
+    "given a key creation date matches a date in the metadata, return the correct metadata" in {
+      val result = lookupCredentialId(date, List(matchingAccessKey, nonMatchingAccessKey))
+      result.value.username shouldEqual matchingAccessKey.username
+    }
+    "given there are no matching key creation dates, return a failure" in {
+      val result = lookupCredentialId(date, List(nonMatchingAccessKey))
+      result.isFailedAttempt() shouldBe true
+    }
+    // both user's access keys sharing the exact same date is an edge case, because the creation date is accurate to the second
+    // and it's unlikely both keys would be created at exactly the same time, but could happen, especially if created using the CLI.
+    // If this happens then we won't know how to identify the keys' id, which is required to disable it, so we return a Failure.
+    "given a key creation date matches two dates in the metadata, return a failure" in {
+      val result = lookupCredentialId(date, List(matchingAccessKey2, matchingAccessKey))
+      result.isFailedAttempt() shouldBe true 
+    }
+    // A key's last rotated date has resolution to the second, so this function must match up to the second, but not the millisecond.
+    "given a key creation date matches to the minute, but not the second, return a failure" in {
+      val keyCreationDate = new DateTime(2021,1,1,1,1,1)
+      val metaDataCreationDate = new DateTime(1,1,1,1,1,2)
+      val result = lookupCredentialId(keyCreationDate, List(matchingAccessKey.copy(creationDate = metaDataCreationDate)))
+      result.isFailedAttempt() shouldBe true
+    }
+    "given a key creation date matches to the second, but not the millisecond, return the metadata because we do not expect millisecond resolution" in {
+      val keyCreationDate = new DateTime(1,1,1,1,1,1,1)
+      val metaDataCreationDate = new DateTime(1,1,1,1,1,1,2)
+      val result = lookupCredentialId(keyCreationDate, List(matchingAccessKey.copy(creationDate = metaDataCreationDate)))
+      result.value.username shouldEqual matchingAccessKey.username
+    }
   }
 
   "formatRemediationOperation" - {
