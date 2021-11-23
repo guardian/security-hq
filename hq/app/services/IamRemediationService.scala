@@ -120,14 +120,14 @@ class IamRemediationService(
     (remediationOperation.iamRemediationActivityType, remediationOperation.iamProblem) match {
     // Outdated credentials
       case (Warning, OutdatedCredential) =>
-        val notification = AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate)
+        val notification = AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity)
         } yield snsId
 
       case (FinalWarning, OutdatedCredential) =>
-        val notification = AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate)
+        val notification = AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity)

@@ -1,7 +1,7 @@
 package logic
 
 import org.joda.time.{DateTime, DateTimeZone, Duration}
-import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 
 object DateUtils {
   val formatter = ISODateTimeFormat.dateTimeParser()
@@ -17,4 +17,6 @@ object DateUtils {
   def dayDiff(date: DateTime): Long =  new Duration(date, DateTime.now(DateTimeZone.UTC)).getStandardDays
 
   def printTime(date: DateTime): String = date.toString("HH:mm")
+
+  def printDay(day: DateTime): String = DateTimeFormat.forPattern("dd/MM/yyyy").print(day)
 }
