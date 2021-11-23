@@ -6,6 +6,7 @@ import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsPro
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
@@ -90,7 +91,11 @@ class AppComponents(context: Context)
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
   private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region.getName)
+    .withRegion(Config.region)
+    .build()
+  private val securityS3Client = AmazonS3ClientBuilder.standard()
+    .withCredentials(securityCredentialsProvider)
+    .withRegion(Config.region)
     .build()
 
   private val cacheService = new CacheService(
@@ -116,7 +121,7 @@ class AppComponents(context: Context)
     cacheService
   )
 
-  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, s3Clients, iamClients, configuration)(executionContext)
+  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, securityS3Client, iamClients, configuration)(executionContext)
 
   val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
   val jobScheduler = new JobScheduler(quartzScheduler, List(unrecognisedUserJob))

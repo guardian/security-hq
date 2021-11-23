@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 class IamUnrecognisedUserJob(
   cacheService: CacheService,
   snsClient: AmazonSNSAsync,
-  s3Clients: AwsClients[AmazonS3],
+  s3Client: AmazonS3,
   iamClients: AwsClients[AmazonIdentityManagementAsync],
   config: Configuration
 )(implicit executionContext: ExecutionContext) extends JobRunner with Logging {
@@ -45,8 +45,7 @@ class IamUnrecognisedUserJob(
 
     val result = for {
       config <- getIamUnrecognisedUserConfig(config)
-      client <- s3Clients.get(config.securityAccount, config.janusUserBucketRegion)
-      s3Object <- getS3Object(client, config.janusUserBucket, config.janusDataFileKey)
+      s3Object <- getS3Object(s3Client, config.janusUserBucket, config.janusDataFileKey)
       janusData = JanusConfig.load(makeFile(s3Object.mkString))
       janusUsernames = getJanusUsernames(janusData)
       accountCredsReports = getCredsReportDisplayForAccount(allCredsReports)
