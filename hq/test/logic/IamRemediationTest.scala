@@ -1,15 +1,18 @@
 package logic
 
 import config.Config
-import logic.IamRemediation.{getCredsReportDisplayForAccount, identifyAllUsersWithOutdatedCredentials, identifyUsersWithOutdatedCredentials}
-import model.{AccessKey, AccessKeyDisabled, AccessKeyEnabled, AwsAccount, CredentialReportDisplay, Green, HumanUser, MachineUser, NoKey}
-import model.iamremediation.{IamUserRemediationHistory, OutdatedCredential, RemediationOperation, Warning}
+import logic.IamRemediation.{getCredsReportDisplayForAccount, identifyUsersWithOutdatedCredentials, lookupCredentialId, partitionOperationsByAllowedAccounts}
+import model.iamremediation._
+import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
-import utils.attempt.{FailedAttempt, Failure}
+import utils.attempt._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class IamRemediationTest extends FreeSpec with Matchers {
+class IamRemediationTest extends FreeSpec with Matchers with AttemptValues {
+  val date = new DateTime(2021, 1, 1, 1, 1)
+
   "getCredsReportDisplayForAccount" - {
     val failedAttempt: FailedAttempt = FailedAttempt(Failure("error", "error", 500))
 
@@ -35,7 +38,6 @@ class IamRemediationTest extends FreeSpec with Matchers {
   }
 
   "identifyUsersWithOutdatedCredentials" - {
-    val date = new DateTime(2021, 1, 1, 1, 1)
     val humanAccessKeyOldAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
     val humanAccessKeyOldAndDisabled = AccessKey(AccessKeyDisabled, Some(date.minusMonths(4)))
     val machineAccessKeyOldAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(13)))
@@ -144,7 +146,39 @@ class IamRemediationTest extends FreeSpec with Matchers {
   }
 
   "lookupCredentialId" - {
-    "TODO" ignore {}
+    val nonMatchingAccessKey = CredentialMetadata("adam.fisher", "AKIAIOSFODNN1EXAMPLE", date.minusDays(1), CredentialActive)
+    val matchingAccessKey = CredentialMetadata("amina.adewusi", "AKIAIOSFODNN2EXAMPLE", date, CredentialActive)
+    val matchingAccessKey2 = CredentialMetadata("amina.adewusi", "AKIAIOSFODNN3EXAMPLE", date, CredentialActive)
+
+    "given a key creation date matches a date in the metadata, return the correct metadata" in {
+      val result = lookupCredentialId(date, List(matchingAccessKey, nonMatchingAccessKey))
+      result.value.username shouldEqual matchingAccessKey.username
+    }
+    "given there are no matching key creation dates, return a failure" in {
+      val result = lookupCredentialId(date, List(nonMatchingAccessKey))
+      result.isFailedAttempt() shouldBe true
+    }
+    // both user's access keys sharing the exact same date is an edge case, because the creation date is accurate to the second
+    // and it's unlikely both keys would be created at exactly the same time, but could happen, especially if created using the CLI.
+    // If this happens then we won't know how to identify the keys' id, which is required to disable it, so we return a Failure.
+    "given a key creation date matches two dates in the metadata, return a failure" in {
+      val result = lookupCredentialId(date, List(matchingAccessKey2, matchingAccessKey))
+      result.isFailedAttempt() shouldBe true 
+    }
+    // AWS's credential's report shows that a key's last rotated date is recorded to the second,
+    // so this function must seek to match to the dates up to the second, but not the millisecond.
+    "given a key creation date matches to the minute, but not the second, return a failure" in {
+      val keyCreationDate = new DateTime(1,1,1,1,1,1)
+      val metaDataCreationDate = new DateTime(1,1,1,1,1,2)
+      val result = lookupCredentialId(keyCreationDate, List(matchingAccessKey.copy(creationDate = metaDataCreationDate)))
+      result.isFailedAttempt() shouldBe true
+    }
+    "given a key creation date matches to the second, but not the millisecond, return the metadata" in {
+      val keyCreationDate = new DateTime(1,1,1,1,1,1,1)
+      val metaDataCreationDate = new DateTime(1,1,1,1,1,1,2)
+      val result = lookupCredentialId(keyCreationDate, List(matchingAccessKey.copy(creationDate = metaDataCreationDate)))
+      result.value.username shouldEqual matchingAccessKey.username
+    }
   }
 
   "formatRemediationOperation" - {
