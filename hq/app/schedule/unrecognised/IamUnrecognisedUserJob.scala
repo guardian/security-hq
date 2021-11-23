@@ -34,7 +34,6 @@ class IamUnrecognisedUserJob(
   override val description: String = "Check for and remove unrecognised human IAM users"
   //override val cronSchedule: CronSchedule = CronSchedules.everyWeekDay
   override val cronSchedule: CronSchedule = CronSchedule("0 0/10 * ? * * *", "(for testing only)")
-  private val allCredsReports = cacheService.getAllCredentials
 
   def run(testMode: Boolean): Unit = {
     if (testMode) {
@@ -48,7 +47,7 @@ class IamUnrecognisedUserJob(
       s3Object <- getS3Object(s3Client, config.janusUserBucket, config.janusDataFileKey)
       janusData = JanusConfig.load(makeFile(s3Object.mkString))
       janusUsernames = getJanusUsernames(janusData)
-      accountCredsReports = getCredsReportDisplayForAccount(allCredsReports)
+      accountCredsReports = getCredsReportDisplayForAccount(cacheService.getAllCredentials)
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
       _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableUser)
       notificationIds <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(sendNotification(_, testMode, config.anghammaradSnsTopicArn))
