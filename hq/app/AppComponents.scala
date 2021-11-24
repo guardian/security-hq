@@ -6,13 +6,13 @@ import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsPro
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
 import controllers._
 import filters.HstsFilter
 import model.AwsAccount
+import org.quartz.impl.StdSchedulerFactory
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -22,6 +22,8 @@ import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import schedule.unrecognised.IamUnrecognisedUserJob
+import schedule.vulnerable.IamVulnerableUserJob
+import schedule.{AwsDynamoAlertService, JobScheduler}
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -89,11 +91,7 @@ class AppComponents(context: Context)
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
   private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region)
-    .build()
-  private val securityS3Client = AmazonS3ClientBuilder.standard()
-    .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region)
+    .withRegion(Config.region.getName)
     .build()
 
   private val cacheService = new CacheService(
@@ -118,8 +116,6 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
-
-  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, securityS3Client, iamClients, configuration)(executionContext)
 
   override def router: Router = new Routes(
     httpErrorHandler,
