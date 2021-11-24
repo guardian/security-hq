@@ -1,16 +1,15 @@
 package config
 
-import java.io.FileInputStream
 import com.amazonaws.regions.Regions
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import model._
-import org.apache.commons.lang3.exception.ExceptionContext
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
+import java.io.FileInputStream
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -130,10 +129,9 @@ object Config {
       accounts <- getAllowedAccountsForStage(config)
       key <- getJanusDataFileKey(config)
       bucket <- getIamUnrecognisedUserBucket(config)
-      region <- getIamUnrecognisedUserBucketRegion(config)
       securityAccount <- getSecurityAccount(config)
       anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount, anghammaradSnsTopicArn)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn)
   }
 
   def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
