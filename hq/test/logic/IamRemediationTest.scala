@@ -129,6 +129,18 @@ class IamRemediationTest extends FreeSpec with Matchers {
         allowed shouldEqual List(operationsForAccountA, operationsForAccountB)
       }
     }
+
+    "if operations to partition is empty" - {
+      val allowedAccounts = List("a", "b")
+      "then forbidden operations should also be empty" in {
+        val forbidden = partitionOperationsByAllowedAccounts(Nil, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+        forbidden shouldEqual Nil
+      }
+      "then allowed operations should also be empty" in {
+        val allowed = partitionOperationsByAllowedAccounts(Nil, allowedAccounts).allowedOperations
+        allowed shouldEqual Nil
+      }
+    }
   }
 
   "lookupCredentialId" - {
