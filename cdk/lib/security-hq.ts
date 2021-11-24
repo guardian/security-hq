@@ -33,6 +33,7 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
+import { GuardianPublicNetworks } from '@guardian/private-infrastructure-config';
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
@@ -58,18 +59,6 @@ export class SecurityHQ extends GuStack {
     defaultChild.overrideLogicalId('SecurityHqIamDynamoTable');
 
     const distBucket = GuDistributionBucketParameter.getInstance(this);
-
-    // TODO replace with config repo once token access for GHA is sorted
-    // (https://trello.com/c/zhdgXpmk/903-allow-github-actions-to-clone-private-infrastructure-config).
-    const accessRestrictionCidr = new GuParameter(
-      this,
-      'AccessRestrictionCidr',
-      {
-        description:
-          'CIDR block from which access to Security HQ should be allowed',
-        type: 'String',
-      }
-    );
 
     const auditDataS3BucketName = new GuStringParameter(
       this,
@@ -100,7 +89,7 @@ export class SecurityHQ extends GuStack {
     const ec2App = new GuEc2App(this, {
       access: {
         scope: AccessScope.RESTRICTED,
-        cidrRanges: [Peer.ipv4(accessRestrictionCidr.valueAsString)],
+        cidrRanges: [Peer.ipv4(GuardianPublicNetworks.London)],
       },
       app: 'security-hq',
       applicationPort: GuApplicationPorts.Play,
