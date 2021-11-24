@@ -7,7 +7,6 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{UpdateAccessKeyRequest, UpdateAccessKeyResult}
 import logging.Cloudwatch
 import logging.Cloudwatch.ReaperExecutionStatus
-import logic.VulnerableAccessKeys.isOutdated
 import model.{AccessKeyEnabled, AwsAccount, VulnerableAccessKey, VulnerableUser}
 import play.api.Logging
 import schedule.vulnerable.IamListAccessKeys.listAccountAccessKeys
@@ -34,9 +33,11 @@ object IamDisableAccessKeys extends Logging {
         logger.error(s"Failed to disable access key: ${failure.logMessage}")
         Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
       },
-      { success =>
-        logger.info(s"Successfully disabled access key in ${account.name}.")
-        Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+      { updateAccessKeyResults =>
+        logger.info(s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}.")
+        if(updateAccessKeyResults.nonEmpty) {
+          Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+        }
       }
     )
     result
