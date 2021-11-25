@@ -38,6 +38,38 @@ Object {
       "Description": "CIDR block from which access to Security HQ should be allowed",
       "Type": "String",
     },
+    "AuditDataS3BucketName": Object {
+      "Default": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "/security/security-hq/",
+            Object {
+              "Ref": "Stage",
+            },
+            "/audit-data-s3-bucket/name",
+          ],
+        ],
+      },
+      "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "AuditDataS3BucketPath": Object {
+      "Default": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "/security/security-hq/",
+            Object {
+              "Ref": "Stage",
+            },
+            "/audit-data-s3-bucket/path",
+          ],
+        ],
+      },
+      "Description": "Path of the directory in S3 containing auditable data (e.g. Janus data)",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
     "CloudwatchAlarmEmailDestination": Object {
       "Description": "Send Security HQ cloudwatch alarms to this email address",
       "Type": "String",
@@ -1060,6 +1092,41 @@ dpkg -i /tmp/installer.deb",
         "ToPort": 9000,
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "S3AuditRead9DF4AE59": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:s3:::",
+                    Object {
+                      "Ref": "AuditDataS3BucketName",
+                    },
+                    "/",
+                    Object {
+                      "Ref": "AuditDataS3BucketPath",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "S3AuditRead9DF4AE59",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "SSMRunCommandPolicy244E1613": Object {
       "Properties": Object {
