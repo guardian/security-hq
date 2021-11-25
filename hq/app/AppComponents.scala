@@ -13,6 +13,7 @@ import config.Config
 import controllers._
 import filters.HstsFilter
 import model.AwsAccount
+import org.quartz.impl.StdSchedulerFactory
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -21,6 +22,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
+import schedule.JobScheduler
 import schedule.unrecognised.IamUnrecognisedUserJob
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
@@ -120,6 +122,10 @@ class AppComponents(context: Context)
   )
 
   val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, securityS3Client, iamClients, configuration)(executionContext)
+
+  val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
+  val jobScheduler = new JobScheduler(quartzScheduler, List(unrecognisedUserJob))
+  jobScheduler.initialise()
 
   override def router: Router = new Routes(
     httpErrorHandler,
