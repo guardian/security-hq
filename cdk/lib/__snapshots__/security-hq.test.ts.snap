@@ -39,35 +39,8 @@ Object {
       "Type": "String",
     },
     "AuditDataS3BucketName": Object {
-      "Default": Object {
-        "Fn::Join": Array [
-          "",
-          Array [
-            "/security/security-hq/",
-            Object {
-              "Ref": "Stage",
-            },
-            "/audit-data-s3-bucket/name",
-          ],
-        ],
-      },
+      "Default": "/security/security-hq/audit-data-s3-bucket/name",
       "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
-      "Type": "AWS::SSM::Parameter::Value<String>",
-    },
-    "AuditDataS3BucketPath": Object {
-      "Default": Object {
-        "Fn::Join": Array [
-          "",
-          Array [
-            "/security/security-hq/",
-            Object {
-              "Ref": "Stage",
-            },
-            "/audit-data-s3-bucket/path",
-          ],
-        ],
-      },
-      "Description": "Path of the directory in S3 containing auditable data (e.g. Janus data)",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
     "CloudwatchAlarmEmailDestination": Object {
@@ -1108,10 +1081,11 @@ dpkg -i /tmp/installer.deb",
                     Object {
                       "Ref": "AuditDataS3BucketName",
                     },
-                    "/",
+                    "/security/",
                     Object {
-                      "Ref": "AuditDataS3BucketPath",
+                      "Ref": "Stage",
                     },
+                    "/*",
                   ],
                 ],
               },

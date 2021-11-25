@@ -77,20 +77,11 @@ export class SecurityHQ extends GuStack {
       {
         description:
           'Name of the S3 bucket to fetch auditable data from (e.g. Janus data)',
-        default: `/${this.stack}/${SecurityHQ.app.app}/${this.stage}/audit-data-s3-bucket/name`,
+        default: `/${this.stack}/${SecurityHQ.app.app}/audit-data-s3-bucket/name`,
         fromSSM: true,
       }
     );
-    const auditDataS3BucketPath = new GuStringParameter(
-      this,
-      'AuditDataS3BucketPath',
-      {
-        description:
-          'Path of the directory in S3 containing auditable data (e.g. Janus data)',
-        default: `/${this.stack}/${SecurityHQ.app.app}/${this.stage}/audit-data-s3-bucket/path`,
-        fromSSM: true,
-      }
-    );
+    const auditDataS3BucketPath = [this.stack, this.stage, '*'].join('/');
 
     const domainNames = {
       [Stage.CODE]: { domainName: 'security-hq.code.dev-gutools.co.uk' },
@@ -125,7 +116,7 @@ dpkg -i /tmp/installer.deb`,
           new GuPutCloudwatchMetricsPolicy(this),
           new GuGetS3ObjectsPolicy(this, 'S3AuditRead', {
             bucketName: auditDataS3BucketName.valueAsString,
-            paths: [auditDataS3BucketPath.valueAsString],
+            paths: [auditDataS3BucketPath],
           }),
           new GuDynamoDBReadPolicy(this, 'DynamoRead', {
             tableName: table.tableName,
