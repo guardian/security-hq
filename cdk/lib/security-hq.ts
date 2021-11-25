@@ -11,8 +11,8 @@ import {
   Peer,
 } from '@aws-cdk/aws-ec2';
 import { EmailSubscription } from '@aws-cdk/aws-sns-subscriptions';
-import { Duration, RemovalPolicy } from '@aws-cdk/core';
 import type { App, CfnElement } from '@aws-cdk/core';
+import { Duration, RemovalPolicy } from '@aws-cdk/core';
 import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
 import { Stage } from '@guardian/cdk/lib/constants/stage';
 import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
@@ -21,6 +21,7 @@ import {
   GuDistributionBucketParameter,
   GuParameter,
   GuStack,
+  GuStringParameter,
 } from '@guardian/cdk/lib/constructs/core';
 import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
 import { GuCname } from '@guardian/cdk/lib/constructs/dns';
@@ -28,6 +29,7 @@ import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
+  GuGetS3ObjectsPolicy,
   GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
@@ -69,6 +71,18 @@ export class SecurityHQ extends GuStack {
       }
     );
 
+    const auditDataS3BucketName = new GuStringParameter(
+      this,
+      'AuditDataS3BucketName',
+      {
+        description:
+          'Name of the S3 bucket to fetch auditable data from (e.g. Janus data)',
+        default: `/${this.stack}/${SecurityHQ.app.app}/audit-data-s3-bucket/name`,
+        fromSSM: true,
+      }
+    );
+    const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
+
     const domainNames = {
       [Stage.CODE]: { domainName: 'security-hq.code.dev-gutools.co.uk' },
       [Stage.PROD]: { domainName: 'security-hq.gutools.co.uk' },
@@ -100,6 +114,10 @@ dpkg -i /tmp/installer.deb`,
       roleConfiguration: {
         additionalPolicies: [
           new GuPutCloudwatchMetricsPolicy(this),
+          new GuGetS3ObjectsPolicy(this, 'S3AuditRead', {
+            bucketName: auditDataS3BucketName.valueAsString,
+            paths: [auditDataS3BucketPath],
+          }),
           new GuDynamoDBReadPolicy(this, 'DynamoRead', {
             tableName: table.tableName,
           }),
