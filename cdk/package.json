@@ -15,7 +15,7 @@
   "devDependencies": {
     "@aws-cdk/assert": "1.132.0",
     "@guardian/eslint-config-typescript": "^0.7.0",
-    "@guardian/private-infrastructure-config": "git+ssh://git@github.com:guardian/private-infrastructure-config.git",
+    "@guardian/private-infrastructure-config": "git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.0",
     "@types/jest": "^26.0.20",
     "@types/node": "14.14.37",
     "aws-cdk": "1.132.0",
