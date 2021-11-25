@@ -34,10 +34,6 @@ Object {
       "Description": "Amazon Machine Image ID for the app security-hq. Use this in conjunction with AMIgo to keep AMIs up to date.",
       "Type": "AWS::EC2::Image::Id",
     },
-    "AccessRestrictionCidr": Object {
-      "Description": "CIDR block from which access to Security HQ should be allowed",
-      "Type": "String",
-    },
     "AuditDataS3BucketName": Object {
       "Default": "/security/security-hq/audit-data-s3-bucket/name",
       "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
@@ -996,20 +992,8 @@ dpkg -i /tmp/installer.deb",
         "GroupDescription": "Allow restricted ingress from CIDR ranges",
         "SecurityGroupIngress": Array [
           Object {
-            "CidrIp": Object {
-              "Ref": "AccessRestrictionCidr",
-            },
-            "Description": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "Allow access on port 443 from ",
-                  Object {
-                    "Ref": "AccessRestrictionCidr",
-                  },
-                ],
-              ],
-            },
+            "CidrIp": "192.168.1.1/22",
+            "Description": "Allow access on port 443 from 192.168.1.1/22",
             "FromPort": 443,
             "IpProtocol": "tcp",
             "ToPort": 443,

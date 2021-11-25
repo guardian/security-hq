@@ -43,6 +43,18 @@ jobs:
         with:
           cache: 'yarn'
 
+      - name: Add SSH key for accessing @guardian/private-infrastructure-config
+        run: |
+          mkdir -m 700 ~/.ssh
+          
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+          echo '${{ secrets.PRIVATE_INFRASTRUCTURE_CONFIG_DEPLOY_KEY }}' > ~/.ssh/id_ed25519
+          chmod 400 ~/.ssh/id_ed25519
+          
+          eval "$(ssh-agent)"
+          ssh-add
+
       # 1. Seed the build number with last number from TeamCity.
       #    Update `LAST_TEAMCITY_BUILD` as needed or remove entirely if changing Riff-Raff project name.
       # 2. Execute `script/ci`, a script that will compile, run tests etc.

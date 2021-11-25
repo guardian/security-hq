@@ -14,5 +14,5 @@ if [[ -z $APP ]]; then
 fi
 
 pushd "${ROOT_DIR}" > /dev/null || exit
-yarn --silent cdk synth --profile security --app="ts-node ${ROOT_DIR}/bin/${APP}.ts"  -o "${OUTPUT_DIR}" --path-metadata false --version-reporting false "*"
+yarn --silent cdk synth --quiet --profile security --app="ts-node ${ROOT_DIR}/bin/${APP}.ts"  -o "${OUTPUT_DIR}" --path-metadata false --version-reporting false "*"
 popd > /dev/null
