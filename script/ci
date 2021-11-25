@@ -7,4 +7,4 @@ set -e
     ./script/ci
 )
 
-./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'
+sbt "project hq" "; clean; compile; riffRaffUpload"
