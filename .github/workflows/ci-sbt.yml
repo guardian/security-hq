@@ -49,6 +49,9 @@ jobs:
         uses: guardian/actions-setup-node@v2.4.1
         with:
           cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+            cdk/yarn.lock
 
       - name: Add SSH key for accessing @guardian/private-infrastructure-config
         run: |
