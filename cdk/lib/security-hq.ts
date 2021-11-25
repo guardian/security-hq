@@ -81,7 +81,7 @@ export class SecurityHQ extends GuStack {
         fromSSM: true,
       }
     );
-    const auditDataS3BucketPath = [this.stack, this.stage, '*'].join('/');
+    const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
 
     const domainNames = {
       [Stage.CODE]: { domainName: 'security-hq.code.dev-gutools.co.uk' },
