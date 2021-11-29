@@ -3,6 +3,7 @@ package logic
 import config.Config
 import logic.IamRemediation.{getCredsReportDisplayForAccount, identifyAllUsersWithOutdatedCredentials, identifyUsersWithOutdatedCredentials}
 import model.{AccessKey, AccessKeyDisabled, AccessKeyEnabled, AwsAccount, CredentialReportDisplay, Green, HumanUser, MachineUser, NoKey}
+import model.iamremediation.{IamUserRemediationHistory, OutdatedCredential, RemediationOperation, Warning}
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.{FailedAttempt, Failure}
@@ -88,7 +89,58 @@ class IamRemediationTest extends FreeSpec with Matchers {
   }
 
   "partitionOperationsByAllowedAccounts" - {
-    "TODO" ignore {}
+    val operationsForAccountA = operationForAccountId("a", "machineUser1")
+    val operationsForAccountB = operationForAccountId("b", "machineUser2")
+    val operationsForAccountC = operationForAccountId("c", "machineUser3")
+    val operations = List(operationsForAccountA, operationsForAccountB, operationsForAccountC)
+
+    "if allowedAccounts is empty" - {
+      val allowedAccounts = Nil
+      "then all operations are not allowed" in {
+        val forbidden = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+        forbidden shouldEqual operations
+      }
+      "then allowed operations is empty" in {
+        val allowed = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
+        allowed shouldEqual Nil
+      }
+    }
+
+    "if there is one allowed account provided" - {
+      val allowedAccounts = List("a")
+      "then all operations that don't match provided allowed account are forbidden" in {
+        val forbidden = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+        forbidden shouldEqual List(operationsForAccountB, operationsForAccountC)
+      }
+      "then allowed operations matches provided allowed account" in {
+        val allowed = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
+        allowed shouldEqual List(operationsForAccountA)
+      }
+    }
+
+    "if multiple allowed accounts are provided" - {
+      val allowedAccounts = List("a", "b")
+      "then all operations that don't match any allowed accounts are forbidden" in {
+        val forbidden = partitionOperationsByAllowedAccounts(operations, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+        forbidden shouldEqual List(operationsForAccountC)
+      }
+      "then matching operations are allowed" in {
+        val allowed = partitionOperationsByAllowedAccounts(operations, allowedAccounts).allowedOperations
+        allowed shouldEqual List(operationsForAccountA, operationsForAccountB)
+      }
+    }
+
+    "if operations to partition is empty" - {
+      val allowedAccounts = List("a", "b")
+      "then forbidden operations should also be empty" in {
+        val forbidden = partitionOperationsByAllowedAccounts(Nil, allowedAccounts).operationsOnAccountsThatAreNotAllowed
+        forbidden shouldEqual Nil
+      }
+      "then allowed operations should also be empty" in {
+        val allowed = partitionOperationsByAllowedAccounts(Nil, allowedAccounts).allowedOperations
+        allowed shouldEqual Nil
+      }
+    }
   }
 
   "lookupCredentialId" - {
@@ -97,5 +149,12 @@ class IamRemediationTest extends FreeSpec with Matchers {
 
   "formatRemediationOperation" - {
     "TODO" ignore {}
+  }
+
+  def operationForAccountId(id: String, username: String): RemediationOperation = {
+    val machineUser = MachineUser(username, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
+    RemediationOperation(IamUserRemediationHistory(AwsAccount(id, "", "", ""),
+      machineUser
+      , Nil), Warning, OutdatedCredential, new DateTime())
   }
 }
