@@ -6,11 +6,12 @@ import logic.IamRemediation._
 import model.iamremediation._
 import model._
 import org.joda.time.DateTime
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.Inside.inside
+import org.scalatest.{FreeSpec, Matchers, OptionValues}
 import utils.attempt.{FailedAttempt, Failure}
 
 
-class IamRemediationTest extends FreeSpec with Matchers {
+class IamRemediationTest extends FreeSpec with Matchers with OptionValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
   val humanAccessKeyOldAndEnabled1 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
   val humanAccessKeyOldAndEnabled2 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
@@ -109,7 +110,6 @@ class IamRemediationTest extends FreeSpec with Matchers {
     val machineOneKeyWarning = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(machineActivityWarningLastNotificationEqualToCadence))
     val machineTwoKeysRequireAction = IamUserRemediationHistory(account, machineWithTwoOldEnabledAccessKeys, List(machineActivityWarningLastNotificationEqualToCadence, machineActivityWarningKeyLastRotatedEqualCadenceThreshold))
 
-
     "given two users, each with 2 keys that require operations, output a list of size 4" in {
       calculateOutstandingOperations(List(humanBothKeysRequireAction, machineTwoKeysRequireAction), date) should have length 4
     }
@@ -128,80 +128,106 @@ class IamRemediationTest extends FreeSpec with Matchers {
     }
 
     "identifyRemediationOperation" - {
-      "given IamRemediationActivity is a None, return Warning operation" in {
-        val result = identifyRemediationOperation(mostRecentRemediationActivity = None, now = date, humanBothKeysRequireAction).map(_.iamRemediationActivityType)
-        result shouldBe Some(Warning)
+      "if there is no previous activity for this key, return a Warning operation" in {
+        identifyRemediationOperation(mostRecentRemediationActivity = None, now = date, humanBothKeysRequireAction).map(_.iamRemediationActivityType) shouldEqual Some(Warning)
       }
       "if the most recent activity is a Warning with a date more than `Config.daysBetweenWarningAndFinalNotification` days ago, return a Final operation" in {
-        val input = activity(daysBetweenWarningAndFinalNotification + 1, Warning, humanAccessKeyOldAndEnabled1)
-        val result = identifyRemediationOperation(Some(input), date, humanOneKeyRequiresAction).map(_.iamRemediationActivityType)
-        result shouldBe Some(FinalWarning)
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification + 1, Warning, humanAccessKeyOldAndEnabled1, humanWithOneOldEnabledAccessKey.username)
+        identifyRemediationOperation(Some(activity), date, humanOneKeyRequiresAction).map(_.iamRemediationActivityType) shouldEqual Some(FinalWarning)
       }
       "if the most recent activity is a Warning with a date exactly `Config.daysBetweenWarningAndFinalNotification` days ago, return a Final operation" in {
-        val input = activity(daysBetweenWarningAndFinalNotification, Warning, machineAccessKeyOldAndEnabled)
-        val result = identifyRemediationOperation(Some(input), date, machineOneKeyWarning).map(_.iamRemediationActivityType)
-        result shouldBe Some(FinalWarning)
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification, Warning, machineAccessKeyOldAndEnabled, machineWithOneOldEnabledAccessKey.username)
+        identifyRemediationOperation(Some(activity), date, machineOneKeyWarning).map(_.iamRemediationActivityType) shouldEqual Some(FinalWarning)
       }
-      "if the most recent activity is a Warning with a date less than `Config.daysBetweenWarningAndFinalNotification` days ago, return a None" in {
+      "if the most recent activity is a Warning with a date less than `Config.daysBetweenWarningAndFinalNotification` days ago, return a None, because no operation is required" in {
         val machineActivityWarningHealthy = IamRemediationActivity(account.id, machineWithOneOldEnabledAccessKey.username, date.minusDays(daysBetweenWarningAndFinalNotification - 1), Warning, OutdatedCredential, machineAccessKeyOldAndEnabled.lastRotated.get)
         val machineOneWarningKeyDoesNotRequireAction = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(machineActivityWarningHealthy))
-        val input = activity(daysBetweenWarningAndFinalNotification - 1, Warning, machineAccessKeyOldAndEnabled)
-        val result = identifyRemediationOperation(Some(input), date, machineOneWarningKeyDoesNotRequireAction).map(_.iamRemediationActivityType)
-        result shouldBe empty
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification - 1, Warning, machineAccessKeyOldAndEnabled, machineWithOneOldEnabledAccessKey.username)
+        identifyRemediationOperation(Some(activity), date, machineOneWarningKeyDoesNotRequireAction).map(_.iamRemediationActivityType) shouldBe empty
       }
       "if the most recent activity is a Final with a date more than `Config.daysBetweenFinalNotificationAndRemediation` days ago, return a Remediation operation" in {
-        val input = activity(daysBetweenFinalNotificationAndRemediation + 1, FinalWarning, humanAccessKeyOldAndEnabled1)
-        val result = identifyRemediationOperation(Some(input), date, humanBothKeysRequireAction).map(_.iamRemediationActivityType)
-        result shouldBe Some(Remediation)
+        val activity = remediationActivity(daysBetweenFinalNotificationAndRemediation + 1, FinalWarning, humanAccessKeyOldAndEnabled1, humanWithTwoOldEnabledAccessKeys.username)
+        identifyRemediationOperation(Some(activity), date, humanBothKeysRequireAction).map(_.iamRemediationActivityType) shouldEqual Some(Remediation)
       }
       "if the most recent activity is a Final with a date exactly `Config.daysBetweenFinalNotificationAndRemediation` days ago, return a Remediation operation" in {
-        val input = activity(daysBetweenFinalNotificationAndRemediation, FinalWarning, humanAccessKeyOldAndEnabled1)
-        val result = identifyRemediationOperation(Some(input), date, humanOneKeyFinalWarning).map(_.iamRemediationActivityType)
-        result shouldBe Some(Remediation)
+        val activity = remediationActivity(daysBetweenFinalNotificationAndRemediation, FinalWarning, humanAccessKeyOldAndEnabled1, humanWithOneOldEnabledAccessKey.username)
+        identifyRemediationOperation(Some(activity), date, humanOneKeyFinalWarning).map(_.iamRemediationActivityType) shouldEqual Some(Remediation)
       }
-      "if the most recent activity is a Final with a date less than `Config.daysBetweenFinalNotificationAndRemediation` days ago, return a None" in {
+      "if the most recent activity is a Final with a date less than `Config.daysBetweenFinalNotificationAndRemediation` days ago, return a None, because no operation is required" in {
         val machineActivityFinalNotificationLessThanCadence = IamRemediationActivity(account.id, machineWithOneOldEnabledAccessKey.username, date.minusDays(daysBetweenFinalNotificationAndRemediation - 1), FinalWarning, OutdatedCredential, machineAccessKeyOldAndEnabled.lastRotated.get)
         val machineOneFinalKeyDoesNotRequireAction = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(machineActivityFinalNotificationLessThanCadence))
-        val input = activity(daysBetweenFinalNotificationAndRemediation - 1, FinalWarning, machineAccessKeyOldAndEnabled)
-        val result = identifyRemediationOperation(Some(input), date, machineOneFinalKeyDoesNotRequireAction).map(_.iamRemediationActivityType)
-        result shouldBe empty
+        val activity = remediationActivity(daysBetweenFinalNotificationAndRemediation - 1, FinalWarning, machineAccessKeyOldAndEnabled, machineWithOneOldEnabledAccessKey.username)
+        identifyRemediationOperation(Some(activity), date, machineOneFinalKeyDoesNotRequireAction).map(_.iamRemediationActivityType) shouldBe empty
       }
       // The most recent activity being a Remediation is an edge case, because it means that the access key has not been successfully disabled.
       // In this edge case, set the operation to Remediation so that Security HQ can try to disable the key again.
       "if the most recent activity is a Remediation, return a Remediation" in {
-        val input = activity(1, Remediation, humanAccessKeyOldAndEnabled1)
-        val result = identifyRemediationOperation(Some(input), date, humanOneKeyRemediation).map(_.iamRemediationActivityType)
-        result shouldBe Some(Remediation)
+        val activity = remediationActivity(1, Remediation, humanAccessKeyOldAndEnabled1, humanWithOneOldEnabledAccessKey.username)
+        identifyRemediationOperation(Some(activity), date, humanOneKeyRemediation).map(_.iamRemediationActivityType) shouldEqual Some(Remediation)
+      }
+      "if the most recent activity is a Warning with a date more than `Config.daysBetweenWarningAndFinalNotification` days ago, return the correct output" in {
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification + 1, Warning, humanAccessKeyOldAndEnabled1, humanWithOneOldEnabledAccessKey.username)
+        val result = identifyRemediationOperation(Some(activity), date, humanOneKeyRequiresAction)
+        inside (result.value) { case RemediationOperation(candidate, activityType, problem, _) =>
+          inside (candidate) { case IamUserRemediationHistory(account, user, _) =>
+            account.name shouldEqual "testAccount"
+            user.username shouldEqual "amina.adewusi"
+          }
+          activityType shouldEqual FinalWarning
+          problem shouldEqual OutdatedCredential
+        }
+      }
+      "if the most recent activity is a Warning with a date exactly `Config.daysBetweenWarningAndFinalNotification` days ago, return the correct problem creation date" in {
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification, Warning, machineAccessKeyOldAndEnabled, machineWithOneOldEnabledAccessKey.username)
+        val result = identifyRemediationOperation(Some(activity), date, machineOneKeyWarning)
+        result.map(_.problemCreationDate) shouldEqual Some(machineAccessKeyOldAndEnabled.lastRotated.get)
       }
     }
+
     "identifyMostRecentIamRemediationActivity" - {
       "if the key's most recent activity is Warning, return Warning" in {
         val key = machineAccessKeyOldAndEnabled
-        val recentActivity = activity(daysBetweenWarningAndFinalNotification, Warning, key)
-        val history = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(recentActivity))
-        val result = identifyMostRecentActivity(history, key)
-        result.map(_.iamRemediationActivityType) shouldBe Some(Warning)
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification, Warning, key, machineWithOneOldEnabledAccessKey.username)
+        val history = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(activity))
+        identifyMostRecentActivity(history, key).map(_.iamRemediationActivityType) shouldEqual Some(Warning)
       }
       "if the key's most recent activity is Final, return Final" in {
         val key = humanAccessKeyOldAndEnabled1
-        val recentActivity = activity(daysBetweenFinalNotificationAndRemediation, FinalWarning, key)
-        val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(recentActivity))
-        val result = identifyMostRecentActivity(history, key)
-        result.map(_.iamRemediationActivityType) shouldBe Some(FinalWarning)
+        val activity = remediationActivity(daysBetweenFinalNotificationAndRemediation, FinalWarning, key, humanWithOneOldEnabledAccessKey.username)
+        val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(activity))
+        identifyMostRecentActivity(history, key).map(_.iamRemediationActivityType) shouldEqual Some(FinalWarning)
       }
       "if the key's most recent activity is Remediation, return Remediation" in {
         val key = humanAccessKeyOldAndEnabled1
-        val recentActivity = activity(1, Remediation, key)
-        val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(recentActivity))
-        val result = identifyMostRecentActivity(history, key)
-        result.map(_.iamRemediationActivityType) shouldBe Some(Remediation)
+        val activity = remediationActivity(1, Remediation, key, humanWithOneOldEnabledAccessKey.username)
+        val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(activity))
+        identifyMostRecentActivity(history, key).map(_.iamRemediationActivityType) shouldEqual Some(Remediation)
       }
       "given a key does not have any activity, return None" in {
-        val recentActivity = Nil
-        val machineNoActivity = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey2, recentActivity)
+        val activity = Nil
+        val machineNoActivity = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey2, activity)
         identifyMostRecentActivity(machineNoActivity, machineAccessKeyOldAndEnabledOnTimeThreshold) shouldBe empty
       }
+      "if the key's most recent activity is Warning, return the correct output" in {
+        val key = machineAccessKeyOldAndEnabled
+        val activity = remediationActivity(daysBetweenWarningAndFinalNotification, Warning, key, machineWithOneOldEnabledAccessKey.username)
+        val history = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(activity))
+        val result = identifyMostRecentActivity(history, key)
+        inside (result.value) { case IamRemediationActivity(awsAccountId, username, _, iamRemediationActivityType, iamProblem, problemCreationDate) =>
+          awsAccountId shouldEqual "testAccountId"
+          username shouldEqual "machine1"
+          iamRemediationActivityType shouldEqual Warning
+          iamProblem shouldEqual OutdatedCredential
+        }
+      }
+      "if the key's most recent activity is Final, return the correct date the last notification was sent" in {
+        val key = humanAccessKeyOldAndEnabled1
+        val activity = remediationActivity(daysBetweenFinalNotificationAndRemediation, FinalWarning, key, humanWithOneOldEnabledAccessKey.username)
+        val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(activity))
+        identifyMostRecentActivity(history, key).map(_.dateNotificationSent) shouldEqual Some(date.minusDays(daysBetweenFinalNotificationAndRemediation))
+      }
     }
+
     "identifyVulnerableKeys" - {
       "given a human user with 1 vulnerable access key, return that key" in {
         identifyVulnerableKeys(humanOneKeyRequiresAction, date).map(_.lastRotated) shouldEqual List(humanAccessKeyOldAndEnabled1.lastRotated)
@@ -290,6 +316,6 @@ class IamRemediationTest extends FreeSpec with Matchers {
       machineUser
       , Nil), Warning, OutdatedCredential, new DateTime())
   }
-  def activity(dayOffset: Int, activityType: IamRemediationActivityType, accessKey: AccessKey) =
-    IamRemediationActivity(account.id, "username", date.minusDays(dayOffset), activityType, OutdatedCredential, accessKey.lastRotated.get)
+  def remediationActivity(dayOffset: Int, activityType: IamRemediationActivityType, accessKey: AccessKey, username: String) =
+    IamRemediationActivity(account.id, username, date.minusDays(dayOffset), activityType, OutdatedCredential, accessKey.lastRotated.get)
 }

@@ -86,7 +86,7 @@ object IamRemediation extends Logging {
   /**
     * Looks through the candidate's remediation history and outputs the work to be done per access key.
     * This means that the same user could appear in the output list twice, because both of their keys may require an operation.
-    * By comparing the current date with the date of the last alert, we know which operation to perform next.
+    * By comparing the current date with the date of the most recent activity, we know which operation to perform next.
     */
   def calculateOutstandingOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = {
     for {
@@ -122,7 +122,9 @@ object IamRemediation extends Logging {
             })
         }
       case None =>
-        // we do not expect this case, because every IAM access key has a lastRotatedDate. SHQ's model needs to be changed to reflect this.
+        val name = remediationHistory.iamUser.username
+        val account = remediationHistory.awsAccount.name
+        logger.warn(s"$name in $account has an access key without a lastRotatedDate. Please investigate.")
         None
     }
   }
@@ -131,21 +133,22 @@ object IamRemediation extends Logging {
     userRemediationHistory: IamUserRemediationHistory): Option[RemediationOperation] =
     mostRecentRemediationActivity match {
       case None =>
-        // if there is no recent activity, then the required operation must be a Warning
+        // If there is no recent activity, then the required operation must be a Warning.
         Some(RemediationOperation(userRemediationHistory, Warning, OutdatedCredential, problemCreationDate = now))
       case Some(mostRecentActivity) =>
         mostRecentActivity.iamRemediationActivityType match {
         case Warning if now.isAfter(mostRecentActivity.dateNotificationSent.plusDays(daysBetweenWarningAndFinalNotification - 1)) =>
-          // if the most recent activity is a Warning and the last notification was sent at least `Config.daysBetweenWarningAndFinalNotification` ago,
-          // the required operation is a FinalWarning
+          // If the most recent activity is a Warning and the last notification was sent at least `Config.daysBetweenWarningAndFinalNotification` ago,
+          // the required operation is a FinalWarning.
           Some(RemediationOperation(userRemediationHistory, FinalWarning, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
         case FinalWarning if now.isAfter(mostRecentActivity.dateNotificationSent.plusDays(daysBetweenFinalNotificationAndRemediation - 1)) =>
-          // if the most recent activity is a FinalWarning and the last notification was sent at least `Config.daysBetweenFinalNotificationAndRemediation` ago,
-          // the required operation is Remediation
+          // If the most recent activity is a FinalWarning and the last notification was sent at least `Config.daysBetweenFinalNotificationAndRemediation` ago,
+          // the required operation is Remediation.
           Some(RemediationOperation(userRemediationHistory, Remediation, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
         case Remediation =>
-          // if the most recent activity is Remediation, then we have entered into an edge case.
-          // The operation should still be Remediation, because the access key must not have been successfully disabled last time it was marked as Remediation.
+          val name = userRemediationHistory.iamUser.username
+          val account = userRemediationHistory.awsAccount.name
+          logger.warn(s"$name in $account has an access key of recent activity type Remediation, but the key is enabled. Please investigate as I will continue to attempt key disablement until rotated.")
           Some(RemediationOperation(userRemediationHistory, Remediation, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
         case _ => None
       }
