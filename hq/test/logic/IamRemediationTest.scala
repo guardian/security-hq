@@ -1,7 +1,8 @@
 package logic
 
 import config.Config
-import logic.IamRemediation.{getCredsReportDisplayForAccount, identifyAllUsersWithOutdatedCredentials, identifyUsersWithOutdatedCredentials, partitionOperationsByAllowedAccounts}
+import logic.IamRemediation.{formatRemediationOperation, getCredsReportDisplayForAccount, identifyAllUsersWithOutdatedCredentials, identifyUsersWithOutdatedCredentials, partitionOperationsByAllowedAccounts}
+import model.iamremediation.{FinalWarning, IamUserRemediationHistory, OutdatedCredential, PasswordMissingMFA, Remediation, RemediationOperation}
 import model.{AccessKey, AccessKeyDisabled, AccessKeyEnabled, AwsAccount, CredentialReportDisplay, Green, HumanUser, MachineUser, NoKey}
 import model.{IamUserRemediationHistory, OutdatedCredential, RemediationOperation, Warning}
 import org.joda.time.DateTime
@@ -148,7 +149,23 @@ class IamRemediationTest extends FreeSpec with Matchers {
   }
 
   "formatRemediationOperation" - {
-    "TODO" ignore {}
+    val date = new DateTime(2021, 1, 1, 1, 1)
+    val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
+    val user = HumanUser("jorge.azevedo", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
+    val iamUserRemediationHistory = IamUserRemediationHistory(account, user, Nil)
+
+    "should return a readable message for PasswordMissingMFA" in {
+      val operation = RemediationOperation(iamUserRemediationHistory, Remediation, PasswordMissingMFA, date)
+      val expectedString = "PasswordMissingMFA Remediation for user jorge.azevedo from account testAccountId"
+      formatRemediationOperation(operation) shouldEqual expectedString
+    }
+
+    "should return a readable message for OutdatedCredentials" in {
+      val operation = RemediationOperation(iamUserRemediationHistory, FinalWarning, OutdatedCredential, date)
+      val expectedString = "OutdatedCredential FinalWarning for user jorge.azevedo from account testAccountId"
+      formatRemediationOperation(operation) shouldEqual expectedString
+
+    }
   }
 
   def operationForAccountId(id: String, username: String): RemediationOperation = {
