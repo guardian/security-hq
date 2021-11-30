@@ -151,20 +151,19 @@ class IamRemediationTest extends FreeSpec with Matchers {
   "formatRemediationOperation" - {
     val date = new DateTime(2021, 1, 1, 1, 1)
     val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
-    val user = HumanUser("jorge.azevedo", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
-    val iamUserRemediationHistory = IamUserRemediationHistory(account, user, Nil)
+    val humanUser = HumanUser("human.user", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
+    val machineUser = MachineUser("machine.user", AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
 
     "should return a readable message for PasswordMissingMFA" in {
+      val iamUserRemediationHistory = IamUserRemediationHistory(account, humanUser, Nil)
       val operation = RemediationOperation(iamUserRemediationHistory, Remediation, PasswordMissingMFA, date)
-      val expectedString = "PasswordMissingMFA Remediation for user jorge.azevedo from account testAccountId"
-      formatRemediationOperation(operation) shouldEqual expectedString
+      formatRemediationOperation(operation) shouldEqual "PasswordMissingMFA Remediation for user human.user from account testAccountId"
     }
 
     "should return a readable message for OutdatedCredentials" in {
+      val iamUserRemediationHistory = IamUserRemediationHistory(account, machineUser, Nil)
       val operation = RemediationOperation(iamUserRemediationHistory, FinalWarning, OutdatedCredential, date)
-      val expectedString = "OutdatedCredential FinalWarning for user jorge.azevedo from account testAccountId"
-      formatRemediationOperation(operation) shouldEqual expectedString
-
+      formatRemediationOperation(operation) shouldEqual "OutdatedCredential FinalWarning for user machine.user from account testAccountId"
     }
   }
 
