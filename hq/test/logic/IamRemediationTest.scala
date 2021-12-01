@@ -2,7 +2,7 @@ package logic
 
 import config.Config
 import logic.IamRemediation.{formatRemediationOperation, getCredsReportDisplayForAccount, identifyAllUsersWithOutdatedCredentials, identifyUsersWithOutdatedCredentials, partitionOperationsByAllowedAccounts}
-import model.iamremediation.{FinalWarning, IamUserRemediationHistory, OutdatedCredential, PasswordMissingMFA, Remediation, RemediationOperation}
+import model.{FinalWarning, IamUserRemediationHistory, OutdatedCredential, PasswordMissingMFA, Remediation, RemediationOperation}
 import model.{AccessKey, AccessKeyDisabled, AccessKeyEnabled, AwsAccount, CredentialReportDisplay, Green, HumanUser, MachineUser, NoKey}
 import model.{IamUserRemediationHistory, OutdatedCredential, RemediationOperation, Warning}
 import org.joda.time.DateTime
