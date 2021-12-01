@@ -68,8 +68,8 @@ class IamUnrecognisedUserJob(
       removePasswordResults <- Attempt.traverse(users)(removePasswords(account, _, iamClients))
     } yield {
       disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
-          case Some(result) => result.getSdkResponseMetadata.getRequestId
-        }
+        case Some(result) => result.getSdkResponseMetadata.getRequestId
+      }
     }
   }
 
@@ -80,7 +80,7 @@ class IamUnrecognisedUserJob(
         user.key2.keyStatus == AccessKeyEnabled ||
         user.humanUser
     )
-      if (usersWithAtLeastOneEnabledKeyOrHuman.isEmpty) {
+    if (usersWithAtLeastOneEnabledKeyOrHuman.isEmpty) {
       Attempt.Right(None)
     } else {
       val message = notification(disabledUsersSubject(account), disabledUsersMessage(usersWithAtLeastOneEnabledKeyOrHuman), List(TargetAccount(account.accountNumber)))

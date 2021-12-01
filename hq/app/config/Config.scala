@@ -1,16 +1,15 @@
 package config
 
-import java.io.FileInputStream
 import com.amazonaws.regions.Regions
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
 import model._
-import org.apache.commons.lang3.exception.ExceptionContext
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
+import java.io.FileInputStream
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -123,17 +122,27 @@ object Config {
     config.getOptional[String]("snyk.ssoUrl")
   }
 
+  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
+
   def getIamUnrecognisedUserConfig(config: Configuration)(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
     for {
       accounts <- getAllowedAccountsForStage(config)
       key <- getJanusDataFileKey(config)
       bucket <- getIamUnrecognisedUserBucket(config)
-      region <- getIamUnrecognisedUserBucketRegion(config)
       securityAccount <- getSecurityAccount(config)
-      anghammaradSnsTopic <- getAnghammaradSnsTopic(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount, anghammaradSnsTopic)
+      anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn)
   }
 
+  def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.anghammaradSnsArn"),
+      FailedAttempt(Failure("unable to get Anghammarad topic ARN",
+        "unable to get Anghammarad topic ARN for IAM jobs",
+        500
+      ))
+    )
+  }
 
   def getAllowedAccountsForStage(config: Configuration): Attempt[List[String]] = {
     Attempt.fromOption(
@@ -183,23 +192,4 @@ object Config {
         500))
     )
   }
-
-  def getAnghammaradSnsTopic(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.anghammaradSnsArn"),
-      FailedAttempt(Failure("unable to retrieve Anghammarad SNS Topic from config",
-        "I haven't been able to get the Anghammarad SNS Topic from config",
-        500))
-    )
-  }
-
-  def getIamDynamoTableName(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.iamDynamoTableName"),
-      FailedAttempt(Failure("unable to retrieve DynamoDB table name from config",
-        "I haven't been able to get the DynamoDB table name from config for the IAM vulnerable user job.",
-        500))
-    )
-  }
-
 }
