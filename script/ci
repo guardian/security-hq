@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+(
+    cd cdk
+    ./script/ci
+)
+
+./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'

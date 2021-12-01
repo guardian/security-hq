@@ -6,6 +6,7 @@ import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsPro
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
@@ -21,6 +22,8 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
+import schedule.JobScheduler
+import schedule.unrecognised.IamUnrecognisedUserJob
 import services.{CacheService, MetricService}
 import utils.attempt.Attempt
 
@@ -74,7 +77,7 @@ class AppComponents(context: Context)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
-  private val s3Clients = AWS.s3Clients(configuration)
+  private val s3Clients = AWS.s3Clients(configuration, availableRegions)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
   val securityCredentialsProvider =
@@ -88,7 +91,11 @@ class AppComponents(context: Context)
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
   private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region.getName)
+    .withRegion(Config.region)
+    .build()
+  private val securityS3Client = AmazonS3ClientBuilder.standard()
+    .withCredentials(securityCredentialsProvider)
+    .withRegion(Config.region)
     .build()
 
   private val cacheService = new CacheService(
@@ -113,6 +120,12 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
+
+  val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, securityS3Client, iamClients, configuration)(executionContext)
+
+  val quartzScheduler = StdSchedulerFactory.getDefaultScheduler
+  val jobScheduler = new JobScheduler(quartzScheduler, List(unrecognisedUserJob))
+  jobScheduler.initialise()
 
   override def router: Router = new Routes(
     httpErrorHandler,

@@ -1,12 +1,13 @@
 import com.gu.riffraff.artifact.RiffRaffArtifact
 import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
+import com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd
 import play.sbt.PlayImport.PlayKeys._
 import sbt.Keys.libraryDependencies
 
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.2.0"
-scalaVersion in ThisBuild := "2.12.10"
+scalaVersion in ThisBuild := "2.12.15"
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
@@ -55,7 +56,7 @@ lazy val hq = (project in file("hq"))
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "6.4" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
-      "com.gu" %% "janus-config-tools" % "0.0.4",
+      "com.gu" %% "janus-config-tools" % "0.0.4"
     ),
     pipelineStages in Assets := Seq(digest),
     // exclude docs
@@ -80,12 +81,15 @@ lazy val hq = (project in file("hq"))
     riffRaffPackageType := (packageBin in Debian).value,
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
+
     riffRaffAddManifestDir := Option("hq/public"),
     riffRaffArtifactResources  := Seq(
       riffRaffPackageType.value -> s"${name.value}/${name.value}.deb",
       baseDirectory.value / "conf" / "riff-raff.yaml" -> "riff-raff.yaml",
-      file("cloudformation/security-hq.template.yaml") -> s"${name.value}-cfn/cfn.yaml"
+      file("cdk/cdk.out/security-hq.template.json") -> s"${name.value}-cfn/cfn.json",
+      file("cdk/cdk.out/security-vpc.template.json") -> s"security-vpc-cfn/cfn.json"
     ),
+
     javaOptions in Universal ++= Seq(
       "-Dpidfile.path=/dev/null",
       "-Dconfig.file=/etc/gu/security-hq.conf",

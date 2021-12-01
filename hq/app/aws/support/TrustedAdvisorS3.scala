@@ -2,6 +2,7 @@ package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
 import aws.{AwsClient, AwsClients}
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.support.AWSSupportAsync
@@ -46,7 +47,7 @@ object TrustedAdvisorS3 {
   private def publicBucketsForAccount(account: AwsAccount, taClients: AwsClients[AWSSupportAsync], s3Clients: AwsClients[AmazonS3])(implicit ec: ExecutionContext): Attempt[List[BucketDetail]] = {
     for {
       supportClient <- taClients.get(account)
-      s3Client <- s3Clients.get(account)
+      s3Client <- s3Clients.get(account, Regions.US_EAST_1)
       bucketResult <- getBucketReport(supportClient)
       enhancedBuckets = bucketResult.flaggedResources.map(addEncryptionStatus(_, s3Client))
     } yield enhancedBuckets
