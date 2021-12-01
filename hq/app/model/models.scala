@@ -296,14 +296,3 @@ case class GcpFinding(
 )
 
 case class GcpSccConfig(orgId: String, sourceId: String)
-
-case class CronSchedule(cron: String, description: String)
-
-case class UnrecognisedJobConfigProperties(
-  allowedAccounts: List[String],
-  janusDataFileKey: String,
-  janusUserBucket: String,
-  janusUserBucketRegion: Regions,
-  securityAccount: AwsAccount,
-  anghammaradSnsTopic: String
-)
