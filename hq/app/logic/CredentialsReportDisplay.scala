@@ -168,6 +168,15 @@ object CredentialsReportDisplay {
     )
   }
 
+  val USERNAME_TAG_KEY = "GoogleUsername"
+  def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
+    tags.exists(t =>
+      t.key == USERNAME_TAG_KEY &&
+        t.value != "" &&
+        t.value.contains(".")
+    )
+  }
+
   implicit val reportStatusOrdering: Ordering[ReportStatus] = new Ordering[ReportStatus] {
     private def statusCode(status: ReportStatus): Int = status match {
       case Red(_) => 0
