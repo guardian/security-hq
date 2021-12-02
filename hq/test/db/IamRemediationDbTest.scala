@@ -32,7 +32,25 @@ class IamRemediationDbTest extends FreeSpec with Matchers {
   }
 
   "writePutRequest" - {
-    "TODO" ignore {}
+    "creates put request for correct table name with correct attribute name and values" in {
+      val dateNotificationSent = new DateTime(2021, 1, 1, 1, 1)
+      val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
+      val dateNotificationSentMillis = dateNotificationSent.getMillis
+      val problemCreationDateMillis = problemCreationDate.getMillis
+      val tableName = "testTable"
+
+      val iamRemediationActivity = IamRemediationActivity("testAccount", "testUser", dateNotificationSent, FinalWarning, PasswordMissingMFA, problemCreationDate)
+      val putItemRequest = writePutRequest(iamRemediationActivity, tableName)
+
+      putItemRequest.getTableName shouldEqual tableName
+      putItemRequest.getItem.asScala("id") shouldEqual S("testAccount/testUser")
+      putItemRequest.getItem.asScala("awsAccountId") shouldEqual S("testAccount")
+      putItemRequest.getItem.asScala("username") shouldEqual S("testUser")
+      putItemRequest.getItem.asScala("dateNotificationSent") shouldEqual N(dateNotificationSentMillis)
+      putItemRequest.getItem.asScala("iamRemediationActivityType") shouldEqual S("FinalWarning")
+      putItemRequest.getItem.asScala("iamProblem") shouldEqual S("PasswordMissingMFA")
+      putItemRequest.getItem.asScala("problemCreationDate") shouldEqual N(problemCreationDateMillis)
+    }
   }
 
   "deserialiseIamRemediationActivity" - {

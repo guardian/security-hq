@@ -97,7 +97,24 @@ object IamRemediationDb {
   }
 
   private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity, tableName: String): PutItemRequest = {
-    ???
+    val awsAcountId = iamRemediationActivity.awsAccountId
+    val username = iamRemediationActivity.username
+    val dateNotificationSent = iamRemediationActivity.dateNotificationSent
+    val iamRemediationActivityType = iamRemediationActivity.iamRemediationActivityType
+    val iamProblem = iamRemediationActivity.iamProblem
+    val problemCreationDate = iamRemediationActivity.problemCreationDate
+
+    val item = Map(
+      "id" -> S(s"${awsAcountId}/${username}"),
+      "awsAccountId" -> S(awsAcountId),
+      "username" -> S(username),
+      "dateNotificationSent" -> N(dateNotificationSent.getMillis),
+      "iamRemediationActivityType" -> S(iamRemediationActivityType.toString),
+      "iamProblem" -> S(iamProblem.toString),
+      "problemCreationDate" -> N(problemCreationDate.getMillis)
+    )
+
+    new PutItemRequest().withTableName(tableName).withItem(item.asJava)
   }
 
   /**
