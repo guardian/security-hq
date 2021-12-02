@@ -3,9 +3,10 @@ package db
 import org.scalatest.{FreeSpec, Matchers}
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
 import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
-import model.{FinalWarning, IamProblem, IamRemediationActivity, IamRemediationActivityType, MissingMfa, PasswordMissingMFA}
+import model.{AccessKey, AwsAccount, FinalWarning, Green, HumanUser, IamProblem, IamRemediationActivity, IamRemediationActivityType, MissingMfa, NoKey, PasswordMissingMFA}
 import org.joda.time.DateTime
 import utils.attempt.AttemptValues
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 
@@ -30,7 +31,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     problemCreationDate
   )
 
-  val record = Map(
+  val iamRemediationActivityMap = Map(
     "id" -> S(hashKey),
     "awsAccountId" -> S(accountId),
     "username" -> S(testUser),
@@ -40,7 +41,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
 
-  val incompleteRecord = Map(
+  val incompleteMap = Map(
     "id" -> S(hashKey),
     "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
@@ -63,18 +64,18 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "creates put request for correct table name with correct attribute name and values" in {
       writePutRequest(iamRemediationActivity, tableName) should have(
         'tableName (tableName),
-        'getItem (record.asJava)
+        'getItem (iamRemediationActivityMap.asJava)
       )
     }
   }
 
   "deserialiseIamRemediationActivity" - {
     "Returns a right with a IamRemediationActivity object correctly instantiated from a database record" in {
-        deserialiseIamRemediationActivity(record).value shouldEqual iamRemediationActivity
+        deserialiseIamRemediationActivity(iamRemediationActivityMap).value shouldEqual iamRemediationActivity
     }
 
     "Returns left when database record is incomplete" in {
-      deserialiseIamRemediationActivity(incompleteRecord).isFailedAttempt shouldBe true
+      deserialiseIamRemediationActivity(incompleteMap).isFailedAttempt shouldBe true
     }
   }
 }
