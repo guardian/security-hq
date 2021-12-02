@@ -110,6 +110,10 @@ object IamRemediation extends Logging {
   }
 
   def formatRemediationOperation(remediationOperation: RemediationOperation): String = {
-    ???
+    val problem = remediationOperation.iamProblem
+    val activity = remediationOperation.iamRemediationActivityType
+    val username = remediationOperation.vulnerableCandidate.iamUser.username
+    val accountId = remediationOperation.vulnerableCandidate.awsAccount.id
+    s"$problem $activity for user $username from account $accountId"
   }
 }
