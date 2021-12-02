@@ -28,7 +28,19 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
   }
 
   private def scan(request: ScanRequest)(implicit ec: ExecutionContext): Attempt[List[Map[String, AttributeValue]]] = {
-    ???
+    try {
+      Attempt.Right(client.scan(request).getItems.asScala.toList.map(_.asScala.toMap))
+    } catch {
+      case NonFatal(e) =>
+        Attempt.Left(
+          Failure(
+            s"unable to scan dynamoDB table",
+            s"I haven't been able to scan the dynamo table for the vulnerable user job",
+            500,
+            throwable = Some(e)
+          )
+        )
+    }
   }
 
   private def get(request: GetItemRequest)(implicit ec: ExecutionContext): Attempt[Map[String, AttributeValue]] = {
