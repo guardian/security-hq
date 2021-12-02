@@ -71,8 +71,17 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
 }
 
 object IamRemediationDb {
+  private def S(str: String) = new AttributeValue().withS(str)
+  private def L(list: List[AttributeValue]) = new AttributeValue().withL(list.asJava)
+  private def N(number: Long) = new AttributeValue().withN(number.toString)
+  private def N(number: Double) = new AttributeValue().withN(number.toString)
+  private def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
+  private def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
+
   private[db] def lookupScanRequest(username: String, accountId: String, tableName: String): ScanRequest = {
-    ???
+    new ScanRequest().withTableName(tableName)
+      .withFilterExpression("id = :key")
+      .withExpressionAttributeValues(Map(":key" -> S(s"${username}/${accountId}")).asJava)
   }
 
   private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity, tableName: String): PutItemRequest = {
