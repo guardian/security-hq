@@ -2,20 +2,51 @@ package db
 
 import org.scalatest.{FreeSpec, Matchers}
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
-import db.IamRemediationDb.{lookupScanRequest, writePutRequest}
+import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
 import model.{FinalWarning, IamProblem, IamRemediationActivity, IamRemediationActivityType, MissingMfa, PasswordMissingMFA}
 import org.joda.time.DateTime
+import utils.attempt.AttemptValues
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 import scala.collection.JavaConverters._
 
 
-class IamRemediationDbTest extends FreeSpec with Matchers {
-  def S(str: String) = new AttributeValue().withS(str)
-  def L(list: List[AttributeValue]) = new AttributeValue().withL(list.asJava)
-  def N(number: Long) = new AttributeValue().withN(number.toString)
-  def N(number: Double) = new AttributeValue().withN(number.toString)
-  def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
-  def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
+class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
+
+  val dateNotificationSent = new DateTime(2021, 1, 1, 1, 1)
+  val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
+  val dateNotificationSentMillis = dateNotificationSent.getMillis
+  val problemCreationDateMillis = problemCreationDate.getMillis
+  val tableName = "testTable"
+
+  val iamRemediationActivity = IamRemediationActivity(
+    "testAccount",
+    "testUser",
+    dateNotificationSent,
+    FinalWarning,
+    PasswordMissingMFA,
+    problemCreationDate
+  )
+
+  val record = Map(
+    "id" -> S("testAccount/testUser"),
+    "awsAccountId" -> S("testAccount"),
+    "username" -> S("testUser"),
+    "dateNotificationSent" -> N(dateNotificationSentMillis),
+    "iamRemediationActivityType" -> S("FinalWarning"),
+    "iamProblem" -> S("PasswordMissingMFA"),
+    "problemCreationDate" -> N(problemCreationDateMillis)
+  )
+
+  val incompleteRecord = Map(
+    "id" -> S("testAccount/testUser"),
+    "username" -> S("testUser"),
+    "dateNotificationSent" -> N(dateNotificationSentMillis),
+    "iamRemediationActivityType" -> S("FinalWarning"),
+    "iamProblem" -> S("PasswordMissingMFA"),
+    "problemCreationDate" -> N(problemCreationDateMillis)
+  )
 
   "lookupScanRequest" - {
     "creates scan request for correct table name with correct filter" in {
@@ -33,13 +64,6 @@ class IamRemediationDbTest extends FreeSpec with Matchers {
 
   "writePutRequest" - {
     "creates put request for correct table name with correct attribute name and values" in {
-      val dateNotificationSent = new DateTime(2021, 1, 1, 1, 1)
-      val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
-      val dateNotificationSentMillis = dateNotificationSent.getMillis
-      val problemCreationDateMillis = problemCreationDate.getMillis
-      val tableName = "testTable"
-
-      val iamRemediationActivity = IamRemediationActivity("testAccount", "testUser", dateNotificationSent, FinalWarning, PasswordMissingMFA, problemCreationDate)
       val putItemRequest = writePutRequest(iamRemediationActivity, tableName)
 
       putItemRequest.getTableName shouldEqual tableName
@@ -54,6 +78,12 @@ class IamRemediationDbTest extends FreeSpec with Matchers {
   }
 
   "deserialiseIamRemediationActivity" - {
-    "TODO" ignore {}
+    "Returns a right with a IamRemediationActivity object correctly instantiated from a database record" in {
+        deserialiseIamRemediationActivity(record).value shouldEqual iamRemediationActivity
+    }
+
+    "Returns left when database record is incomplete" in {
+      deserialiseIamRemediationActivity(incompleteRecord).isFailedAttempt shouldBe true
+    }
   }
 }

@@ -2,8 +2,8 @@ package db
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
-import model.IamRemediationActivity
-import model.{AwsAccount, IAMUser}
+import model.{AwsAccount, FinalWarning, IAMUser, IamRemediationActivity, OutdatedCredential, PasswordMissingMFA, Remediation, Warning}
+import org.joda.time.DateTime
 import utils.attempt.{Attempt, Failure}
 
 import scala.concurrent.ExecutionContext
@@ -74,21 +74,15 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
     }
   }
 
-  private def S(str: String) = new AttributeValue().withS(str)
-  private def L(list: List[AttributeValue]) = new AttributeValue().withL(list.asJava)
-  private def N(number: Long) = new AttributeValue().withN(number.toString)
-  private def N(number: Double) = new AttributeValue().withN(number.toString)
-  private def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
-  private def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
 }
 
 object IamRemediationDb {
-  private def S(str: String) = new AttributeValue().withS(str)
-  private def L(list: List[AttributeValue]) = new AttributeValue().withL(list.asJava)
-  private def N(number: Long) = new AttributeValue().withN(number.toString)
-  private def N(number: Double) = new AttributeValue().withN(number.toString)
-  private def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
-  private def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
+  private[db] def S(str: String) = new AttributeValue().withS(str)
+  private[db] def L(list: List[AttributeValue]) = new AttributeValue().withL(list.asJava)
+  private[db] def N(number: Long) = new AttributeValue().withN(number.toString)
+  private[db] def N(number: Double) = new AttributeValue().withN(number.toString)
+  private[db] def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
+  private[db] def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
 
   private[db] def lookupScanRequest(username: String, accountId: String, tableName: String): ScanRequest = {
     new ScanRequest().withTableName(tableName)
@@ -104,13 +98,24 @@ object IamRemediationDb {
     val iamProblem = iamRemediationActivity.iamProblem
     val problemCreationDate = iamRemediationActivity.problemCreationDate
 
+    val iamRemediationActivityTypeString = iamRemediationActivityType match {
+      case Warning => "Warning"
+      case FinalWarning => "FinalWarning"
+      case Remediation => "Remediation"
+    }
+
+    val iamProblemString = iamProblem match {
+      case OutdatedCredential => "OutdatedCredential"
+      case PasswordMissingMFA => "PasswordMissingMFA"
+    }
+
     val item = Map(
       "id" -> S(s"${awsAcountId}/${username}"),
       "awsAccountId" -> S(awsAcountId),
       "username" -> S(username),
       "dateNotificationSent" -> N(dateNotificationSent.getMillis),
-      "iamRemediationActivityType" -> S(iamRemediationActivityType.toString),
-      "iamProblem" -> S(iamProblem.toString),
+      "iamRemediationActivityType" -> S(iamRemediationActivityTypeString),
+      "iamProblem" -> S(iamProblemString),
       "problemCreationDate" -> N(problemCreationDate.getMillis)
     )
 
@@ -121,6 +126,40 @@ object IamRemediationDb {
     * Attempts to deserialise a database query result into our case class.
     */
   private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue]): Attempt[IamRemediationActivity] = {
-    ???
+    try {
+      val awsAccountId = dbData("awsAccountId").getS
+      val username = dbData("username").getS
+
+      val dateNotificationSent = dbData("dateNotificationSent").getN.toLong
+      val problemCreationDate = dbData("problemCreationDate").getN.toLong
+
+      val iamRemediationActivityType = dbData("iamRemediationActivityType").getS match {
+        case "Warning" => Warning
+        case "FinalWarning" => FinalWarning
+        case "Remediation" => Remediation
+      }
+
+      val iamProblem = dbData("iamProblem").getS  match {
+        case "OutdatedCredential" => OutdatedCredential
+        case "PasswordMissingMFA" => PasswordMissingMFA
+      }
+
+      Attempt.Right(IamRemediationActivity
+      (awsAccountId,
+        username,
+        new DateTime(dateNotificationSent),
+        iamRemediationActivityType,
+        iamProblem,
+        new DateTime(problemCreationDate)))
+    } catch {
+      case NonFatal(e) =>
+        Attempt.Left(
+          Failure(s"unable to serialize dynamoDB record into IamRemediationActivity object",
+            s"I haven't been able to put the item into the dynamo table for the vulnerable user job",
+            500,
+            throwable = Some(e)
+          )
+        )
+    }
   }
 }
