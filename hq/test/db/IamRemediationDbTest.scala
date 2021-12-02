@@ -51,25 +51,20 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
 
   "lookupScanRequest" - {
     "creates scan request for correct table name with correct filter" in {
-      val result = lookupScanRequest(testUser, accountId, tableName)
-      result.getTableName shouldEqual tableName
-      result.getFilterExpression shouldEqual "id = :key"
-      result.getExpressionAttributeValues shouldEqual Map(":key" -> new AttributeValue().withS(hashKey)).asJava
+      lookupScanRequest(testUser, accountId, tableName) should have(
+        'tableName (tableName),
+        'filterExpression ("id = :key"),
+        'expressionAttributeValues (Map(":key" -> new AttributeValue().withS(hashKey)).asJava)
+      )
     }
   }
 
   "writePutRequest" - {
     "creates put request for correct table name with correct attribute name and values" in {
-      val putItemRequest = writePutRequest(iamRemediationActivity, tableName)
-
-      putItemRequest.getTableName shouldEqual tableName
-      putItemRequest.getItem.asScala("id") shouldEqual S(hashKey)
-      putItemRequest.getItem.asScala("awsAccountId") shouldEqual S(accountId)
-      putItemRequest.getItem.asScala("username") shouldEqual S(testUser)
-      putItemRequest.getItem.asScala("dateNotificationSent") shouldEqual N(dateNotificationSentMillis)
-      putItemRequest.getItem.asScala("iamRemediationActivityType") shouldEqual S("FinalWarning")
-      putItemRequest.getItem.asScala("iamProblem") shouldEqual S("PasswordMissingMFA")
-      putItemRequest.getItem.asScala("problemCreationDate") shouldEqual N(problemCreationDateMillis)
+      writePutRequest(iamRemediationActivity, tableName) should have(
+        'tableName (tableName),
+        'getItem (record.asJava)
+      )
     }
   }
 
