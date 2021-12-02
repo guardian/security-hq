@@ -87,7 +87,7 @@ object IamRemediationDb {
   private[db] def lookupScanRequest(username: String, accountId: String, tableName: String): ScanRequest = {
     new ScanRequest().withTableName(tableName)
       .withFilterExpression("id = :key")
-      .withExpressionAttributeValues(Map(":key" -> S(s"${username}/${accountId}")).asJava)
+      .withExpressionAttributeValues(Map(":key" -> S(s"${accountId}/${username}")).asJava)
   }
 
   private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity, tableName: String): PutItemRequest = {

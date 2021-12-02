@@ -7,22 +7,23 @@ import model.{FinalWarning, IamProblem, IamRemediationActivity, IamRemediationAc
 import org.joda.time.DateTime
 import utils.attempt.AttemptValues
 import scala.concurrent.ExecutionContext.Implicits.global
-
-
 import scala.collection.JavaConverters._
 
 
 class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
 
-  val dateNotificationSent = new DateTime(2021, 1, 1, 1, 1)
-  val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
-  val dateNotificationSentMillis = dateNotificationSent.getMillis
-  val problemCreationDateMillis = problemCreationDate.getMillis
   val tableName = "testTable"
+  val hashKey = "testAccountId/testUser"
+  val accountId = "testAccountId"
+  val testUser = "testUser"
+  val dateNotificationSent = new DateTime(2021, 1, 1, 1, 1)
+  val dateNotificationSentMillis = dateNotificationSent.getMillis
+  val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
+  val problemCreationDateMillis = problemCreationDate.getMillis
 
   val iamRemediationActivity = IamRemediationActivity(
-    "testAccount",
-    "testUser",
+    accountId,
+    testUser,
     dateNotificationSent,
     FinalWarning,
     PasswordMissingMFA,
@@ -30,9 +31,9 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
   )
 
   val record = Map(
-    "id" -> S("testAccount/testUser"),
-    "awsAccountId" -> S("testAccount"),
-    "username" -> S("testUser"),
+    "id" -> S(hashKey),
+    "awsAccountId" -> S(accountId),
+    "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
     "iamRemediationActivityType" -> S("FinalWarning"),
     "iamProblem" -> S("PasswordMissingMFA"),
@@ -40,8 +41,8 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
   )
 
   val incompleteRecord = Map(
-    "id" -> S("testAccount/testUser"),
-    "username" -> S("testUser"),
+    "id" -> S(hashKey),
+    "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
     "iamRemediationActivityType" -> S("FinalWarning"),
     "iamProblem" -> S("PasswordMissingMFA"),
@@ -50,12 +51,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
 
   "lookupScanRequest" - {
     "creates scan request for correct table name with correct filter" in {
-      val username = "test.user"
-      val accountId = "account"
-      val tableName = "my table"
-      val hashKey = s"${username}/${accountId}"
-
-      val result = lookupScanRequest(username, accountId, tableName)
+      val result = lookupScanRequest(testUser, accountId, tableName)
       result.getTableName shouldEqual tableName
       result.getFilterExpression shouldEqual "id = :key"
       result.getExpressionAttributeValues shouldEqual Map(":key" -> new AttributeValue().withS(hashKey)).asJava
@@ -67,9 +63,9 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
       val putItemRequest = writePutRequest(iamRemediationActivity, tableName)
 
       putItemRequest.getTableName shouldEqual tableName
-      putItemRequest.getItem.asScala("id") shouldEqual S("testAccount/testUser")
-      putItemRequest.getItem.asScala("awsAccountId") shouldEqual S("testAccount")
-      putItemRequest.getItem.asScala("username") shouldEqual S("testUser")
+      putItemRequest.getItem.asScala("id") shouldEqual S(hashKey)
+      putItemRequest.getItem.asScala("awsAccountId") shouldEqual S(accountId)
+      putItemRequest.getItem.asScala("username") shouldEqual S(testUser)
       putItemRequest.getItem.asScala("dateNotificationSent") shouldEqual N(dateNotificationSentMillis)
       putItemRequest.getItem.asScala("iamRemediationActivityType") shouldEqual S("FinalWarning")
       putItemRequest.getItem.asScala("iamProblem") shouldEqual S("PasswordMissingMFA")
