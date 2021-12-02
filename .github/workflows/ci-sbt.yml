@@ -42,7 +42,7 @@ jobs:
             ~/.ivy2/cache
             ~/.sbt
             ~/.coursier
-          key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}
+          key: sbt
 
       # (Respects .nvmrc)
       - name: Setup Node
