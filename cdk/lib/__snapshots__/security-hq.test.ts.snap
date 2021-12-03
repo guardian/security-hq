@@ -34,6 +34,11 @@ Object {
       "Description": "Amazon Machine Image ID for the app security-hq. Use this in conjunction with AMIgo to keep AMIs up to date.",
       "Type": "AWS::EC2::Image::Id",
     },
+    "AnghammaradSnsArn": Object {
+      "Default": "/account/services/anghammarad.topic.arn",
+      "Description": "SSM parameter containing the ARN of the Anghammarad SNS topic",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
     "AuditDataS3BucketName": Object {
       "Default": "/security/security-hq/audit-data-s3-bucket/name",
       "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
@@ -515,6 +520,29 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "GetDistributablePolicySecurityhqC6808A6A",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuAnghammaradSenderPolicy674A3874": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "AnghammaradSnsArn",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GuAnghammaradSenderPolicy674A3874",
         "Roles": Array [
           Object {
             "Ref": "InstanceRoleSecurityhq7C08CA33",

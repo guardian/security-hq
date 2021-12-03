@@ -32,6 +32,7 @@ import {
   GuGetS3ObjectsPolicy,
   GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
+import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 import { GuardianPublicNetworks } from '@guardian/private-infrastructure-config';
 
@@ -102,6 +103,7 @@ aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.st
 dpkg -i /tmp/installer.deb`,
       roleConfiguration: {
         additionalPolicies: [
+          GuAnghammaradSenderPolicy.getInstance(this),
           new GuPutCloudwatchMetricsPolicy(this),
           new GuGetS3ObjectsPolicy(this, 'S3AuditRead', {
             bucketName: auditDataS3BucketName.valueAsString,
