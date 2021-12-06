@@ -41,7 +41,7 @@ class IamUnrecognisedUserJob(
       logger.info(s"Running scheduled job: $description")
     }
 
-    val result = for {
+    val result: Attempt[List[Option[String]]] = for {
       config <- getIamUnrecognisedUserConfig(config)
       s3Object <- getS3Object(securityS3Client, config.janusUserBucket, config.janusDataFileKey)
       janusData = JanusConfig.load(makeFile(s3Object.mkString))
@@ -56,7 +56,7 @@ class IamUnrecognisedUserJob(
         logger.error(s"Failed to run unrecognised user job: ${failure.logMessage}")
       },
       { notificationIds =>
-        logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.length} notifications.")
+        logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.flatten.length} notifications.")
       }
     )
   }
@@ -83,12 +83,12 @@ class IamUnrecognisedUserJob(
       if (usersWithAtLeastOneEnabledKeyOrHuman.isEmpty) {
       Attempt.Right(None)
     } else {
-      val message = notification(disabledUsersSubject(account), disabledUsersMessage(usersWithAtLeastOneEnabledKeyOrHuman), List(TargetAccount(account.accountNumber)))
-      Attempt.fromFuture(
-        send(message, topicArn, snsClient, testMode).fold(_ => None, success => Some(success))
-      ) {
-        case NonFatal(e) => FailedAttempt(Failure(e.getMessage, s"Could not send IAM unrecognised job notification", 500, None, Some(e)))
-      }
+      val message = notification(
+        disabledUsersSubject(account),
+        disabledUsersMessage(usersWithAtLeastOneEnabledKeyOrHuman),
+        List(TargetAccount(account.accountNumber))
+      )
+      send(message, topicArn, snsClient, testMode).map(Some(_))
     }
   }
 }
