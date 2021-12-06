@@ -132,17 +132,15 @@ object IamRemediationDb {
     * Attempts to deserialise a database query result into our case class.
     */
   private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue])(implicit ec: ExecutionContext): Attempt[IamRemediationActivity] = {
-    def valueFromDbData[A](key: String, f: AttributeValue => A): Option[A] = dbData.get(key).flatMap(data => Option(f(data)))
-
-    val remediationActivity = for {
-      awsAccountId <- valueFromDbData("awsAccountId", _.getS)
-      username <- valueFromDbData("username", _.getS)
-      dateNotificationSent <- valueFromDbData("dateNotificationSent", _.getN.toLong)
-      iamRemediationActivityTypeString <- valueFromDbData("iamRemediationActivityType", _.getS)
+    for {
+      awsAccountId <- valueFromDbData(dbData, "awsAccountId", _.getS)
+      username <- valueFromDbData(dbData, "username", _.getS)
+      dateNotificationSent <- valueFromDbData(dbData, "dateNotificationSent", _.getN.toLong)
+      iamRemediationActivityTypeString <- valueFromDbData(dbData, "iamRemediationActivityType", _.getS)
       iamRemediationActivity <- iamRemediationActivityFromString(iamRemediationActivityTypeString)
-      iamProblemString <- valueFromDbData("iamProblem", _.getS)
+      iamProblemString <- valueFromDbData(dbData, "iamProblem", _.getS)
       iamProblem <- iamProblemFromString(iamProblemString)
-      problemCreationDate <- valueFromDbData("problemCreationDate", _.getN.toLong)
+      problemCreationDate <- valueFromDbData(dbData, "problemCreationDate", _.getN.toLong)
     } yield {
       IamRemediationActivity(awsAccountId,
         username,
@@ -151,31 +149,36 @@ object IamRemediationDb {
         iamProblem,
         new DateTime(problemCreationDate))
     }
-
-    Attempt.fromOption(remediationActivity,
-      FailedAttempt(Failure(
-        s"Failed to deserialise database item into a IamRemediationActivity object",
-        s"The item retrieved from the database with id ${dbData.get("id")} contains an attribute that is either missing or invalid",
-        500,
-        None)
-      )
-    )
   }
 
-  def iamRemediationActivityFromString(str: String): Option[IamRemediationActivityType] = {
+  private def valueFromDbData[A](dbData: Map[String, AttributeValue], key: String, f: AttributeValue => A): Attempt[A] =
+    Attempt.fromOption(
+      dbData.get(key).flatMap(data => Option(f(data))),
+      Failure(
+        s"The item retrieved from the database with id ${dbData.get("id")} has an invalid attribute with key $key",
+        s"Failed to deserialise database item into a IamRemediationActivity object",
+        500,
+        None).attempt
+    )
+
+  def iamRemediationActivityFromString(str: String): Attempt[IamRemediationActivityType] = {
     str match {
-      case "Warning" => Some(Warning)
-      case "FinalWarning" => Some(FinalWarning)
-      case "Remediation" => Some(Remediation)
-      case _ => None
+      case "Warning" => Attempt.Right(Warning)
+      case "FinalWarning" => Attempt.Right(FinalWarning)
+      case "Remediation" => Attempt.Right(Remediation)
+      case _ => Attempt.Left {
+        Failure(s"Could not turn $str to a IamRemediationActivityType", "Did not understand database record", 500).attempt
+      }
     }
   }
 
-  def iamProblemFromString(str: String): Option[IamProblem] = {
+  def iamProblemFromString(str: String): Attempt[IamProblem] = {
     str match {
-      case "OutdatedCredential" => Some(OutdatedCredential)
-      case "PasswordMissingMFA" => Some(PasswordMissingMFA)
-      case _ => None
+      case "OutdatedCredential" => Attempt.Right(OutdatedCredential)
+      case "PasswordMissingMFA" => Attempt.Right(PasswordMissingMFA)
+      case _ => Attempt.Left {
+        Failure(s"Could not turn $str to an IamProblem", "Did not understand database record", 500).attempt
+      }
     }
   }
 }
