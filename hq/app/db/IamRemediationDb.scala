@@ -2,9 +2,10 @@ package db
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
-import model.{AwsAccount, FinalWarning, IAMUser, IamRemediationActivity, OutdatedCredential, PasswordMissingMFA, Remediation, Warning}
+import db.IamRemediationDb.{deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
+import model.{AwsAccount, FinalWarning, IAMUser, IamProblem, IamRemediationActivity, IamRemediationActivityType, OutdatedCredential, PasswordMissingMFA, Remediation, Warning}
 import org.joda.time.DateTime
-import utils.attempt.{Attempt, Failure}
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
@@ -130,41 +131,51 @@ object IamRemediationDb {
   /**
     * Attempts to deserialise a database query result into our case class.
     */
-  private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue]): Attempt[IamRemediationActivity] = {
-    try {
-      val awsAccountId = dbData("awsAccountId").getS
-      val username = dbData("username").getS
+  private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue])(implicit ec: ExecutionContext): Attempt[IamRemediationActivity] = {
+    def valueFromDbData[A](key: String, f: AttributeValue => A): Option[A] = dbData.get(key).flatMap(data => Option(f(data)))
 
-      val dateNotificationSent = dbData("dateNotificationSent").getN.toLong
-      val problemCreationDate = dbData("problemCreationDate").getN.toLong
-
-      val iamRemediationActivityType = dbData("iamRemediationActivityType").getS match {
-        case "Warning" => Warning
-        case "FinalWarning" => FinalWarning
-        case "Remediation" => Remediation
-      }
-
-      val iamProblem = dbData("iamProblem").getS  match {
-        case "OutdatedCredential" => OutdatedCredential
-        case "PasswordMissingMFA" => PasswordMissingMFA
-      }
-
-      Attempt.Right(IamRemediationActivity
-      (awsAccountId,
+    val remediationActivity = for {
+      awsAccountId <- valueFromDbData("awsAccountId", _.getS)
+      username <- valueFromDbData("username", _.getS)
+      dateNotificationSent <- valueFromDbData("dateNotificationSent", _.getN.toLong)
+      iamRemediationActivityTypeString <- valueFromDbData("iamRemediationActivityType", _.getS)
+      iamRemediationActivity <- iamRemediationActivityFromString(iamRemediationActivityTypeString)
+      iamProblemString <- valueFromDbData("iamProblem", _.getS)
+      iamProblem <- iamProblemFromString(iamProblemString)
+      problemCreationDate <- valueFromDbData("problemCreationDate", _.getN.toLong)
+    } yield {
+      IamRemediationActivity(awsAccountId,
         username,
         new DateTime(dateNotificationSent),
-        iamRemediationActivityType,
+        iamRemediationActivity,
         iamProblem,
-        new DateTime(problemCreationDate)))
-    } catch {
-      case NonFatal(e) =>
-        Attempt.Left(
-          Failure(s"unable to serialize dynamoDB record into IamRemediationActivity object",
-            s"I haven't been able to put the item into the dynamo table for the vulnerable user job",
-            500,
-            throwable = Some(e)
-          )
-        )
+        new DateTime(problemCreationDate))
+    }
+
+    Attempt.fromOption(remediationActivity,
+      FailedAttempt(Failure(
+        s"Failed to deserialise database item into a IamRemediationActivity object",
+        s"The item retrieved from the database with id ${dbData.get("id")} contains an attribute that is either missing or invalid",
+        500,
+        None)
+      )
+    )
+  }
+
+  def iamRemediationActivityFromString(str: String): Option[IamRemediationActivityType] = {
+    str match {
+      case "Warning" => Some(Warning)
+      case "FinalWarning" => Some(FinalWarning)
+      case "Remediation" => Some(Remediation)
+      case _ => None
+    }
+  }
+
+  def iamProblemFromString(str: String): Option[IamProblem] = {
+    str match {
+      case "OutdatedCredential" => Some(OutdatedCredential)
+      case "PasswordMissingMFA" => Some(PasswordMissingMFA)
+      case _ => None
     }
   }
 }
