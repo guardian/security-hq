@@ -17,14 +17,19 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
     * The application can then filter it down to relevant notifications.
     */
   def lookupIamUserNotifications(IAMUser: IAMUser, awsAccount: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[IamRemediationActivity]] = {
-    ???
+    for {
+      result <- scan(lookupScanRequest(IAMUser.username, awsAccount.id, tableName))
+      activities <- Attempt.traverse(result)(deserialiseIamRemediationActivity)
+    } yield activities
   }
 
   /**
     * Writes this record to the database, returning the successful DynamoDB request ID or a failure.
     */
-  def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity): Attempt[String] = {
-    ???
+  def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity)(implicit ec: ExecutionContext): Attempt[String] = {
+    for {
+      result <- put(writePutRequest(iamRemediationActivity, tableName))
+    } yield result.getSdkResponseMetadata.getRequestId
   }
 
   private def scan(request: ScanRequest)(implicit ec: ExecutionContext): Attempt[List[Map[String, AttributeValue]]] = {
