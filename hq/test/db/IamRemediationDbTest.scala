@@ -25,6 +25,8 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
   val dateNotificationSentMillis = dateNotificationSent.getMillis
   val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
   val problemCreationDateMillis = problemCreationDate.getMillis
+  val activityType = "FinalWarning"
+  val problem = "PasswordMissingMFA"
 
   val iamRemediationActivity = IamRemediationActivity(
     accountId,
@@ -40,8 +42,8 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "awsAccountId" -> S(accountId),
     "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S("FinalWarning"),
-    "iamProblem" -> S("PasswordMissingMFA"),
+    "iamRemediationActivityType" -> S(activityType),
+    "iamProblem" -> S(problem),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
 
@@ -49,8 +51,8 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "id" -> S(hashKey),
     "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S("FinalWarning"),
-    "iamProblem" -> S("PasswordMissingMFA"),
+    "iamRemediationActivityType" -> S(activityType),
+    "iamProblem" -> S(problem),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
 
@@ -59,8 +61,8 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "awsAccountId" -> S(accountId),
     "username" -> S(null),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S("FinalWarning"),
-    "iamProblem" -> S("PasswordMissingMFA"),
+    "iamRemediationActivityType" -> S(activityType),
+    "iamProblem" -> S(problem),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
 
@@ -69,7 +71,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "awsAccountId" -> S(accountId),
     "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S("FinalWarning"),
+    "iamRemediationActivityType" -> S(activityType),
     "iamProblem" -> S("FailFast"),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
