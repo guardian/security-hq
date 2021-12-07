@@ -1158,11 +1158,19 @@ dpkg -i /tmp/installer.deb",
             "AttributeName": "id",
             "AttributeType": "S",
           },
+          Object {
+            "AttributeName": "dateNotificationSent",
+            "AttributeType": "N",
+          },
         ],
         "KeySchema": Array [
           Object {
             "AttributeName": "id",
             "KeyType": "HASH",
+          },
+          Object {
+            "AttributeName": "dateNotificationSent",
+            "KeyType": "RANGE",
           },
         ],
         "ProvisionedThroughput": Object {

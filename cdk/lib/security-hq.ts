@@ -55,6 +55,10 @@ export class SecurityHQ extends GuStack {
         name: 'id',
         type: AttributeType.STRING,
       },
+      sortKey: {
+        name: 'dateNotificationSent',
+        type: AttributeType.NUMBER,
+      },
     });
     const defaultChild = table.node.defaultChild as unknown as CfnElement;
     defaultChild.overrideLogicalId('SecurityHqIamDynamoTable');
