@@ -37,7 +37,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     problemCreationDate
   )
 
-  val iamRemediationActivityMap = Map(
+  val iamRemediationActivityDbRecord = Map(
     "id" -> S(hashKey),
     "awsAccountId" -> S(accountId),
     "username" -> S(testUser),
@@ -46,36 +46,6 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "iamProblem" -> S(problem),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
-
-  val incompleteMap = Map(
-    "id" -> S(hashKey),
-    "username" -> S(testUser),
-    "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S(activityType),
-    "iamProblem" -> S(problem),
-    "problemCreationDate" -> N(problemCreationDateMillis)
-  )
-
-  val nullMap = Map(
-    "id" -> S(hashKey),
-    "awsAccountId" -> S(accountId),
-    "username" -> S(null),
-    "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S(activityType),
-    "iamProblem" -> S(problem),
-    "problemCreationDate" -> N(problemCreationDateMillis)
-  )
-
-  val invalidIamProblemMap = Map(
-    "id" -> S(hashKey),
-    "awsAccountId" -> S(accountId),
-    "username" -> S(testUser),
-    "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S(activityType),
-    "iamProblem" -> S("FailFast"),
-    "problemCreationDate" -> N(problemCreationDateMillis)
-  )
-
 
   "lookupScanRequest" - {
     "creates scan request for correct table name with correct filter" in {
@@ -91,28 +61,40 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "creates put request for correct table name with correct attribute name and values" in {
       writePutRequest(iamRemediationActivity, tableName) should have(
         'tableName (tableName),
-        'getItem (iamRemediationActivityMap.asJava)
+        'getItem (iamRemediationActivityDbRecord.asJava)
       )
     }
   }
 
   "deserialiseIamRemediationActivity" - {
     "Returns a right with a IamRemediationActivity object correctly instantiated from a database record" in {
-        deserialiseIamRemediationActivity(iamRemediationActivityMap).value shouldEqual iamRemediationActivity
+      deserialiseIamRemediationActivity(
+        iamRemediationActivityDbRecord
+      ).value shouldEqual iamRemediationActivity
     }
 
     "Returns left when database record is incomplete" in {
-      deserialiseIamRemediationActivity(incompleteMap).isFailedAttempt shouldBe true
+      deserialiseIamRemediationActivity(
+        iamRemediationActivityDbRecord - ("awsAccountId")
+      ).isFailedAttempt shouldBe true
     }
 
     "Returns left when database record is complete but one of the attributes is null" in {
-      val ret = deserialiseIamRemediationActivity(nullMap)
-      ret.isFailedAttempt shouldBe true
+      deserialiseIamRemediationActivity(
+        iamRemediationActivityDbRecord + ("username" -> S(null))
+      ).isFailedAttempt shouldBe true
     }
 
     "Returns left when database record is complete but iamProblem is an invalid string" in {
-      val ret = deserialiseIamRemediationActivity(invalidIamProblemMap)
-      ret.isFailedAttempt shouldBe true
+      deserialiseIamRemediationActivity(
+        iamRemediationActivityDbRecord + ("iamProblem" -> S("FailFast"))
+      ).isFailedAttempt shouldBe true
+    }
+
+    "Returns left when database record is complete but one attribute is of the wrong type" in {
+      deserialiseIamRemediationActivity(
+        iamRemediationActivityDbRecord + ("username" -> N(0))
+      ).isFailedAttempt shouldBe true
     }
   }
 }
