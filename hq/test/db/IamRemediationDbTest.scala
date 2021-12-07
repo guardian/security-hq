@@ -1,13 +1,9 @@
 package db
 
-import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
-import com.amazonaws.regions.Regions
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import org.scalatest.{FreeSpec, Matchers}
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
-import model.{AccessKey, AwsAccount, FinalWarning, Green, HumanUser, IamProblem, IamRemediationActivity, IamRemediationActivityType, MissingMfa, NoKey, PasswordMissingMFA}
+import model.{FinalWarning, IamRemediationActivity, PasswordMissingMFA}
 import org.joda.time.DateTime
 import utils.attempt.AttemptValues
 
