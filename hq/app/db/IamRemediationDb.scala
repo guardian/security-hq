@@ -156,7 +156,7 @@ object IamRemediationDb {
       dbData.get(key).flatMap(data => Option(f(data))),
       Failure(
         s"The item retrieved from the database with id ${dbData.get("id")} has an invalid attribute with key $key",
-        s"Failed to deserialise database item into a IamRemediationActivity object",
+        s"Failed to deserialise database item into an IamRemediationActivity object",
         500,
         None).attempt
     )
