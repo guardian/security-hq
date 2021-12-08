@@ -140,11 +140,18 @@ Once the sever has started, the webapp is accessible at [https://security-hq.loc
 
 ### DynamoDB local setup
 
-The application requires DynamoDB to be running locally. It will start automatically upon `run`, but the table itself needs to be initialised separately by running
+
+Running Security HQ locally requires a local instance of DynamoDb to connect
+to. The `run` tasks handles most of the work automatically by starting and
+stopping `DynamoDBLocal` as appropriate. It does not, however, create a table
+for the application to use.
+
+To do that, the following script needs to be executed _while_ the application
+is running. This only needs to be done once, as the database is stored on disk
+and persistent between application runs.
 
 1. `$ ./script/setup`
 
-This scripts need to be run _while_ the application is running so that the database (which is automatically started and stopped while security hq is running) is available.
 
 ### Working with CSS and JS
 
