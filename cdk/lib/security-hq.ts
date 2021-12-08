@@ -47,7 +47,7 @@ export class SecurityHQ extends GuStack {
     super(scope, id, props);
 
     const table = new Table(this, 'DynamoTable', {
-      tableName: `security-hq-iam-${this.stage}`,
+      tableName: `security-hq-iam`,
       removalPolicy: RemovalPolicy.RETAIN,
       readCapacity: 5,
       writeCapacity: 5,
