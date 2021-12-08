@@ -1177,17 +1177,7 @@ dpkg -i /tmp/installer.deb",
           "ReadCapacityUnits": 5,
           "WriteCapacityUnits": 5,
         },
-        "TableName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "security-hq-iam-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "TableName": "security-hq-iam",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
