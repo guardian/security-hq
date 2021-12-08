@@ -1,6 +1,6 @@
 package db
 
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.{FreeSpec, Matchers, OptionValues}
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
 import model.{FinalWarning, IamRemediationActivity, PasswordMissingMFA}
@@ -10,19 +10,15 @@ import utils.attempt.AttemptValues
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 
-
-class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
+class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues with OptionValues {
 
   val tableName = "testTable"
-  val hashKey = "testAccountId/testUser"
   val accountId = "testAccountId"
   val testUser = "testUser"
   val dateNotificationSent = new DateTime(2021, 1, 1, 1, 1)
   val dateNotificationSentMillis = dateNotificationSent.getMillis
   val problemCreationDate = new DateTime(2021, 2, 2, 2, 2)
   val problemCreationDateMillis = problemCreationDate.getMillis
-  val activityType = "FinalWarning"
-  val problem = "PasswordMissingMFA"
 
   val iamRemediationActivity = IamRemediationActivity(
     accountId,
@@ -34,21 +30,26 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
   )
 
   val iamRemediationActivityDbRecord = Map(
-    "id" -> S(hashKey),
+    "id" -> S(s"$accountId/$testUser"),
     "awsAccountId" -> S(accountId),
     "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
-    "iamRemediationActivityType" -> S(activityType),
-    "iamProblem" -> S(problem),
+    "iamRemediationActivityType" -> S("FinalWarning"),
+    "iamProblem" -> S("PasswordMissingMFA"),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
 
   "lookupScanRequest" - {
-    "creates scan request for correct table name with correct filter" in {
+    "creates scan request for correct table name" in {
       lookupScanRequest(testUser, accountId, tableName) should have(
         'tableName (tableName),
+      )
+    }
+
+    "creates scan request that filters on record id, which uses aws account id and username" in {
+      lookupScanRequest(testUser, accountId, tableName) should have(
         'filterExpression ("id = :key"),
-        'expressionAttributeValues (Map(":key" -> new AttributeValue().withS(hashKey)).asJava)
+        'expressionAttributeValues (Map(":key" -> new AttributeValue().withS(s"$accountId/$testUser")).asJava)
       )
     }
   }
@@ -57,8 +58,13 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues {
     "creates put request for correct table name with correct attribute name and values" in {
       writePutRequest(iamRemediationActivity, tableName) should have(
         'tableName (tableName),
-        'getItem (iamRemediationActivityDbRecord.asJava)
+        'item (iamRemediationActivityDbRecord.asJava)
       )
+    }
+
+    "the record id is made up of aws account id and username" in {
+      val id = writePutRequest(iamRemediationActivity, tableName).getItem.asScala.get("id").value
+      id.getS shouldEqual s"$accountId/$testUser"
     }
   }
 
