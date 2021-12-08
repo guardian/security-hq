@@ -2,10 +2,12 @@ package aws
 
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.auth.{AWSCredentialsProviderChain, STSAssumeRoleSessionCredentialsProvider}
+import com.amazonaws.auth.{AWSCredentialsProvider, AWSCredentialsProviderChain, STSAssumeRoleSessionCredentialsProvider}
 import com.amazonaws.client.builder.AwsClientBuilder
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.{AmazonCloudFormationAsync, AmazonCloudFormationAsyncClientBuilder}
+import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import com.amazonaws.services.elasticfilesystem.{AmazonElasticFileSystemAsync, AmazonElasticFileSystemAsyncClient, AmazonElasticFileSystemAsyncClientBuilder}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
@@ -13,7 +15,7 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.sns.{AmazonSNSAsync, AmazonSNSAsyncClientBuilder}
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import config.Config
-import model.AwsAccount
+import model.{AwsAccount, DEV, PROD, Stage}
 import play.api.Configuration
 import utils.attempt.{Attempt, Failure}
 
@@ -48,6 +50,21 @@ object AWS {
         .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
         .build()
     } yield AwsClient(client, account, region)
+  }
+
+  def dynamoDbClient(securityCredentialsProvider: AWSCredentialsProvider, region: Regions, stage: Stage): AmazonDynamoDB = {
+    stage match {
+      case PROD =>
+        AmazonDynamoDBClientBuilder.standard()
+          .withCredentials(securityCredentialsProvider)
+          .withRegion(region)
+          .build()
+      case DEV =>
+        AmazonDynamoDBClientBuilder.standard()
+          .withCredentials(securityCredentialsProvider)
+          .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region.name))
+          .build()
+    }
   }
 
   def ec2Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonEC2Async] =

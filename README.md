@@ -138,6 +138,14 @@ From the root of the project:
 
 Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
+### DynamoDB local setup
+
+The application requires DynamoDB to be running locally. It will start automatically upon `run`, but the table itself needs to be initialised separately by running
+
+1. `$ ./script/setup`
+
+This scripts need to be run _while_ the application is running so that the database (which is automatically started and stopped while security hq is running) is available.
+
 ### Working with CSS and JS
 
 Security HQ uses [Prettier](https://prettier.io) and [ESLint](https://eslint.org/docs/about/) to provide opinionated code formatting and linting. As part of the automated build, all CSS and JS will be validated using the rules of Prettier and ESLint.

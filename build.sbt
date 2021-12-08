@@ -4,6 +4,8 @@ import com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd
 import play.sbt.PlayImport.PlayKeys._
 import sbt.Keys.libraryDependencies
 
+import scala.concurrent.duration.DurationInt
+
 // common settings (apply to all projects)
 organization in ThisBuild := "com.gu"
 version in ThisBuild := "0.2.0"
@@ -78,6 +80,16 @@ lazy val hq = (project in file("hq"))
     unmanagedSourceDirectories in Test += baseDirectory.value / "test" / "jars",
     parallelExecution in Test := false,
     fork in Test := false,
+
+    // start DynamoDB on run
+    dynamoDBLocalDownloadDir := file(".dynamodb-local"),
+    dynamoDBLocalPort := 8000,
+    dynamoDBLocalDownloadIfOlderThan := 14.days,
+    startDynamoDBLocal := startDynamoDBLocal.dependsOn(compile in Compile).value,
+    run in Compile := (run in Compile).dependsOn(startDynamoDBLocal).evaluated,
+    dynamoDBLocalSharedDB := true,
+    dynamoDBLocalInMemory := false,
+    dynamoDBLocalDBPath := Some(System.getProperty("user.home") ++ "/.gu/security-hq"),
 
     serverLoading in Debian := Some(Systemd),
     debianPackageDependencies := Seq("openjdk-8-jre-headless"),
