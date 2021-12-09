@@ -68,11 +68,11 @@ object IamUnrecognisedUsers extends Logging {
     ).toFile
   }
 
-    def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
-      tags.exists(t =>
-        t.key == IamUnrecognisedUsers.USERNAME_TAG_KEY &&
-          t.value != "" &&
-          t.value.contains(".")
-      )
-    }
+  def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
+    tags.exists(t =>
+      t.key == IamUnrecognisedUsers.USERNAME_TAG_KEY &&
+        t.value != "" &&
+        t.value.contains(".")
+    )
+  }
 }
