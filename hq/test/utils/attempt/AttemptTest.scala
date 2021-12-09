@@ -3,12 +3,48 @@ package utils.attempt
 import org.scalatest.{EitherValues, FreeSpec, Matchers}
 import Attempt.{Left, Right}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import com.amazonaws.AbortedException
 
 
 class AttemptTest extends FreeSpec with Matchers with EitherValues {
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  "fromFutureWithAcceptableFailures" - {
+
+    val recoverToRight: PartialFunction[Throwable, String] = {
+      case t if t.getMessage.contains("acceptable") => "accepted"
+    }
+    val failedAttempt = Failure.awsAccountNotFound("").attempt
+    val recoverToLeft: PartialFunction[Throwable, FailedAttempt] = {
+      case _: IllegalArgumentException => failedAttempt
+    }
+
+    "returns successful attempt if the future contains an acceptable error" in {
+      val throwable = new Throwable("An acceptable exception")
+      val future = Future.failed(throwable)
+
+      val attempt = Attempt.fromFutureWithAcceptableFailure(future)(recoverToLeft, recoverToRight)
+      attempt.awaitEither.right.value shouldEqual "accepted"
+    }
+
+    "returns the correct failed attempt if the future does not contain an acceptable error, but one we recover from" in {
+      val throwable = new IllegalArgumentException("Recovered exception")
+      val future = Future.failed(throwable)
+
+      val attempt = Attempt.fromFutureWithAcceptableFailure(future)(recoverToLeft, recoverToRight)
+      attempt.awaitEither.left.value shouldEqual failedAttempt
+    }
+
+    "returns the correct failed attempt if the future does not contain an acceptable error, or one we recover from" in {
+      val throwable = new NullPointerException("Unrecovered exception")
+      val future = Future.failed(throwable)
+
+      val attempt = Attempt.fromFutureWithAcceptableFailure(future)(recoverToLeft, recoverToRight)
+      attempt.awaitEither.left.value.firstException.get shouldBe throwable
+    }
+  }
 
   "traverse" - {
     "returns the first failure" in {

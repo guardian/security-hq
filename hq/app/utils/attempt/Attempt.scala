@@ -162,13 +162,19 @@ object Attempt {
   /**
     * Convert a plain `Future` value to an attempt by providing a recovery handler.
     */
-  def fromFuture[A](future: Future[A])(recovery: PartialFunction[Throwable, FailedAttempt])(implicit ec: ExecutionContext): Attempt[A] = {
+  def fromFuture[A](future: Future[A])(recovery: PartialFunction[Throwable, FailedAttempt])(implicit ec: ExecutionContext): Attempt[A] =
+    fromFutureWithAcceptableFailure(future)(recovery)
+
+
+  def fromFutureWithAcceptableFailure[A](future: Future[A])(
+    recoveryToLeft: PartialFunction[Throwable, FailedAttempt],
+    recoveryToRight: PartialFunction[Throwable, A] = PartialFunction.empty
+  )(implicit ec: ExecutionContext): Attempt[A] = {
     Attempt {
       future
         .map(scala.Right(_))
-        .recover { case t =>
-          scala.Left(recovery(t))
-        }
+        .recover(recoveryToRight andThen scala.Right.apply)
+        .recover(recoveryToLeft andThen scala.Left.apply)
     }
   }
 
