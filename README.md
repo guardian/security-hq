@@ -55,14 +55,15 @@ There are two other files that you will need to run security HQ locally. These a
 1.  `~/.gu/security-hq.local.conf` (Please update the value of key `GOOGLE_SERVICE_ACCOUNT_CERT_PATH`)
 1. `~/.gu/security-hq-service-account-cert.json`
 
-Both of these files can be found in the Security AWS account in S3 here `s3://security-dist/security/PROD/security-hq/`.
+Both of these files can be found in the Security AWS account in S3 here `s3://security-dist/security/DEV/security-hq/`.
 
 To access the Security AWS account you will need to raise a PR in [Janus](https://github.com/guardian/janus/blob/main/guData/src/main/scala/com/gu/janus/data/Access.scala) 
 to get access to the Security account (`Security.dev` should be appropriate).
 
 Once you have Janus credentials for the AWS Security account, you can copy the files from S3 by using the following:
 ```
- aws s3 cp s3://security-dist/security/PROD/security-hq/security-hq.local.conf ~/.gu --profile security
+ aws s3 cp s3://security-dist/security/DEV/security-hq/security-hq.local.conf ~/.gu --profile security
+ aws s3 cp s3://security-dist/security/DEV/security-hq/security-hq-service-account-cert.json ~/.gu --profile security
 ```
 
 ### Adding additional AWS accounts for local development
@@ -137,6 +138,19 @@ From the root of the project:
 4. Start the application: `sbt:security-hq> run`
 
 Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
+
+### DynamoDB local setup
+
+Running Security HQ locally requires a local instance of DynamoDb to connect
+to. The `run` tasks handles most of the work automatically by starting and
+stopping `DynamoDBLocal` as appropriate. It does not, however, create a table
+for the application to use.
+
+To do that, the following script needs to be executed _while_ the application
+is running. This only needs to be done once, as the database is stored on disk
+and persistent between application runs.
+
+1. `$ ./script/setup`
 
 ### Working with CSS and JS
 

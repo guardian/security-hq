@@ -46,6 +46,7 @@ class AppComponents(context: Context)
   )
 
   private val stack = configuration.get[String]("stack")
+  private val stage = Config.getStage(configuration)
 
   // the aim of this is to get a list of available regions that we are able to access
   // note that:
@@ -89,10 +90,7 @@ class AppComponents(context: Context)
     .build()
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-  private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
-    .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region)
-    .build()
+  private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region, stage)
   private val securityS3Client = AmazonS3ClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region)

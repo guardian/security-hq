@@ -155,3 +155,6 @@ hq/test/jars
 .vscode
 project/metals.sbt
 project/project
+
+# DynamoDB local
+.dynamodb-local
