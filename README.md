@@ -140,7 +140,6 @@ Once the sever has started, the webapp is accessible at [https://security-hq.loc
 
 ### DynamoDB local setup
 
-
 Running Security HQ locally requires a local instance of DynamoDb to connect
 to. The `run` tasks handles most of the work automatically by starting and
 stopping `DynamoDBLocal` as appropriate. It does not, however, create a table
@@ -151,7 +150,6 @@ is running. This only needs to be done once, as the database is stored on disk
 and persistent between application runs.
 
 1. `$ ./script/setup`
-
 
 ### Working with CSS and JS
 
