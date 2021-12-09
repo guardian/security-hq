@@ -1,7 +1,8 @@
 package schedule.vulnerable
 
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import aws.AwsClients
+import aws.iam.IAMClient
+import aws.{AwsClient, AwsClients}
 import aws.iam.IAMClient.SOLE_REGION
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult}
@@ -9,12 +10,14 @@ import logging.Cloudwatch
 import logging.Cloudwatch.ReaperExecutionStatus
 import model.{AwsAccount, VulnerableUser}
 import play.api.Logging
-import utils.attempt.Attempt
+import utils.attempt.Failure.contextString
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 object IamRemovePassword extends Logging {
 
+  // TODO: move this into logic package and use consistent model
   def removePasswords(
     account: AwsAccount,
     user: VulnerableUser,
@@ -23,23 +26,30 @@ object IamRemovePassword extends Logging {
     if (user.humanUser) {
       val result: Attempt[Option[DeleteLoginProfileResult]] = for {
         client <- iamClients.get(account, SOLE_REGION)
-        request = new DeleteLoginProfileRequest().withUserName(user.username)
-        deleteResult <- handleAWSErrs(client)(awsToScala(client)(_.deleteLoginProfileAsync)(request))
-      } yield Some(deleteResult)
-      result.fold(
-        { failure =>
-          logger.error(s"failed to delete password for username: ${user.username}. ${failure.logMessage}")
+        deleteResult <- recoverAcceptableFailures(IAMClient.deleteLoginProfile(user.username, client), user, client)
+      } yield deleteResult
+
+      result.tap {
+        case Left(failedAttempt) =>
+          logger.error(s"failed to delete password for username: ${user.username}. ${failedAttempt.logMessage}")
           Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure)
-        },
-        { success =>
-          logger.info(s"password deleted for ${user.username}. DeleteLoginProfile Response: ${success.map(_.getSdkResponseMetadata.getRequestId)}.")
+
+        case Right(result) =>
+          logger.info(s"password deleted for ${user.username}. DeleteLoginProfile Response: ${result.map(_.getSdkResponseMetadata.getRequestId)}.")
           Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success)
-        }
-      )
-      result
+      }
     } else {
-      logger.info(s"will not attempt to remove password, because this ${user.username} is a machine user.")
+      logger.info(s"will not attempt to remove password, because ${user.username} is a machine user.")
       Attempt.Right(None)
     }
   }
+
+  def recoverAcceptableFailures(
+    attempt: Attempt[DeleteLoginProfileResult],
+    user: VulnerableUser,
+    client: AwsClient[AmazonIdentityManagementAsync]
+  )(implicit executionContext: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] =
+    attempt.partialRecover({
+      case f if f == IAMClient.Failures.noLoginProfileFailure(user.username, client).attempt => None
+    }, Some(_))
 }

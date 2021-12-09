@@ -29,6 +29,22 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) ext
     asFuture.map(_.fold(failure, success))
   }
 
+  /**
+   * Partially recover from some error cases by specifying a partial function which maps some subset of `Left`
+   * in the original `Attempt` into `Right`
+   *
+   * This is useful if there are some expected errors that are best modelled as a successful attempt.
+   *
+   * In order to support a different success type in the new `Attempt`, a mapping between success types must
+   * also be provided
+   */
+  def partialRecover[B](recovery: PartialFunction[FailedAttempt, B], f: A => B)(implicit ec: ExecutionContext): Attempt[B] = Attempt {
+    fold(
+      recovery andThen scala.Right.apply orElse { case f => scala.Left(f) },
+      f andThen scala.Right.apply
+    )
+  }
+
   def map2[B, C](bAttempt: Attempt[B])(f: (A, B) => C)(implicit ec: ExecutionContext): Attempt[C] = {
     for {
       a <- this

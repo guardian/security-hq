@@ -6,12 +6,12 @@ import aws.{AwsClient, AwsClients}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResult, ListUserTagsRequest, UpdateAccessKeyRequest}
+import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResult, ListUserTagsRequest, UpdateAccessKeyRequest}
 import logic.{CredentialsReportDisplay, Retry}
-import model.{CredentialActive, CredentialDisabled, CredentialMetadata}
+import model.{AwsAccount, CredentialActive, CredentialDisabled, CredentialMetadata, CredentialReportDisplay, IAMCredential, IAMCredentialsReport, IAMUser, Tag, VulnerableUser}
 import org.joda.time.DateTime
-import model.{AwsAccount, CredentialReportDisplay, IAMCredential, IAMCredentialsReport, IAMUser, Tag}
 import play.api.Logging
+import utils.attempt.Failure.contextString
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration._
@@ -143,5 +143,23 @@ object IAMClient extends Logging {
       client <- iamClients.get(awsAccount, SOLE_REGION)
       _ <- handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(request))
     } yield ()
+  }
+
+  def deleteLoginProfile(username: String, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[DeleteLoginProfileResult] = {
+    val request = new DeleteLoginProfileRequest().withUserName(username)
+    val expectedErrors: PartialFunction[Throwable, FailedAttempt] = {
+      case e if e.getMessage.contains(s"Login Profile for User $username cannot be found") =>
+        Failures.noLoginProfileFailure(username, client).attempt
+    }
+    handleAWSErrs(client, expectedErrors)(awsToScala(client)(_.deleteLoginProfileAsync)(request))
+  }
+
+  object Failures {
+    def noLoginProfileFailure(username: String, clientContext: AwsClient[AmazonIdentityManagementAsync]): Failure = {
+      val context = contextString(clientContext)
+      val details = s"Login profile for user $username AWS credentials, service: IAM, $context"
+
+      Failure(details, "Failed to remove password, there is no login profile to delete.", 400)
+    }
   }
 }
