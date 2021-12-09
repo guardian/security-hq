@@ -11,6 +11,7 @@ import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
 import controllers._
+import db.IamRemediationDb
 import filters.HstsFilter
 import model.AwsAccount
 import org.quartz.impl.StdSchedulerFactory
@@ -24,7 +25,7 @@ import play.filters.csrf.CSRFComponents
 import router.Routes
 import schedule.JobScheduler
 import schedule.unrecognised.IamUnrecognisedUserJob
-import services.{CacheService, MetricService}
+import services.{CacheService, IamRemediationService, MetricService}
 import utils.attempt.Attempt
 
 import scala.concurrent.Await
@@ -118,6 +119,16 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
+
+  new IamRemediationService(
+    cacheService,
+    securitySnsClient,
+    new IamRemediationDb(dynamoDbClient),
+    configuration,
+    iamClients,
+    applicationLifecycle,
+    environment
+  )(executionContext)
 
   val unrecognisedUserJob = new IamUnrecognisedUserJob(cacheService, securitySnsClient, securityS3Client, iamClients, configuration)(executionContext)
 

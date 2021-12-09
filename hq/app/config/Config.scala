@@ -18,8 +18,8 @@ import scala.util.Try
 object Config {
   val iamHumanUserRotationCadence: Long = 90
   val iamMachineUserRotationCadence: Long = 365
-  val daysBetweenWarningAndFinalNotification = 7
-  val daysBetweenFinalNotificationAndRemediation = 7
+  val daysBetweenWarningAndFinalNotification = 1
+  val daysBetweenFinalNotificationAndRemediation = 1
 
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
@@ -123,7 +123,15 @@ object Config {
     config.getOptional[String]("snyk.ssoUrl")
   }
 
-  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
+  def getIamDynamoTableName(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.iamDynamoTableName"),
+      FailedAttempt(Failure("unable to get dynamo table name",
+        "unable to get dynamo table name for IAM jobs",
+        500
+      ))
+    )
+  }
 
   def getIamUnrecognisedUserConfig(config: Configuration)(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
     for {
@@ -140,6 +148,16 @@ object Config {
       config.getOptional[String]("alert.anghammaradSnsArn"),
       FailedAttempt(Failure("unable to get Anghammarad topic ARN",
         "unable to get Anghammarad topic ARN for IAM jobs",
+        500
+      ))
+    )
+  }
+
+  def getAccountsForIamRemediationService(config: Configuration): Attempt[List[String]] = {
+    Attempt.fromOption(
+      config.getOptional[Seq[String]]("alert.accountIdsForIamRemediationService").map(_.toList),
+      FailedAttempt(Failure("unable to get list of accounts to run the IAM Remediation Service on. Rectify this by adding account ids to config.",
+        "Add account Ids for Iam Remediation service to ~/.gu/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
         500
       ))
     )

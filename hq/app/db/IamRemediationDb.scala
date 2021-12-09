@@ -2,9 +2,11 @@ package db
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
+import config.Config.getIamDynamoTableName
 import db.IamRemediationDb.{deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
 import model.{AwsAccount, FinalWarning, IAMUser, IamProblem, IamRemediationActivity, IamRemediationActivityType, OutdatedCredential, PasswordMissingMFA, Remediation, Warning}
 import org.joda.time.DateTime
+import play.api.Configuration
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
@@ -12,12 +14,12 @@ import scala.util.control.NonFatal
 import scala.collection.JavaConverters._
 
 
-class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
+class IamRemediationDb(client: AmazonDynamoDB) {
   /**
     * Searches for all notification activity for this IAM user.
     * The application can then filter it down to relevant notifications.
     */
-  def lookupIamUserNotifications(IAMUser: IAMUser, awsAccount: AwsAccount)(implicit ec: ExecutionContext): Attempt[List[IamRemediationActivity]] = {
+  def lookupIamUserNotifications(IAMUser: IAMUser, awsAccount: AwsAccount, tableName: String)(implicit ec: ExecutionContext): Attempt[List[IamRemediationActivity]] = {
     for {
       result <- scan(lookupScanRequest(IAMUser.username, awsAccount.id, tableName))
       activities <- Attempt.traverse(result)(deserialiseIamRemediationActivity)
@@ -27,7 +29,7 @@ class IamRemediationDb(client: AmazonDynamoDB, tableName: String) {
   /**
     * Writes this record to the database, returning the successful DynamoDB request ID or a failure.
     */
-  def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity)(implicit ec: ExecutionContext): Attempt[String] = {
+  def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity, tableName: String)(implicit ec: ExecutionContext): Attempt[String] = {
     for {
       result <- put(writePutRequest(iamRemediationActivity, tableName))
     } yield result.getSdkResponseMetadata.getRequestId
