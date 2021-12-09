@@ -1,6 +1,6 @@
 package schedule.vulnerable
 
-import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
+import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs, recoverAWSErrs}
 import aws.AwsClients
 import aws.iam.IAMClient.SOLE_REGION
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
@@ -21,11 +21,14 @@ object IamRemovePassword extends Logging {
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] = {
     if (user.humanUser) {
+      val recoverableErrors: PartialFunction[Throwable, Option[DeleteLoginProfileResult]] = {
+        case e if e.getMessage.contains(s"Login Profile for User ${user.username} cannot be found") => None
+      }
       val result: Attempt[Option[DeleteLoginProfileResult]] = for {
         client <- iamClients.get(account, SOLE_REGION)
         request = new DeleteLoginProfileRequest().withUserName(user.username)
-        deleteResult <- handleAWSErrs(client)(awsToScala(client)(_.deleteLoginProfileAsync)(request))
-      } yield Some(deleteResult)
+        deleteResult <- recoverAWSErrs(client, recoverableErrors)(awsToScala(client)(_.deleteLoginProfileAsync)(request).map(Some(_)))
+      } yield deleteResult
       result.fold(
         { failure =>
           logger.error(s"failed to delete password for username: ${user.username}. ${failure.logMessage}")
