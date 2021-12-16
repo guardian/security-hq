@@ -15,9 +15,9 @@ trait SecurityHQAuthActions extends LoginSupport {
   implicit val bodyParser: BodyParser[AnyContent]
   implicit val ec: ExecutionContext
 
-  val loginTarget: Call = routes.AuthController.login()
-  override val failureRedirectTarget: Call = routes.AuthController.loginError()
-  override val defaultRedirectTarget: Call = routes.HQController.index()
+  val loginTarget: Call = routes.AuthController.login
+  override val failureRedirectTarget: Call = routes.AuthController.loginError
+  override val defaultRedirectTarget: Call = routes.HQController.index
   override val authConfig: GoogleAuthConfig
 
   val googleGroupChecker = Config.googleGroupChecker
