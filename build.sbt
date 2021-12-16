@@ -3,21 +3,26 @@ import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd
 import play.sbt.PlayImport.PlayKeys._
 import sbt.Keys.libraryDependencies
+import sbt.util
 
 import scala.concurrent.duration.DurationInt
 
 // common settings (apply to all projects)
-organization in ThisBuild := "com.gu"
-version in ThisBuild := "0.2.0"
-scalaVersion in ThisBuild := "2.12.15"
-scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature", "-unchecked", "-target:jvm-1.8", "-Xfatal-warnings")
+ThisBuild / organization := "com.gu"
+ThisBuild / version := "0.2.0"
+ThisBuild / scalaVersion := "2.12.15"
+ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
-val playVersion = "2.8.1"
+val playJsonVersion = "2.8.1"
 val jacksonVersion = "2.10.1"
+
+// Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
+// See https://github.com/akka/akka/pull/30375
+ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % VersionScheme.Always
 
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, RiffRaffArtifact, SbtWeb, JDebPackaging, SystemdPlugin)
@@ -60,43 +65,43 @@ lazy val hq = (project in file("hq"))
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
       "com.gu" %% "janus-config-tools" % "0.0.4"
     ),
-    pipelineStages in Assets := Seq(digest),
+    Assets / pipelineStages := Seq(digest),
     // exclude docs
-    sources in (Compile,doc) := Seq.empty,
-    packageName in Universal := "security-hq",
+    Compile / doc / sources := Seq.empty,
+    Universal / packageName := "security-hq",
     // include beanstalk config files in the zip produced by `dist`
-    mappings in Universal ++=
+    Universal / mappings ++=
       (baseDirectory.value / "beanstalk" * "*" get)
         .map(f => f -> s"beanstalk/${f.getName}"),
     // include upstart config files in the zip produced by `dist`
-    mappings in Universal ++=
+    Universal / mappings ++=
       (baseDirectory.value / "upstart" * "*" get)
         .map(f => f -> s"upstart/${f.getName}"),
     // include systemd config files in the zip produced by `dist`
-    mappings in Universal ++=
+    Universal / mappings ++=
       (baseDirectory.value / "systemd" * "*" get)
         .map(f => f -> s"systemd/${f.getName}"),
-    unmanagedResourceDirectories in Compile += baseDirectory.value / "markdown",
-    unmanagedSourceDirectories in Test += baseDirectory.value / "test" / "jars",
-    parallelExecution in Test := false,
-    fork in Test := false,
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
+    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
+    Test / parallelExecution := false,
+    Test / fork := false,
 
     // start DynamoDB on run
     dynamoDBLocalDownloadDir := file(".dynamodb-local"),
     dynamoDBLocalPort := 8000,
     dynamoDBLocalDownloadIfOlderThan := 14.days,
-    startDynamoDBLocal := startDynamoDBLocal.dependsOn(compile in Compile).value,
-    run in Compile := (run in Compile).dependsOn(startDynamoDBLocal).evaluated,
+    startDynamoDBLocal := startDynamoDBLocal.dependsOn(Compile / compile).value,
+    Compile / run := (Compile / run).dependsOn(startDynamoDBLocal).evaluated,
     dynamoDBLocalSharedDB := true,
     dynamoDBLocalInMemory := false,
     dynamoDBLocalDBPath := Some(System.getProperty("user.home") ++ "/.gu/security-hq"),
 
-    serverLoading in Debian := Some(Systemd),
+    Debian / serverLoading := Some(Systemd),
     debianPackageDependencies := Seq("openjdk-8-jre-headless"),
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "Security HQ app.",
     packageDescription := """Deb for Security HQ - the Guardian's service to centralise security information for our AWS accounts.""",
-    riffRaffPackageType := (packageBin in Debian).value,
+    riffRaffPackageType := (Debian / packageBin).value,
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
 
@@ -108,7 +113,7 @@ lazy val hq = (project in file("hq"))
       file("cdk/cdk.out/security-vpc.template.json") -> s"security-vpc-cfn/cfn.json"
     ),
 
-    javaOptions in Universal ++= Seq(
+    Universal / javaOptions ++= Seq(
       "-Dpidfile.path=/dev/null",
       "-Dconfig.file=/etc/gu/security-hq.conf",
       "-J-XX:+UseCompressedOops",
@@ -128,8 +133,10 @@ lazy val hq = (project in file("hq"))
 // More will go here!
 
 lazy val commonLambdaSettings = Seq(
-  topLevelDirectory in Universal := None
+  Universal / topLevelDirectory := None
 )
+// exclude this key from the linting (unused keys) as it is incorrectly flagged
+Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val lambdaCommon = (project in file("lambda/common")).
   settings(commonLambdaSettings: _*).
@@ -146,7 +153,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-      "com.typesafe.play" %% "play-json" % playVersion,
+      "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
       "ch.qos.logback" %  "logback-classic" % "1.2.3",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
@@ -158,7 +165,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
   dependsOn(lambdaCommon % "compile->compile;test->test").
   settings(
     name := """securitygroups-lambda""",
-    assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
+    assembly / assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
       "com.gu" % "anghammarad-client_2.12" % "1.1.0"
     )
