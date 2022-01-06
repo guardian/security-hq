@@ -33,14 +33,14 @@ object IamRemediation extends Logging {
     */
   def identifyAllUsersWithOutdatedCredentials(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)], now: DateTime): List[(AwsAccount, List[IAMUser])] = {
     accountCredentialReports.map { case (awsAccount, credentialReport) =>
-      (awsAccount, identifyUsersWithOutdatedCredentials(awsAccount, credentialReport, now))
+      (awsAccount, identifyUsersWithOutdatedCredentials(credentialReport, now))
     }
   }
 
   /**
     * Looks through the credentials report to identify users with Access Keys that are older than we allow.
     */
-  def identifyUsersWithOutdatedCredentials(awsAccount: AwsAccount, credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
+  def identifyUsersWithOutdatedCredentials(credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
     credentialReportDisplay.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2), now)).toList ++
       credentialReportDisplay.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2), now))
   }

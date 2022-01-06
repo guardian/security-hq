@@ -64,37 +64,37 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues with A
 
     "given a vulnerable human user, return that user" in {
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanWithOneOldEnabledAccessKey))
-      identifyUsersWithOutdatedCredentials(account, credsReport, date).map(_.username) shouldEqual List("amina.adewusi")
+      identifyUsersWithOutdatedCredentials(credsReport, date).map(_.username) shouldEqual List("amina.adewusi")
     }
     "given a vulnerable machine user, return that user" in {
       val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldEnabledAccessKey), Seq())
-      identifyUsersWithOutdatedCredentials(account, credsReport, date).map(_.username) shouldEqual List("machine1")
+      identifyUsersWithOutdatedCredentials(credsReport, date).map(_.username) shouldEqual List("machine1")
     }
     "given a vulnerable human and machine user, return both users" in {
       val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldEnabledAccessKey), Seq(humanWithOneOldEnabledAccessKey))
-      identifyUsersWithOutdatedCredentials(account, credsReport, date).map(_.username) should contain allOf ("amina.adewusi", "machine1")
+      identifyUsersWithOutdatedCredentials(credsReport, date).map(_.username) should contain allOf ("amina.adewusi", "machine1")
     }
     "given users with old disabled keys, return an empty list" in {
       val humanWithOneOldDisabledAccessKey = HumanUser("adam.fisher", true, noAccessKey, AccessKey(AccessKeyDisabled, Some(date.minusMonths(4))), Green, None, None, Nil)
       val machineAccessKeyOldAndDisabled = AccessKey(AccessKeyDisabled, Some(date.minusMonths(13)))
       val machineWithOneOldDisabledAccessKey = MachineUser("machine3", noAccessKey, machineAccessKeyOldAndDisabled, Green, None, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldDisabledAccessKey), Seq(humanWithOneOldDisabledAccessKey))
-      identifyUsersWithOutdatedCredentials(account, credsReport, date) shouldBe empty
+      identifyUsersWithOutdatedCredentials(credsReport, date) shouldBe empty
     }
     "given no users with access keys, return an empty list" in {
       val humanWithNoKeys = HumanUser("jorge.azevedo", true, noAccessKey, noAccessKey, Green, None, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanWithNoKeys))
-      identifyUsersWithOutdatedCredentials(account, credsReport, date) shouldBe empty
+      identifyUsersWithOutdatedCredentials(credsReport, date) shouldBe empty
     }
     "given no vulnerable access keys, return an empty list" in {
       val machineAccessKeyHealthyAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(11)))
       val machineWithHealthyKey = MachineUser("machine4", noAccessKey, machineAccessKeyHealthyAndEnabled, Green, None, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(machineWithHealthyKey), Seq(humanWithHealthyKey))
-      identifyUsersWithOutdatedCredentials(account, credsReport, date) shouldBe empty
+      identifyUsersWithOutdatedCredentials(credsReport, date) shouldBe empty
     }
     "given a machine user whose access key was last rotated exactly on the last acceptable healthy rotation date, return user" in {
       val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldEnabledAccessKey2), Seq())
-      identifyUsersWithOutdatedCredentials(account, credsReport, date) should have length 1
+      identifyUsersWithOutdatedCredentials(credsReport, date) should have length 1
     }
   }
 
