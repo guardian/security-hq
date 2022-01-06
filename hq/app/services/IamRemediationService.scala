@@ -77,9 +77,38 @@ class IamRemediationService(
     * If nothing changes it will send a final warning notification.
     * After both these notifications have been ignored, the password will be automatically removed.
     *
-    * TODO: we will implement this job after the outdated credentials job ships
     */
-  def removePasswordWithoutMFA(): Attempt[Unit] = ???
+  def removePasswordWithoutMFA()(implicit ec: ExecutionContext): Attempt[Unit] = {
+    val now = new DateTime()
+    val result = for {
+      // lookup essential configuration
+      allowedAwsAccountIds <- getAllowedAccountsForStage(config) // this tells us which AWS accounts we are allowed to make changes to
+      // fetch IAM data from the application cache
+      rawCredsReports = cacheService.getAllCredentials
+      accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
+      // identify users with outdated credentials for each account, from the credentials report
+      accountUsersWithOutdatedCredentials = identityAllUsersWithPasswordNoMFA(accountsCredReports, now)
+      // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
+      vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(accountUsersWithOutdatedCredentials, dynamo)
+      // based on activity history, decide which of these candidates have outstanding SHQ operations TODO: this isn't yet coded for password problems
+      outstandingOperations = calculateOutstandingOperations(vulnerabilitiesWithRemediationHistory, now)
+      // we'll only perform operations on accounts that have been configured as eligible
+      filteredOperations = partitionOperationsByAllowedAccounts(outstandingOperations, allowedAwsAccountIds)
+      // we won't execute these operations, but can log them instead
+      _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
+      // now we know what operations need to be performed, so let's run each of those
+      results <- Attempt.traverse(filteredOperations.allowedOperations)(performRemediationOperation(_, now))
+    } yield results
+    result.tap {
+      case Left(failedAttempt) =>
+        logger.error(
+          s"Failure during 'remove password without MFA' job: ${failedAttempt.logMessage}",
+          failedAttempt.firstException.orNull // make sure the exception goes into the log, if present
+        )
+      case Right(operationIds) =>
+        logger.info(s"Successfully completed 'remove password without MFA' job, with ${operationIds.length} operations")
+    }.unit
+  }
 
   /**
     * Removes AWS access for colleagues that have departed.

@@ -40,7 +40,7 @@ object IamRemediation extends Logging {
   /**
     * Looks through the credentials report to identify users with Access Keys that are older than we allow.
     */
-  def identifyUsersWithOutdatedCredentials(credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
+  private[logic] def identifyUsersWithOutdatedCredentials(credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
     credentialReportDisplay.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2), now)).toList ++
       credentialReportDisplay.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2), now))
   }
@@ -62,6 +62,17 @@ object IamRemediation extends Logging {
       date.isBefore(now.minusDays(Config.iamMachineUserRotationCadence.toInt - 1))
     } && key.keyStatus == AccessKeyEnabled
   }
+
+  def identityAllUsersWithPasswordNoMFA(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)], now: DateTime): List[(AwsAccount, List[IAMUser])] = {
+    accountCredentialReports.map { case (awsAccount, credentialReport) =>
+      (awsAccount, identityUsersWithPasswordNoMFA(credentialReport, now))
+    }
+  }
+
+  /**
+   * Looks through the credentials report to identify users with passwords, but no MFA
+   */
+  private[logic] def identityUsersWithPasswordNoMFA(credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = ???
 
   /**
     * Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
@@ -86,6 +97,8 @@ object IamRemediation extends Logging {
     * Looks through the candidate's remediation history and outputs the work to be done per access key.
     * This means that the same user could appear in the output list twice, because both of their keys may require an operation.
     * By comparing the current date with the date of the most recent activity, we know which operation to perform next.
+   *
+   * TODO: this should be generic for all IAMProblem types (i.e. it should also work for passwords with no MFA)
     */
   def calculateOutstandingOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = {
     for {
