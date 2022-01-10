@@ -36,7 +36,7 @@ object Cloudwatch extends Logging {
   }
 
   def logMetricsForGCPReport(gcpReport: GcpReport): Unit = {
-    gcpReport.finding.toSeq.foreach {
+    gcpReport.findings.toSeq.foreach {
       case (project: String, findings: Seq[GcpFinding]) =>
         val criticalFindings = findings.filter(_.severity == Finding.Severity.CRITICAL)
         val highFindings = findings.filter(_.severity == Finding.Severity.HIGH)

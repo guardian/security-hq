@@ -63,34 +63,34 @@
 
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
-                @for((projectName, findings) <- report.finding.toList.sortBy(_._1)) {
+                @for((projectName, summaryWithFindings) <- GcpDisplay.sortProjectsByReportSummary(GcpDisplay.reportStatusSummary(report.findings))) {
                     <li>
                     <div class="collapsible-header" tabindex="22">
                     <i class="material-icons">keyboard_arrow_down</i>
                     <span class="iam-header__name">@projectName</span>
-                        @if(findings.exists(_.severity == Severity.CRITICAL)) {
-                            <span class="icon-count">@findings.count(_.severity == Severity.CRITICAL)</span>
+                        @if(summaryWithFindings.reportSummary.critical != 0) {
+                            <span class="icon-count">@summaryWithFindings.reportSummary.critical</span>
                             <i class="material-icons red-text text-darken-4">error</i>
                         }
-                        @if(findings.exists(_.severity == Severity.HIGH)) {
-                            <span class="icon-count">@findings.count(_.severity == Severity.HIGH)</span>
+                        @if(summaryWithFindings.reportSummary.high != 0) {
+                            <span class="icon-count">@summaryWithFindings.reportSummary.high</span>
                             <i class="material-icons red-text">error</i>
                         }
-                        @if(findings.exists(_.severity == Severity.MEDIUM)) {
-                            <span class="icon-count">@findings.count(_.severity == Severity.MEDIUM)</span>
+                        @if(summaryWithFindings.reportSummary.medium != 0) {
+                            <span class="icon-count">@summaryWithFindings.reportSummary.medium</span>
                             <i class="material-icons orange-text">warning</i>
                         }
-                        @if(findings.exists(_.severity == Severity.LOW)) {
-                            <span class="icon-count">@findings.count(_.severity == Severity.LOW)</span>
+                        @if(summaryWithFindings.reportSummary.low != 0) {
+                            <span class="icon-count">@summaryWithFindings.reportSummary.low</span>
                             <i class="material-icons yellow-text">priority_high</i>
                         }
-                        @if(findings.exists(_.severity == Severity.SEVERITY_UNSPECIFIED)) {
-                            <span class="icon-count">@findings.count(_.severity == Severity.SEVERITY_UNSPECIFIED)</span>
+                        @if(summaryWithFindings.reportSummary.unspecified != 0) {
+                            <span class="icon-count">@summaryWithFindings.reportSummary.unspecified</span>
                             <i class="material-icons grey-text">not_listed_location</i>
                         }
                     </div>
                     <div class="collapsible-body">
-                    @views.html.gcp.gcpReportBody(GcpDisplay.sortFindings(findings.toList), report.reportDate)
+                    @views.html.gcp.gcpReportBody(GcpDisplay.sortFindings(summaryWithFindings.reportFindings.toList), report.reportDate)
                     </div>
                     </li>
                 }

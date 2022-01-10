@@ -5,7 +5,7 @@ import com.google.cloud.securitycenter.v1.SecurityCenterClient.ListFindingsPaged
 import com.google.cloud.securitycenter.v1.{Finding, ListFindingsRequest, OrganizationName, SecurityCenterClient, SourceName}
 import com.google.protobuf.Value
 import config.Config
-import model.GcpFinding
+import model.{GcpFinding,ReportSummary,ReportSummaryWithFindings}
 import org.joda.time.DateTime
 import play.api.{Configuration, Logging}
 import utils.attempt.Attempt
@@ -14,8 +14,29 @@ import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
 object GcpDisplay extends Logging {
+ 
   val dateTimePattern = "dd/MM/yy"
 
+  def reportStatusSummary(reportFindings: Map[String, Seq[GcpFinding]]): List[(String, ReportSummaryWithFindings)] = {
+    reportFindings.map { case (projectName, findings) => 
+      (projectName, ReportSummaryWithFindings(
+        ReportSummary(
+          findings.count(_.severity == Severity.CRITICAL),
+          findings.count(_.severity == Severity.HIGH),
+          findings.count(_.severity == Severity.MEDIUM),
+          findings.count(_.severity == Severity.LOW),
+          findings.count(_.severity == Severity.SEVERITY_UNSPECIFIED)
+        ),findings ))
+    }.toList
+  }
+
+  def sortProjectsByReportSummary(projectSummaryWithFindings: List[(String, ReportSummaryWithFindings)]): List[(String, ReportSummaryWithFindings)] = {
+    projectSummaryWithFindings.sortBy { case (project, summaryWithFindings) => 
+      val reportSummary = summaryWithFindings.reportSummary
+      (-reportSummary.critical, -reportSummary.high, -reportSummary.medium, -reportSummary.low, -reportSummary.unspecified, project)
+    }
+  }
+  
   def getGcpFindings(org: OrganizationName, client: SecurityCenterClient, config: Configuration): Attempt[List[GcpFinding]] = {
     Attempt.Right {
       val gcpPagedResponse: ListFindingsPagedResponse = callGcpApi(org, client, config)
