@@ -63,7 +63,7 @@ object IamRemediation extends Logging {
     } && key.keyStatus == AccessKeyEnabled
   }
 
-  def identityAllUsersWithPasswordMissingMFA(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)], now: DateTime): List[(AwsAccount, List[IAMUser])] = {
+  def identityAllUsersWithPasswordMissingMFA(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)]): List[(AwsAccount, List[IAMUser])] = {
     accountCredentialReports.map { case (awsAccount, credentialReport) =>
       (awsAccount, identityUsersWithPasswordMissingMFA(credentialReport))
     }
