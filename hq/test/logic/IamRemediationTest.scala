@@ -122,20 +122,20 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues with A
     val machineTwoKeysRequireAction = IamUserRemediationHistory(account, machineWithTwoOldEnabledAccessKeys, List(machineActivityWarningLastNotificationEqualToCadence, machineActivityWarningKeyLastRotatedEqualCadenceThreshold))
 
     "given two users, each with 2 keys that require operations, output a list of size 4" in {
-      calculateOutstandingOperations(List(humanBothKeysRequireAction, machineTwoKeysRequireAction), date) should have length 4
+      calculateOutstandingAccessKeyOperations(List(humanBothKeysRequireAction, machineTwoKeysRequireAction), date) should have length 4
     }
     "given two users, each with 1 key that requires an operation, output a list of size 2" in {
-      calculateOutstandingOperations(List(humanOneKeyRequiresAction,  machineOneKeyWarning), date) should have length 2
+      calculateOutstandingAccessKeyOperations(List(humanOneKeyRequiresAction,  machineOneKeyWarning), date) should have length 2
     }
     "given one user with 2 keys that require an operation, output a list of size 2" in {
-      calculateOutstandingOperations(List(machineTwoKeysRequireAction), date) should have length 2
+      calculateOutstandingAccessKeyOperations(List(machineTwoKeysRequireAction), date) should have length 2
     }
     "given one user with 1 key that requires an operation, output a list of size 1" in {
-      calculateOutstandingOperations(List(humanOneKeyRequiresAction), date) should have length 1
+      calculateOutstandingAccessKeyOperations(List(humanOneKeyRequiresAction), date) should have length 1
     }
     // this scenario should never happen, keeping this test here to note this.
     "given an empty input list, return an empty output list" in {
-      calculateOutstandingOperations(Nil, date) shouldEqual Nil
+      calculateOutstandingAccessKeyOperations(Nil, date) shouldEqual Nil
     }
 
     "identifyRemediationOperation" - {

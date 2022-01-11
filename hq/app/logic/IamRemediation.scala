@@ -97,10 +97,8 @@ object IamRemediation extends Logging {
     * Looks through the candidate's remediation history and outputs the work to be done per access key.
     * This means that the same user could appear in the output list twice, because both of their keys may require an operation.
     * By comparing the current date with the date of the most recent activity, we know which operation to perform next.
-   *
-   * TODO: this should be generic for all IAMProblem types (i.e. it should also work for passwords with no MFA)
     */
-  def calculateOutstandingOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = {
+  def calculateOutstandingAccessKeyOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = {
     for {
       userRemediationHistory <- remediationHistories
       vulnerableKey <- identifyVulnerableKeys(userRemediationHistory, now)
@@ -140,6 +138,11 @@ object IamRemediation extends Logging {
         None
     }
   }
+
+  /**
+   * Looks through the candidate's remediation history and outputs the operations to be done.
+   */
+  def calculateOutstandingPasswordOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = ???
 
   private[logic] def identifyRemediationOperation(mostRecentRemediationActivity: Option[IamRemediationActivity], now: DateTime,
     userRemediationHistory: IamUserRemediationHistory): Option[RemediationOperation] =
