@@ -63,16 +63,18 @@ object IamRemediation extends Logging {
     } && key.keyStatus == AccessKeyEnabled
   }
 
-  def identityAllUsersWithPasswordNoMFA(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)], now: DateTime): List[(AwsAccount, List[IAMUser])] = {
+  def identityAllUsersWithPasswordNoMFA(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)]): List[(AwsAccount, List[IAMUser])] = {
     accountCredentialReports.map { case (awsAccount, credentialReport) =>
-      (awsAccount, identityUsersWithPasswordNoMFA(credentialReport, now))
+      (awsAccount, identifyUsersWithPasswordNoMFA(credentialReport))
     }
   }
 
   /**
    * Looks through the credentials report to identify users with passwords, but no MFA
    */
-  private[logic] def identityUsersWithPasswordNoMFA(credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = ???
+  private[logic] def identifyUsersWithPasswordNoMFA(credentialReportDisplay: CredentialReportDisplay): List[IAMUser] = {
+    credentialReportDisplay.humanUsers.filterNot(_.hasMFA).toList
+  }
 
   /**
     * Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
