@@ -51,7 +51,7 @@ class IamRemediationService(
       // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
       vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(accountUsersWithOutdatedCredentials, dynamo)
       // based on activity history, decide which of these candidates have outstanding SHQ operations
-      outstandingOperations = calculateOutstandingOperations(vulnerabilitiesWithRemediationHistory, now)
+      outstandingOperations = calculateOutstandingAccessKeyOperations(vulnerabilitiesWithRemediationHistory, now)
       // we'll only perform operations on accounts that have been configured as eligible
       filteredOperations = partitionOperationsByAllowedAccounts(outstandingOperations, allowedAwsAccountIds)
       // we won't execute these operations, but can log them instead
@@ -87,11 +87,11 @@ class IamRemediationService(
       rawCredsReports = cacheService.getAllCredentials
       accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
       // identify users with outdated credentials for each account, from the credentials report
-      accountUsersWithOutdatedCredentials = identityAllUsersWithPasswordNoMFA(accountsCredReports)
+      accountUsersWithOutdatedCredentials = identityAllUsersWithPasswordMissingMFA(accountsCredReports)
       // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
       vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(accountUsersWithOutdatedCredentials, dynamo)
-      // based on activity history, decide which of these candidates have outstanding SHQ operations TODO: this isn't yet coded for password problems
-      outstandingOperations = calculateOutstandingOperations(vulnerabilitiesWithRemediationHistory, now)
+      // based on activity history, decide which of these candidates have outstanding SHQ operations
+      outstandingOperations = calculateOutstandingPasswordOperations(vulnerabilitiesWithRemediationHistory, now)
       // we'll only perform operations on accounts that have been configured as eligible
       filteredOperations = partitionOperationsByAllowedAccounts(outstandingOperations, allowedAwsAccountIds)
       // we won't execute these operations, but can log them instead
