@@ -102,19 +102,19 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues with A
     "given a user with a password and No MFA, should return that user" in {
       val humanUserWithNoMFA = HumanUser("jon.soul", hasMFA = false, AccessKey(NoKey, None), AccessKey(NoKey, None), Red(), None, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanUserWithNoMFA))
-      identifyUsersWithPasswordNoMFA(credsReport).map(_.username) shouldEqual List(humanUserWithNoMFA.username)
+      identifyUsersWithPasswordMissingMFA(credsReport).map(_.username) shouldEqual List(humanUserWithNoMFA.username)
     }
 
     "given a user with a password and MFA, should return not that user" in {
       val humanUserWithMFA = HumanUser("jon.soul", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanUserWithMFA))
-      identifyUsersWithPasswordNoMFA(credsReport).map(_.username) shouldBe List.empty
+      identifyUsersWithPasswordMissingMFA(credsReport).map(_.username) shouldBe List.empty
     }
 
     "given a machine user, should return not that user" in {
       val machineUser = MachineUser("jon.soul", AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(machineUser), Seq())
-      identifyUsersWithPasswordNoMFA(credsReport).map(_.username) shouldBe List.empty
+      identifyUsersWithPasswordMissingMFA(credsReport).map(_.username) shouldBe List.empty
     }
   }
 
