@@ -87,7 +87,7 @@ class IamRemediationService(
       rawCredsReports = cacheService.getAllCredentials
       accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
       // identify users with outdated credentials for each account, from the credentials report
-      accountUsersWithOutdatedCredentials = identityAllUsersWithPasswordMissingMFA(accountsCredReports, now)
+      accountUsersWithOutdatedCredentials = identifyAllUsersWithPasswordMissingMFA(accountsCredReports)
       // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
       vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(accountUsersWithOutdatedCredentials, dynamo)
       // based on activity history, decide which of these candidates have outstanding SHQ operations
