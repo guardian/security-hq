@@ -18,8 +18,8 @@ object S3 {
     } catch {
       case NonFatal(e) =>
         Attempt.Left(FailedAttempt(Failure(
-          "unable to get S3 object for the unrecognised user job",
-          "I haven't been able to get the S3 object for the unrecognised user job, which contains the Janus data",
+          s"Unable to get S3 object for bucket $bucket and key $key",
+          "Failed to fetch an S3 object",
           500,
           throwable = Some(e)
         )))
