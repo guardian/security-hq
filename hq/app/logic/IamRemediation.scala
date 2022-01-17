@@ -79,12 +79,12 @@ object IamRemediation extends Logging {
   /**
     * Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
     */
-  def lookupActivityHistory(accountIdentifiedUsers: List[(AwsAccount, List[IAMUser])], dynamo: IamRemediationDb)(implicit ec: ExecutionContext): Attempt[List[IamUserRemediationHistory]] = {
+  def lookupActivityHistory(accountIdentifiedUsers: List[(AwsAccount, List[IAMUser])], dynamo: IamRemediationDb, tableName: String)(implicit ec: ExecutionContext): Attempt[List[IamUserRemediationHistory]] = {
     for {
       remediationHistoryByAccount <- Attempt.traverse(accountIdentifiedUsers) { case (awsAccount, identifiedUsers) =>
         // for each account with vulnerable user(s), do a DB lookup for each identified user to get activity history
         Attempt.traverse(identifiedUsers) { identifiedUser =>
-          dynamo.lookupIamUserNotifications(identifiedUser, awsAccount).map { userActivityHistory =>
+          dynamo.lookupIamUserNotifications(identifiedUser, awsAccount, tableName).map { userActivityHistory =>
             IamUserRemediationHistory(awsAccount, identifiedUser, userActivityHistory)
           }
         }
@@ -174,10 +174,13 @@ object IamRemediation extends Logging {
   /**
     * To prevent non-PROD application instances from making changes to production AWS accounts, SHQ is
     * configured with a list of the AWS accounts that this instance is allowed to affect.
+    * In addition, SHQ is configured with a list of AWS accounts to run the IamRemediationService on,
+    * because not all accounts are in a ready state for this service yet.
     */
-  def partitionOperationsByAllowedAccounts(operations: List[RemediationOperation], allowedAwsAccountIds: List[String]): PartitionedRemediationOperations = {
+  def partitionOperationsByAllowedAccounts(operations: List[RemediationOperation], allowedAwsAccountIds: List[String], serviceAccountIds: List[String]): PartitionedRemediationOperations = {
     val (allowed, forbidden) = operations.partition { remediationOperation =>
-      allowedAwsAccountIds.contains(remediationOperation.vulnerableCandidate.awsAccount.id)
+      val accountId = remediationOperation.vulnerableCandidate.awsAccount.id
+      allowedAwsAccountIds.contains(accountId) && serviceAccountIds.contains(accountId)
     }
     PartitionedRemediationOperations(allowed, forbidden)
   }
