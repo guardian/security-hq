@@ -158,3 +158,6 @@ project/project
 
 # DynamoDB local
 .dynamodb-local
+
+# Build server protocol (introduced in sbt 1.4.0)
+.bsp
