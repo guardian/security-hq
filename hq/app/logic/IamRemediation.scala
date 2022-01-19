@@ -120,18 +120,14 @@ object IamRemediation extends Logging {
     vulnerableKey.lastRotated match {
       case Some(lastRotatedDate) =>
         // filter activity list to find matching db records for given access key
-        val keyPreviousActivities = remediationHistory.activityHistory.filter { activity =>
-          activity.problemCreationDate.withTimeAtStartOfDay == lastRotatedDate.withTimeAtStartOfDay()
-        }
+        val keyPreviousActivities = remediationHistory.activityHistory.filter(_.problemCreationDate.isEqual(lastRotatedDate))
         keyPreviousActivities match {
           case Nil =>
             // there is no recent activity for the given access key, so return None.
             None
           case remediationActivities =>
             // get the most recent remediation activity
-            Some(remediationActivities.maxBy { activity =>
-              Days.daysBetween(activity.problemCreationDate.withTimeAtStartOfDay(), activity.dateNotificationSent.withTimeAtStartOfDay()).getDays
-            })
+            Some(remediationActivities.maxBy(_.dateNotificationSent.getMillis))
         }
       case None =>
         val name = remediationHistory.iamUser.username
