@@ -142,28 +142,34 @@ object IamRemediation extends Logging {
    */
   def calculateOutstandingPasswordOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = ???
 
-  private[logic] def identifyRemediationOperation(mostRecentRemediationActivity: Option[IamRemediationActivity], now: DateTime,
-    userRemediationHistory: IamUserRemediationHistory): Option[RemediationOperation] =
+  private[logic] def identifyRemediationOperation(
+    mostRecentRemediationActivity: Option[IamRemediationActivity],
+    now: DateTime,
+    userRemediationHistory: IamUserRemediationHistory,
+    vulnerableKey: AccessKey
+  ): Option[RemediationOperation] =
     mostRecentRemediationActivity match {
       case None =>
         // If there is no recent activity, then the required operation must be a Warning.
         Some(RemediationOperation(userRemediationHistory, Warning, OutdatedCredential, problemCreationDate = vulnerableKey.lastRotated.getOrElse(now)))
       case Some(mostRecentActivity) =>
+        val finalWarningStartOfDay = mostRecentActivity.dateNotificationSent.plusDays(daysBetweenWarningAndFinalNotification).withTimeAtStartOfDay()
+        val remediationStartOfDay = mostRecentActivity.dateNotificationSent.plusDays(daysBetweenFinalNotificationAndRemediation).withTimeAtStartOfDay()
         mostRecentActivity.iamRemediationActivityType match {
-        case Warning if now.isAfter(mostRecentActivity.dateNotificationSent.plusDays(daysBetweenWarningAndFinalNotification - 1)) =>
-          // If the most recent activity is a Warning and the last notification was sent at least `Config.daysBetweenWarningAndFinalNotification` ago,
-          // the required operation is a FinalWarning.
-          Some(RemediationOperation(userRemediationHistory, FinalWarning, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
-        case FinalWarning if now.isAfter(mostRecentActivity.dateNotificationSent.plusDays(daysBetweenFinalNotificationAndRemediation - 1)) =>
-          // If the most recent activity is a FinalWarning and the last notification was sent at least `Config.daysBetweenFinalNotificationAndRemediation` ago,
-          // the required operation is Remediation.
-          Some(RemediationOperation(userRemediationHistory, Remediation, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
-        case Remediation =>
-          val name = userRemediationHistory.iamUser.username
-          val account = userRemediationHistory.awsAccount.name
-          logger.warn(s"$name in $account has an access key of recent activity type Remediation, but the key is enabled. Please investigate as I will continue to attempt key disablement until rotated.")
-          Some(RemediationOperation(userRemediationHistory, Remediation, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
-        case _ => None
+          case Warning if now.isAfter(finalWarningStartOfDay) =>
+            // If the most recent activity is a Warning and the last notification was sent at least `Config.daysBetweenWarningAndFinalNotification` ago,
+            // the required operation is a FinalWarning.
+            Some(RemediationOperation(userRemediationHistory, FinalWarning, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
+          case FinalWarning if now.isAfter(remediationStartOfDay) =>
+            // If the most recent activity is a FinalWarning and the last notification was sent at least `Config.daysBetweenFinalNotificationAndRemediation` ago,
+            // the required operation is Remediation.
+            Some(RemediationOperation(userRemediationHistory, Remediation, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
+          case Remediation =>
+            val name = userRemediationHistory.iamUser.username
+            val account = userRemediationHistory.awsAccount.name
+            logger.warn(s"$name in $account has an access key of recent activity type Remediation, but the key is enabled. Please investigate as I will continue to attempt key disablement until rotated.")
+            Some(RemediationOperation(userRemediationHistory, Remediation, mostRecentActivity.iamProblem, mostRecentActivity.problemCreationDate))
+          case _ => None
       }
     }
 
