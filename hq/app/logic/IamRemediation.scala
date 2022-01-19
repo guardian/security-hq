@@ -105,7 +105,7 @@ object IamRemediation extends Logging {
       userRemediationHistory <- remediationHistories
       vulnerableKey <- identifyVulnerableKeys(userRemediationHistory, now)
       keyPreviousAlert = identifyMostRecentActivity(userRemediationHistory, vulnerableKey)
-      keyNextActivity <- identifyRemediationOperation(keyPreviousAlert, now, userRemediationHistory)
+      keyNextActivity <- identifyRemediationOperation(keyPreviousAlert, now, userRemediationHistory, vulnerableKey)
     } yield keyNextActivity
   }
 
@@ -151,7 +151,7 @@ object IamRemediation extends Logging {
     mostRecentRemediationActivity match {
       case None =>
         // If there is no recent activity, then the required operation must be a Warning.
-        Some(RemediationOperation(userRemediationHistory, Warning, OutdatedCredential, problemCreationDate = now))
+        Some(RemediationOperation(userRemediationHistory, Warning, OutdatedCredential, problemCreationDate = vulnerableKey.lastRotated.getOrElse(now)))
       case Some(mostRecentActivity) =>
         mostRecentActivity.iamRemediationActivityType match {
         case Warning if now.isAfter(mostRecentActivity.dateNotificationSent.plusDays(daysBetweenWarningAndFinalNotification - 1)) =>
