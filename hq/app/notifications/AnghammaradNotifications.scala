@@ -44,7 +44,7 @@ object AnghammaradNotifications extends Logging {
          |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
          |which has been flagged because it was last rotated on ${printDay(problemCreationDate)}.
          |(if you're already planning on doing this, please ignore this message).
-         |If this is not rectified before ${printDay(now.plusDays(daysBetweenWarningAndFinalNotification))}, Security HQ will automatically disable this user."
+         |If this is not rectified before ${printDay(now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation))}, Security HQ will automatically disable this user."
          |""".stripMargin
     val subject = s"Action ${awsAccount.name}: Vulnerable credential"
     Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
