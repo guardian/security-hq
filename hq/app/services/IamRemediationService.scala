@@ -220,16 +220,16 @@ class IamRemediationService(
   }
 
   if (environment.mode != Mode.Test) {
-    // Schedule the observable on weekdays between 9am and 5pm as we may make changes in accounts that affect live systems
-    // if warnings are not heeded. Initial delay of 10 minutes, so that the cache service has time to populate and run
-    // every 4 hours so that we'll run at least twice during the day
-    val disableCredentials: Observable[DateTime] = Observable.interval(10.minutes, 4.hours)
+    // Schedule the observable on weekdays only as we may make changes in accounts that affect live systems
+    // if warnings are not heeded. Initial delay of 10 minutes, so that the cache service has time to populate
+    val disableCredentials: Observable[DateTime] = Observable.interval(10.minutes, 1.minute)
       .map(_ => DateTime.now())
       .filterNot { now =>
         now.getDayOfWeek == DateTimeConstants.SATURDAY || now.getDayOfWeek == DateTimeConstants.SUNDAY
       }
       .filter { now =>
-        now.getHourOfDay >= 9 && now.getHourOfDay < 17
+        (now.getHourOfDay == 9 && now.getMinuteOfHour == 0) ||
+          (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
       }
 
     val subscription: Subscription = disableCredentials.subscribe { _ =>
