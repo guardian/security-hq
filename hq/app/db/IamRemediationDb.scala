@@ -1,17 +1,15 @@
 package db
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemRequest, PutItemRequest, PutItemResult, ScanRequest}
-import config.Config.getIamDynamoTableName
+import com.amazonaws.services.dynamodbv2.model._
 import db.IamRemediationDb.{deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
-import model.{AwsAccount, FinalWarning, IAMUser, IamProblem, IamRemediationActivity, IamRemediationActivityType, OutdatedCredential, PasswordMissingMFA, Remediation, Warning}
+import model._
 import org.joda.time.DateTime
-import play.api.Configuration
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.{Attempt, Failure}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
-import scala.collection.JavaConverters._
 
 
 class IamRemediationDb(client: AmazonDynamoDB) {
@@ -114,7 +112,6 @@ object IamRemediationDb {
 
     val iamProblemString = iamProblem match {
       case OutdatedCredential => "OutdatedCredential"
-      case PasswordMissingMFA => "PasswordMissingMFA"
     }
 
     val item = Map(
@@ -177,7 +174,6 @@ object IamRemediationDb {
   def iamProblemFromString(str: String): Attempt[IamProblem] = {
     str match {
       case "OutdatedCredential" => Attempt.Right(OutdatedCredential)
-      case "PasswordMissingMFA" => Attempt.Right(PasswordMissingMFA)
       case _ => Attempt.Left {
         Failure(s"Could not turn $str to an IamProblem", "Did not understand database record", 500).attempt
       }

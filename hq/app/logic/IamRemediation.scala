@@ -63,19 +63,6 @@ object IamRemediation extends Logging {
     } && key.keyStatus == AccessKeyEnabled
   }
 
-  def identifyAllUsersWithPasswordMissingMFA(accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)]): List[(AwsAccount, List[IAMUser])] = {
-    accountCredentialReports.map { case (awsAccount, credentialReport) =>
-      (awsAccount, identifyUsersWithPasswordMissingMFA(credentialReport))
-    }
-  }
-
-  /**
-   * Looks through the credentials report to identify users with passwords, but no MFA
-   */
-  private[logic] def identifyUsersWithPasswordMissingMFA(credentialReportDisplay: CredentialReportDisplay): List[IAMUser] = {
-    credentialReportDisplay.humanUsers.filterNot(_.hasMFA).toList
-  }
-
   /**
     * Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
     */
@@ -136,11 +123,6 @@ object IamRemediation extends Logging {
         None
     }
   }
-
-  /**
-   * Looks through the candidate's remediation history and outputs the operations to be done.
-   */
-  def calculateOutstandingPasswordOperations(remediationHistories: List[IamUserRemediationHistory], now: DateTime): List[RemediationOperation] = ???
 
   private[logic] def identifyRemediationOperation(
     mostRecentRemediationActivity: Option[IamRemediationActivity],

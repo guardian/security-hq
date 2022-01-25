@@ -203,11 +203,13 @@ If you have it installed, you can run:
 ## Introduction to Security HQ's features
 
 ### Credentials Reaper
-The Credentials Reaper is a feature in Security HQ which automatically disables vulnerable permanent IAM users. 
-It considers a vulnerable user to be a user that has a password, but no mfa and/or access keys which haven’t been rotated within 90 days for users with a password (human users) or 365 days for users without a password (machine users). 
-It disables users in the following way: if there’s a password, it will be removed and if there are active access keys, they will be disabled.
+The Credentials Reaper is a feature in Security HQ which automatically disables permanent IAM users
+with access keys that haven’t been rotated within 90 days for users with a password (human users) 
+or 365 days for users without a password (machine users). 
+It also disables permanent users who have left the Guardian.
 
-The reaper sends email notifications to the AWS account the user is in, before disabling a user. The emails are sent via Anghammarad and uses it's AWS Account to email address mappings.
+The reaper sends email notifications to the AWS account the user is in, before disabling a user. 
+The emails are sent via Anghammarad and uses it's AWS Account to email address mappings.
 
 You can also find the dynamo table in the Security AWS Account. 
 

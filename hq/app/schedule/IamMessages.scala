@@ -22,8 +22,8 @@ object IamMessages {
   object VulnerableCredentials {
     private def message(account: AwsAccount): String = {
       s"Please check the following permanent credentials in AWS Account ${account.name}, " +
-      s"which have been flagged as either needing to be rotated or requiring multi-factor authentication (if you're " +
-      s"already planning on doing this, please ignore this message). If this is not rectified before the deadline, " +
+      s"which have been flagged as needing to be rotated (if you're already planning on doing this," +
+      s"please ignore this message). If this is not rectified before the deadline, " +
       s"Security HQ will automatically disable this user:"
     }
 
@@ -38,8 +38,6 @@ object IamMessages {
       "",
       "deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,",
       "",
-      "multi-factor authentication: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html.",
-      "",
       "If you have any questions, please contact the Developer Experience team: devx@theguardian.com."
     ).mkString("\n")
 
@@ -50,7 +48,7 @@ object IamMessages {
       s"""
          |The following Permanent IAM user(s) have been disabled today: ${users.map(_.username).mkString(",")}.
          |Please check Security HQ to review the IAM users in your account (https://security-hq.gutools.co.uk/iam).
-         |If you still require the disabled user, add new access keys(s) and rotate regularly going forwards, or add MFA for human users.
+         |If you still require the disabled user, add new access keys(s) and rotate regularly going forwards.
          |If you no longer require the disabled user, they should be deleted.
          |If you have any questions, contact devx@theguardian.com.
          |""".stripMargin

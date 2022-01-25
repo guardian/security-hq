@@ -51,10 +51,6 @@ object AnghammaradNotifications extends Logging {
     Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
   }
 
-  def passwordWithoutMfaWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime): Notification = {
-    ???
-  }
-
   def outdatedCredentialFinalWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime, now: DateTime): Notification = {
     val message =
       s"""
@@ -68,10 +64,6 @@ object AnghammaradNotifications extends Logging {
     Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
   }
 
-  def passwordWithoutMfaFinalWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime): Notification = {
-    ???
-  }
-
   def outdatedCredentialRemediation(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime): Notification = {
     val message =
       s"""
@@ -81,10 +73,6 @@ object AnghammaradNotifications extends Logging {
          |""".stripMargin
     val subject = s"DISABLED Vulnerable credential in ${awsAccount.name}"
     Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
-  }
-
-  def passwordWithoutMfaRemediation(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime): Notification = {
-    ???
   }
 
   private val genericOutdatedCredentialText = {
