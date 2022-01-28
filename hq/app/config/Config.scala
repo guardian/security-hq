@@ -18,8 +18,8 @@ import scala.util.Try
 object Config {
   val iamHumanUserRotationCadence: Long = 90
   val iamMachineUserRotationCadence: Long = 365
-  val daysBetweenWarningAndFinalNotification = 1
-  val daysBetweenFinalNotificationAndRemediation = 1
+  val daysBetweenWarningAndFinalNotification = 7
+  val daysBetweenFinalNotificationAndRemediation = 7
 
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
