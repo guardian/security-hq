@@ -3,7 +3,7 @@ package db
 import org.scalatest.{FreeSpec, Matchers, OptionValues}
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
-import model.{FinalWarning, IamRemediationActivity, PasswordMissingMFA}
+import model.{FinalWarning, IamRemediationActivity, OutdatedCredential}
 import org.joda.time.DateTime
 import utils.attempt.AttemptValues
 
@@ -25,7 +25,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues wit
     testUser,
     dateNotificationSent,
     FinalWarning,
-    PasswordMissingMFA,
+    OutdatedCredential,
     problemCreationDate
   )
 
@@ -35,7 +35,7 @@ class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues wit
     "username" -> S(testUser),
     "dateNotificationSent" -> N(dateNotificationSentMillis),
     "iamRemediationActivityType" -> S("FinalWarning"),
-    "iamProblem" -> S("PasswordMissingMFA"),
+    "iamProblem" -> S("OutdatedCredential"),
     "problemCreationDate" -> N(problemCreationDateMillis)
   )
 

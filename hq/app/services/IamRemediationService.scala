@@ -15,8 +15,8 @@ import play.api.{Configuration, Environment, Logging, Mode}
 import rx.lang.scala.{Observable, Subscription}
 import utils.attempt.Attempt
 
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.{Duration, DurationInt}
 
 
 /**
@@ -72,49 +72,6 @@ class IamRemediationService(
         )
       case Right(operationIds) =>
         logger.info(s"Successfully completed 'disable outdated credentials' job, with ${operationIds.length} operations")
-    }.unit
-  }
-
-  /**
-    * Disables password access for users that do not also have MFA enabled.
-    *
-    * This job will first send a warning notification when it detects a password without MFA.
-    * If nothing changes it will send a final warning notification.
-    * After both these notifications have been ignored, the password will be automatically removed.
-    *
-    */
-  def removePasswordWithoutMFA()(implicit ec: ExecutionContext): Attempt[Unit] = {
-    val now = new DateTime()
-    val result = for {
-      // lookup essential configuration
-      notificationTopicArn <- getAnghammaradSNSTopicArn(config)
-      tableName <- getIamDynamoTableName(config)
-      serviceAccountIds <- getAccountsForIamRemediationService(config)
-      allowedAwsAccountIds <- getAllowedAccountsForStage(config) // this tells us which AWS accounts we are allowed to make changes to
-      // fetch IAM data from the application cache
-      rawCredsReports = cacheService.getAllCredentials
-      accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
-      // identify users with outdated credentials for each account, from the credentials report
-      accountUsersWithOutdatedCredentials = identifyAllUsersWithPasswordMissingMFA(accountsCredReports)
-      // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
-      vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(accountUsersWithOutdatedCredentials, dynamo, tableName)
-      // based on activity history, decide which of these candidates have outstanding SHQ operations
-      outstandingOperations = calculateOutstandingPasswordOperations(vulnerabilitiesWithRemediationHistory, now)
-      // we'll only perform operations on accounts that have been configured as eligible
-      filteredOperations = partitionOperationsByAllowedAccounts(outstandingOperations, allowedAwsAccountIds, serviceAccountIds)
-      // we won't execute these operations, but can log them instead
-      _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
-      // now we know what operations need to be performed, so let's run each of those
-      results <- Attempt.traverse(filteredOperations.allowedOperations)(performRemediationOperation(_, now, notificationTopicArn, tableName))
-    } yield results
-    result.tap {
-      case Left(failedAttempt) =>
-        logger.error(
-          s"Failure during 'remove password without MFA' job: ${failedAttempt.logMessage}",
-          failedAttempt.firstException.orNull // make sure the exception goes into the log, if present
-        )
-      case Right(operationIds) =>
-        logger.info(s"Successfully completed 'remove password without MFA' job, with ${operationIds.length} operations")
     }.unit
   }
 
@@ -181,29 +138,6 @@ class IamRemediationService(
           // send a notification to say this is what we have done
           notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           // save a record of the change
-          _ <- dynamo.writeRemediationActivity(thisRemediationActivity,tableName)
-        } yield notificationId
-
-    // passwords without MFA
-      case (Warning, PasswordMissingMFA) =>
-        val notification = AnghammaradNotifications.passwordWithoutMfaWarning(awsAccount, iamUser, problemCreationDate)
-        for {
-          snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
-          _ <- dynamo.writeRemediationActivity(thisRemediationActivity,tableName)
-        } yield snsId
-
-      case (FinalWarning, PasswordMissingMFA) =>
-        val notification = AnghammaradNotifications.passwordWithoutMfaFinalWarning(awsAccount, iamUser, problemCreationDate)
-        for {
-          snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
-          _ <- dynamo.writeRemediationActivity(thisRemediationActivity,tableName)
-        } yield snsId
-
-      case (Remediation, PasswordMissingMFA) =>
-        val notification = AnghammaradNotifications.passwordWithoutMfaRemediation(awsAccount, iamUser, problemCreationDate)
-        for {
-          // TODO: add functionality to disable the user's password when we implement this job
-          notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity,tableName)
         } yield notificationId
     }

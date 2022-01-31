@@ -52,7 +52,6 @@ case class PartitionedRemediationOperations(
 
 sealed trait IamProblem
 case object OutdatedCredential extends IamProblem
-case object PasswordMissingMFA extends IamProblem
 
 sealed trait IamRemediationActivityType
 case object Warning extends IamRemediationActivityType
