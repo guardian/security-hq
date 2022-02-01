@@ -19,14 +19,6 @@ class AppLoader extends ApplicationLoader {
 
     val components = new AppComponents(context)
 
-    if (context.environment.mode != Mode.Test) {
-      components.quartzScheduler.start()
-
-      components.applicationLifecycle.addStopHook { () =>
-        Future.successful(components.quartzScheduler.shutdown())
-      }
-    }
-
     components.application
   }
 }
