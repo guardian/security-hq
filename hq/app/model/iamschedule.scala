@@ -6,8 +6,6 @@ import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => Ang
 import org.joda.time.DateTime
 import play.api.libs.json.{JsString, Json, Writes}
 
-case class CronSchedule(cron: String, description: String)
-
 trait IAMAlert {
   def username: String
   def tags: List[Tag]
