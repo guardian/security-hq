@@ -34,7 +34,7 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu" %% "play-googleauth" % "0.7.9",
+      "com.gu" %% "play-googleauth" % "0.7.6",
       "joda-time" % "joda-time" % "2.10.5",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
