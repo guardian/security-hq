@@ -15,7 +15,7 @@ jobs:
   security:
     uses: guardian/.github/.github/workflows/sbt-node-snyk.yml@ja-snyk
     with:
-      DEBUG: "true"
-      ORG: "guardian-security"
+      DEBUG: true
+      ORG: guardian-security
     secrets:
        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
