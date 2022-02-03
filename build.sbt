@@ -34,7 +34,7 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %% "play-v28" % "2.2.2",
+      "com.gu" %% "play-googleauth" % "0.7.6",
       "joda-time" % "joda-time" % "2.10.5",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
@@ -51,7 +51,7 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "1.5.1",
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.3.2",
       "org.quartz-scheduler" % "quartz" % "2.3.2",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
@@ -65,7 +65,6 @@ lazy val hq = (project in file("hq"))
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
       "com.gu" %% "janus-config-tools" % "0.0.4"
     ),
-    dependencyOverrides += "com.google.protobuf" % "protobuf-java" % "3.16.1",
     Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
