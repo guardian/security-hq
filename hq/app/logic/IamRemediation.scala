@@ -41,8 +41,13 @@ object IamRemediation extends Logging {
     * Looks through the credentials report to identify users with Access Keys that are older than we allow.
     */
   private[logic] def identifyUsersWithOutdatedCredentials(credentialReportDisplay: CredentialReportDisplay, now: DateTime): List[IAMUser] = {
-    credentialReportDisplay.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2), now)).toList ++
-      credentialReportDisplay.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2), now))
+    val machineUsersWithOutdatedKeys = credentialReportDisplay.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2), now))
+    val humanUsersWithOutdatedKeys = credentialReportDisplay.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2), now))
+
+    // Filter out any users tagged with opt-out tag, so we can enable the job on accounts
+    // while attempting to rotate difficult keys. This should be used as a last resort only.
+    (machineUsersWithOutdatedKeys ++ humanUsersWithOutdatedKeys).toList
+      .filterNot(_.tags.exists(_.key == Config.outdatedCredentialOptOutUserTag))
   }
 
   private def hasOutdatedHumanKey(keys: List[AccessKey], now: DateTime): Boolean = keys.exists(isOutdatedHumanKey(_, now))
