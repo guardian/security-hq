@@ -16,7 +16,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.150"
+val awsSdkVersion = "1.11.596"
 val playJsonVersion = "2.8.1"
 val jacksonVersion = "2.10.1"
 
