@@ -61,6 +61,7 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues with A
     val humanWithHealthyKey = HumanUser("jon.soul", true, noAccessKey, humanEnabledAccessKeyHealthy, Green, None, None, Nil)
     val machineWithOneOldEnabledAccessKey = MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
     val machineWithOneOldEnabledAccessKey2 = MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, None, Nil)
+    val machineWithOneOldEnabledAccessKeyAndOptOutTag = MachineUser("machine3", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, None, List(Tag(Config.outdatedCredentialOptOutUserTag, "")))
 
     "given a vulnerable human user, return that user" in {
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanWithOneOldEnabledAccessKey))
@@ -69,6 +70,10 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues with A
     "given a vulnerable machine user, return that user" in {
       val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldEnabledAccessKey), Seq())
       identifyUsersWithOutdatedCredentials(credsReport, date).map(_.username) shouldEqual List("machine1")
+    }
+    "given a vulnerable user with opt-out tag, return an empty list" in {
+      val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldEnabledAccessKeyAndOptOutTag), Seq())
+      identifyUsersWithOutdatedCredentials(credsReport, date).map(_.username) shouldBe empty
     }
     "given a vulnerable human and machine user, return both users" in {
       val credsReport = CredentialReportDisplay(date, Seq(machineWithOneOldEnabledAccessKey), Seq(humanWithOneOldEnabledAccessKey))

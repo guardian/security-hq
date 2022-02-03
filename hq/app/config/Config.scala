@@ -18,6 +18,7 @@ import scala.util.Try
 object Config {
   val iamHumanUserRotationCadence: Long = 90
   val iamMachineUserRotationCadence: Long = 365
+  val outdatedCredentialOptOutUserTag = "SecurityHQ::OutdatedCredentialOptOut"
   val daysBetweenWarningAndFinalNotification = 7
   val daysBetweenFinalNotificationAndRemediation = 7
 
