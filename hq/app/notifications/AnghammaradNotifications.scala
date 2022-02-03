@@ -5,7 +5,7 @@ import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{Email, Notification, Preferred, AwsAccount => Account}
 import config.Config.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import logic.DateUtils.printDay
-import model.{AwsAccount, IAMUser}
+import model.{AwsAccount, HumanUser, IAMUser}
 import org.joda.time.DateTime
 import play.api.Logging
 import utils.attempt.{Attempt, Failure}
@@ -83,5 +83,19 @@ object AnghammaradNotifications extends Logging {
        |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,
        |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
        |""".stripMargin
+  }
+
+  def unrecognisedUserRemediation(awsAccount: AwsAccount, iamUser: IAMUser): Notification = {
+    val message =
+      s"""
+         |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today.
+         |Please check Security HQ to review the IAM users in your account (https://security-hq.gutools.co.uk/iam).
+         |If you still require the disabled user, ensure they are tagged correctly with their Google username
+         |and have an entry in Janus.
+         |If the disabled user has left the organisation, they should be deleted.
+         |If you have any questions, contact devx@theguardian.com.
+         |""".stripMargin
+    val subject = s"AWS IAM User ${iamUser.username} DISABLED in ${awsAccount.name} Account"
+    Notification(subject, message, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
   }
 }

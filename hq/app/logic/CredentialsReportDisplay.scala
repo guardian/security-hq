@@ -3,7 +3,7 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
-import schedule.unrecognised.IamUnrecognisedUsers.isTaggedForUnrecognisedUser
+import IamUnrecognisedUsers.isTaggedForUnrecognisedUser
 import utils.attempt.FailedAttempt
 
 import java.net.URLEncoder

@@ -180,6 +180,12 @@ object AccessKeyWithId {
   }
 }
 
+case class VulnerableAccessKey(
+  username: String,
+  accessKeyWithId: AccessKeyWithId,
+  humanUser: Boolean
+)
+
 sealed trait ReportStatus {
   def reasons(): Seq[ReportStatusReason] = Seq.empty
 }
