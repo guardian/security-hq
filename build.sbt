@@ -51,7 +51,7 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "1.6.1",
+      "com.google.cloud" % "google-cloud-securitycenter" % "1.5.1",
       "org.quartz-scheduler" % "quartz" % "2.3.2",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
@@ -65,6 +65,7 @@ lazy val hq = (project in file("hq"))
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
       "com.gu" %% "janus-config-tools" % "0.0.4"
     ),
+    dependencyOverrides += "com.google.protobuf" % "protobuf-java" % "3.16.1",
     Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
