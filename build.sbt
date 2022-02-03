@@ -16,7 +16,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 // resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.11.596"
+val awsSdkVersion = "1.12.150"
 val playJsonVersion = "2.8.1"
 val jacksonVersion = "2.10.1"
 
@@ -51,7 +51,7 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.3.2",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
