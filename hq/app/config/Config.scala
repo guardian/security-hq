@@ -47,7 +47,7 @@ object Config {
       clientId,
       clientSecret,
       redirectUrl,
-      domain,
+      List(domain),
       antiForgeryChecker = AntiForgeryChecker.borrowSettingsFromPlay(httpConfiguration)
     )
   }
