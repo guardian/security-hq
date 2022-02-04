@@ -118,8 +118,9 @@ lazy val hq = (project in file("hq"))
       "-J-XX:+UseCompressedOops",
       "-J-XX:+UseConcMarkSweepGC",
       "-J-XX:NativeMemoryTracking=detail",
-      "-J-XX:MaxRAMFraction=2",
-      "-J-XX:InitialRAMFraction=2",
+      // Bug in Java 8 means these values can't be integers until we upgrade https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8219312
+      "-J-XX:MaxRAMPercentage=50.0",
+      "-J-XX:InitialRAMPercentage=50.0",
       "-XX:NewRatio=3",
       "-J-XX:MaxMetaspaceSize=300m",
       "-J-XX:+PrintGCDetails",
