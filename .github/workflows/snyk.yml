@@ -7,26 +7,15 @@ on:
   schedule:
     - cron: '0 6 * * *'
   push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   security:
-    runs-on: ubuntu-latest
-    env:
-      SNYK_COMMAND: test
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-
-      - name: Set command to monitor
-        if: github.ref == 'refs/heads/main'
-        run: echo "SNYK_COMMAND=monitor" >> $GITHUB_ENV
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/scala@0.3.0
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --org=guardian-security --project-name=${{ github.repository }}
-          command: ${{ env.SNYK_COMMAND }}
-          
+    uses: guardian/.github/.github/workflows/sbt-node-snyk.yml@main
+    with:
+      DEBUG: true
+      ORG: guardian-security
+    secrets:
+       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
