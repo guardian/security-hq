@@ -66,7 +66,7 @@ object Failure {
 
   def snykDashboardDecomission(cacheContent: String): Failure = {
     val details = s"Cache service error; unable to retrieve $cacheContent"
-    val friendlyMessage = s"This dashboard has been temporarily closed due to snyk disabling the API it relied on. Please go to snyk.io directly for information about vulnerabilities in guardian services."
+    val friendlyMessage = s"This dashboard has been temporarily closed while we evaluate the best format for this information. Please go to snyk.io directly for information about vulnerabilities in guardian services."
     Failure(details, friendlyMessage, 500)
   }
 
