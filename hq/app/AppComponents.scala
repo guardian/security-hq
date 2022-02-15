@@ -21,7 +21,6 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.unrecognised.IamUnrecognisedUserJob
 import services.{CacheService, IamRemediationService, MetricService}
 import utils.attempt.Attempt
 
@@ -124,17 +123,8 @@ class AppComponents(context: Context)
     configuration,
     iamClients,
     applicationLifecycle,
-    environment
-  )(executionContext)
-
-  new IamUnrecognisedUserJob(
-    cacheService,
-    securitySnsClient,
-    securityS3Client,
-    iamClients,
-    configuration,
     environment,
-    applicationLifecycle
+    securityS3Client
   )(executionContext)
 
   override def router: Router = new Routes(

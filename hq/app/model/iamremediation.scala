@@ -72,3 +72,11 @@ case class CredentialMetadata(
 sealed trait CredentialStatus
 case object CredentialActive extends CredentialStatus
 case object CredentialDisabled extends CredentialStatus
+
+case class UnrecognisedJobConfigProperties(
+  allowedAccounts: List[String],
+  janusDataFileKey: String,
+  janusUserBucket: String,
+  securityAccount: AwsAccount,
+  anghammaradSnsTopicArn: String
+)

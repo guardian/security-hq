@@ -1,6 +1,5 @@
-@import logic.{CredentialsReportDisplay, DateUtils}
+@import logic.{CredentialsReportDisplay, DateUtils, IamUnrecognisedUsers}
 @import model._
-@import schedule.unrecognised.IamUnrecognisedUsers.isTaggedForUnrecognisedUser
 @(report: CredentialReportDisplay)
 @message = @{s"Report generated at ${DateUtils.printTime(report.reportDate)} (refreshed every four hours)"}
 @warning = @{". Warning: this data is over a day old."}
@@ -69,7 +68,7 @@
                     </td>
                     <td>@cred.tags.find(t => t.key == "Stack").map(_.value).getOrElse("")</td>
                     <td>
-                        @if(isTaggedForUnrecognisedUser(cred.tags)) {
+                        @if(IamUnrecognisedUsers.isTaggedForUnrecognisedUser(cred.tags)) {
                             <i class="material-icons left green-text" data-position="bottom">check</i>
                         } else {
                             <i class="material-icons left black-text" data-position="bottom">unpublished</i>

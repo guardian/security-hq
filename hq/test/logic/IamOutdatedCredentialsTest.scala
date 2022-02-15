@@ -2,7 +2,7 @@ package logic
 
 import config.Config
 import config.Config.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
-import logic.IamRemediation._
+import logic.IamOutdatedCredentials._
 import model._
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
@@ -11,7 +11,7 @@ import utils.attempt.{AttemptValues, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class IamRemediationTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
+class IamOutdatedCredentialsTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
   val humanAccessKeyOldAndEnabled1 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
   val humanAccessKeyOldAndEnabled2 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
@@ -25,30 +25,6 @@ class IamRemediationTest extends FreeSpec with Matchers with OptionValues with A
   val humanWithHealthyKey = HumanUser("jon.soul", true, noAccessKey, humanAccessKeyHealthAndEnabled, Green, None, None, Nil)
   val machineWithOneOldEnabledAccessKey = MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
   val machineWithOneOldEnabledAccessKey2 = MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, None, Nil)
-
-  "getCredsReportDisplayForAccount" - {
-    val failedAttempt: FailedAttempt = FailedAttempt(Failure("error", "error", 500))
-
-    "if the either is a left, an empty list is output" in {
-      val accountCredsLeft = Map(1 -> Left(failedAttempt))
-      getCredsReportDisplayForAccount(accountCredsLeft) shouldEqual Nil
-    }
-    "if the either is a right, it is returned" in {
-      val accountCredsRight = Map(1 -> Right(1))
-      getCredsReportDisplayForAccount(accountCredsRight) shouldEqual List((1, 1))
-    }
-    "given an empty map, return an empty list" in {
-      getCredsReportDisplayForAccount(Map.empty) shouldEqual Nil
-    }
-    "if all eithers are a left, return an empty list" in {
-      val accountCredsAllLeft = Map(1 -> Left(failedAttempt), 2 -> Left(failedAttempt), 3 -> Left(failedAttempt))
-      getCredsReportDisplayForAccount(accountCredsAllLeft) shouldEqual Nil
-    }
-    "if every either is a right, output list contains same number of elements" in {
-      val accountCredsAllRight = Map(1 -> Right(1), 2 -> Right(2), 3 -> Right(3))
-      getCredsReportDisplayForAccount(accountCredsAllRight) should have length 3
-    }
-  }
 
   "identifyUsersWithOutdatedCredentials" - {
     val humanAccessKeyOldAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))

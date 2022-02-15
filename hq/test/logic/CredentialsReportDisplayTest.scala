@@ -4,7 +4,7 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.{FreeSpec, Matchers}
 import CredentialsReportDisplay._
-import schedule.unrecognised.IamUnrecognisedUsers.USERNAME_TAG_KEY
+import IamUnrecognisedUsers.USERNAME_TAG_KEY
 import utils.attempt.{FailedAttempt, Failure}
 
 

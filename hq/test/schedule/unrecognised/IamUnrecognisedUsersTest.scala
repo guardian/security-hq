@@ -5,8 +5,8 @@ import com.gu.janus.model.{ACL, JanusData, SupportACL}
 import model._
 import org.joda.time.{DateTime, Seconds}
 import org.scalatest.{FreeSpec, Matchers}
-import schedule.unrecognised.IamUnrecognisedUsers._
-import schedule.unrecognised.IamUnrecognisedUsers.{USERNAME_TAG_KEY, getCredsReportDisplayForAccount, getJanusUsernames, isTaggedForUnrecognisedUser, unrecognisedUsersForAllowedAccounts}
+import logic.IamUnrecognisedUsers._
+import logic.IamUnrecognisedUsers.{USERNAME_TAG_KEY, getCredsReportDisplayForAccount, getJanusUsernames, isTaggedForUnrecognisedUser, unrecognisedUsersForAllowedAccounts}
 import utils.attempt.{FailedAttempt, Failure}
 
 import scala.io.Source

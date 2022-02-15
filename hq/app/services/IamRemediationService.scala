@@ -2,17 +2,21 @@ package services
 
 import aws.AwsClients
 import aws.iam.IAMClient
+import aws.s3.S3.getS3Object
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.sns.AmazonSNSAsync
-import config.Config.{getAccountsForIamRemediationService, getAllowedAccountsForStage, getAnghammaradSNSTopicArn, getIamDynamoTableName}
+import com.gu.janus.JanusConfig
+import config.Config._
 import db.IamRemediationDb
-import logic.IamRemediation._
+import logic.IamOutdatedCredentials._
+import logic.IamUnrecognisedUsers.{getCredsReportDisplayForAccount, _}
 import model._
 import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Logging, Mode}
-import rx.lang.scala.{Observable, Subscription}
+import rx.lang.scala.{Observable}
 import utils.attempt.Attempt
 
 import scala.concurrent.duration.DurationInt
@@ -31,6 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class IamRemediationService(
   cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: IamRemediationDb,
   config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync], lifecycle: ApplicationLifecycle, environment: Environment,
+  securityS3Client: AmazonS3,
 )(implicit ec: ExecutionContext) extends Logging {
 
   /**
@@ -83,12 +88,28 @@ class IamRemediationService(
     * do not have credentials. They should also be tagged with the Google username of the individual so
     * we can identify them.
     *
-    * We then load data from the Guardian's Janus configuration and decide who us "recognised" by comparing
+    * We then load data from the Guardian's Janus configuration and decide who is "recognised" by comparing
     * this data with google identity tags. If we find an IAM user tagged with an identity that is not in
     * Janus, we can assume they have left and disable the IAM user.
     *
     */
-  def disableUnrecognisedUsers(): Attempt[Unit] = ???
+  def disableUnrecognisedUsers()(implicit ec: ExecutionContext): Attempt[Unit] = {
+    val result = for {
+      config <- getIamUnrecognisedUserConfig(config)
+      s3Object <- getS3Object(securityS3Client, config.janusUserBucket, config.janusDataFileKey)
+      janusData = JanusConfig.load(makeFile(s3Object.mkString))
+      janusUsernames = getJanusUsernames(janusData)
+      accountCredsReports = getCredsReportDisplayForAccount(cacheService.getAllCredentials)
+      allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
+      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableUser(_, iamClients))
+      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers)
+      notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, config.anghammaradSnsTopicArn, snsClient))
+    } yield notificationIds
+    result.tap {
+      case Left(failedAttempt) => logger.error(s"Failed to run unrecognised user job: ${failedAttempt.logMessage}")
+      case Right(notificationIds) => logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.flatten.length} notifications.")
+    }.unit
+  }
 
   /**
     * Performs the specified operation, which will be one of:
@@ -166,12 +187,13 @@ class IamRemediationService(
           (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
       }
 
-    val subscription: Subscription = disableCredentials.subscribe { _ =>
-      disableOutdatedCredentials
+    val iamRemediationServiceSubscription = disableCredentials.subscribe { _ =>
+      disableOutdatedCredentials()
+      disableUnrecognisedUsers()
     }
 
     lifecycle.addStopHook { () =>
-      subscription.unsubscribe()
+      iamRemediationServiceSubscription.unsubscribe()
       Future.successful(())
     }
   }
