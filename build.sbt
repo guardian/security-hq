@@ -34,7 +34,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu" %% "play-googleauth" % "0.7.6",
+      "com.gu.play-googleauth" %% "play-v28" % "2.2.2",
+      "com.gu.play-secret-rotation" %% "play-v28" % "0.33",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.33",
       "joda-time" % "joda-time" % "2.10.5",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.5",
@@ -49,6 +51,7 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.62.2",
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
+      "com.amazonaws" % "aws-java-sdk-ssm" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",

@@ -71,7 +71,8 @@ class AppComponents(context: Context)
   }
 
   private val snykConfig = Config.getSnykConfig(configuration)
-  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
+  private val ssmClient = AWS.ssmClient(securityCredentialsProvider, Config.region)
+  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration, ssmClient)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
