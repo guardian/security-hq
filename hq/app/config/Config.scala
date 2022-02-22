@@ -92,12 +92,7 @@ object Config {
       ServiceAccountCredentials.fromStream(jsonCertStream)
     }
 
-    val serviceAccount = GoogleServiceAccount(
-      credentials.getClientEmail,
-      credentials.getPrivateKey,
-      twoFAUser
-    )
-    new GoogleGroupChecker(serviceAccount)
+    new GoogleGroupChecker(twoFAUser, credentials)
   }
 
   def twoFAGroup(implicit config: Configuration): String = {
