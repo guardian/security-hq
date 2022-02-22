@@ -80,7 +80,7 @@ object IamUnrecognisedUsers extends Logging {
 
   def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
     tags.exists(t =>
-      t.key == IamUnrecognisedUsers.USERNAME_TAG_KEY &&
+      t.key == USERNAME_TAG_KEY &&
         t.value != "" &&
         t.value.contains(".")
     )
