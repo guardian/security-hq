@@ -129,13 +129,15 @@ run each of these commands:
 ### Running project
 From the root of the project:
 
-1. Get Security Janus credentials. 
+1. Get Security Janus credentials.
 
-2. Run sbt: `$ ./sbt`
+2. Ensure you are running Java 11
 
-3. Select the project that you want to run: `sbt:security-hq> project hq`
+3. Run sbt: `$ ./sbt`
 
-4. Start the application: `sbt:security-hq> run`
+4. Select the project that you want to run: `sbt:security-hq> project hq`
+
+5. Start the application: `sbt:security-hq> run`
 
 Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
