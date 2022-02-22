@@ -1,6 +1,6 @@
 package auth
 
-import com.gu.googleauth.{AuthAction, GoogleAuthConfig, LoginSupport}
+import com.gu.googleauth.{AuthAction, GoogleAuthConfig, GoogleGroupChecker, LoginSupport}
 import config.Config
 import controllers.routes
 import play.api.Configuration
@@ -20,7 +20,7 @@ trait SecurityHQAuthActions extends LoginSupport {
   override val defaultRedirectTarget: Call = routes.HQController.index
   override val authConfig: GoogleAuthConfig
 
-  val googleGroupChecker = Config.googleGroupChecker
+  val googleGroupChecker: GoogleGroupChecker = Config.googleGroupChecker
   val requiredGoogleGroups = Set(Config.twoFAGroup)
   val authAction = new AuthAction[AnyContent](authConfig, loginTarget, bodyParser)(ec)
 

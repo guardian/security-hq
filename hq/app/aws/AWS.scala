@@ -12,6 +12,7 @@ import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
 import com.amazonaws.services.elasticfilesystem.{AmazonElasticFileSystemAsync, AmazonElasticFileSystemAsyncClientBuilder}
 import com.amazonaws.services.identitymanagement.{AmazonIdentityManagementAsync, AmazonIdentityManagementAsyncClientBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
+import com.amazonaws.services.simplesystemsmanagement.{AWSSimpleSystemsManagement, AWSSimpleSystemsManagementClientBuilder}
 import com.amazonaws.services.support.{AWSSupportAsync, AWSSupportAsyncClientBuilder}
 import config.Config
 import model.{AwsAccount, DEV, PROD, Stage}
@@ -73,19 +74,4 @@ object AWS {
 
   def efsClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonElasticFileSystemAsync] =
     clients(withCustomThreadPool(AmazonElasticFileSystemAsyncClientBuilder.standard()), configuration, regions:_*)
-
-  def dynamoDbClient(securityCredentialsProvider: AWSCredentialsProvider, region: Regions, stage: Stage): AmazonDynamoDB = {
-    stage match {
-      case PROD =>
-        AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
-          .withRegion(region)
-          .build()
-      case DEV =>
-        AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
-          .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region.name))
-          .build()
-    }
-  }
 }

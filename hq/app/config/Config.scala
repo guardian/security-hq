@@ -1,15 +1,20 @@
 package config
 
-import com.amazonaws.regions.Regions
+import aws.AwsClient
+import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
+import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV1, SecretSupplier}
+import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}
 import model._
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.FileInputStream
+import java.time.Duration.{ofHours, ofMinutes}
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -21,6 +26,7 @@ object Config {
   val outdatedCredentialOptOutUserTag = "SecurityHQ::OutdatedCredentialOptOut"
   val daysBetweenWarningAndFinalNotification = 7
   val daysBetweenFinalNotificationAndRemediation = 7
+  val app = "security-hq"
 
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
@@ -39,17 +45,26 @@ object Config {
     }
   }
 
-  def googleSettings(httpConfiguration: HttpConfiguration, config: Configuration): GoogleAuthConfig = {
+  def googleSettings(stage: Stage, stack: String, config: Configuration, ssmClient: AWSSimpleSystemsManagement): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
     val domain = requiredString(config, "auth.domain")
     val redirectUrl = s"${requiredString(config, "host")}/oauthCallback"
+
+    val secretStateSupplier: SnapshotProvider = {
+      new SecretSupplier(
+        TransitionTiming(usageDelay = ofMinutes(3), overlapDuration = ofHours(2)),
+        s"/${stage.toString}/$stack/$app/play.http.secret.key",
+        AwsSdkV1(ssmClient)
+      )
+    }
+
     GoogleAuthConfig(
       clientId,
       clientSecret,
       redirectUrl,
-      domain,
-      antiForgeryChecker = AntiForgeryChecker.borrowSettingsFromPlay(httpConfiguration)
+      List(domain),
+      antiForgeryChecker = AntiForgeryChecker(secretStateSupplier)
     )
   }
 
@@ -77,12 +92,7 @@ object Config {
       ServiceAccountCredentials.fromStream(jsonCertStream)
     }
 
-    val serviceAccount = GoogleServiceAccount(
-      credentials.getClientEmail,
-      credentials.getPrivateKey,
-      twoFAUser
-    )
-    new GoogleGroupChecker(serviceAccount)
+    new GoogleGroupChecker(twoFAUser, credentials)
   }
 
   def twoFAGroup(implicit config: Configuration): String = {
