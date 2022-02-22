@@ -11,6 +11,7 @@ import utils.attempt.Attempt
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
+//TODO: split up and move this into IAMClient/IAMOutdatedCredentials as appropriate
 object IamListAccessKeys {
 
   // get information on all access keys for a given AWS account
