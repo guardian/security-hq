@@ -144,6 +144,12 @@ object IAMClient extends Logging {
     } yield ()
   }
 
+  private def handleDeleteLoginProfileErrs(awsClient: AwsClient[AmazonIdentityManagementAsync], username: String)(f: => Future[DeleteLoginProfileResult])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] =
+    AwsAsyncHandler.handleAWSErrs(awsClient)(f.map(Some.apply).recover({
+      case e if e.getMessage.contains(s"Login Profile for User $username cannot be found") => None
+      case _: NoSuchEntityException => None
+    }))
+
   def deleteLoginProfile(awsAccount: AwsAccount, username: String, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] = {
     val request = new DeleteLoginProfileRequest()
       .withUserName(username)
@@ -152,10 +158,4 @@ object IAMClient extends Logging {
       result <- handleDeleteLoginProfileErrs(client, username)(awsToScala(client)(_.deleteLoginProfileAsync)(request))
     } yield result
   }
-
-  private def handleDeleteLoginProfileErrs(awsClient: AwsClient[AmazonIdentityManagementAsync], username: String)(f: => Future[DeleteLoginProfileResult])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] =
-    AwsAsyncHandler.handleAWSErrs(awsClient)(f.map(Some.apply).recover({
-      case e if e.getMessage.contains(s"Login Profile for User $username cannot be found") => None
-      case _: NoSuchEntityException => None
-    }))
 }
