@@ -29,6 +29,6 @@ deployments:
       amiParameter: AMISecurityhq
       amiEncrypted: true
       amiTags:
-        Recipe: security-java-lts-arm64
+        Recipe: security-java-11-arm64
         BuiltBy: amigo
         AmigoStage: PROD
