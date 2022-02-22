@@ -94,7 +94,7 @@ class AppComponents(context: Context)
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region)
     .build()
-  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration, securitySsmClient)
+  private val googleAuthConfig = Config.googleSettings(stage, stack, configuration, securitySsmClient)
 
   private val securityDynamoDbClient = stage match {
     case PROD =>

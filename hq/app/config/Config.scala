@@ -26,6 +26,7 @@ object Config {
   val outdatedCredentialOptOutUserTag = "SecurityHQ::OutdatedCredentialOptOut"
   val daysBetweenWarningAndFinalNotification = 7
   val daysBetweenFinalNotificationAndRemediation = 7
+  val app = "security-hq"
 
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
@@ -44,7 +45,7 @@ object Config {
     }
   }
 
-  def googleSettings(httpConfiguration: HttpConfiguration, config: Configuration, ssmClient: AWSSimpleSystemsManagement): GoogleAuthConfig = {
+  def googleSettings(stage: Stage, stack: String, config: Configuration, ssmClient: AWSSimpleSystemsManagement): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
     val domain = requiredString(config, "auth.domain")
@@ -53,7 +54,7 @@ object Config {
     val secretStateSupplier: SnapshotProvider = {
       new SecretSupplier(
         TransitionTiming(usageDelay = ofMinutes(3), overlapDuration = ofHours(2)),
-        s"/PROD/security/security-hq/play.http.secret.key",
+        s"/${stage.toString}/$stack/$app/play.http.secret.key",
         AwsSdkV1(ssmClient)
       )
     }
