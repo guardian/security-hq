@@ -100,7 +100,7 @@ lazy val hq = (project in file("hq"))
     dynamoDBLocalDBPath := Some(System.getProperty("user.home") ++ "/.gu/security-hq"),
 
     Debian / serverLoading := Some(Systemd),
-    debianPackageDependencies := Seq("openjdk-8-jre-headless"),
+    debianPackageDependencies := Seq("java-11-amazon-corretto-jdk:arm64"),
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "Security HQ app.",
     packageDescription := """Deb for Security HQ - the Guardian's service to centralise security information for our AWS accounts.""",
@@ -122,14 +122,12 @@ lazy val hq = (project in file("hq"))
       "-J-XX:+UseCompressedOops",
       "-J-XX:+UseConcMarkSweepGC",
       "-J-XX:NativeMemoryTracking=detail",
-      // Bug in Java 8 means these values can't be integers until we upgrade https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8219312
-      "-J-XX:MaxRAMPercentage=50.0",
-      "-J-XX:InitialRAMPercentage=50.0",
+      "-J-XX:MaxRAMPercentage=50",
+      "-J-XX:InitialRAMPercentage=50",
       "-XX:NewRatio=3",
       "-J-XX:MaxMetaspaceSize=300m",
-      "-J-XX:+PrintGCDetails",
-      "-J-XX:+PrintGCDateStamps",
-      s"-J-Xloggc:/var/log/${packageName.value}/gc.log"
+      "-J-Xlog:gc*",
+      s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
     )
 
   )
