@@ -18,7 +18,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
 val playJsonVersion = "2.8.1"
-val jacksonVersion = "2.10.1"
+val jacksonVersion = "2.12.3"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
 // See https://github.com/akka/akka/pull/30375
@@ -54,6 +54,7 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-ssm" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.26.5",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
