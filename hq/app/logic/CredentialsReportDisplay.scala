@@ -57,7 +57,7 @@ object CredentialsReportDisplay {
 
     val amberStatusReasons: Seq[ReportStatusReason] = Seq(
       Some(ActiveAccessKey).filter(_ => keys.exists(_.keyStatus == AccessKeyEnabled)),
-      Some(MissingUsernameTag).filterNot(_ => isTaggedForUnrecognisedUser(cred.tags))
+      Some(MissingUsernameTag).filterNot(_ => IamUnrecognisedUsers.isTaggedForUnrecognisedUser(cred.tags))
     ).flatten
 
     if (redStatusReasons.nonEmpty)
@@ -165,15 +165,6 @@ object CredentialsReportDisplay {
     report.copy(
       machineUsers = report.machineUsers.sortBy(user => (user.reportStatus, user.username)),
       humanUsers = report.humanUsers.sortBy(user => (user.reportStatus, user.username))
-    )
-  }
-
-  val USERNAME_TAG_KEY = "GoogleUsername"
-  def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
-    tags.exists(t =>
-      t.key == USERNAME_TAG_KEY &&
-        t.value != "" &&
-        t.value.contains(".")
     )
   }
 
