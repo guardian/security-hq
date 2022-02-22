@@ -3,16 +3,19 @@ import aws.{AWS, AwsClient}
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
 import controllers._
 import db.IamRemediationDb
 import filters.HstsFilter
-import model.AwsAccount
+import model.{AwsAccount, DEV, PROD}
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -71,28 +74,47 @@ class AppComponents(context: Context)
   }
 
   private val snykConfig = Config.getSnykConfig(configuration)
-  private val ssmClient = AWS.ssmClient(securityCredentialsProvider, Config.region)
-  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration, ssmClient)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
   private val s3Clients = AWS.s3Clients(configuration, availableRegions)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
-  val securityCredentialsProvider =
-    new AWSCredentialsProviderChain(new ProfileCredentialsProvider("security"), DefaultAWSCredentialsProviderChain.getInstance())
+
+  private val securityCredentialsProvider = new AWSCredentialsProviderChain(
+    new ProfileCredentialsProvider("security"),
+    DefaultAWSCredentialsProviderChain.getInstance()
+  )
   private val securitySnsClient = AmazonSNSAsyncClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region)
     .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
     .build()
-  private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
-  private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-  private val dynamoDbClient = AWS.dynamoDbClient(securityCredentialsProvider, Config.region, stage)
+  private val securitySsmClient = AWSSimpleSystemsManagementClientBuilder.standard()
+    .withCredentials(securityCredentialsProvider)
+    .withRegion(Config.region)
+    .build()
+  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration, securitySsmClient)
+
+  private val securityDynamoDbClient = stage match {
+    case PROD =>
+      AmazonDynamoDBClientBuilder.standard()
+        .withCredentials(securityCredentialsProvider)
+        .withRegion(Config.region)
+        .build()
+    case DEV =>
+      AmazonDynamoDBClientBuilder.standard()
+        .withCredentials(securityCredentialsProvider)
+        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", Config.region.name))
+        .build()
+  }
   private val securityS3Client = AmazonS3ClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region)
     .build()
+
+  private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
+  private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
 
   private val cacheService = new CacheService(
     configuration,
@@ -120,7 +142,7 @@ class AppComponents(context: Context)
   new IamRemediationService(
     cacheService,
     securitySnsClient,
-    new IamRemediationDb(dynamoDbClient),
+    new IamRemediationDb(securityDynamoDbClient),
     configuration,
     iamClients,
     applicationLifecycle,

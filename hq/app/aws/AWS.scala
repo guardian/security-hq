@@ -74,24 +74,4 @@ object AWS {
 
   def efsClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonElasticFileSystemAsync] =
     clients(withCustomThreadPool(AmazonElasticFileSystemAsyncClientBuilder.standard()), configuration, regions:_*)
-
-  def dynamoDbClient(securityCredentialsProvider: AWSCredentialsProvider, region: Regions, stage: Stage): AmazonDynamoDB = {
-    stage match {
-      case PROD =>
-        AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
-          .withRegion(region)
-          .build()
-      case DEV =>
-        AmazonDynamoDBClientBuilder.standard()
-          .withCredentials(securityCredentialsProvider)
-          .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", region.name))
-          .build()
-    }
-  }
-  def ssmClient(securityCredentialsProvider: AWSCredentialsProvider, region: Regions = Regions.EU_WEST_1): AWSSimpleSystemsManagement =
-    AWSSimpleSystemsManagementClientBuilder.standard()
-      .withCredentials(securityCredentialsProvider)
-      .withRegion(region)
-      .build()
 }
