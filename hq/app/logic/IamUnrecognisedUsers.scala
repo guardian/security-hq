@@ -1,8 +1,8 @@
 package logic
 
-import aws.AwsAsyncHandler.{awsToScala}
+import aws.AwsAsyncHandler.awsToScala
 import aws.{AwsAsyncHandler, AwsClient, AwsClients}
-import aws.iam.IAMClient.SOLE_REGION
+import aws.iam.IAMClient.{SOLE_REGION, deleteLoginProfile}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResult}
 import com.gu.anghammarad.models.Notification
@@ -93,7 +93,7 @@ object IamUnrecognisedUsers extends Logging {
     val (account, users) = accountCrd
     for {
       disableKeyResult <- disableAccessKeys(account, users, iamClients)
-      removePasswordResults <- Attempt.traverse(users)(removePasswords(account, _, iamClients))
+      removePasswordResults <- Attempt.traverse(users)(removePassword(account, _, iamClients))
     } yield {
       disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
         case Some(result) => result.getSdkResponseMetadata.getRequestId
@@ -143,18 +143,12 @@ object IamUnrecognisedUsers extends Logging {
       .withStatus("Inactive")
   }
 
-  def removePasswords(
+  def removePassword(
     account: AwsAccount,
     user: HumanUser,
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] = {
-    val result: Attempt[Option[DeleteLoginProfileResult]] = for {
-      client <- iamClients.get(account, SOLE_REGION)
-      request = new DeleteLoginProfileRequest().withUserName(user.username)
-      response = awsToScala(client)(_.deleteLoginProfileAsync)(request)
-      deleteResult <- handleAWSErrs(client, user)(response)
-    } yield deleteResult
-    result.tap {
+    deleteLoginProfile(account, user.username, iamClients).tap {
       case Left(failure) =>
         logger.error(s"failed to delete password for username: ${user.username}. ${failure.logMessage}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure)
@@ -163,10 +157,4 @@ object IamUnrecognisedUsers extends Logging {
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success)
     }
   }
-
-  def handleAWSErrs(awsClient: AwsClient[AmazonIdentityManagementAsync], user: HumanUser)(f: => Future[DeleteLoginProfileResult])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] =
-    AwsAsyncHandler.handleAWSErrs(awsClient)(f.map(Some.apply).recover({
-      case e if e.getMessage.contains(s"Login Profile for User ${user.username} cannot be found") => None
-      case _: NoSuchEntityException => None
-    }))
 }
