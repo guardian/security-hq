@@ -34,7 +34,7 @@ object TrustedAdvisorS3 {
 
 //  When you use server-side encryption, Amazon S3 encrypts an object before saving
 //  it to disk in its data centers and decrypts it when you download the object
-  private def addEncryptionStatus(bucket: BucketDetail, account: AwsAccount, clients: AwsClients[AmazonS3])(implicit ec: ExecutionContext): Attempt[BucketDetail] = {
+  private def addEncryptionStatus(bucket: BucketDetail, account: AwsAccount, clients: AwsClients[AmazonS3])(implicit ec: ExecutionContext): Attempt[Option[BucketDetail]] = {
     val tryFindEncryptionStatus =
       Try(Regions.fromName(bucket.region)).map { regions =>
         clients.get(account, regions).flatMap { clientWrapper =>
@@ -43,7 +43,11 @@ object TrustedAdvisorS3 {
       }
 
     tryFindEncryptionStatus match {
-      case Success(attempt) => attempt.map(_.fold(bucket)(_ => bucket.copy(isEncrypted = true)))
+      case Success(attempt) => attempt.map({
+        case Encrypted => Some(bucket.copy(isEncrypted = true))
+        case NotEncrypted => Some(bucket)
+        case BucketNotFound => None
+      })
       case scala.util.Failure(_) => Attempt.Left(FailedAttempt(Failure(
         s"Unrecognised region returned from Trusted Advisor for bucket ${bucket.bucketName}",
         "Encryption status for this bucket was unable to be fetched due to an unrecognised region being provided by Trusted Advisor.",
@@ -57,7 +61,7 @@ object TrustedAdvisorS3 {
       supportClient <- taClients.get(account)
       bucketResult <- getBucketReport(supportClient)
       enhancedBuckets <- Attempt.traverse(bucketResult.flaggedResources)(addEncryptionStatus(_, account, s3Clients))
-    } yield enhancedBuckets
+    } yield enhancedBuckets.flatten //remove buckets we weren't able to find encryption status for
   }
 
   private[support] def parseBucketDetail(detail: TrustedAdvisorResourceDetail): Attempt[BucketDetail] = {

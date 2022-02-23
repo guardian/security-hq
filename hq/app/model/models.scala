@@ -129,6 +129,11 @@ case class BucketDetail(
   isEncrypted: Boolean = false
 ) extends TrustedAdvisorCheckDetails
 
+sealed trait BucketEncryptionResponse
+case object Encrypted extends BucketEncryptionResponse
+case object NotEncrypted extends BucketEncryptionResponse
+case object BucketNotFound extends BucketEncryptionResponse
+
 sealed trait SGInUse
 case class Ec2Instance(instanceId: String) extends SGInUse
 case class ELB(description: String) extends SGInUse
