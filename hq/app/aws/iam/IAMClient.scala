@@ -6,7 +6,7 @@ import aws.{AwsAsyncHandler, AwsClient, AwsClients}
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResult, ListUserTagsRequest, NoSuchEntityException, UpdateAccessKeyRequest}
+import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResult, ListUserTagsRequest, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResult}
 import logic.{CredentialsReportDisplay, Retry}
 import model.{AwsAccount, CredentialActive, CredentialDisabled, CredentialMetadata, CredentialReportDisplay, HumanUser, IAMCredential, IAMCredentialsReport, IAMUser, Tag}
 import org.joda.time.DateTime
@@ -133,15 +133,15 @@ object IAMClient extends Logging {
     handleAWSErrs(client)(awsToScala(client)(_.listAccessKeysAsync)(request))
   }
 
-  def disableAccessKey(awsAccount: AwsAccount, username: String, accessKeyId: String, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[Unit] = {
+  def disableAccessKey(awsAccount: AwsAccount, username: String, accessKeyId: String, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[UpdateAccessKeyResult] = {
     val request = new UpdateAccessKeyRequest()
       .withUserName(username)
       .withAccessKeyId(accessKeyId)
       .withStatus("Inactive")
     for {
       client <- iamClients.get(awsAccount, SOLE_REGION)
-      _ <- handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(request))
-    } yield ()
+      result <- handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(request))
+    } yield result
   }
 
   private def handleDeleteLoginProfileErrs(awsClient: AwsClient[AmazonIdentityManagementAsync], username: String)(f: => Future[DeleteLoginProfileResult])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] =

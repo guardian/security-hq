@@ -1,8 +1,8 @@
 package logic
 
-import aws.AwsAsyncHandler.awsToScala
+import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import aws.{AwsAsyncHandler, AwsClient, AwsClients}
-import aws.iam.IAMClient.{SOLE_REGION, deleteLoginProfile}
+import aws.iam.IAMClient.{SOLE_REGION, deleteLoginProfile, disableAccessKey}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResult}
 import com.gu.anghammarad.models.Notification
@@ -92,7 +92,7 @@ object IamUnrecognisedUsers extends Logging {
   )(implicit executionContext: ExecutionContext): Attempt[List[String]] = {
     val (account, users) = accountCrd
     for {
-      disableKeyResult <- disableAccessKeys(account, users, iamClients)
+      disableKeyResult <- disableAllAccessKeys(account, users, iamClients)
       removePasswordResults <- Attempt.traverse(users)(removePassword(account, _, iamClients))
     } yield {
       disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
@@ -109,7 +109,7 @@ object IamUnrecognisedUsers extends Logging {
     }
   }
 
-  def disableAccessKeys(
+  def disableAllAccessKeys(
     account: AwsAccount,
     vulnerableUsers: List[HumanUser],
     iamClients: AwsClients[AmazonIdentityManagementAsync]
@@ -117,11 +117,11 @@ object IamUnrecognisedUsers extends Logging {
     val result = for {
       accessKeys <- listAccountAccessKeys(account, vulnerableUsers, iamClients)
       activeAccessKeys = accessKeys.filter(_.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled)
-      updateAccessKeyRequests = activeAccessKeys.map(updateAccessKeyRequest)
-      client <- iamClients.get(account, SOLE_REGION)
-      updateAccessKeyResults <- Attempt.traverse(updateAccessKeyRequests)(req => AwsAsyncHandler.handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(req)))
+      updateAccessKeyResults <- Attempt.traverse(activeAccessKeys)(key =>
+        disableAccessKey(account, key.username, key.accessKeyWithId.id, iamClients)
+      )
     } yield updateAccessKeyResults
-    result.fold(
+    result.tap(_.fold(
       { failure =>
         logger.error(s"Failed to disable access key: ${failure.logMessage}")
         Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
@@ -132,15 +132,7 @@ object IamUnrecognisedUsers extends Logging {
           Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
         }
       }
-    )
-    result
-  }
-
-  private def updateAccessKeyRequest(key: VulnerableAccessKey): UpdateAccessKeyRequest = {
-    new UpdateAccessKeyRequest()
-      .withUserName(key.username)
-      .withAccessKeyId(key.accessKeyWithId.id)
-      .withStatus("Inactive")
+    ))
   }
 
   def removePassword(
