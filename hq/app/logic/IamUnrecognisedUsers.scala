@@ -86,29 +86,6 @@ object IamUnrecognisedUsers extends Logging {
     )
   }
 
-  def disableAccountUsers(
-    accountAndUsers: (AwsAccount, List[HumanUser]),
-    iamClients: AwsClients[AmazonIdentityManagementAsync]
-  )(implicit executionContext: ExecutionContext): Attempt[List[String]] = {
-    val (account, users) = accountAndUsers
-    for {
-      disableKeyResults <- disableAccountAccessKeys(account, users, iamClients)
-      removePasswordResults <- removeAccountPasswords(account, users, iamClients)
-    } yield {
-      disableKeyResults.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
-        case Some(result) => result.getSdkResponseMetadata.getRequestId
-      }
-    }
-  }
-
-  def unrecognisedUserNotifications(accountUsers: List[(AwsAccount, List[HumanUser])]): List[Notification] = {
-    accountUsers.flatMap { case (account, users) =>
-      users.map { user =>
-        unrecognisedUserRemediation(account, user)
-      }
-    }
-  }
-
   private def disableAccountAccessKeys(
     account: AwsAccount,
     vulnerableUsers: List[HumanUser],
@@ -148,6 +125,29 @@ object IamUnrecognisedUsers extends Logging {
       case Right(success) =>
         logger.info(s"passwords deleted for ${vulnerableUsers.map(_.username).mkString(",")}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
+    }
+  }
+
+  def disableAccountUsers(
+    accountAndUsers: (AwsAccount, List[HumanUser]),
+    iamClients: AwsClients[AmazonIdentityManagementAsync]
+  )(implicit executionContext: ExecutionContext): Attempt[List[String]] = {
+    val (account, users) = accountAndUsers
+    for {
+      disableKeyResults <- disableAccountAccessKeys(account, users, iamClients)
+      removePasswordResults <- removeAccountPasswords(account, users, iamClients)
+    } yield {
+      disableKeyResults.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
+        case Some(result) => result.getSdkResponseMetadata.getRequestId
+      }
+    }
+  }
+
+  def unrecognisedUserNotifications(accountUsers: List[(AwsAccount, List[HumanUser])]): List[Notification] = {
+    accountUsers.flatMap { case (account, users) =>
+      users.map { user =>
+        unrecognisedUserRemediation(account, user)
+      }
     }
   }
 }
