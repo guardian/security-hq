@@ -101,7 +101,7 @@ class IamRemediationService(
       janusUsernames = getJanusUsernames(janusData)
       accountCredsReports = getCredsReportDisplayForAccount(cacheService.getAllCredentials)
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
-      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableUser(_, iamClients))
+      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableAccountUsers(_, iamClients))
       notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers)
       notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, config.anghammaradSnsTopicArn, snsClient))
     } yield notificationIds

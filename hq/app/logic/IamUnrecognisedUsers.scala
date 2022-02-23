@@ -86,16 +86,16 @@ object IamUnrecognisedUsers extends Logging {
     )
   }
 
-  def disableUser(
-    accountCrd: (AwsAccount, List[HumanUser]),
+  def disableAccountUsers(
+    accountAndUsers: (AwsAccount, List[HumanUser]),
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit executionContext: ExecutionContext): Attempt[List[String]] = {
-    val (account, users) = accountCrd
+    val (account, users) = accountAndUsers
     for {
-      disableKeyResult <- disableAllAccessKeys(account, users, iamClients)
-      removePasswordResults <- Attempt.traverse(users)(removePassword(account, _, iamClients))
+      disableKeyResults <- disableAccountAccessKeys(account, users, iamClients)
+      removePasswordResults <- removeAccountPasswords(account, users, iamClients)
     } yield {
-      disableKeyResult.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
+      disableKeyResults.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
         case Some(result) => result.getSdkResponseMetadata.getRequestId
       }
     }
@@ -109,7 +109,7 @@ object IamUnrecognisedUsers extends Logging {
     }
   }
 
-  def disableAllAccessKeys(
+  private def disableAccountAccessKeys(
     account: AwsAccount,
     vulnerableUsers: List[HumanUser],
     iamClients: AwsClients[AmazonIdentityManagementAsync]
@@ -135,18 +135,19 @@ object IamUnrecognisedUsers extends Logging {
     ))
   }
 
-  def removePassword(
+  private def removeAccountPasswords(
     account: AwsAccount,
-    user: HumanUser,
+    vulnerableUsers: List[HumanUser],
     iamClients: AwsClients[AmazonIdentityManagementAsync]
-  )(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] = {
-    deleteLoginProfile(account, user.username, iamClients).tap {
+  )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResult]]] = {
+    val results = Attempt.traverse(vulnerableUsers)(user => deleteLoginProfile(account, user.username, iamClients))
+    results.tap {
       case Left(failure) =>
-        logger.error(s"failed to delete password for username: ${user.username}. ${failure.logMessage}")
+        logger.error(s"failed to delete at least one password: ${failure.logMessage}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure)
       case Right(success) =>
-        logger.info(s"password deleted for ${user.username}. DeleteLoginProfile Response: ${success.map(_.getSdkResponseMetadata.getRequestId)}.")
-        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success)
+        logger.info(s"passwords deleted for ${vulnerableUsers.map(_.username).mkString(",")}")
+        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
     }
   }
 }
