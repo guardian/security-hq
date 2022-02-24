@@ -121,7 +121,7 @@ object IamUnrecognisedUsers extends Logging {
     results.tap {
       case Left(failure) =>
         logger.error(s"failed to delete at least one password: ${failure.logMessage}")
-        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure)
+        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
       case Right(success) =>
         logger.info(s"passwords deleted for ${vulnerableUsers.map(_.username).mkString(",")}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)

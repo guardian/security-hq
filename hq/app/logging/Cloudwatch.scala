@@ -76,7 +76,7 @@ object Cloudwatch extends Logging {
     putMetric(defaultNamespace, "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
   }
 
-  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1): Unit = {
+  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
     putMetric(defaultNamespace, "IamRemovePassword", Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)), value)
   }
 
