@@ -3,7 +3,6 @@ import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd
 import play.sbt.PlayImport.PlayKeys._
 import sbt.Keys.libraryDependencies
-import sbt.util
 
 import scala.concurrent.duration.DurationInt
 
@@ -13,7 +12,6 @@ ThisBuild / version := "0.2.0"
 ThisBuild / scalaVersion := "2.12.15"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
-// resolvers += "guardian-bintray" at "https://dl.bintray.com/guardian/sbt-plugins/"
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.596"
