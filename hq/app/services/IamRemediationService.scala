@@ -107,7 +107,7 @@ class IamRemediationService(
     } yield notificationIds
     result.tap {
       case Left(failedAttempt) => logger.error(s"Failed to run unrecognised user job: ${failedAttempt.logMessage}")
-      case Right(notificationIds) => logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.flatten.length} notifications.")
+      case Right(notificationIds) => logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.length} notifications.")
     }.unit
   }
 
