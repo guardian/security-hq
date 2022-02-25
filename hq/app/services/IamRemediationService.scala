@@ -101,13 +101,13 @@ class IamRemediationService(
       janusUsernames = getJanusUsernames(janusData)
       accountCredsReports = getCredsReportDisplayForAccount(cacheService.getAllCredentials)
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
-      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableUser(_, iamClients))
+      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableAccountUsers(_, iamClients))
       notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers)
       notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, config.anghammaradSnsTopicArn, snsClient))
     } yield notificationIds
     result.tap {
       case Left(failedAttempt) => logger.error(s"Failed to run unrecognised user job: ${failedAttempt.logMessage}")
-      case Right(notificationIds) => logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.flatten.length} notifications.")
+      case Right(notificationIds) => logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.length} notifications.")
     }.unit
   }
 
