@@ -73,6 +73,11 @@ sealed trait CredentialStatus
 case object CredentialActive extends CredentialStatus
 case object CredentialDisabled extends CredentialStatus
 
+case class AccountUnrecognisedUsers(
+  account: AwsAccount,
+  unrecognisedUsers: List[HumanUser]
+)
+
 case class UnrecognisedJobConfigProperties(
   allowedAccounts: List[String],
   janusDataFileKey: String,

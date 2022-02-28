@@ -49,10 +49,13 @@ object IamUnrecognisedUsers extends Logging {
     accountCredsReports: List[(AwsAccount, CredentialReportDisplay)],
     janusUsernames: List[String],
     allowedAccountIds: List[String]
-  ): List[(AwsAccount, List[HumanUser])] = {
-    val unrecognisedUsers = accountCredsReports.map { case (acc, crd) => (acc, filterUnrecognisedIamUsers(crd.humanUsers, janusUsernames)) }
-    val unrecognisedUsersInAllowedAccounts = filterAllowedAccounts(unrecognisedUsers, allowedAccountIds)
-    unrecognisedUsersInAllowedAccounts.filter { case (_, users) => users.nonEmpty } // remove accounts with an empty list of users
+  ): List[AccountUnrecognisedUsers] = {
+    for {
+      (acc, crd) <- accountCredsReports
+      accountUsers = AccountUnrecognisedUsers(acc, filterUnrecognisedIamUsers(crd.humanUsers, janusUsernames))
+      accountId = accountUsers.account.id
+      if accountUsers.unrecognisedUsers.nonEmpty && allowedAccountIds.contains(accountId)
+    } yield accountUsers
   }
 
   private def filterUnrecognisedIamUsers(iamHumanUsersWithTargetTag: Seq[HumanUser], janusUsernames: List[String]): List[HumanUser] =
@@ -63,13 +66,6 @@ object IamUnrecognisedUsers extends Logging {
         case None => true
       }
     }.toList
-
-  private def filterAllowedAccounts(
-    unrecognisedUsers: List[(AwsAccount, List[HumanUser])],
-    allowedAccountIds: List[String]
-  ): List[(AwsAccount, List[HumanUser])] = {
-    unrecognisedUsers.filter { case (account, _) => allowedAccountIds.contains(account.id) }
-  }
 
   def makeFile(s3Object: String): File = {
     Files.write(
@@ -86,7 +82,7 @@ object IamUnrecognisedUsers extends Logging {
     )
   }
 
-  private def disableAccountAccessKeys(
+  def disableAccountAccessKeys(
     account: AwsAccount,
     vulnerableUsers: List[HumanUser],
     iamClients: AwsClients[AmazonIdentityManagementAsync]
@@ -112,7 +108,7 @@ object IamUnrecognisedUsers extends Logging {
     ))
   }
 
-  private def removeAccountPasswords(
+  def removeAccountPasswords(
     account: AwsAccount,
     vulnerableUsers: List[HumanUser],
     iamClients: AwsClients[AmazonIdentityManagementAsync]
@@ -129,10 +125,10 @@ object IamUnrecognisedUsers extends Logging {
   }
 
   def disableAccountUsers(
-    accountAndUsers: (AwsAccount, List[HumanUser]),
+    accountAndUsers: AccountUnrecognisedUsers,
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit executionContext: ExecutionContext): Attempt[List[String]] = {
-    val (account, users) = accountAndUsers
+    val AccountUnrecognisedUsers(account, users) = accountAndUsers
     for {
       disableKeyResults <- disableAccountAccessKeys(account, users, iamClients)
       removePasswordResults <- removeAccountPasswords(account, users, iamClients)
@@ -143,8 +139,8 @@ object IamUnrecognisedUsers extends Logging {
     }
   }
 
-  def unrecognisedUserNotifications(accountUsers: List[(AwsAccount, List[HumanUser])]): List[Notification] = {
-    accountUsers.flatMap { case (account, users) =>
+  def unrecognisedUserNotifications(accountUsers: List[AccountUnrecognisedUsers]): List[Notification] = {
+    accountUsers.flatMap { case AccountUnrecognisedUsers(account, users) =>
       users.map { user =>
         unrecognisedUserRemediation(account, user)
       }
