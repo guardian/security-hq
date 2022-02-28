@@ -5,7 +5,7 @@ import aws.iam.IAMClient.SOLE_REGION
 import aws.{AwsClient, AwsClients}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{AccessKeyMetadata, ListAccessKeysRequest, ListAccessKeysResult}
-import model.{AccessKeyWithId, AwsAccount, HumanUser, VulnerableAccessKey}
+import model.{AccessKeyWithId, AccountUnrecognisedAccessKeys, AccountUnrecognisedUsers, AwsAccount, HumanUser, VulnerableAccessKey}
 import utils.attempt.Attempt
 
 import scala.collection.JavaConverters._
@@ -15,15 +15,18 @@ import scala.concurrent.ExecutionContext
 object IamListAccessKeys {
 
   // get information on all access keys for a given AWS account
-  def listAccountAccessKeys(account: AwsAccount, users: Seq[HumanUser], iamClients: AwsClients[AmazonIdentityManagementAsync])
-    (implicit ec: ExecutionContext): Attempt[List[VulnerableAccessKey]] = {
-    val accessKeyData = users.map { user =>
+  def listAccountAccessKeys(accountUsers: AccountUnrecognisedUsers, iamClients: AwsClients[AmazonIdentityManagementAsync])
+    (implicit ec: ExecutionContext): Attempt[AccountUnrecognisedAccessKeys] = {
+    val accessKeyData = accountUsers.unrecognisedUsers.map { user =>
       for {
-        client <- iamClients.get(account, SOLE_REGION)
+        client <- iamClients.get(accountUsers.account, SOLE_REGION)
         keys <- listAccessKeys(client, user)
       } yield keys.getAccessKeyMetadata.asScala.toList
-    }.toList
-    Attempt.flatSequence(accessKeyData).map(addAccessKeyIds(users, _))
+    }
+    //TODO: we can probably improve this further, but just to get it compiling for now
+    Attempt.flatSequence(accessKeyData).map { keyData =>
+      AccountUnrecognisedAccessKeys(accountUsers.account, addAccessKeyIds(accountUsers.unrecognisedUsers, keyData))
+    }
   }
 
   private def addAccessKeyIds(users: Seq[HumanUser], accessKeyData: List[AccessKeyMetadata]): List[VulnerableAccessKey] = {

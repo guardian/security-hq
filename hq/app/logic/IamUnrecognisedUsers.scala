@@ -83,18 +83,16 @@ object IamUnrecognisedUsers extends Logging {
   }
 
   def disableAccountAccessKeys(
-    accountUnrecognisedUsers: AccountUnrecognisedUsers,
+    accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResult]] = {
-    val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
-    val result = for {
-      accessKeys <- listAccountAccessKeys(account, users, iamClients)
-      activeAccessKeys = accessKeys.filter(_.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled)
-      updateAccessKeyResults <- Attempt.traverse(activeAccessKeys)(key =>
-        disableAccessKey(account, key.username, key.accessKeyWithId.id, iamClients)
-      )
-    } yield updateAccessKeyResults
-    result.tap(_.fold(
+    val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
+    val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
+    val disableKeysAttempt = Attempt.traverse(activeAccessKeys)(key =>
+      disableAccessKey(account, key.username, key.accessKeyId, iamClients)
+    )
+
+    disableKeysAttempt.tap(_.fold(
       { failure =>
         logger.error(s"Failed to disable access key: ${failure.logMessage}")
         Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)

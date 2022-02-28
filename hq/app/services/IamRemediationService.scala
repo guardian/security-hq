@@ -9,6 +9,7 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.janus.JanusConfig
 import config.Config._
 import db.IamRemediationDb
+import logic.IamListAccessKeys.listAccountAccessKeys
 import logic.IamOutdatedCredentials._
 import logic.IamUnrecognisedUsers.{getCredsReportDisplayForAccount, _}
 import model._
@@ -16,7 +17,7 @@ import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Logging, Mode}
-import rx.lang.scala.{Observable}
+import rx.lang.scala.Observable
 import utils.attempt.Attempt
 
 import scala.concurrent.duration.DurationInt
@@ -101,7 +102,8 @@ class IamRemediationService(
       janusUsernames = getJanusUsernames(janusData)
       accountCredsReports = getCredsReportDisplayForAccount(cacheService.getAllCredentials)
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, config.allowedAccounts)
-      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(disableAccountAccessKeys(_, iamClients))
+      unrecognisedUserAccessKeys <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(listAccountAccessKeys(_, iamClients))
+      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(disableAccountAccessKeys(_, iamClients))
       _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(removeAccountPasswords(_, iamClients))
       notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers)
       notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, config.anghammaradSnsTopicArn, snsClient))
