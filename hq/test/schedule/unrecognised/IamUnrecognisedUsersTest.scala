@@ -103,11 +103,11 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
     }
     "does not include an account that is not allowed in config" in {
       val result = unrecognisedUsersForAllowedAccounts(accountsCredsReport, allJanusUsernames, List(awsAccount1.id, awsAccount3.id))
-      result.map { case (account, _) => account.id} should not contain awsAccount2.id
+      result.map { case AccountUnrecognisedUsers(account, _) => account.id} should not contain awsAccount2.id
     }
     "does not include multiple accounts that are not allowed in config" in {
       val result = unrecognisedUsersForAllowedAccounts(accountsCredsReport, allJanusUsernames, List(awsAccount1.id))
-      result.map { case (account, _) => account.id} should ((not contain awsAccount2.id) and (not contain awsAccount3.id))
+      result.map { case AccountUnrecognisedUsers(account, _) => account.id} should ((not contain awsAccount2.id) and (not contain awsAccount3.id))
     }
     // Ensure that no accounts are returned with an empty list of vulnerable users. This is important for the rest of the logic in the job.
     "does not return an account with an empty list of vulnerable users" in {
@@ -116,29 +116,29 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
     }
     "return list includes an allowed account" in {
       val result = unrecognisedUsersForAllowedAccounts(List((awsAccount5, credentialReportDisplay5)), allJanusUsernames, List(awsAccount5.id))
-      result.map { case (account, _) => account.id} should contain(awsAccount5.id)
+      result.map { case AccountUnrecognisedUsers(account, _) => account.id} should contain(awsAccount5.id)
     }
     // Permanent IAM credentials that have tags, which are not in the list of janus usernames should be returned
     // from unrecognisedUsersForAllowedAccounts as candidates for disablement.
     // The list of janus usernames is Nil, so all permanent IAM credentials should be returned from the function.
     "return list includes users for multiple allowed accounts" in {
       val result = unrecognisedUsersForAllowedAccounts(accountsCredsReport, Nil, List(awsAccount2.id, awsAccount3.id))
-      val returnedUsernames = result.flatMap{ case (_, users) => users.map(_.username)}
+      val returnedUsernames = result.flatMap { case AccountUnrecognisedUsers(_, users) => users.map(_.username) }
       returnedUsernames should (contain (humanUser6.username) and contain (humanUser4.username))
     }
     "returns all data if all accounts allowed" in {
       val result = unrecognisedUsersForAllowedAccounts(accountsCredsReport, Nil, List(awsAccount1.id, awsAccount2.id, awsAccount3.id))
-      val returnedUsernames = result.flatMap{ case (_, users) => users.map(_.username)}
+      val returnedUsernames = result.flatMap { case AccountUnrecognisedUsers(_, users) => users.map(_.username) }
       returnedUsernames should have length allJanusUsernames.length
     }
     "return list contains an IAM user that is not in the list of janus users" in {
       val result = unrecognisedUsersForAllowedAccounts(accountsCredsReport, List(humanUser2.username, humanUser3.username), List(awsAccount1.id))
-      val returnedUsernames = result.flatMap{ case (_, users) => users.map(_.username)}
+      val returnedUsernames = result.flatMap { case AccountUnrecognisedUsers(_, users) => users.map(_.username) }
       returnedUsernames should contain (humanUser1.username)
     }
     "return empty list if all users are janus users" in {
       val result = unrecognisedUsersForAllowedAccounts(accountsCredsReport, allJanusUsernames, List(awsAccount1.id, awsAccount2.id, awsAccount3.id))
-      val returnedUsernames = result.flatMap{ case (_, users) => users.map(_.username)}
+      val returnedUsernames = result.flatMap { case AccountUnrecognisedUsers(_, users) => users.map(_.username) }
       returnedUsernames shouldEqual Nil
     }
   }
