@@ -78,6 +78,11 @@ case class AccountUnrecognisedUsers(
   unrecognisedUsers: List[HumanUser]
 )
 
+case class AccountUnrecognisedAccessKeys(
+  account: AwsAccount,
+  vulnerableAccessKeys: List[VulnerableAccessKey]
+)
+
 case class UnrecognisedJobConfigProperties(
   allowedAccounts: List[String],
   janusDataFileKey: String,
