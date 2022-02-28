@@ -83,12 +83,12 @@ object IamUnrecognisedUsers extends Logging {
   }
 
   def disableAccountAccessKeys(
-    account: AwsAccount,
-    vulnerableUsers: List[HumanUser],
+    accountUnrecognisedUsers: AccountUnrecognisedUsers,
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResult]] = {
+    val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
     val result = for {
-      accessKeys <- listAccountAccessKeys(account, vulnerableUsers, iamClients)
+      accessKeys <- listAccountAccessKeys(account, users, iamClients)
       activeAccessKeys = accessKeys.filter(_.accessKeyWithId.accessKey.keyStatus == AccessKeyEnabled)
       updateAccessKeyResults <- Attempt.traverse(activeAccessKeys)(key =>
         disableAccessKey(account, key.username, key.accessKeyWithId.id, iamClients)
@@ -109,33 +109,17 @@ object IamUnrecognisedUsers extends Logging {
   }
 
   def removeAccountPasswords(
-    account: AwsAccount,
-    vulnerableUsers: List[HumanUser],
+    accountUnrecognisedUsers: AccountUnrecognisedUsers,
     iamClients: AwsClients[AmazonIdentityManagementAsync]
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResult]]] = {
-    val results = Attempt.traverse(vulnerableUsers)(user => deleteLoginProfile(account, user.username, iamClients))
+    val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user => deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients))
     results.tap {
       case Left(failure) =>
         logger.error(s"failed to delete at least one password: ${failure.logMessage}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
       case Right(success) =>
-        logger.info(s"passwords deleted for ${vulnerableUsers.map(_.username).mkString(",")}")
+        logger.info(s"passwords deleted for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
-    }
-  }
-
-  def disableAccountUsers(
-    accountAndUsers: AccountUnrecognisedUsers,
-    iamClients: AwsClients[AmazonIdentityManagementAsync]
-  )(implicit executionContext: ExecutionContext): Attempt[List[String]] = {
-    val AccountUnrecognisedUsers(account, users) = accountAndUsers
-    for {
-      disableKeyResults <- disableAccountAccessKeys(account, users, iamClients)
-      removePasswordResults <- removeAccountPasswords(account, users, iamClients)
-    } yield {
-      disableKeyResults.map(_.getSdkResponseMetadata.getRequestId) ++ removePasswordResults.collect {
-        case Some(result) => result.getSdkResponseMetadata.getRequestId
-      }
     }
   }
 
