@@ -1,15 +1,13 @@
 package logic
 
-import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import aws.{AwsAsyncHandler, AwsClient, AwsClients}
-import aws.iam.IAMClient.{SOLE_REGION, deleteLoginProfile, disableAccessKey}
+import aws.AwsClients
+import aws.iam.IAMClient.{deleteLoginProfile, disableAccessKey, listUserAccessKeys}
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResult}
+import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileResult, UpdateAccessKeyResult}
 import com.gu.anghammarad.models.Notification
 import com.gu.janus.model.JanusData
 import logging.Cloudwatch
 import logging.Cloudwatch.ReaperExecutionStatus
-import logic.IamListAccessKeys.listAccountAccessKeys
 import model._
 import notifications.AnghammaradNotifications.unrecognisedUserRemediation
 import play.api.Logging
@@ -18,7 +16,7 @@ import utils.attempt.{Attempt, FailedAttempt}
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 object IamUnrecognisedUsers extends Logging {
   val USERNAME_TAG_KEY = "GoogleUsername"
@@ -80,6 +78,16 @@ object IamUnrecognisedUsers extends Logging {
         t.value != "" &&
         t.value.contains(".")
     )
+  }
+
+  def listAccountAccessKeys(
+    accountUnrecognisedUsers: AccountUnrecognisedUsers,
+    iamClients: AwsClients[AmazonIdentityManagementAsync]
+  )(implicit ec: ExecutionContext): Attempt[AccountUnrecognisedAccessKeys] = {
+    val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
+    Attempt.flatTraverse(users)(listUserAccessKeys(account, _, iamClients)).map {
+      AccountUnrecognisedAccessKeys(account, _)
+    }
   }
 
   def disableAccountAccessKeys(

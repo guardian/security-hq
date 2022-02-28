@@ -80,7 +80,7 @@ case class AccountUnrecognisedUsers(
 
 case class AccountUnrecognisedAccessKeys(
   account: AwsAccount,
-  vulnerableAccessKeys: List[VulnerableAccessKey]
+  vulnerableAccessKey: List[CredentialMetadata]
 )
 
 case class UnrecognisedJobConfigProperties(
