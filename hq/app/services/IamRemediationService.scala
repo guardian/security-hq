@@ -9,7 +9,6 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.janus.JanusConfig
 import config.Config._
 import db.IamRemediationDb
-import logic.IamListAccessKeys.listAccountAccessKeys
 import logic.IamOutdatedCredentials._
 import logic.IamUnrecognisedUsers.{getCredsReportDisplayForAccount, _}
 import model._
