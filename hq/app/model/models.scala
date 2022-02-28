@@ -163,34 +163,6 @@ case class AccessKey(
   lastRotated: Option[DateTime]
 )
 
-case class AccessKeyWithId(
-  accessKey: AccessKey,
-  id: String
-)
-
-object AccessKeyWithId {
-  def fromAwsAccessKeyMetadata(awsAccessKeyMetadata: AccessKeyMetadata): AccessKeyWithId =
-    AccessKeyWithId(
-      AccessKey(
-        keyStatusFromString(awsAccessKeyMetadata.getStatus),
-        Option(new DateTime(awsAccessKeyMetadata.getCreateDate))
-      ),
-      awsAccessKeyMetadata.getAccessKeyId
-    )
-
-  private def keyStatusFromString(awsKeyStatus: String): KeyStatus =  awsKeyStatus match {
-    case "Active" => AccessKeyEnabled
-    case "Inactive" => AccessKeyDisabled
-    case _ => NoKey
-  }
-}
-
-case class VulnerableAccessKey(
-  username: String,
-  accessKeyWithId: AccessKeyWithId,
-  humanUser: Boolean
-)
-
 sealed trait ReportStatus {
   def reasons(): Seq[ReportStatusReason] = Seq.empty
 }
