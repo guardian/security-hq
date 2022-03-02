@@ -2,11 +2,12 @@ package aws.ec2
 
 import com.amazonaws.services.elasticfilesystem.model.DescribeMountTargetSecurityGroupsResult
 import model.{EfsVolume, SGInUse, UnknownUsage}
-import org.scalatest.{FreeSpec, Matchers}
-import org.scalatest.prop.{Checkers, PropertyChecks}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
 import utils.attempt.AttemptValues
 
-class EFSTest extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
+class EFSTest extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPropertyChecks with AttemptValues {
   "getsEfsSecurityGroups" - {
     "getEfsSecurityGroupResult" in {
       val describeSecGrpResultOne = new DescribeMountTargetSecurityGroupsResult().withSecurityGroups("sg-12345")

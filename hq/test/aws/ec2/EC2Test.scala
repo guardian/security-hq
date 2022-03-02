@@ -9,8 +9,9 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalatest.exceptions.TestFailedException
-import org.scalatest.prop.{Checkers, PropertyChecks}
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.freespec.AnyFreeSpec
 import utils.attempt.{Attempt, AttemptValues}
 
 import scala.collection.JavaConverters._
@@ -18,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
 
-class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
+class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPropertyChecks with AttemptValues {
   "parseNetworkInterface" - {
     "parses an ELB" in {
       EC2.parseNetworkInterface(elb("test-elb")) shouldEqual ELB("test-elb")
