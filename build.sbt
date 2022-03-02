@@ -54,9 +54,9 @@ lazy val hq = (project in file("hq"))
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
-      "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" % "anghammarad-client_2.12" % "1.1.2",
 
       // logstash-logback-encoder brings in version 2.11.0
@@ -152,7 +152,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
-      "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
       "ch.qos.logback" %  "logback-classic" % "1.2.3",
