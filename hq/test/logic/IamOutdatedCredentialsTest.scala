@@ -6,12 +6,14 @@ import logic.IamOutdatedCredentials._
 import model._
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.OptionValues
 import utils.attempt.{AttemptValues, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class IamOutdatedCredentialsTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
+class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
   val humanAccessKeyOldAndEnabled1 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
   val humanAccessKeyOldAndEnabled2 = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))

@@ -3,10 +3,11 @@ package logic
 import logic.VulnerableAccessKeys._
 import model.{AccessKey, AccessKeyDisabled, AccessKeyEnabled}
 import org.joda.time.DateTime
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class VulnerableAccessKeysTest extends FreeSpec with Matchers {
+class VulnerableAccessKeysTest extends AnyFreeSpec with Matchers {
   def accessKey(daysOld: Int, active: Boolean) = {
     AccessKey(
       if (active) AccessKeyEnabled else AccessKeyDisabled,

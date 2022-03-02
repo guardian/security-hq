@@ -1,12 +1,13 @@
 package logic
 
-import org.scalatest.{Matchers, WordSpec}
 import utils.attempt.{Attempt, AttemptValues}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class RetryTest extends WordSpec with Matchers with AttemptValues {
+class RetryTest extends AnyWordSpec with Matchers with AttemptValues {
   "looped attempt" should {
     val failMessage = "Retry failed"
     val InProgress = "INPROGRESS"

@@ -1,6 +1,6 @@
 package db
 
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.OptionValues
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
 import model.{FinalWarning, IamRemediationActivity, OutdatedCredential}
@@ -9,8 +9,10 @@ import utils.attempt.AttemptValues
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class IamRemediationDbTest extends FreeSpec with Matchers with AttemptValues with OptionValues {
+class IamRemediationDbTest extends AnyFreeSpec with Matchers with AttemptValues with OptionValues {
 
   val tableName = "testTable"
   val accountId = "testAccountId"

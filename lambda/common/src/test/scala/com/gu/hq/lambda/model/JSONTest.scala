@@ -1,13 +1,15 @@
 package com.gu.hq.lambda.model
 
 import com.gu.hq.lambda.model.JSON._
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.OptionValues
 import play.api.libs.json.Json
 
 import scala.io.Source
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class JSONTest extends FreeSpec with Matchers with OptionValues {
+class JSONTest extends AnyFreeSpec with Matchers with OptionValues {
   "parse config event" - {
     "can parse an event triggered by a change" - {
       val irrelevantEventJson = loadJsonResource("config_event_with_irrelevant_update")

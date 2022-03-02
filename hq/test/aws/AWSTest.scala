@@ -2,12 +2,12 @@ package aws
 
 import com.amazonaws.regions.Regions
 import com.typesafe.config.ConfigFactory
-import org.scalatest.prop.{Checkers, PropertyChecks}
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
 import play.api.Configuration
 import utils.attempt.AttemptValues
+import org.scalatest.matchers.should.Matchers
 
-class AWSTest extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
+class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
 
   "real clients" - {
 

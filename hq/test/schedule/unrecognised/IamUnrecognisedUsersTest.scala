@@ -4,14 +4,15 @@ import com.gu.janus
 import com.gu.janus.model.{ACL, JanusData, SupportACL}
 import model._
 import org.joda.time.{DateTime, Seconds}
-import org.scalatest.{FreeSpec, Matchers}
 import logic.IamUnrecognisedUsers._
 import logic.IamUnrecognisedUsers.{USERNAME_TAG_KEY, getCredsReportDisplayForAccount, getJanusUsernames, isTaggedForUnrecognisedUser, unrecognisedUsersForAllowedAccounts}
 import utils.attempt.{FailedAttempt, Failure}
 
 import scala.io.Source
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class IamUnrecognisedUsersTest extends FreeSpec with Matchers {
+class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
   val humanUser1 = HumanUser("ade.bimbola", true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, List(Tag(USERNAME_TAG_KEY, "ade.bimbola")))
   val humanUser2 = humanUser1.copy(username = "john.akindele", tags = List(Tag(USERNAME_TAG_KEY, "john.akindele")))
   val humanUser3 = humanUser1.copy(username = "khadija.omodara", tags = List(Tag(USERNAME_TAG_KEY, "khadija.omodara")))

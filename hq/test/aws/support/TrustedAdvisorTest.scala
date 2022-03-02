@@ -1,10 +1,12 @@
 package aws.support
 
 import com.amazonaws.services.support.model.{DescribeTrustedAdvisorChecksResult, TrustedAdvisorCheckDescription}
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.OptionValues
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class TrustedAdvisorTest extends FreeSpec with Matchers with OptionValues {
+class TrustedAdvisorTest extends AnyFreeSpec with Matchers with OptionValues {
   "parseTrustedAdvisorChecksResult" - {
     val result = new DescribeTrustedAdvisorChecksResult().withChecks(
       new TrustedAdvisorCheckDescription()

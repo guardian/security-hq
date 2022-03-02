@@ -1,11 +1,12 @@
 package logic
 
 import model._
-import org.scalatest.{FreeSpec, Matchers}
 import SecurityGroupDisplay._
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class SecurityGroupDisplayTest extends FreeSpec with Matchers {
+class SecurityGroupDisplayTest extends AnyFreeSpec with Matchers {
   "resourceIcons" - {
     "returns zeros when there are no resources in use" in {
       val usages = List[SGInUse]()
