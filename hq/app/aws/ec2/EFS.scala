@@ -53,7 +53,8 @@ object EFS {
   }
 
   // these functions remove the UnknownUsage EFS values, because we already have the correct EfsVolume value
-  def filterOutEfsUnknownUsages(secGrpToResources: Map[String, Set[SGInUse]]): Map[String, Set[SGInUse]] = secGrpToResources.mapValues(filterOutEfsUnknownUsagesFromSet)
+  def filterOutEfsUnknownUsages(secGrpToResources: Map[String, Set[SGInUse]]): Map[String, Set[SGInUse]] =
+    secGrpToResources.view.mapValues(filterOutEfsUnknownUsagesFromSet).toMap
   def filterOutEfsUnknownUsagesFromSet(resources: Set[SGInUse]): Set[SGInUse] = resources.filterNot(efsUnknownUsages)
   def efsUnknownUsages(resource: SGInUse): Boolean = resource match {
     case resource:UnknownUsage => resource.description.contains("EFS mount target")

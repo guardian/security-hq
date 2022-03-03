@@ -27,10 +27,10 @@ class MetricService(
   }
 
   def discardSuppressedSgs(sgsMap: Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]): Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = {
-    sgsMap.mapValues{
+    sgsMap.view.mapValues{
       case Right(secGroups) => Right(secGroups.filter(!_._1.isSuppressed))
       case left => left
-    }
+    }.toMap
   }
 
   /*
