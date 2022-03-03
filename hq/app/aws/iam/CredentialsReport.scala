@@ -41,7 +41,7 @@ object CredentialsReport {
       parseCredentialsReport(content)
     } match {
       case Success(x)  if x.nonEmpty => Attempt.Right(x)
-      case Success(x)  if x.isEmpty  =>
+      case Success(_) =>
         Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR", "Credentials report is empty", 500))
       case Failure(th) =>
         Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR: ${th.getMessage}", "Cannot parse AWS credentials audit report", 500))
