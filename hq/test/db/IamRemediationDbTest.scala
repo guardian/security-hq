@@ -44,14 +44,14 @@ class IamRemediationDbTest extends AnyFreeSpec with Matchers with AttemptValues 
   "lookupScanRequest" - {
     "creates scan request for correct table name" in {
       lookupScanRequest(testUser, accountId, tableName) should have(
-        'tableName (tableName),
+        Symbol("tableName") (tableName),
       )
     }
 
     "creates scan request that filters on record id, which uses aws account id and username" in {
       lookupScanRequest(testUser, accountId, tableName) should have(
-        'filterExpression ("id = :key"),
-        'expressionAttributeValues (Map(":key" -> new AttributeValue().withS(s"$accountId/$testUser")).asJava)
+        Symbol("filterExpression") ("id = :key"),
+        Symbol("expressionAttributeValues") (Map(":key" -> new AttributeValue().withS(s"$accountId/$testUser")).asJava)
       )
     }
   }
@@ -59,8 +59,8 @@ class IamRemediationDbTest extends AnyFreeSpec with Matchers with AttemptValues 
   "writePutRequest" - {
     "creates put request for correct table name with correct attribute name and values" in {
       writePutRequest(iamRemediationActivity, tableName) should have(
-        'tableName (tableName),
-        'item (iamRemediationActivityDbRecord.asJava)
+        Symbol("tableName") (tableName),
+        Symbol("item") (iamRemediationActivityDbRecord.asJava)
       )
     }
 

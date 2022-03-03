@@ -23,16 +23,16 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
         .withStatus("ok")
         .withResourceId("abcdefz")
       TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail).value() should have(
-        'region ("eu-west-1"),
-        'name ("launch-wizard-1"),
-        'id ("sg-12345a"),
-        'vpcId ("vpc-789abc"),
-        'protocol ("tcp"),
-        'port ("22"),
-        'alertLevel ("Yellow"),
-        'isSuppressed (false),
-        'stackId (None),
-        'stackName (None),
+        Symbol("region") ("eu-west-1"),
+        Symbol("name") ("launch-wizard-1"),
+        Symbol("id") ("sg-12345a"),
+        Symbol("vpcId") ("vpc-789abc"),
+        Symbol("protocol") ("tcp"),
+        Symbol("port") ("22"),
+        Symbol("alertLevel") ("Yellow"),
+        Symbol("isSuppressed") (false),
+        Symbol("stackId") (None),
+        Symbol("stackName") (None),
       )
     }
 

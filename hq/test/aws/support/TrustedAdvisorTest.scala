@@ -23,10 +23,10 @@ class TrustedAdvisorTest extends AnyFreeSpec with Matchers with OptionValues {
     "should correctly extract the fields" in {
       val record = TrustedAdvisor.parseTrustedAdvisorChecksResult(result).headOption.value
       record should have (
-        'id ("id"),
-        'name ("name"),
-        'description ("description"),
-        'category ("category")
+        Symbol("id") ("id"),
+        Symbol("name") ("name"),
+        Symbol("description") ("description"),
+        Symbol("category") ("category")
       )
     }
   }

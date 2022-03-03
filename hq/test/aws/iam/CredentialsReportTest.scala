@@ -72,67 +72,67 @@ class CredentialsReportTest extends AnyFreeSpec with Matchers with OptionValues 
       "parses root user" in {
         val rootUser = CredentialsReport.parseCredentialsReport(testReport).find(_.rootUser).value
         rootUser should have (
-          'user ("<root_account>"),
-          'arn ("arn:aws:iam::0123456789:root"),
-          'creationTime (new DateTime(2015, 6, 24, 12, 45, 0, DateTimeZone.UTC)),
-          'passwordEnabled (None),
-          'passwordLastUsed (Some(new DateTime(2016, 10, 7, 14, 30, 0, DateTimeZone.UTC))),
-          'passwordLastChanged (None),
-          'passwordNextRotation (None),
-          'mfaActive (true),
-          'accessKey1Active (false),
-          'accessKey1LastRotated (None),
-          'accessKey1LastUsedDate (None),
-          'accessKey1LastUsedRegion (None),
-          'accessKey1LastUsedService (None),
-          'accessKey2Active (false),
-          'accessKey2LastRotated (None),
-          'accessKey2LastUsedDate (None),
-          'accessKey2LastUsedRegion (None),
-          'accessKey2LastUsedService (None),
-          'cert1Active (false),
-          'cert1LastRotated (None),
-          'cert2Active (false),
-          'cert2LastRotated (None)
+          Symbol("user") ("<root_account>"),
+          Symbol("arn") ("arn:aws:iam::0123456789:root"),
+          Symbol("creationTime") (new DateTime(2015, 6, 24, 12, 45, 0, DateTimeZone.UTC)),
+          Symbol("passwordEnabled") (None),
+          Symbol("passwordLastUsed") (Some(new DateTime(2016, 10, 7, 14, 30, 0, DateTimeZone.UTC))),
+          Symbol("passwordLastChanged") (None),
+          Symbol("passwordNextRotation") (None),
+          Symbol("mfaActive") (true),
+          Symbol("accessKey1Active") (false),
+          Symbol("accessKey1LastRotated") (None),
+          Symbol("accessKey1LastUsedDate") (None),
+          Symbol("accessKey1LastUsedRegion") (None),
+          Symbol("accessKey1LastUsedService") (None),
+          Symbol("accessKey2Active") (false),
+          Symbol("accessKey2LastRotated") (None),
+          Symbol("accessKey2LastUsedDate") (None),
+          Symbol("accessKey2LastUsedRegion") (None),
+          Symbol("accessKey2LastUsedService") (None),
+          Symbol("cert1Active") (false),
+          Symbol("cert1LastRotated") (None),
+          Symbol("cert2Active") (false),
+          Symbol("cert2LastRotated") (None)
         )
       }
 
       "parses normal user" in {
         val user = CredentialsReport.parseCredentialsReport(testReport).find(_.user == "IAM-user").value
         user should have (
-          'user ("IAM-user"),
-          'arn ("arn:aws:iam::0123456789:user/IAM-user"),
-          'creationTime (new DateTime(2015, 6, 24, 15, 45, 0, DateTimeZone.UTC)),
-          'passwordEnabled (Some(true)),
-          'passwordLastUsed (Some(new DateTime(2017, 3, 8, 19, 35, 1, DateTimeZone.UTC))),
-          'passwordLastChanged (Some(new DateTime(2016, 4, 29, 16, 20, 0, DateTimeZone.UTC))),
-          'passwordNextRotation (None),
-          'mfaActive (true),
-          'accessKey1Active (false),
-          'accessKey1LastRotated (None),
-          'accessKey1LastUsedDate (None),
-          'accessKey1LastUsedRegion (None),
-          'accessKey1LastUsedService (None),
-          'accessKey2Active (false),
-          'accessKey2LastRotated (None),
-          'accessKey2LastUsedDate (None),
-          'accessKey2LastUsedRegion (None),
-          'accessKey2LastUsedService (None),
-          'cert1Active (false),
-          'cert1LastRotated (None),
-          'cert2Active (false),
-          'cert2LastRotated (None)
+          Symbol("user") ("IAM-user"),
+          Symbol("arn") ("arn:aws:iam::0123456789:user/IAM-user"),
+          Symbol("creationTime") (new DateTime(2015, 6, 24, 15, 45, 0, DateTimeZone.UTC)),
+          Symbol("passwordEnabled") (Some(true)),
+          Symbol("passwordLastUsed") (Some(new DateTime(2017, 3, 8, 19, 35, 1, DateTimeZone.UTC))),
+          Symbol("passwordLastChanged") (Some(new DateTime(2016, 4, 29, 16, 20, 0, DateTimeZone.UTC))),
+          Symbol("passwordNextRotation") (None),
+          Symbol("mfaActive") (true),
+          Symbol("accessKey1Active") (false),
+          Symbol("accessKey1LastRotated") (None),
+          Symbol("accessKey1LastUsedDate") (None),
+          Symbol("accessKey1LastUsedRegion") (None),
+          Symbol("accessKey1LastUsedService") (None),
+          Symbol("accessKey2Active") (false),
+          Symbol("accessKey2LastRotated") (None),
+          Symbol("accessKey2LastUsedDate") (None),
+          Symbol("accessKey2LastUsedRegion") (None),
+          Symbol("accessKey2LastUsedService") (None),
+          Symbol("cert1Active") (false),
+          Symbol("cert1LastRotated") (None),
+          Symbol("cert2Active") (false),
+          Symbol("cert2LastRotated") (None)
         )
       }
 
       "parses user credentials" in {
         val userWithCreds = CredentialsReport.parseCredentialsReport(testReport).find(_.user == "credential-user").value
         userWithCreds should have (
-          'accessKey1Active (true),
-          'accessKey1LastRotated (Some(new DateTime(2015, 10, 22, 14, 45, 0, DateTimeZone.UTC))),
-          'accessKey1LastUsedDate (Some(new DateTime(2017, 8, 30, 13, 32, 0, DateTimeZone.UTC))),
-          'accessKey1LastUsedRegion (Some(Region.getRegion(Regions.EU_WEST_1))),
-          'accessKey1LastUsedService (Some("ec2"))
+          Symbol("accessKey1Active") (true),
+          Symbol("accessKey1LastRotated") (Some(new DateTime(2015, 10, 22, 14, 45, 0, DateTimeZone.UTC))),
+          Symbol("accessKey1LastUsedDate") (Some(new DateTime(2017, 8, 30, 13, 32, 0, DateTimeZone.UTC))),
+          Symbol("accessKey1LastUsedRegion") (Some(Region.getRegion(Regions.EU_WEST_1))),
+          Symbol("accessKey1LastUsedService") (Some("ec2"))
         )
       }
 
@@ -150,7 +150,7 @@ class CredentialsReportTest extends AnyFreeSpec with Matchers with OptionValues 
       "handles - 'no_information' data for password_last_used field" in {
         val userWithCreds = CredentialsReport.parseCredentialsReport(testReportNoPasswordLastUsed).find(_.user == "credential-user").value
         userWithCreds should have (
-          'passwordLastUsed (None)
+          Symbol("passwordLastUsed") (None)
         )
       }
     }

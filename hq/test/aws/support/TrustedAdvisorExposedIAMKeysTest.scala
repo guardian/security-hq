@@ -21,14 +21,14 @@ class TrustedAdvisorExposedIAMKeysTest extends AnyFreeSpec with Matchers with At
 
     "works on example data" in {
       TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(detail).value() should have(
-        'keyId ("key-id"),
-        'username ("username"),
-        'fraudType ("fraud-type"),
-        'caseId ("case-id"),
-        'updated ("last-updated"),
-        'location ("location"),
-        'deadline ("deadline"),
-        'usage ("usage")
+        Symbol("keyId") ("key-id"),
+        Symbol("username") ("username"),
+        Symbol("fraudType") ("fraud-type"),
+        Symbol("caseId") ("case-id"),
+        Symbol("updated") ("last-updated"),
+        Symbol("location") ("location"),
+        Symbol("deadline") ("deadline"),
+        Symbol("usage") ("usage")
       )
     }
 
