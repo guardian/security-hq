@@ -65,7 +65,7 @@ lazy val hq = (project in file("hq"))
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "6.4" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
-      "com.gu" %% "janus-config-tools" % "0.0.4"
+      "com.gu" %% "janus-config-tools" % "0.0.4" // this needs to be updated at the same time as updating to scala 2.13 as it's not cross-published
     ),
     Assets / pipelineStages := Seq(digest),
     // exclude docs
