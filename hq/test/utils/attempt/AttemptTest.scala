@@ -26,7 +26,7 @@ class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
     }
 
     "returns the successful result if there were no failures" in {
-      Attempt.traverse(List(1, 2, 3, 4))(Right).awaitEither.right.value shouldEqual List(1, 2, 3, 4)
+      Attempt.traverse(List(1, 2, 3, 4))(Right).awaitEither.value shouldEqual List(1, 2, 3, 4)
     }
   }
 
@@ -44,7 +44,7 @@ class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
     }
 
     "returns the successful result if there were no failures" in {
-      Attempt.flatTraverse(List(1, 2, 3, 4))(a => Right(List(a))).awaitEither.right.value shouldEqual List(1, 2, 3, 4)
+      Attempt.flatTraverse(List(1, 2, 3, 4))(a => Right(List(a))).awaitEither.value shouldEqual List(1, 2, 3, 4)
     }
   }
 
@@ -62,7 +62,7 @@ class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
     }
 
     "returns the successful result if there were no failures" in {
-      val result = Attempt.labelledTraverse(List(1, 2, 3, 4))(a => Right(List(a))).awaitEither.right.value
+      val result = Attempt.labelledTraverse(List(1, 2, 3, 4))(a => Right(List(a))).awaitEither.value
       result shouldEqual List((1, List(1)), (2, List(2)), (3, List(3)), (4, List(4)))
     }
   }
@@ -71,13 +71,13 @@ class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
     "returns the list if all were successful" in {
       val attempts = List(Right(1), Right(2))
 
-      Attempt.successfulAttempts(attempts).awaitEither.right.value shouldEqual List(1, 2)
+      Attempt.successfulAttempts(attempts).awaitEither.value shouldEqual List(1, 2)
     }
 
     "returns only the successful attempts if there were failures" in {
       val attempts: List[Attempt[Int]] = List(Right(1), Right(2), expectedFailure("failed"), Right(4))
 
-      Attempt.successfulAttempts(attempts).awaitEither.right.value shouldEqual List(1, 2, 4)
+      Attempt.successfulAttempts(attempts).awaitEither.value shouldEqual List(1, 2, 4)
     }
   }
 

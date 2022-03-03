@@ -179,10 +179,10 @@ class PublicBucketsDisplayTest extends AnyFreeSpec with Matchers {
 
   "accountBucketData" - {
     "adds bucket details summary information" in {
-      val (greenSummary, _) = accountBucketData(accountAllGreen)._2.right.get
-      val (amberSummary, _) = accountBucketData(accountWithWarnings)._2.right.get
-      val (redSummary, _) = accountBucketData(accountWithErrors)._2.right.get
-      val (blueSummary, _) = accountBucketData(accountWithOtherIssues)._2.right.get
+      val (greenSummary, _) = accountBucketData(accountAllGreen)._2.toOption.get
+      val (amberSummary, _) = accountBucketData(accountWithWarnings)._2.toOption.get
+      val (redSummary, _) = accountBucketData(accountWithErrors)._2.toOption.get
+      val (blueSummary, _) = accountBucketData(accountWithOtherIssues)._2.toOption.get
 
       greenSummary shouldEqual BucketReportSummary(2, 0, 0, 0, 0)
       amberSummary shouldEqual BucketReportSummary(3, 2, 0, 0, 0)

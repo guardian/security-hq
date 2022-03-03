@@ -60,7 +60,7 @@ class AppComponents(context: Context)
         regionList <- EC2.getAvailableRegions(ec2Client)
         regionStringSet = regionList.map(_.getRegionName).toSet
       } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
-      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.getOrElse(List(Config.region, Regions.US_EAST_1))
+      Await.result(availableRegionsAttempt.asFuture, 30 seconds).getOrElse(List(Config.region, Regions.US_EAST_1))
     } finally {
       ec2Client.client.shutdown()
     }
