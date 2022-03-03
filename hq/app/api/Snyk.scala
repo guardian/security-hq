@@ -15,14 +15,14 @@ object Snyk {
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
-    val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get
+    val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get()
     handleFuture(futureResponse, "organisation")
   }
 
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
     Attempt.labelledTraverse(organisations) { organisation =>
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
-      val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get
+      val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get()
         .map(response => response.body)
       handleFuture(futureResponse, "project")
     }

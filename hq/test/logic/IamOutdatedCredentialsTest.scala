@@ -308,7 +308,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
 
     "given a key creation date matches a date in the metadata, return the correct metadata" in {
       val result = lookupCredentialId(date, List(matchingAccessKey, nonMatchingAccessKey))
-      result.value.username shouldEqual matchingAccessKey.username
+      result.value().username shouldEqual matchingAccessKey.username
     }
     "given there are no matching key creation dates, return a failure" in {
       val result = lookupCredentialId(date, List(nonMatchingAccessKey))
@@ -332,7 +332,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       val keyCreationDate = new DateTime(1,1,1,1,1,1,1)
       val metaDataCreationDate = new DateTime(1,1,1,1,1,1,2)
       val result = lookupCredentialId(keyCreationDate, List(matchingAccessKey.copy(creationDate = metaDataCreationDate)))
-      result.value.username shouldEqual matchingAccessKey.username
+      result.value().username shouldEqual matchingAccessKey.username
     }
   }
 

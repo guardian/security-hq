@@ -45,5 +45,5 @@ class JSONTest extends AnyFreeSpec with Matchers with OptionValues {
     }
   }
 
-  private def loadJsonResource(filename: String) = Source.fromResource(s"$filename.json").getLines.mkString
+  private def loadJsonResource(filename: String) = Source.fromResource(s"$filename.json").getLines().mkString
 }

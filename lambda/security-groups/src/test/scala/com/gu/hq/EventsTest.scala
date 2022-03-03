@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 class EventsTest extends AnyFreeSpec with Matchers {
 
   "parse config event" - {
-    def loadJsonResource(filename: String) = Source.fromResource(s"$filename.json").getLines.mkString
+    def loadJsonResource(filename: String) = Source.fromResource(s"$filename.json").getLines().mkString
     "can parse an event triggered by a change" - {
       "irrelevant event is irrelevant" in {
         val irrelevantEventJson = loadJsonResource("config_event_with_irrelevant_update")
