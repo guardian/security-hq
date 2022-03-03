@@ -260,14 +260,14 @@ class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPro
           AwsAccount("security-test", "security", "security-test", "123456789"),
           sgsList,
           clients
-        )( _ => vpcsResult).value shouldBe vpcsMap
+        )( _ => vpcsResult).value() shouldBe vpcsMap
       }
 
       "returns empty vpc details" in {
         EC2.getVpcs(
           AwsAccount("security-test", "security", "security-test", "123456789"),
           sgsList,
-          clients)( _ => Attempt.Right(Map.empty)).value shouldBe Map.empty
+          clients)( _ => Attempt.Right(Map.empty)).value() shouldBe Map.empty
       }
     }
 

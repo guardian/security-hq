@@ -21,7 +21,7 @@ class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
     Ok(views.html.index(accounts))
   }
 
-  def healthcheck() = Action {
+  def healthcheck = Action {
     Ok("ok")
   }
 

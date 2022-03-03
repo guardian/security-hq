@@ -8,7 +8,7 @@ GET        /healthcheck                               controllers.HQController.h
 
 GET        /iam                                       controllers.CredentialsController.iam
 GET        /iam/:accountId                            controllers.CredentialsController.iamAccount(accountId)
-GET        /iam/refresh/all                           controllers.CredentialsController.refresh
+GET        /iam/refresh/all                           controllers.CredentialsController.refresh()
 
 GET        /buckets                                   controllers.BucketsController.buckets
 GET        /buckets/:accountId                        controllers.BucketsController.bucketsAccount(accountId)

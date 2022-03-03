@@ -74,31 +74,31 @@ class IamRemediationDbTest extends AnyFreeSpec with Matchers with AttemptValues 
     "Returns a right with an IamRemediationActivity object correctly instantiated from a database record" in {
       deserialiseIamRemediationActivity(
         iamRemediationActivityDbRecord
-      ).value shouldEqual iamRemediationActivity
+      ).value() shouldEqual iamRemediationActivity
     }
 
     "Returns a left when database record is incomplete" in {
       deserialiseIamRemediationActivity(
         iamRemediationActivityDbRecord - ("awsAccountId")
-      ).isFailedAttempt shouldBe true
+      ).isFailedAttempt() shouldBe true
     }
 
     "Returns a left when database record is complete but one of the attributes is null" in {
       deserialiseIamRemediationActivity(
         iamRemediationActivityDbRecord + ("username" -> S(null))
-      ).isFailedAttempt shouldBe true
+      ).isFailedAttempt() shouldBe true
     }
 
     "Returns a left when database record is complete but iamProblem is an invalid string" in {
       deserialiseIamRemediationActivity(
         iamRemediationActivityDbRecord + ("iamProblem" -> S("FailFast"))
-      ).isFailedAttempt shouldBe true
+      ).isFailedAttempt() shouldBe true
     }
 
     "Returns a left when database record is complete but one attribute is of the wrong type" in {
       deserialiseIamRemediationActivity(
         iamRemediationActivityDbRecord + ("username" -> N(0))
-      ).isFailedAttempt shouldBe true
+      ).isFailedAttempt() shouldBe true
     }
   }
 }
