@@ -230,10 +230,10 @@ object Attempt {
       val prom = Promise[A]()
       schedule(
         new TimerTask {
-          def run() {
+          def run(): Unit = {
             ctx.execute(
               new Runnable {
-                def run() {
+                def run(): Unit = {
                   prom.complete(Try(body))
                 }
               }
