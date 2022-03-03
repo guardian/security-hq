@@ -7,7 +7,7 @@ import com.amazonaws.services.elasticfilesystem.model._
 import model.{SGInUse, UnknownUsage}
 import utils.attempt.Attempt
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 /**

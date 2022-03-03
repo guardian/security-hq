@@ -11,7 +11,7 @@ import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model._
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Success, Try}

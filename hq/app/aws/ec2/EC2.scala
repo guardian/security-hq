@@ -16,7 +16,7 @@ import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model.{AwsAccount, ELB, Ec2Instance, SGInUse, SGOpenPortsDetail, TrustedAdvisorDetailsResult, UnknownUsage}
 import utils.attempt.{Attempt, FailedAttempt}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 

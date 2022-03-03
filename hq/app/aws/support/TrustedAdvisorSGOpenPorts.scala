@@ -8,7 +8,7 @@ import logic.Retry
 import model.{SGOpenPortsDetail, TrustedAdvisorDetailsResult}
 import utils.attempt.{Attempt, Failure}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

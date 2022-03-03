@@ -15,7 +15,7 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.FileInputStream
 import java.time.Duration.{ofHours, ofMinutes}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 

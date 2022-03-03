@@ -3,7 +3,7 @@ package aws.support
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import utils.attempt.AttemptValues
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers

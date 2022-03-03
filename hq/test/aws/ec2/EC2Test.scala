@@ -14,7 +14,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.freespec.AnyFreeSpec
 import utils.attempt.{Attempt, AttemptValues}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
