@@ -3,13 +3,12 @@ package logging
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
 import com.google.cloud.securitycenter.v1.Finding
-import logic.CredentialsReportDisplay
 import logic.CredentialsReportDisplay.{ReportSummary, reportStatusSummary}
 import model.{AwsAccount, CredentialReportDisplay, GcpFinding, GcpReport}
 import play.api.Logging
 import utils.attempt.FailedAttempt
 
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 

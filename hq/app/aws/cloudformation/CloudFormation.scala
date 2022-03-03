@@ -8,7 +8,7 @@ import com.amazonaws.services.cloudformation.model._
 import model.{AwsAccount, AwsStack}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 object CloudFormation {

@@ -7,7 +7,7 @@ import model._
 import org.joda.time.DateTime
 import utils.attempt.{Attempt, Failure}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 

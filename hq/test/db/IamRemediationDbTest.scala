@@ -8,7 +8,7 @@ import org.joda.time.DateTime
 import utils.attempt.AttemptValues
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 

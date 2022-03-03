@@ -9,7 +9,7 @@ import logic.DateUtils.fromISOString
 import model._
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 
