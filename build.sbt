@@ -37,7 +37,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.33",
       "joda-time" % "joda-time" % "2.10.5",
       "org.typelevel" %% "cats-core" % "2.0.0",
-      "com.github.tototoshi" %% "scala-csv" % "1.3.5",
+      "com.github.tototoshi" %% "scala-csv" % "1.3.10",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
@@ -50,7 +50,7 @@ lazy val hq = (project in file("hq"))
       "com.vladsch.flexmark" % "flexmark" % "0.62.2",
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-ssm" % awsSdkVersion,
-      "io.reactivex" %% "rxscala" % "0.26.5",
+      "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "1.3.6",
@@ -58,14 +58,14 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
-      "com.gu" % "anghammarad-client_2.12" % "1.1.2",
+      "com.gu" %% "anghammarad-client" % "1.2.0",
 
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "6.4" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
-      "com.gu" %% "janus-config-tools" % "0.0.4"
+      "com.gu" %% "janus-config-tools" % "0.0.4" // this needs to be updated at the same time as updating to scala 2.13 as it's not cross-published
     ),
     Assets / pipelineStages := Seq(digest),
     // exclude docs
@@ -168,7 +168,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
     name := """securitygroups-lambda""",
     assembly / assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
-      "com.gu" % "anghammarad-client_2.12" % "1.1.0"
+      "com.gu" %% "anghammarad-client" % "1.2.0"
     )
 )
 
