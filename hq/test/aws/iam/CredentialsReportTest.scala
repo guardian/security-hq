@@ -4,12 +4,14 @@ import aws.iam.CredentialsReport.credentialsReportReadyForRefresh
 import com.amazonaws.regions.{Region, Regions}
 import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.OptionValues
 import utils.attempt.{AttemptValues, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class CredentialsReportTest extends FreeSpec with Matchers with OptionValues with AttemptValues {
+class CredentialsReportTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
 
   "credentialsReportNeedsRefreshing" - {
     "when the report is at least 4 hours old" - {

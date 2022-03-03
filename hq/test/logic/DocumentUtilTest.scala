@@ -1,9 +1,10 @@
 package logic
 
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class DocumentUtilTest extends FreeSpec with Matchers {
+class DocumentUtilTest extends AnyFreeSpec with Matchers {
   "replaceSnykSSOUrl" - {
     "replaces placeholder with provided string" in {
       val template =

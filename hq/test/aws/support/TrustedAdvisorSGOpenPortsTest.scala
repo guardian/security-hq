@@ -3,15 +3,16 @@ package aws.support
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model._
 import org.scalacheck.Gen
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues with PropertyChecks  {
+class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with AttemptValues with ScalaCheckPropertyChecks  {
   "parsing details" - {
     "works on example data" in {
       val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")

@@ -1,13 +1,15 @@
 package utils.attempt
 
-import org.scalatest.{EitherValues, FreeSpec, Matchers}
+import org.scalatest.EitherValues
 import Attempt.{Left, Right}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class AttemptTest extends FreeSpec with Matchers with EitherValues {
+class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "traverse" - {

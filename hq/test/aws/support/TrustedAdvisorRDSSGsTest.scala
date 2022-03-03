@@ -1,14 +1,15 @@
 package aws.support
 
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
-import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class TrustedAdvisorRDSSGsTest extends FreeSpec with Matchers with AttemptValues {
+class TrustedAdvisorRDSSGsTest extends AnyFreeSpec with Matchers with AttemptValues {
   "parseRDSSGDetail" - {
     val metadata = List("eu-west-1", "rds-sg-123456", "sg-12345a", "Yellow")
     val detail = new TrustedAdvisorResourceDetail()

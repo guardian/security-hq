@@ -1,12 +1,13 @@
 package logic
 
 import model.{SnykIssue, SnykOrganisation, _}
-import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class SnykDisplayTest extends FreeSpec with Matchers with AttemptValues {
+class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
 
   private def readFile(filename:String) = Source.fromResource(s"logic/SnykDisplayTestResources/$filename.json").getLines.mkString
 

@@ -3,12 +3,13 @@ package com.gu.hq
 import com.gu.hq.Events.{NotRelevant, Relevant}
 import com.gu.hq.lambda.model.InvokingEvent
 import com.gu.hq.lambda.model.JSON._
-import org.scalatest.{FreeSpec, Matchers}
 import play.api.libs.json.Json
 
 import scala.io.Source
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class EventsTest extends FreeSpec with Matchers {
+class EventsTest extends AnyFreeSpec with Matchers {
 
   "parse config event" - {
     def loadJsonResource(filename: String) = Source.fromResource(s"$filename.json").getLines.mkString

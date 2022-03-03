@@ -1,9 +1,10 @@
 package model
 
 import com.gu.anghammarad.models.{App, Stack, Stage => AnghammaradStage}
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class TagTest extends FreeSpec with Matchers {
+class TagTest extends AnyFreeSpec with Matchers {
   val tagsListWithStack = List(Tag("stAck", "pawnee"), Tag("department", "parks and recreation"))
   val tagsListWithStackStageApp = List(Tag("stack", "pawnee"), Tag("stage", "enquiry"), Tag("app", "the-pit"))
 

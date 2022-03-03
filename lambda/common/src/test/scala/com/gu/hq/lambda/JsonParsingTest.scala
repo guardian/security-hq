@@ -4,11 +4,13 @@ import com.gu.hq.lambda.fixtures.Common
 import com.gu.hq.lambda.fixtures.Events._
 import com.gu.hq.lambda.fixtures.SecurityGroups._
 import org.joda.time.{DateTime, DateTimeZone}
-import org.scalatest.{EitherValues, FreeSpec, Matchers, OptionValues}
+import org.scalatest.{EitherValues, OptionValues}
 import play.api.libs.json.JsNull
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class JsonParsingTest extends FreeSpec with Matchers with OptionValues with EitherValues {
+class JsonParsingTest extends AnyFreeSpec with Matchers with OptionValues with EitherValues {
 
   "eventDetails" - {
     "parses the JSON out of an example configEvent" in {

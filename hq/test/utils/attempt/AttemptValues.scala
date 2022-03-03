@@ -2,11 +2,11 @@ package utils.attempt
 
 import java.io.{ByteArrayOutputStream, PrintWriter}
 
-import org.scalatest.Matchers
 import org.scalatest.exceptions.TestFailedException
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
 
 
 trait AttemptValues extends Matchers {

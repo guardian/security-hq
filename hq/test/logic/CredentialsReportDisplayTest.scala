@@ -2,13 +2,14 @@ package logic
 
 import model._
 import org.joda.time.DateTime
-import org.scalatest.{FreeSpec, Matchers}
 import CredentialsReportDisplay._
 import IamUnrecognisedUsers.USERNAME_TAG_KEY
 import utils.attempt.{FailedAttempt, Failure}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class CredentialsReportDisplayTest extends FreeSpec with Matchers {
+class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
 
   "display logic" - {
     val now = DateTime.now()

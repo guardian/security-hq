@@ -2,9 +2,10 @@ package com.gu.hq
 
 import com.amazonaws.services.elasticloadbalancing.model.{DescribeLoadBalancersResult, LoadBalancerDescription}
 import com.gu.hq.lambda.model.{IpPermission, SGConfiguration, UserIdGroupPair}
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class SecurityGroupsTest extends FreeSpec with Matchers {
+class SecurityGroupsTest extends AnyFreeSpec with Matchers {
   "openToWorld" - {
     "returns true for a SecurityGroup that is open" in {
       val openPermissions = List(

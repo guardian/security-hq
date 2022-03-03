@@ -2,10 +2,11 @@ package logic
 
 import logic.PublicBucketsDisplay._
 import model._
-import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.Failure
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class PublicBucketsDisplayTest extends FreeSpec with Matchers {
+class PublicBucketsDisplayTest extends AnyFreeSpec with Matchers {
 
   def createExampleBuckets(id: Int): List[BucketDetail] = {
     List(
