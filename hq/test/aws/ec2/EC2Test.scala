@@ -88,8 +88,8 @@ class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPro
       "adds the Cloudformation stack name and ID to a security group" in {
         val List(sg1, _) = EC2.enrichSecurityGroups(sgs, Map("sg-1" -> List(cfStackIdTag, cfStackNameTag)))
         sg1 should have(
-          'stackId (Some("cf-stack-1")),
-          'stackName (Some("cf-name-1"))
+          Symbol("stackId") (Some("cf-stack-1")),
+          Symbol("stackName") (Some("cf-name-1"))
         )
       }
 
@@ -98,8 +98,8 @@ class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPro
         val enrichedSgs = EC2.enrichSecurityGroups(sgs, tagDetails)
         enrichedSgs.foreach { sg =>
           sg should have(
-            'stackId (Some("cf-stack-1")),
-            'stackName (Some("cf-name-1"))
+            Symbol("stackId") (Some("cf-stack-1")),
+            Symbol("stackName") (Some("cf-name-1"))
           )
         }
       }

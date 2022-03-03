@@ -21,11 +21,11 @@ class TrustedAdvisorRDSSGsTest extends AnyFreeSpec with Matchers with AttemptVal
 
     "works on example data" in {
       TrustedAdvisorRDSSGs.parseRDSSGDetail(detail).value() should have(
-        'region ("eu-west-1"),
-        'rdsSgId ("rds-sg-123456"),
-        'ec2SGId ("sg-12345a"),
-        'alertLevel ("Yellow"),
-        'isSuppressed (false)
+        Symbol("region") ("eu-west-1"),
+        Symbol("rdsSgId") ("rds-sg-123456"),
+        Symbol("ec2SGId") ("sg-12345a"),
+        Symbol("alertLevel") ("Yellow"),
+        Symbol("isSuppressed") (false)
       )
     }
 
