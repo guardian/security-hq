@@ -58,7 +58,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
-      "com.gu" % "anghammarad-client_2.12" % "1.1.2",
+      "com.gu" %% "anghammarad-client" % "1.2.0",
 
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
@@ -168,7 +168,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
     name := """securitygroups-lambda""",
     assembly / assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
-      "com.gu" % "anghammarad-client_2.12" % "1.1.0"
+      "com.gu" %% "anghammarad-client" % "1.2.0"
     )
 )
 
