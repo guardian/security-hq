@@ -29,7 +29,27 @@ object Snyk {
   }
 
   def getProjectVulnerabilities(projects: List[SnykProject], token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[WSResponse]] = {
-    ???
+
+    val projectVulnerabilityResponses = projects
+      .map(project => {
+        val snykProjectUrl = s"https://snyk.io/api/v1/org/${project.organisation.get.id}/project/${project.id}/issues"
+        val projectIssuesFilter = Json.obj(
+          "filters" -> Json.obj(
+            "severity" -> JsArray(List(
+              JsString("high"), JsString("medium"), JsString("low")
+            )),
+            "types" -> JsArray(List(
+              JsString("vuln")
+            )),
+            "ignored" -> "false",
+            "patched" -> "false"
+          )
+        )
+        snykRequest(token, snykProjectUrl, wsClient).post(projectIssuesFilter)
+      })
+    Attempt.traverse(projectVulnerabilityResponses) {
+      projectVulnerabilityResponse => handleFuture(projectVulnerabilityResponse, "project vulnerabilities")
+    }
   }
 
   def handleFuture[A](future: Future[A], label: String)(implicit ec: ExecutionContext): Attempt[A] = Attempt.fromFuture(future) {
