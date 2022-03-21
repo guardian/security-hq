@@ -1,18 +1,18 @@
-# This action runs every day at 6 AM and on every push
-# If the branch it's running on is main then it will run snyk monitor (reports vulnerabilities to snyk.io)
-# Otherwise it will run snyk test
+# This action tests a PR for critical vulnerabilities
+# The paths restriction is optional, but it's recommendeded to reduce the risk of this workflow producing unhelpful results
 name: Snyk
 
 on:
   pull_request:
-    branches:    
-      - main
+    paths:
+      - 'build.sbt'
+      - 'package.json'
+      - 'cdk/package.json'
 
 jobs:
   security:
     uses: guardian/.github/.github/workflows/sbt-node-snyk-pr.yml@ja-snyk-pr
     with:
-      DEBUG: false
       ORG: guardian-security
     secrets:
        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
