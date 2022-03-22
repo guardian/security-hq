@@ -1,13 +1,13 @@
 @import logic.SnykDisplay._
 @import model._
 
-@(results: List[SnykProjectIssues])(implicit assets: AssetsFinder)
+@(results: List[SnykOrganisationIssues])(implicit assets: AssetsFinder)
 
 @main(List("Snyk")) { @* Header *@
     <div class="hq-sub-header">
         <div class="container hq-sub-header__row">
             <div class="hq-sub-header__name">
-                <h4 class="header light grey-text text-lighten-5">Snyk Results</h4>
+                <h4 class="header light grey-text text-lighten-5">Snyk Code Scanning</h4>
             </div>
         </div>
     </div>
@@ -15,54 +15,43 @@
 } { @* Main content *@
 
     <div class="container">
-
-        <table class="striped responsive-table filterable-table">
-            <thead>
-                <tr>
-                    <th>Project Name</th>
-                    <th>High</th>
-                    <th>Medium</th>
-                    <th>Low</th>
-                </tr>
-            </thead>
-
-            <tbody>
-            @for(projectIssues <- results) {
-                @projectIssues.project match {
-                    case Some(snykProject) => {
-                        <tr>
-                            <td>
-                                <a target="_blank" rel="noopener noreferrer" href="@linkToSnykProject(projectIssues, None)">
-                                    @snykProject.name
-                                    <i class="material-icons link_new_tab">open_in_new</i>
-                                </a>
-                            </td>
-                            <td>
-                                <a target="_blank" href="@{linkToSnykProject(projectIssues, Some("?disclosure=all&severity=high"))}">
-                                    @projectIssues.high
-                                </a>
-                            </td>
-                            <td>
-                                <a target="_blank" href="@{linkToSnykProject(projectIssues, Some("?disclosure=all&severity=medium"))}">
-                                    @projectIssues.medium
-                                </a>
-                            </td>
-                            <td>
-                                <a target="_blank" href="@{linkToSnykProject(projectIssues, Some("?disclosure=all&severity=low"))}">
-                                    @projectIssues.low
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                    case None => { }
-                }
-
-
+        <div class="row">
+            <div class="card-panel">
+                <span>
+                    Report refreshed every hour. Results are based on the 1000 highest severity issues in each Snyk organisation.
+                </span>
+            </div>
+        </div>
+        <div class="row">
+            <ul class="collapsible" data-collapsible="accordion">
+            @for(orgIssues <- results) {
+                <li>
+                    <div class="collapsible-header" tabindex="22">
+                        <i class="material-icons">keyboard_arrow_down</i>
+                        <span class="iam-header__name">@orgIssues.organisation.name</span>
+                        @if(orgIssues.critical > 0) {
+                            <span class="icon-count">@orgIssues.critical</span>
+                            <i class="material-icons red-text">error</i>
+                        }
+                        @if(orgIssues.high > 0) {
+                            <span class="icon-count">@orgIssues.high</span>
+                            <i class="material-icons red-text">error_outline</i>
+                        }
+                        @if(orgIssues.medium > 0) {
+                            <span class="icon-count">@orgIssues.medium</span>
+                            <i class="material-icons amber-text">warning</i>
+                        }
+                        @if(orgIssues.low > 0) {
+                            <span class="icon-count">@orgIssues.low</span>
+                            <i class="material-icons grey-text">info</i>
+                        }
+                    </div>
+                    <div class="collapsible-body">
+                        @views.html.snyk.snykOrgProjects(orgIssues)
+                    </div>
+                </li>
             }
-
-        </table>
-
+            </ul>
+        </div>
     </div>
-    </div>
-
 }

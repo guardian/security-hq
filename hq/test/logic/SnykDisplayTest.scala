@@ -379,4 +379,60 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
     }
   }
 
+  "Determining long-lived issues" - {
+    "find only old-enough high severity issues" in {
+      val vulns = SnykDisplay.longLivedHighVulnerabilities(
+        SnykOrganisationIssues(dummyOrg,
+          List(
+            SnykProjectIssues(None,
+              List(
+                SnykProjectIssue(None,
+                  DateTime.now().minusDays(365),
+                  SnykIssue("an old vulnerability", "1", "high")
+                ),
+                SnykProjectIssue(None,
+                  DateTime.now().minusDays(1),
+                  SnykIssue("a new vulnerability", "2", "high")
+                ),
+                SnykProjectIssue(None,
+                  DateTime.now().minusDays(365),
+                  SnykIssue("an old low-severity vulnerability", "3", "low")
+                ),
+              )
+            )
+          )
+        )
+      )
+      vulns should have length 1
+      vulns.head.issue should have(Symbol("id")("1"))
+    }
+
+    "find only old-enough critical severity issues" in {
+      val vulns = SnykDisplay.longLivedCriticalVulnerabilities(
+        SnykOrganisationIssues(dummyOrg,
+          List(
+            SnykProjectIssues(None,
+              List(
+                SnykProjectIssue(None,
+                  DateTime.now().minusDays(365),
+                  SnykIssue("an old vulnerability", "1", "critical")
+                ),
+                SnykProjectIssue(None,
+                  DateTime.now().minusDays(1),
+                  SnykIssue("a new vulnerability", "2", "critical")
+                ),
+                SnykProjectIssue(None,
+                  DateTime.now().minusDays(365),
+                  SnykIssue("an old low-severity vulnerability", "3", "high")
+                ),
+              )
+            )
+          )
+        )
+      )
+      vulns should have length 1
+      vulns.head.issue should have(Symbol("id")("1"))
+    }
+  }
+
 }

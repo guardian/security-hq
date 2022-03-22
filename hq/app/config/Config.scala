@@ -28,6 +28,9 @@ object Config {
   val daysBetweenFinalNotificationAndRemediation = 7
   val app = "security-hq"
 
+  val snykMaxAcceptableAgeOfCriticalVulnerabilities = 7
+  val snykMaxAcceptableAgeOfHighVulnerabilities = 14
+
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
   val documentationLinks = List (

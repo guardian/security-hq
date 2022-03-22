@@ -419,8 +419,13 @@ table.iam-report__table th {
 
 /* Snyk */
 
-.filter-table {
-  display: flex;
+.snyk-summary__count {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.snyk-summary__count-label {
+  font-size: 1.2rem;
 }
 
 /* footer */

@@ -79,5 +79,23 @@ object SnykDisplay extends Logging {
     orgs.sortBy(soi => (-soi.critical, -soi.high, -soi.medium, -soi.low, soi.organisation.name))
 
   def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
-    projects.sortBy(spi => (-spi.high, -spi.medium, -spi.low, spi.project.get.name))
+    projects.sortBy(spi => (-spi.critical, -spi.high, -spi.medium, -spi.low, spi.project.fold("")(_.name)))
+
+  def longLivedHighVulnerabilities(organisationIssues: SnykOrganisationIssues): List[SnykProjectIssue] = {
+    for {
+      project <- organisationIssues.projectIssues
+      vuln <- project.vulnerabilities
+      if vuln.issue.severity.equalsIgnoreCase("high")
+      if DateUtils.dayDiff(vuln.introducedDate) > Config.snykMaxAcceptableAgeOfHighVulnerabilities
+    } yield vuln
+  }
+
+  def longLivedCriticalVulnerabilities(organisationIssues: SnykOrganisationIssues): List[SnykProjectIssue] = {
+    for {
+      project <- organisationIssues.projectIssues
+      vuln <- project.vulnerabilities
+      if vuln.issue.severity.equalsIgnoreCase("critical")
+      if DateUtils.dayDiff(vuln.introducedDate) > Config.snykMaxAcceptableAgeOfCriticalVulnerabilities
+    } yield vuln
+  }
 }
