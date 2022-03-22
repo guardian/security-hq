@@ -1,15 +1,17 @@
 package logic
 
+import config.Config
 import play.api.libs.json._
 import utils.attempt.{Attempt, Failure}
 
 import scala.concurrent.ExecutionContext
 import model._
 import model.Serializers._
+import play.api.Logging
 
 import scala.util.{Success, Try}
 
-object SnykDisplay {
+object SnykDisplay extends Logging {
 
   def parseOrganisations(rawJson: String, snykGroupId: SnykGroupId)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisation]] = {
     for {
@@ -31,9 +33,11 @@ object SnykDisplay {
     case Success(JsError(e)) =>
       val error = parseJsonToError(rawJson)
       val failure = Failure(s"Unable to find $label from $rawJson: $e", s"Could not read Snyk response (${error.error})", 502, None, None)
+      logger.warn(s"failed to parse json response from snyk ${e}")
       Attempt.Left(failure)
     case scala.util.Failure(e) =>
       val failure = Failure(s"Unable to find $label from $rawJson", s"Could not read Snyk response ($rawJson)", 502, None, Some(e))
+      logger.warn(s"failed to fetch from snyk: $rawJson")
       Attempt.Left(failure)
   }
 
@@ -48,27 +52,31 @@ object SnykDisplay {
   def parseJsonToProjectIdList(s: String): Attempt[List[SnykProject]] =
     parseJsonToObject("project ids", s, body => (Json.parse(body) \ "projects").validate[List[SnykProject]])
 
-  def parseProjectVulnerabilitiesBody(s: String): Attempt[SnykProjectIssues] =
-    parseJsonToObject("project vulnerabilities", s, body => Json.parse(body).validate[SnykProjectIssues])
+  def parseOrganisationVulnerabilities(organisationAndResponseList: List[(SnykOrganisation, String)])(implicit ec: ExecutionContext): Attempt[List[SnykOrganisationIssues]] =
+    Attempt.traverse(organisationAndResponseList) { case (organisation, body) =>
+      parseOrganisationVulnerabilitiesBody(body).map(projectIssues => SnykOrganisationIssues(organisation, projectIssues))
+    }
 
-  def parseProjectVulnerabilities(bodies: List[String])(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] =
-    Attempt.traverse(bodies)(parseProjectVulnerabilitiesBody)
+  def parseOrganisationVulnerabilitiesBody(s: String): Attempt[List[SnykProjectIssues]] =
+    parseJsonToObject("project vulnerabilities", s, body => {
+      //logger.info(s"parsing project vulns for ${s}")
+      val orgIssuesResult = (Json.parse(body) \ "results").validate[List[SnykProjectIssue]]
+      orgIssuesResult.map(groupProjectIssues)
+    })
 
-  def linkToSnykProject(snykProjectIssues: SnykProjectIssues, queryString: Option[String]): String = snykProjectIssues.project match {
-    case Some(project) if project.organisation.nonEmpty =>
-      s"https://snyk.io/org/${project.organisation.get.name}/project/${project.id}/${queryString.getOrElse("")}"
+  def groupProjectIssues(projectsAndIssues: List[SnykProjectIssue]): List[SnykProjectIssues] =
+    projectsAndIssues.groupBy(_.project).map { case (project, issues) =>
+      SnykProjectIssues(project, issues)
+    }.toList
+
+  def linkToSnykProject(snykProjectIssues: SnykProjectIssues, org: SnykOrganisation, queryString: Option[String]): String = snykProjectIssues.project match {
+    case Some(project) =>
+      s"https://snyk.io/org/${org.name}/project/${project.id}/${queryString.getOrElse("")}"
     case _ => ""
   }
 
-  def labelOrganisations(orgAndProjects: List[((SnykOrganisation, String), List[SnykProject])]): List[SnykProject] =
-    orgAndProjects.flatMap { case ((organisation, _), projects) =>
-      projects.map(project => project.copy(organisation = Some(organisation)))
-    }
-
-  def labelProjects(projects: List[SnykProject], responses: List[SnykProjectIssues]): List[SnykProjectIssues] =
-    projects.zip(responses).map { case (project, issues) =>
-      issues.copy(project = Some(project))
-    }
+  def sortOrgs(orgs: List[SnykOrganisationIssues]): List[SnykOrganisationIssues] =
+    orgs.sortBy(soi => (-soi.critical, -soi.high, -soi.medium, -soi.low, soi.organisation.name))
 
   def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
     projects.sortBy(spi => (-spi.high, -spi.medium, -spi.low, spi.project.get.name))
