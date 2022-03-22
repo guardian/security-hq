@@ -59,7 +59,6 @@ object SnykDisplay extends Logging {
 
   def parseOrganisationVulnerabilitiesBody(s: String): Attempt[List[SnykProjectIssues]] =
     parseJsonToObject("project vulnerabilities", s, body => {
-      //logger.info(s"parsing project vulns for ${s}")
       val orgIssuesResult = (Json.parse(body) \ "results").validate[List[SnykProjectIssue]]
       orgIssuesResult.map(groupProjectIssues)
     })

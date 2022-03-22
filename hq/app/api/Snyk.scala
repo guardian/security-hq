@@ -2,7 +2,6 @@ package api
 
 import logic.SnykDisplay
 import model._
-import play.api.Logging
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -10,7 +9,7 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-object Snyk extends Logging {
+object Snyk {
 
   private def snykRequest(token:SnykToken, url:String, wsClient: WSClient) =
     wsClient.url(url).addHttpHeaders("Authorization" -> s"token ${token.value}")
@@ -31,7 +30,6 @@ object Snyk extends Logging {
   }
 
   def getOrganisationVulnerabilities(organisation: SnykOrganisation, token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[String] = {
-    logger.info(s"grabbing org vulns for ${organisation.name}")
     val snykIssuesUrl = s"https://snyk.io/api/v1/reporting/issues/latest?sortBy=severity&order=desc&perPage=1000"
     val orgIssuesFilter = Json.obj(
       "filters" -> Json.obj(
