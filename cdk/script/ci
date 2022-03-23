@@ -7,7 +7,7 @@ echo Fail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-yarn install --frozen-lockfile # prevent updates
+yarn install --frozen-lockfile --ignore-scripts # prevent updates
 yarn lint
 yarn test
 
