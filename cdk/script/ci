@@ -9,7 +9,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # Purge cache to force clean slate
 yarn cache clean
-yarn install --network-concurrency 1 --frozen-lockfile # prevent updates
+yarn install --frozen-lockfile # prevent updates
 yarn lint
 yarn test
 
