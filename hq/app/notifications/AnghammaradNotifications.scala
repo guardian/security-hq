@@ -2,10 +2,10 @@ package notifications
 
 import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
-import com.gu.anghammarad.models.{Email, Notification, Preferred, AwsAccount => Account}
+import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAccount => Account}
 import config.Config.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import logic.DateUtils.printDay
-import model.{AwsAccount, HumanUser, IAMUser}
+import model.{AwsAccount, HumanUser, IAMUser, Tag}
 import org.joda.time.DateTime
 import play.api.Logging
 import utils.attempt.{Attempt, Failure}
@@ -38,6 +38,9 @@ object AnghammaradNotifications extends Logging {
   val channel = Preferred(Email)
   val sourceSystem = "Security HQ Credentials Notifier"
 
+  private def notificationTargets(awsAccount: AwsAccount, iamUser: IAMUser): List[Target] =
+    Tag.tagsToAnghammaradTargets(iamUser.tags) :+ Account(awsAccount.accountNumber)
+
   def outdatedCredentialWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime, now: DateTime): Notification = {
     val message =
       s"""
@@ -48,7 +51,7 @@ object AnghammaradNotifications extends Logging {
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
     val subject = s"Action ${awsAccount.name}: Vulnerable credential"
-    Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
+    Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
   def outdatedCredentialFinalWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime, now: DateTime): Notification = {
@@ -61,7 +64,7 @@ object AnghammaradNotifications extends Logging {
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
     val subject = s"Action ${awsAccount.name}: Vulnerable credential will be disabled soon"
-    Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
+    Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
   def outdatedCredentialRemediation(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime): Notification = {
@@ -72,7 +75,7 @@ object AnghammaradNotifications extends Logging {
          |If you still require the disabled user, add new access keys(s) and rotate regularly. Otherwise, delete them.
          |""".stripMargin
     val subject = s"DISABLED Vulnerable credential in ${awsAccount.name}"
-    Notification(subject, message + genericOutdatedCredentialText, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
+    Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
   private val genericOutdatedCredentialText = {
@@ -96,6 +99,6 @@ object AnghammaradNotifications extends Logging {
          |If you have any questions, contact devx@theguardian.com.
          |""".stripMargin
     val subject = s"AWS IAM User ${iamUser.username} DISABLED in ${awsAccount.name} Account"
-    Notification(subject, message, Nil, List(Account(awsAccount.accountNumber)), channel, sourceSystem)
+    Notification(subject, message, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 }
