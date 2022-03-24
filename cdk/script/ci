@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+# Purge cache to force clean slate
+yarn cache clean
 yarn install --frozen-lockfile # prevent updates
 yarn lint
 yarn test
