@@ -1,0 +1,82 @@
+@import logic.SnykDisplay._
+@import model._
+
+@(orgIssues: SnykOrganisationIssues)(implicit assets: AssetsFinder)
+
+@topProjects() = {
+    <div class="col s6">
+        <h5>Top 5 vulnerable projects</h5>
+        <table class="striped responsive-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Critical</th>
+                    <th>High</th>
+                    <th>Medium</th>
+                    <th>Low</th>
+                </tr>
+            </thead>
+            <tbody>
+            @for(project <- sortProjects(orgIssues.projectIssues).take(5)) {
+                <tr>
+                    <td>
+                        <a target="_blank" rel="noopener noreferrer" href="@linkToSnykProject(project, orgIssues.organisation, None)">@project.project.fold("")(_.name)</a>
+                    </td>
+                    <td>@project.critical</td>
+                    <td>@project.high</td>
+                    <td>@project.medium</td>
+                    <td>@project.low</td>
+            <tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="row">
+    <div class="col s12">
+        @defining(longLivedHighVulnerabilities(orgIssues), longLivedCriticalVulnerabilities(orgIssues)) { case (longLivedHighVulnerabilities, longLivedCriticalVulnerabilities) =>
+          @if(longLivedHighVulnerabilities.size > 0 || longLivedCriticalVulnerabilities.size > 0) {
+              <div class="card-panel">
+                  <i class="material-icons left red-text">warning</i>
+                  <span>This organisation contains critical or high severity vulnerabilities older than the maximum permitted age</span>
+                  <a target="_blank" rel="noopener noreferrer" href="@{s"https://snyk.io/org/${orgIssues.organisation.name}/reports/issues"}">
+                      <i class="material-icons right">open_in_new</i>
+                  </a>
+              </div>
+          }
+        }
+    </div>
+</div>
+<div class="row valign-wrapper">
+    @if(orgIssues.projectIssues.isEmpty) {
+        <div class="col s12">
+            <div class="card-panel">
+                <i class="material-icons left green-text">check_circle</i>
+                <span>This organisation contains no vulnerable projects</span>
+            </div>
+        </div>
+    } else {
+        @topProjects()
+        <div class="col s3">
+            <div class="row center-align">
+                <div class="snyk-summary__count red-text">@orgIssues.critical</div>
+                <div class="snyk-summary__count-label">Critical</div>
+            </div>
+            <div class="row center-align">
+                <div class="snyk-summary__count amber-text">@orgIssues.medium</div>
+                <div class="snyk-summary__count-label">Medium</div>
+            </div>
+        </div>
+        <div class="col s3">
+            <div class="row center-align">
+                <div class="snyk-summary__count red-text">@orgIssues.high</div>
+                <div class="snyk-summary__count-label">High</div>
+            </div>
+            <div class="row center-align">
+                <div class="snyk-summary__count">@orgIssues.low</div>
+                <div class="snyk-summary__count-label">Low</div>
+            </div>
+        </div>
+    }
+</div>

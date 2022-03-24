@@ -48,7 +48,7 @@ class CacheService(
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache)
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache)
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache)
-  private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.snykDashboardDecomission("cache").attempt)))
+  private val snykBox: Box[Attempt[List[SnykOrganisationIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
   private val gcpBox: Box[Attempt[GcpReport]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
@@ -87,7 +87,7 @@ class CacheService(
     )
   }
 
-  def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
+  def getAllSnykResults: Attempt[List[SnykOrganisationIssues]] = snykBox.get()
 
   def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 
@@ -177,6 +177,10 @@ class CacheService(
       refreshCredentialsBox()
     }
 
+    val snykSubscription = Observable.interval(initialDelay + 6000.millis, 30.minutes).subscribe { _ =>
+      refreshSnykBox()
+    }
+
     val gcpSubscription = Observable.interval(initialDelay + 6000.millis, 90.minutes).subscribe { _ =>
       logger.info("refreshing the GCP Box now")
       refreshGcpBox()
@@ -187,6 +191,7 @@ class CacheService(
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
+      snykSubscription.unsubscribe()
       gcpSubscription.unsubscribe()
       Future.successful(())
     }
