@@ -156,7 +156,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("org", "1", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -169,7 +169,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("org", "2", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "2", "high")),
@@ -190,7 +190,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("org", "1", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -203,7 +203,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("org", "2", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "2", "medium")),
@@ -224,7 +224,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("org", "1", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -237,7 +237,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("org", "2", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "2", "medium")),
@@ -258,7 +258,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("orgB", "1", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -271,7 +271,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             SnykOrganisation("orgA", "2", None),
             List(
               SnykProjectIssues(
-                Some(SnykProject("X", "a")),
+                Some(SnykProject("X", "a", "url")),
                 List(
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
                   SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "2", "medium")),
@@ -290,7 +290,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
       SnykDisplay.sortProjects(
         List(
           SnykProjectIssues(
-            Some(SnykProject("X", "b")),
+            Some(SnykProject("X", "b", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -298,7 +298,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             )
           ),
           SnykProjectIssues(
-            Some(SnykProject("X", "a")),
+            Some(SnykProject("X", "a", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "high")),
@@ -313,7 +313,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
       SnykDisplay.sortProjects(
         List(
           SnykProjectIssues(
-            Some(SnykProject("X", "b")),
+            Some(SnykProject("X", "b", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -321,7 +321,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             )
           ),
           SnykProjectIssues(
-            Some(SnykProject("X", "a")),
+            Some(SnykProject("X", "a", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -336,7 +336,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
       SnykDisplay.sortProjects(
         List(
           SnykProjectIssues(
-            Some(SnykProject("X", "b")),
+            Some(SnykProject("X", "b", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -344,7 +344,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             )
           ),
           SnykProjectIssues(
-            Some(SnykProject("X", "a")),
+            Some(SnykProject("X", "a", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -359,7 +359,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
       SnykDisplay.sortProjects(
         List(
           SnykProjectIssues(
-            Some(SnykProject("Y", "b")),
+            Some(SnykProject("Y", "b", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),
@@ -367,7 +367,7 @@ class SnykDisplayTest extends AnyFreeSpec with Matchers with AttemptValues {
             )
           ),
           SnykProjectIssues(
-            Some(SnykProject("X", "a")),
+            Some(SnykProject("X", "a", "url")),
             List(
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue1", "1", "high")),
               SnykProjectIssue(None, DateTime.now(), SnykIssue("Issue2", "2", "medium")),

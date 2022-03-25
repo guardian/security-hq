@@ -68,11 +68,10 @@ object SnykDisplay extends Logging {
       SnykProjectIssues(project, issues)
     }.toList
 
-  def linkToSnykProject(snykProjectIssues: SnykProjectIssues, org: SnykOrganisation, queryString: Option[String]): String = snykProjectIssues.project match {
-    case Some(project) =>
-      s"https://snyk.io/org/${org.name}/project/${project.id}/${queryString.getOrElse("")}"
-    case _ => ""
-  }
+  def linkToSnykIssue(issue: SnykProjectIssue): String =
+    issue.project.fold("") { project =>
+      s"${project.url}#issue-${issue.issue.id}"
+    }
 
   def sortOrgs(orgs: List[SnykOrganisationIssues]): List[SnykOrganisationIssues] =
     orgs.sortBy(soi => (-soi.critical, -soi.high, -soi.medium, -soi.low, soi.organisation.name))

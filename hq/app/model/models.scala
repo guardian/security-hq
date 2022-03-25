@@ -251,7 +251,7 @@ case class SnykGroup(name: String, id: String)
 
 case class SnykOrganisation(name: String, id: String, groupOpt: Option[SnykGroup])
 
-case class SnykProject(name: String, id: String)
+case class SnykProject(name: String, id: String, url: String)
 
 case class SnykIssue(title: String, id: String, severity: String)
 
