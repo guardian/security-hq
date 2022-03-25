@@ -80,6 +80,9 @@ object SnykDisplay extends Logging {
   def sortProjects(projects: List[SnykProjectIssues]): List[SnykProjectIssues] =
     projects.sortBy(spi => (-spi.critical, -spi.high, -spi.medium, -spi.low, spi.project.fold("")(_.name)))
 
+  def sortIssuesByDate(projectIssues: List[SnykProjectIssue]): List[SnykProjectIssue] =
+    projectIssues.sortBy(_.introducedDate)
+
   def longLivedHighVulnerabilities(organisationIssues: SnykOrganisationIssues): List[SnykProjectIssue] = {
     for {
       project <- organisationIssues.projectIssues
@@ -96,5 +99,10 @@ object SnykDisplay extends Logging {
       if vuln.issue.severity.equalsIgnoreCase("critical")
       if DateUtils.dayDiff(vuln.introducedDate) > Config.snykMaxAcceptableAgeOfCriticalVulnerabilities
     } yield vuln
+  }
+
+  def top5OldCriticalOrHighVulnerabilities(orgIssues: SnykOrganisationIssues): List[SnykProjectIssue] = {
+    (sortIssuesByDate(longLivedCriticalVulnerabilities(orgIssues)) ++
+      sortIssuesByDate(longLivedHighVulnerabilities(orgIssues))).take(5)
   }
 }
