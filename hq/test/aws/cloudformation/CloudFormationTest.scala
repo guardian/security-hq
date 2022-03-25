@@ -3,9 +3,10 @@ package aws.cloudformation
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.cloudformation.model.Stack
 import model.AwsStack
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class CloudFormationTest extends FreeSpec with Matchers {
+class CloudFormationTest extends AnyFreeSpec with Matchers {
 
   "parseStacks" - {
     val stackId = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"

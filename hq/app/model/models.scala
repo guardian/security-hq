@@ -1,11 +1,9 @@
 package model
 
-import com.amazonaws.regions.{Region, Regions}
-import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata
+import com.amazonaws.regions.Region
 import com.google.cloud.securitycenter.v1.Finding.Severity
-import com.gu.anghammarad.models.{App, Notification, Stack, Target, Stage => AnghammaradStage}
+import com.gu.anghammarad.models.{App, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
-import play.api.libs.json.{JsString, Json, Writes}
 
 
 case class AwsAccount(
@@ -129,6 +127,11 @@ case class BucketDetail(
   isEncrypted: Boolean = false
 ) extends TrustedAdvisorCheckDetails
 
+sealed trait BucketEncryptionResponse
+case object Encrypted extends BucketEncryptionResponse
+case object NotEncrypted extends BucketEncryptionResponse
+case object BucketNotFound extends BucketEncryptionResponse
+
 sealed trait SGInUse
 case class Ec2Instance(instanceId: String) extends SGInUse
 case class ELB(description: String) extends SGInUse
@@ -158,33 +161,11 @@ case class AccessKey(
   lastRotated: Option[DateTime]
 )
 
-case class AccessKeyWithId(
-  accessKey: AccessKey,
-  id: String
-)
-
-object AccessKeyWithId {
-  def fromAwsAccessKeyMetadata(awsAccessKeyMetadata: AccessKeyMetadata): AccessKeyWithId =
-    AccessKeyWithId(
-      AccessKey(
-        keyStatusFromString(awsAccessKeyMetadata.getStatus),
-        Option(new DateTime(awsAccessKeyMetadata.getCreateDate))
-      ),
-      awsAccessKeyMetadata.getAccessKeyId
-    )
-
-  private def keyStatusFromString(awsKeyStatus: String): KeyStatus =  awsKeyStatus match {
-    case "Active" => AccessKeyEnabled
-    case "Inactive" => AccessKeyDisabled
-    case _ => NoKey
-  }
-}
-
 sealed trait ReportStatus {
   def reasons(): Seq[ReportStatusReason] = Seq.empty
 }
 case class Red(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
-case object Amber extends ReportStatus
+case class Amber(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
 case object Green extends ReportStatus
 case object Blue extends ReportStatus
 
@@ -192,6 +173,8 @@ case object Blue extends ReportStatus
 sealed trait ReportStatusReason
 object MissingMfa extends ReportStatusReason
 object OutdatedKey extends ReportStatusReason
+object ActiveAccessKey extends ReportStatusReason
+object MissingUsernameTag extends ReportStatusReason
 
 case class Tag(key: String, value: String)
 object Tag {
@@ -268,14 +251,24 @@ case class SnykGroup(name: String, id: String)
 
 case class SnykOrganisation(name: String, id: String, groupOpt: Option[SnykGroup])
 
-case class SnykProject(name: String, id: String, organisation: Option[SnykOrganisation])
+case class SnykProject(name: String, id: String)
 
 case class SnykIssue(title: String, id: String, severity: String)
 
-case class SnykProjectIssues(project: Option[SnykProject], ok: Boolean, vulnerabilities: Set[SnykIssue])  {
-  def high: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("high"))
-  def medium: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("medium"))
-  def low: Int = vulnerabilities.count(s => s.severity.equalsIgnoreCase("low"))
+case class SnykProjectIssue(project: Option[SnykProject], introducedDate: DateTime, issue: SnykIssue)
+
+case class SnykProjectIssues(project: Option[SnykProject], vulnerabilities: List[SnykProjectIssue])  {
+  def critical: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("critical"))
+  def high: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("high"))
+  def medium: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("medium"))
+  def low: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("low"))
+}
+
+case class SnykOrganisationIssues(organisation: SnykOrganisation, projectIssues: List[SnykProjectIssues]) {
+  def critical: Int = projectIssues.map(_.critical).sum
+  def high: Int = projectIssues.map(_.high).sum
+  def medium: Int = projectIssues.map(_.medium).sum
+  def low: Int = projectIssues.map(_.low).sum
 }
 
 case class SnykError(error: String)
@@ -294,71 +287,3 @@ case class GcpFinding(
 )
 
 case class GcpSccConfig(orgId: String, sourceId: String)
-
-case class CronSchedule(cron: String, description: String)
-
-trait IAMAlert {
-  def username: String
-  def tags: List[Tag]
-}
-case class IAMAlertTargetGroup(
-  targets: List[Target],
-  users: Seq[VulnerableUser]
-)
-
-case class VulnerableUser(
-  username: String,
-  key1: AccessKey = AccessKey(NoKey, None),
-  key2: AccessKey = AccessKey(NoKey, None),
-  humanUser: Boolean,
-  tags: List[Tag],
-  disableDeadline: Option[DateTime] = None
-) extends IAMAlert
-
-object VulnerableUser {
-  def fromIamUser(iamUser: IAMUser): VulnerableUser = {
-    VulnerableUser(
-      iamUser.username,
-      iamUser.key1,
-      iamUser.key2,
-      iamUser.isHuman,
-      iamUser.tags
-    )
-  }
-}
-
-case class VulnerableAccessKey(
-  username: String,
-  accessKeyWithId: AccessKeyWithId,
-  humanUser: Boolean
-)
-
-sealed trait IamAuditNotificationType { def name: String }
-object VulnerableCredential extends IamAuditNotificationType { val name = "vulnerableCredential" }
-object UnrecognisedHumanUser extends IamAuditNotificationType { val name = "unrecognisedHumanUser" }
-object IamAuditNotificationType {
-  def fromName(name: String): IamAuditNotificationType =
-    Seq(VulnerableCredential, UnrecognisedHumanUser)
-      .find(name == _.name)
-      .getOrElse(VulnerableCredential)
-}
-
-case class IamAuditAlert(`type`: IamAuditNotificationType, dateNotificationSent: DateTime, disableDeadline: DateTime)
-object IamAuditAlert {
-  implicit val jodaDateWrites: Writes[DateTime] = (d: DateTime) => JsString(d.toString())
-  implicit val iamNotificationTypeWrites: Writes[IamAuditNotificationType] = (nt: IamAuditNotificationType) => JsString(nt.name)
-  implicit val iamAuditAlertWrites = Json.writes[IamAuditAlert]
-}
-case class IamAuditUser(id: String, awsAccount: String, username: String, alerts: List[IamAuditAlert])
-object IamAuditUser {
-  implicit val iamAuditUserWrites = Json.writes[IamAuditUser]
-}
-case class IamNotification(warningN: Option[Notification], finalN: Option[Notification], alertedUsers: Seq[IamAuditUser])
-
-case class UnrecognisedJobConfigProperties(
-  allowedAccounts: List[String],
-  janusDataFileKey: String,
-  janusUserBucket: String,
-  janusUserBucketRegion: Regions,
-  securityAccount: AwsAccount
-)

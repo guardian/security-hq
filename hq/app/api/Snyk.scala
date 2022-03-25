@@ -5,6 +5,7 @@ import model._
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
@@ -15,41 +16,37 @@ object Snyk {
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
     val snykOrgUrl = "https://snyk.io/api/v1/orgs"
-    val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get
+    val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get()
     handleFuture(futureResponse, "organisation")
   }
 
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
     Attempt.labelledTraverse(organisations) { organisation =>
       val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
-      val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get
+      val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get()
         .map(response => response.body)
       handleFuture(futureResponse, "project")
     }
   }
 
-  def getProjectVulnerabilities(projects: List[SnykProject], token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[WSResponse]] = {
-
-    val projectVulnerabilityResponses = projects
-      .map(project => {
-        val snykProjectUrl = s"https://snyk.io/api/v1/org/${project.organisation.get.id}/project/${project.id}/issues"
-        val projectIssuesFilter = Json.obj(
-          "filters" -> Json.obj(
-            "severity" -> JsArray(List(
-              JsString("high"), JsString("medium"), JsString("low")
-            )),
-            "types" -> JsArray(List(
-              JsString("vuln")
-            )),
-            "ignored" -> "false",
-            "patched" -> "false"
-          )
-        )
-        snykRequest(token, snykProjectUrl, wsClient).post(projectIssuesFilter)
-      })
-    Attempt.traverse(projectVulnerabilityResponses) {
-      projectVulnerabilityResponse => handleFuture(projectVulnerabilityResponse, "project vulnerabilities")
-    }
+  def getOrganisationVulnerabilities(organisation: SnykOrganisation, token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[String] = {
+    val snykIssuesUrl = s"https://snyk.io/api/v1/reporting/issues/latest?sortBy=severity&order=desc&perPage=1000"
+    val orgIssuesFilter = Json.obj(
+      "filters" -> Json.obj(
+        "orgs" -> JsArray(List(
+          JsString(organisation.id))
+        ),
+        "types" -> JsArray(List(
+          JsString("vuln")
+        )),
+        "ignored" -> JsBoolean(false),
+        "patched" -> JsBoolean(false),
+        "isFixed" -> JsBoolean(false)
+      )
+    )
+    val futureResponse = snykRequest(token, snykIssuesUrl, wsClient).post(orgIssuesFilter)
+      .map(response => response.body)
+    handleFuture(futureResponse, "org vulnerabilities")
   }
 
   def handleFuture[A](future: Future[A], label: String)(implicit ec: ExecutionContext): Attempt[A] = Attempt.fromFuture(future) {
@@ -58,22 +55,14 @@ object Snyk {
       FailedAttempt(failure)
   }
 
-  def allSnykRuns(snykConfig: SnykConfig, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[SnykProjectIssues]] = {
+  def allSnykRuns(snykConfig: SnykConfig, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[SnykOrganisationIssues]] = {
     for {
       organisationResponse <- Snyk.getSnykOrganisations(snykConfig.snykToken, wsClient)
       organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, snykConfig.snykGroupId)
 
-      projectResponses <- Snyk.getProjects(snykConfig.snykToken, organisations, wsClient)
-      organisationAndProjects <- SnykDisplay.parseProjectResponses(projectResponses)
-      labelledProjects = SnykDisplay.labelOrganisations(organisationAndProjects)
-
-      vulnerabilitiesResponse <- Snyk.getProjectVulnerabilities(labelledProjects, snykConfig.snykToken, wsClient)
-      vulnerabilitiesResponseBodies = vulnerabilitiesResponse.map(a => a.body)
-
-      parsedVulnerabilitiesResponse <- SnykDisplay.parseProjectVulnerabilities(vulnerabilitiesResponseBodies)
-
-      results = SnykDisplay.labelProjects(labelledProjects, parsedVulnerabilitiesResponse)
-    } yield results
+      vulnerabilitiesResponse <- Attempt.labelledTraverse(organisations)(Snyk.getOrganisationVulnerabilities(_, snykConfig.snykToken, wsClient))
+      orgIssues <- SnykDisplay.parseOrganisationVulnerabilities(vulnerabilitiesResponse)
+    } yield orgIssues
   }
 
 }

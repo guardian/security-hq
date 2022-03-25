@@ -3,16 +3,19 @@ import aws.{AWS, AwsClient}
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
 import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
 import controllers._
+import db.IamRemediationDb
 import filters.HstsFilter
-import model.AwsAccount
-import org.quartz.impl.StdSchedulerFactory
+import model.{AwsAccount, DEV, PROD}
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -21,10 +24,7 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import schedule.unrecognised.IamUnrecognisedUserJob
-import schedule.vulnerable.IamVulnerableUserJob
-import schedule.{AwsDynamoAlertService, JobScheduler}
-import services.{CacheService, MetricService}
+import services.{CacheService, IamRemediationService, MetricService}
 import utils.attempt.Attempt
 
 import scala.concurrent.Await
@@ -46,6 +46,7 @@ class AppComponents(context: Context)
   )
 
   private val stack = configuration.get[String]("stack")
+  private val stage = Config.getStage(configuration)
 
   // the aim of this is to get a list of available regions that we are able to access
   // note that:
@@ -59,7 +60,7 @@ class AppComponents(context: Context)
         regionList <- EC2.getAvailableRegions(ec2Client)
         regionStringSet = regionList.map(_.getRegionName).toSet
       } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
-      Await.result(availableRegionsAttempt.asFuture, 30 seconds).right.getOrElse(List(Config.region, Regions.US_EAST_1))
+      Await.result(availableRegionsAttempt.asFuture, 30 seconds).getOrElse(List(Config.region, Regions.US_EAST_1))
     } finally {
       ec2Client.client.shutdown()
     }
@@ -73,26 +74,47 @@ class AppComponents(context: Context)
   }
 
   private val snykConfig = Config.getSnykConfig(configuration)
-  private val googleAuthConfig = Config.googleSettings(httpConfiguration, configuration)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
-  private val s3Clients = AWS.s3Clients(configuration)
+  private val s3Clients = AWS.s3Clients(configuration, availableRegions)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
   private val efsClients = AWS.efsClients(configuration, availableRegions)
-  val securityCredentialsProvider =
-    new AWSCredentialsProviderChain(new ProfileCredentialsProvider("security"), DefaultAWSCredentialsProviderChain.getInstance())
+
+  private val securityCredentialsProvider = new AWSCredentialsProviderChain(
+    new ProfileCredentialsProvider("security"),
+    DefaultAWSCredentialsProviderChain.getInstance()
+  )
   private val securitySnsClient = AmazonSNSAsyncClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region)
     .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
     .build()
+  private val securitySsmClient = AWSSimpleSystemsManagementClientBuilder.standard()
+    .withCredentials(securityCredentialsProvider)
+    .withRegion(Config.region)
+    .build()
+  private val googleAuthConfig = Config.googleSettings(stage, stack, configuration, securitySsmClient)
+
+  private val securityDynamoDbClient = stage match {
+    case PROD =>
+      AmazonDynamoDBClientBuilder.standard()
+        .withCredentials(securityCredentialsProvider)
+        .withRegion(Config.region)
+        .build()
+    case DEV =>
+      AmazonDynamoDBClientBuilder.standard()
+        .withCredentials(securityCredentialsProvider)
+        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", Config.region.name))
+        .build()
+  }
+  private val securityS3Client = AmazonS3ClientBuilder.standard()
+    .withCredentials(securityCredentialsProvider)
+    .withRegion(Config.region)
+    .build()
+
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
   private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-  private val dynamoDbClient = AmazonDynamoDBClientBuilder.standard()
-    .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region.getName)
-    .build()
 
   private val cacheService = new CacheService(
     configuration,
@@ -116,6 +138,17 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
+
+  new IamRemediationService(
+    cacheService,
+    securitySnsClient,
+    new IamRemediationDb(securityDynamoDbClient),
+    configuration,
+    iamClients,
+    applicationLifecycle,
+    environment,
+    securityS3Client
+  )(executionContext)
 
   override def router: Router = new Routes(
     httpErrorHandler,

@@ -29,7 +29,7 @@ class SnykController(val config: Configuration,
     attempt {
       for {
         accountAssessmentRuns <- cacheService.getAllSnykResults
-        sorted = SnykDisplay.sortProjects(accountAssessmentRuns)
+        sorted = SnykDisplay.sortOrgs(accountAssessmentRuns)
       } yield Ok(views.html.snyk.snyk(sorted))
     }
   }

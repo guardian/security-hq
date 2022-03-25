@@ -16,7 +16,7 @@ import com.amazonaws.services.support.model.RefreshTrustedAdvisorCheckResult
 import model.{AwsAccount, ELB, Ec2Instance, SGInUse, SGOpenPortsDetail, TrustedAdvisorDetailsResult, UnknownUsage}
 import utils.attempt.{Attempt, FailedAttempt}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -55,7 +55,7 @@ object EC2 {
           flaggedEfsSecGrps
         }
       }
-    } yield efsSecGrps.flatten.groupBy(_._1).mapValues(_.map(_._2).toSet)
+    } yield efsSecGrps.flatten.groupBy(_._1).view.mapValues(_.map(_._2).toSet).toMap
 
     val ec2Sgs: Attempt[Map[String, Set[SGInUse]]] = for {
 
@@ -174,9 +174,9 @@ object EC2 {
         matchingGroupIds.map(_ -> sgUse)
       }
       .groupBy { case (sgId, _) => sgId.getGroupId }
-      .mapValues { pairs =>
+      .view.mapValues { pairs =>
         pairs.map { case (_, sgUse) => sgUse }
-      }
+      }.toMap
   }
 
   private[ec2] def parseNetworkInterface(ni: NetworkInterface): SGInUse = {

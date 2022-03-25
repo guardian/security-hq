@@ -10,7 +10,7 @@ import org.joda.time.DateTime
 import play.api.{Configuration, Logging}
 import utils.attempt.Attempt
 
-import scala.collection.JavaConverters.asScalaIteratorConverter
+import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
 object GcpDisplay extends Logging {

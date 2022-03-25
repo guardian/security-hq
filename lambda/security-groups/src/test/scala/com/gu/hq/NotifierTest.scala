@@ -4,10 +4,12 @@ import com.gu.anghammarad.models.{App, AwsAccount, Stack}
 import com.gu.hq.Events.{NotRelevant, Relevant}
 import com.gu.hq.SecurityGroups._
 import com.gu.hq.lambda.model.Tag
-import org.scalatest.{FreeSpec, Matchers, OptionValues}
+import org.scalatest.OptionValues
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class NotifierTest extends FreeSpec with Matchers with OptionValues {
+class NotifierTest extends AnyFreeSpec with Matchers with OptionValues {
   import Notifier._
 
   "shouldNotify" - {

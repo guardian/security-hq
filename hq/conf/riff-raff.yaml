@@ -10,15 +10,25 @@ deployments:
       bucket: security-dist
     dependencies: [security-hq-cfn]
 
+  security-vpc-cfn:
+    type: cloud-formation
+    app: security-vpc
+    parameters:
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackByTags: false
+      cloudFormationStackName: security-vpc
+      templatePath: cfn.json
+
   security-hq-cfn:
     type: cloud-formation
     app: security-hq
     parameters:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: security-hq
-      templatePath: cfn.yaml
+      templatePath: cfn.json
+      amiParameter: AMISecurityhq
       amiEncrypted: true
       amiTags:
-        Recipe: security-java-lts-arm64
+        Recipe: security-java-11-arm64
         BuiltBy: amigo
         AmigoStage: PROD

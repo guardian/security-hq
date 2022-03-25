@@ -3,7 +3,7 @@ package com.gu.hq
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.gu.hq.lambda.model.SGConfiguration
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 
 object SecurityGroups {

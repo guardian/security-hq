@@ -50,7 +50,7 @@ class CacheService(
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache("credentials"))
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache("exposed keys"))
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache("security groups"))
-  private val snykBox: Box[Attempt[List[SnykProjectIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
+  private val snykBox: Box[Attempt[List[SnykOrganisationIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
   private val gcpBox: Box[Attempt[GcpReport]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
@@ -89,7 +89,7 @@ class CacheService(
     )
   }
 
-  def getAllSnykResults: Attempt[List[SnykProjectIssues]] = snykBox.get()
+  def getAllSnykResults: Attempt[List[SnykOrganisationIssues]] = snykBox.get()
 
   def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 

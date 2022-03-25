@@ -32,6 +32,6 @@ object DocumentUtil {
   }
 
   def replaceSnykSSOUrl(snykSSOUrl: String)(source: String): String = {
-    source.replaceAllLiterally("%SNYK_SSO_LINK%", snykSSOUrl)
+    source.replace("%SNYK_SSO_LINK%", snykSSOUrl)
   }
 }

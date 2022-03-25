@@ -1,0 +1,1357 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HQ stack matches the snapshot 1`] = `
+Object {
+  "Mappings": Object {
+    "securityhq": Object {
+      "CODE": Object {
+        "alarmActionsEnabled": false,
+        "domainName": "security-hq.code.dev-gutools.co.uk",
+        "maxInstances": 2,
+        "minInstances": 1,
+      },
+      "PROD": Object {
+        "alarmActionsEnabled": true,
+        "domainName": "security-hq.gutools.co.uk",
+        "maxInstances": 2,
+        "minInstances": 1,
+      },
+    },
+  },
+  "Outputs": Object {
+    "LoadBalancerSecurityhqDnsName": Object {
+      "Description": "DNS entry for LoadBalancerSecurityhq",
+      "Value": Object {
+        "Fn::GetAtt": Array [
+          "LoadBalancerSecurityhqF59D9B82",
+          "DNSName",
+        ],
+      },
+    },
+  },
+  "Parameters": Object {
+    "AMISecurityhq": Object {
+      "Description": "Amazon Machine Image ID for the app security-hq. Use this in conjunction with AMIgo to keep AMIs up to date.",
+      "Type": "AWS::EC2::Image::Id",
+    },
+    "AnghammaradSnsArn": Object {
+      "Default": "/account/services/anghammarad.topic.arn",
+      "Description": "SSM parameter containing the ARN of the Anghammarad SNS topic",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "AuditDataS3BucketName": Object {
+      "Default": "/security/security-hq/audit-data-s3-bucket/name",
+      "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "CloudwatchAlarmEmailDestination": Object {
+      "Description": "Send Security HQ cloudwatch alarms to this email address",
+      "Type": "String",
+    },
+    "DistributionBucketName": Object {
+      "Default": "/account/services/artifact.bucket",
+      "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "LoggingStreamName": Object {
+      "Default": "/account/services/logging.stream.name",
+      "Description": "SSM parameter containing the Name (not ARN) on the kinesis stream",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "Stage": Object {
+      "AllowedValues": Array [
+        "CODE",
+        "PROD",
+      ],
+      "Default": "CODE",
+      "Description": "Stage name",
+      "Type": "String",
+    },
+    "VpcId": Object {
+      "Default": "/account/vpc/primary/id",
+      "Description": "Virtual Private Cloud to run EC2 instances within",
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>",
+    },
+    "securityhqPrivateSubnets": Object {
+      "Default": "/account/vpc/primary/subnets/private",
+      "Description": "A list of private subnets",
+      "Type": "AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>",
+    },
+    "securityhqPublicSubnets": Object {
+      "Default": "/account/vpc/primary/subnets/public",
+      "Description": "A list of public subnets",
+      "Type": "AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>",
+    },
+  },
+  "Resources": Object {
+    "AssumeRole3910C09D": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AssumeRole3910C09D",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AutoScalingGroupSecurityhqASG8DD277A5": Object {
+      "Properties": Object {
+        "HealthCheckGracePeriod": 120,
+        "HealthCheckType": "ELB",
+        "LaunchConfigurationName": Object {
+          "Ref": "AutoScalingGroupSecurityhqLaunchConfig4307528E",
+        },
+        "MaxSize": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "maxInstances",
+          ],
+        },
+        "MinSize": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "minInstances",
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "PropagateAtLaunch": true,
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:pattern-name",
+            "PropagateAtLaunch": true,
+            "Value": "GuEc2App",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "PropagateAtLaunch": true,
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "PropagateAtLaunch": true,
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Name",
+            "PropagateAtLaunch": true,
+            "Value": "security-hq/AutoScalingGroupSecurityhq",
+          },
+          Object {
+            "Key": "Stack",
+            "PropagateAtLaunch": true,
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "PropagateAtLaunch": true,
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "TargetGroupARNs": Array [
+          Object {
+            "Ref": "TargetGroupSecurityhq530DEDAA",
+          },
+        ],
+        "VPCZoneIdentifier": Object {
+          "Ref": "securityhqPrivateSubnets",
+        },
+      },
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+    },
+    "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7": Object {
+      "Properties": Object {
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "AutoScalingGroupSecurityhqLaunchConfig4307528E": Object {
+      "DependsOn": Array [
+        "InstanceRoleSecurityhq7C08CA33",
+      ],
+      "Properties": Object {
+        "IamInstanceProfile": Object {
+          "Ref": "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7",
+        },
+        "ImageId": Object {
+          "Ref": "AMISecurityhq",
+        },
+        "InstanceType": "t4g.large",
+        "SecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+              "GroupId",
+            ],
+          },
+          Object {
+            "Fn::GetAtt": Array [
+              "WazuhSecurityGroup",
+              "GroupId",
+            ],
+          },
+        ],
+        "UserData": Object {
+          "Fn::Base64": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "#!/bin/bash -ev
+# setup security-hq
+mkdir -p /etc/gu
+
+aws --region eu-west-1 s3 cp s3://",
+                Object {
+                  "Ref": "DistributionBucketName",
+                },
+                "/security/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/security-hq/security-hq.conf /etc/gu
+aws --region eu-west-1 s3 cp s3://",
+                Object {
+                  "Ref": "DistributionBucketName",
+                },
+                "/security/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/security-hq/security-hq-service-account-cert.json /etc/gu
+aws --region eu-west-1 s3 cp s3://",
+                Object {
+                  "Ref": "DistributionBucketName",
+                },
+                "/security/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/security-hq/security-hq.deb /tmp/installer.deb
+
+dpkg -i /tmp/installer.deb",
+              ],
+            ],
+          },
+        },
+      },
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+    },
+    "CertificateSecurityhqD266EC9D": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "DomainName": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "domainName",
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "ValidationMethod": "DNS",
+      },
+      "Type": "AWS::CertificateManager::Certificate",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DescribeEC2PolicyFF5F9295": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeAutoScalingGroups",
+                "ec2:DescribeTags",
+                "ec2:DescribeInstances",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "describe-ec2-policy",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DescribeRegions9F63D96D": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ec2:DescribeRegions",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DescribeRegions9F63D96D",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DisableAccessKeyFailureAlarm03FFC3CB": Object {
+      "Properties": Object {
+        "ActionsEnabled": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "alarmActionsEnabled",
+          ],
+        },
+        "AlarmActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "AlarmName": "Security HQ failed to disable a vulnerable access key (new stack)",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": Array [
+          Object {
+            "Name": "ReaperExecutionStatus",
+            "Value": "Failure",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "IamDisableAccessKey",
+        "Namespace": "SecurityHQ",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DynamoReadF4CBA3FD": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:GetRecords",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:dynamodb:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    Object {
+                      "Ref": "SecurityHqIamDynamoTable",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DynamoReadF4CBA3FD",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DynamoWrite95D291C9": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:dynamodb:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":table/",
+                    Object {
+                      "Ref": "SecurityHqIamDynamoTable",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DynamoWrite95D291C9",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetDistributablePolicySecurityhqC6808A6A": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:s3:::",
+                    Object {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                    "/security-hq/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GetDistributablePolicySecurityhqC6808A6A",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuAnghammaradSenderPolicy674A3874": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "AnghammaradSnsArn",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GuAnghammaradSenderPolicy674A3874",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88": Object {
+      "Properties": Object {
+        "GroupDescription": "Allow all outbound HTTPS traffic",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound HTTPS traffic",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqLoadBalancerSecurityhqSecurityGroup3F506C5990004DFA1452": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "FromPort": 9000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityhqSecurityGroup66272916",
+            "GroupId",
+          ],
+        },
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqRestrictedIngressSecurityGroupSecurityhq2DC7AECE90009FDEBE14": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "FromPort": 9000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "RestrictedIngressSecurityGroupSecurityhqCA18D247",
+            "GroupId",
+          ],
+        },
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "GuLogShippingPolicy981BFE5A": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "kinesis:Describe*",
+                "kinesis:Put*",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:kinesis:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":stream/",
+                    Object {
+                      "Ref": "LoggingStreamName",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GuLogShippingPolicy981BFE5A",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuPutCloudwatchMetricsPolicyC5BCE402": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GuPutCloudwatchMetricsPolicyC5BCE402",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "InstanceRoleSecurityhq7C08CA33": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "ec2.",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Path": "/",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ListenerSecurityhq0F356342": Object {
+      "Properties": Object {
+        "Certificates": Array [
+          Object {
+            "CertificateArn": Object {
+              "Ref": "CertificateSecurityhqD266EC9D",
+            },
+          },
+        ],
+        "DefaultActions": Array [
+          Object {
+            "TargetGroupArn": Object {
+              "Ref": "TargetGroupSecurityhq530DEDAA",
+            },
+            "Type": "forward",
+          },
+        ],
+        "LoadBalancerArn": Object {
+          "Ref": "LoadBalancerSecurityhqF59D9B82",
+        },
+        "Port": 443,
+        "Protocol": "HTTPS",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+    },
+    "LoadBalancerSecurityhqF59D9B82": Object {
+      "Properties": Object {
+        "LoadBalancerAttributes": Array [
+          Object {
+            "Key": "deletion_protection.enabled",
+            "Value": "true",
+          },
+        ],
+        "Scheme": "internet-facing",
+        "SecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "LoadBalancerSecurityhqSecurityGroup66272916",
+              "GroupId",
+            ],
+          },
+          Object {
+            "Fn::GetAtt": Array [
+              "RestrictedIngressSecurityGroupSecurityhqCA18D247",
+              "GroupId",
+            ],
+          },
+        ],
+        "Subnets": Object {
+          "Ref": "securityhqPublicSubnets",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Type": "application",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+    },
+    "LoadBalancerSecurityhqSecurityGroup66272916": Object {
+      "Properties": Object {
+        "GroupDescription": "Automatically created Security Group for ELB securityhqLoadBalancerSecurityhq4820B44E",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "LoadBalancerSecurityhqSecurityGrouptosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C90004679E20B": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+            "GroupId",
+          ],
+        },
+        "FromPort": 9000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "LoadBalancerSecurityhqSecurityGroup66272916",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "NotificationTopicEB7A0DF1": Object {
+      "Properties": Object {
+        "DisplayName": "Security HQ notifications",
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "NotificationTopicTokenSubscription180FA58AD": Object {
+      "Properties": Object {
+        "Endpoint": Object {
+          "Ref": "CloudwatchAlarmEmailDestination",
+        },
+        "Protocol": "email",
+        "TopicArn": Object {
+          "Ref": "NotificationTopicEB7A0DF1",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "ParameterStoreReadSecurityhq5E138D38": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                    "/security/security-hq",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                    "/security/security-hq/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "parameter-store-read-policy",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "RemovePasswordFailureAlarm68B6574A": Object {
+      "Properties": Object {
+        "ActionsEnabled": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "alarmActionsEnabled",
+          ],
+        },
+        "AlarmActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "AlarmName": "Security HQ failed to remove a vulnerable password (new stack)",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": Array [
+          Object {
+            "Name": "ReaperExecutionStatus",
+            "Value": "Failure",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "IamRemovePassword",
+        "Namespace": "SecurityHQ",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RestrictedIngressSecurityGroupSecurityhqCA18D247": Object {
+      "Properties": Object {
+        "GroupDescription": "Allow restricted ingress from CIDR ranges",
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "192.168.1.1/22",
+            "Description": "Allow access on port 443 from 192.168.1.1/22",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "RestrictedIngressSecurityGroupSecurityhqtosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C9000A501F165": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+            "GroupId",
+          ],
+        },
+        "FromPort": 9000,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "RestrictedIngressSecurityGroupSecurityhqCA18D247",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "S3AuditRead9DF4AE59": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:s3:::",
+                    Object {
+                      "Ref": "AuditDataS3BucketName",
+                    },
+                    "/security/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "S3AuditRead9DF4AE59",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SSMRunCommandPolicy244E1613": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "ec2messages:AcknowledgeMessage",
+                "ec2messages:DeleteMessage",
+                "ec2messages:FailMessage",
+                "ec2messages:GetEndpoint",
+                "ec2messages:GetMessages",
+                "ec2messages:SendReply",
+                "ssm:UpdateInstanceInformation",
+                "ssm:ListInstanceAssociations",
+                "ssm:DescribeInstanceProperties",
+                "ssm:DescribeDocumentParameters",
+                "ssmmessages:CreateControlChannel",
+                "ssmmessages:CreateDataChannel",
+                "ssmmessages:OpenControlChannel",
+                "ssmmessages:OpenDataChannel",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ssm-run-command-policy",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SecurityHqIamDynamoTable": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "id",
+            "AttributeType": "S",
+          },
+          Object {
+            "AttributeName": "dateNotificationSent",
+            "AttributeType": "N",
+          },
+        ],
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "id",
+            "KeyType": "HASH",
+          },
+          Object {
+            "AttributeName": "dateNotificationSent",
+            "KeyType": "RANGE",
+          },
+        ],
+        "ProvisionedThroughput": Object {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5,
+        },
+        "TableName": "security-hq-iam",
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TargetGroupSecurityhq530DEDAA": Object {
+      "Properties": Object {
+        "HealthCheckIntervalSeconds": 10,
+        "HealthCheckPath": "/healthcheck",
+        "HealthCheckProtocol": "HTTP",
+        "HealthCheckTimeoutSeconds": 5,
+        "HealthyThresholdCount": 5,
+        "Port": 9000,
+        "Protocol": "HTTP",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "TargetGroupAttributes": Array [
+          Object {
+            "Key": "deregistration_delay.timeout_seconds",
+            "Value": "30",
+          },
+          Object {
+            "Key": "stickiness.enabled",
+            "Value": "false",
+          },
+        ],
+        "TargetType": "instance",
+        "UnhealthyThresholdCount": 2,
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+    },
+    "WazuhSecurityGroup": Object {
+      "Properties": Object {
+        "GroupDescription": "Allow outbound traffic from wazuh agent to manager",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Wazuh event logging",
+            "FromPort": 1514,
+            "IpProtocol": "tcp",
+            "ToPort": 1514,
+          },
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Wazuh agent registration",
+            "FromPort": 1515,
+            "IpProtocol": "tcp",
+            "ToPort": 1515,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "securityhqgutoolscouk": Object {
+      "Properties": Object {
+        "Name": Object {
+          "Fn::FindInMap": Array [
+            "securityhq",
+            Object {
+              "Ref": "Stage",
+            },
+            "domainName",
+          ],
+        },
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "LoadBalancerSecurityhqF59D9B82",
+              "DNSName",
+            ],
+          },
+        ],
+        "Stage": Object {
+          "Ref": "Stage",
+        },
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
+    },
+  },
+}
+`;

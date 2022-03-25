@@ -3,15 +3,16 @@ package aws.support
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model._
 import org.scalacheck.Gen
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import utils.attempt.AttemptValues
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptValues with PropertyChecks  {
+class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with AttemptValues with ScalaCheckPropertyChecks  {
   "parsing details" - {
     "works on example data" in {
       val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
@@ -22,16 +23,16 @@ class TrustedAdvisorSGOpenPortsTest extends FreeSpec with Matchers with AttemptV
         .withStatus("ok")
         .withResourceId("abcdefz")
       TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail).value() should have(
-        'region ("eu-west-1"),
-        'name ("launch-wizard-1"),
-        'id ("sg-12345a"),
-        'vpcId ("vpc-789abc"),
-        'protocol ("tcp"),
-        'port ("22"),
-        'alertLevel ("Yellow"),
-        'isSuppressed (false),
-        'stackId (None),
-        'stackName (None),
+        Symbol("region") ("eu-west-1"),
+        Symbol("name") ("launch-wizard-1"),
+        Symbol("id") ("sg-12345a"),
+        Symbol("vpcId") ("vpc-789abc"),
+        Symbol("protocol") ("tcp"),
+        Symbol("port") ("22"),
+        Symbol("alertLevel") ("Yellow"),
+        Symbol("isSuppressed") (false),
+        Symbol("stackId") (None),
+        Symbol("stackName") (None),
       )
     }
 

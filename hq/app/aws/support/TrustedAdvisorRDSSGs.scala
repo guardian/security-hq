@@ -7,7 +7,7 @@ import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model.{RDSSGsDetail, TrustedAdvisorDetailsResult}
 import utils.attempt.{Attempt, Failure}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 

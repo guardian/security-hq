@@ -1,9 +1,10 @@
 package logic
 
 import org.joda.time.{DateTime, DateTimeZone}
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
-class DateUtilsTest extends FreeSpec with Matchers {
+class DateUtilsTest extends AnyFreeSpec with Matchers {
 
   "datetutils" - {
 

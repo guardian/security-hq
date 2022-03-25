@@ -1,7 +1,7 @@
 import config.LoggingConfig
 import logging.LogConfig
 import play.api.ApplicationLoader.Context
-import play.api.{Application, ApplicationLoader}
+import play.api.{Application, ApplicationLoader, Mode}
 
 import scala.concurrent.Future
 

@@ -1,17 +1,21 @@
 package config
 
-import java.io.FileInputStream
-import com.amazonaws.regions.Regions
+import aws.AwsClient
+import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
+import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV1, SecretSupplier}
+import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}
 import model._
-import org.apache.commons.lang3.exception.ExceptionContext
 import play.api.Configuration
 import play.api.http.HttpConfiguration
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.collection.JavaConverters._
+import java.io.FileInputStream
+import java.time.Duration.{ofHours, ofMinutes}
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
@@ -19,7 +23,13 @@ import scala.util.Try
 object Config {
   val iamHumanUserRotationCadence: Long = 90
   val iamMachineUserRotationCadence: Long = 365
-  val iamAlertCadence: Int = 21
+  val outdatedCredentialOptOutUserTag = "SecurityHQ::OutdatedCredentialOptOut"
+  val daysBetweenWarningAndFinalNotification = 7
+  val daysBetweenFinalNotificationAndRemediation = 7
+  val app = "security-hq"
+
+  val snykMaxAcceptableAgeOfCriticalVulnerabilities = 7
+  val snykMaxAcceptableAgeOfHighVulnerabilities = 14
 
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
@@ -38,17 +48,26 @@ object Config {
     }
   }
 
-  def googleSettings(httpConfiguration: HttpConfiguration, config: Configuration): GoogleAuthConfig = {
+  def googleSettings(stage: Stage, stack: String, config: Configuration, ssmClient: AWSSimpleSystemsManagement): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
     val domain = requiredString(config, "auth.domain")
     val redirectUrl = s"${requiredString(config, "host")}/oauthCallback"
+
+    val secretStateSupplier: SnapshotProvider = {
+      new SecretSupplier(
+        TransitionTiming(usageDelay = ofMinutes(3), overlapDuration = ofHours(2)),
+        s"/${stage.toString}/$stack/$app/play.http.secret.key",
+        AwsSdkV1(ssmClient)
+      )
+    }
+
     GoogleAuthConfig(
       clientId,
       clientSecret,
       redirectUrl,
-      domain,
-      antiForgeryChecker = AntiForgeryChecker.borrowSettingsFromPlay(httpConfiguration)
+      List(domain),
+      antiForgeryChecker = AntiForgeryChecker(secretStateSupplier)
     )
   }
 
@@ -76,12 +95,7 @@ object Config {
       ServiceAccountCredentials.fromStream(jsonCertStream)
     }
 
-    val serviceAccount = GoogleServiceAccount(
-      credentials.getClientEmail,
-      credentials.getPrivateKey,
-      twoFAUser
-    )
-    new GoogleGroupChecker(serviceAccount)
+    new GoogleGroupChecker(twoFAUser, credentials)
   }
 
   def twoFAGroup(implicit config: Configuration): String = {
@@ -123,19 +137,45 @@ object Config {
     config.getOptional[String]("snyk.ssoUrl")
   }
 
-  def getAnghammaradSNSTopicArn(config: Configuration): Option[String] = config.getOptional[String]("alert.anghammaradSnsArn")
-  def getIamDynamoTableName(config: Configuration): Option[String] = config.getOptional[String]("alert.iamDynamoTableName")
+  def getIamDynamoTableName(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.iamDynamoTableName"),
+      FailedAttempt(Failure("unable to get dynamo table name",
+        "unable to get dynamo table name for IAM jobs",
+        500
+      ))
+    )
+  }
 
   def getIamUnrecognisedUserConfig(config: Configuration)(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
     for {
       accounts <- getAllowedAccountsForStage(config)
       key <- getJanusDataFileKey(config)
       bucket <- getIamUnrecognisedUserBucket(config)
-      region <- getIamUnrecognisedUserBucketRegion(config)
       securityAccount <- getSecurityAccount(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, Regions.fromName(region), securityAccount)
+      anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn)
   }
 
+  def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
+    Attempt.fromOption(
+      config.getOptional[String]("alert.anghammaradSnsArn"),
+      FailedAttempt(Failure("unable to get Anghammarad topic ARN",
+        "unable to get Anghammarad topic ARN for IAM jobs",
+        500
+      ))
+    )
+  }
+
+  def getAccountsForIamRemediationService(config: Configuration): Attempt[List[String]] = {
+    Attempt.fromOption(
+      config.getOptional[Seq[String]]("alert.accountIdsForIamRemediationService").map(_.toList),
+      FailedAttempt(Failure("unable to get list of accounts to run the IAM Remediation Service on. Rectify this by adding account ids to config.",
+        "Add account Ids for Iam Remediation service to ~/.gu/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
+        500
+      ))
+    )
+  }
 
   def getAllowedAccountsForStage(config: Configuration): Attempt[List[String]] = {
     Attempt.fromOption(

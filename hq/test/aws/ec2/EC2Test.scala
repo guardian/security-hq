@@ -9,16 +9,17 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.scalacheck.ScalacheckShapeless._
 import org.scalatest.exceptions.TestFailedException
-import org.scalatest.prop.{Checkers, PropertyChecks}
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.freespec.AnyFreeSpec
 import utils.attempt.{Attempt, AttemptValues}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
 
-class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks with AttemptValues {
+class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPropertyChecks with AttemptValues {
   "parseNetworkInterface" - {
     "parses an ELB" in {
       EC2.parseNetworkInterface(elb("test-elb")) shouldEqual ELB("test-elb")
@@ -87,8 +88,8 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
       "adds the Cloudformation stack name and ID to a security group" in {
         val List(sg1, _) = EC2.enrichSecurityGroups(sgs, Map("sg-1" -> List(cfStackIdTag, cfStackNameTag)))
         sg1 should have(
-          'stackId (Some("cf-stack-1")),
-          'stackName (Some("cf-name-1"))
+          Symbol("stackId") (Some("cf-stack-1")),
+          Symbol("stackName") (Some("cf-name-1"))
         )
       }
 
@@ -97,8 +98,8 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
         val enrichedSgs = EC2.enrichSecurityGroups(sgs, tagDetails)
         enrichedSgs.foreach { sg =>
           sg should have(
-            'stackId (Some("cf-stack-1")),
-            'stackName (Some("cf-name-1"))
+            Symbol("stackId") (Some("cf-stack-1")),
+            Symbol("stackName") (Some("cf-name-1"))
           )
         }
       }
@@ -259,14 +260,14 @@ class EC2Test extends FreeSpec with Matchers with Checkers with PropertyChecks w
           AwsAccount("security-test", "security", "security-test", "123456789"),
           sgsList,
           clients
-        )( _ => vpcsResult).value shouldBe vpcsMap
+        )( _ => vpcsResult).value() shouldBe vpcsMap
       }
 
       "returns empty vpc details" in {
         EC2.getVpcs(
           AwsAccount("security-test", "security", "security-test", "123456789"),
           sgsList,
-          clients)( _ => Attempt.Right(Map.empty)).value shouldBe Map.empty
+          clients)( _ => Attempt.Right(Map.empty)).value() shouldBe Map.empty
       }
     }
 

@@ -1,14 +1,15 @@
 package aws.support
 
 import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
-import org.scalatest.{FreeSpec, Matchers}
 import utils.attempt.AttemptValues
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class TrustedAdvisorRDSSGsTest extends FreeSpec with Matchers with AttemptValues {
+class TrustedAdvisorRDSSGsTest extends AnyFreeSpec with Matchers with AttemptValues {
   "parseRDSSGDetail" - {
     val metadata = List("eu-west-1", "rds-sg-123456", "sg-12345a", "Yellow")
     val detail = new TrustedAdvisorResourceDetail()
@@ -20,11 +21,11 @@ class TrustedAdvisorRDSSGsTest extends FreeSpec with Matchers with AttemptValues
 
     "works on example data" in {
       TrustedAdvisorRDSSGs.parseRDSSGDetail(detail).value() should have(
-        'region ("eu-west-1"),
-        'rdsSgId ("rds-sg-123456"),
-        'ec2SGId ("sg-12345a"),
-        'alertLevel ("Yellow"),
-        'isSuppressed (false)
+        Symbol("region") ("eu-west-1"),
+        Symbol("rdsSgId") ("rds-sg-123456"),
+        Symbol("ec2SGId") ("sg-12345a"),
+        Symbol("alertLevel") ("Yellow"),
+        Symbol("isSuppressed") (false)
       )
     }
 

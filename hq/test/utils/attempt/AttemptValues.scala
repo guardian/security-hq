@@ -2,11 +2,11 @@ package utils.attempt
 
 import java.io.{ByteArrayOutputStream, PrintWriter}
 
-import org.scalatest.Matchers
 import org.scalatest.exceptions.TestFailedException
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
+import org.scalatest.matchers.should.Matchers
 
 
 trait AttemptValues extends Matchers {
@@ -45,7 +45,7 @@ trait AttemptValues extends Matchers {
     def getFailedAttempt()(implicit ec: ExecutionContext): FailedAttempt = {
       Await.result(attempt.asFuture, 5.seconds).fold (
         fa => fa,
-        _ => throw new TestFailedException("Could not extract failed attempt from Attempt", 10)
+        _ => throw new TestFailedException("Could not extract failure from successful Attempt", 10)
       )
     }
   }

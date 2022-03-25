@@ -1,0 +1,12 @@
+*.js
+!jest.setup.js
+!jest.config.js
+!.eslintrc.js
+*.d.ts
+node_modules
+dist
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+!cdk.out/security-vpc.template.json

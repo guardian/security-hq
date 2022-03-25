@@ -1,6 +1,5 @@
-@import logic.DateUtils
+@import logic.{CredentialsReportDisplay, DateUtils, IamUnrecognisedUsers}
 @import model._
-@import logic.CredentialsReportDisplay
 @(report: CredentialReportDisplay)
 @message = @{s"Report generated at ${DateUtils.printTime(report.reportDate)} (refreshed every four hours)"}
 @warning = @{". Warning: this data is over a day old."}
@@ -26,8 +25,9 @@
                     <th>Access Key 2</th>
                     <th>Password/MFA</th>
                     <th>Last Activity</th>
-                    <th>Status</th>
                     <th>Stack</th>
+                    <th>Tagged</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,8 +66,15 @@
                     <td>
                         <span>@CredentialsReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
-                    <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
                     <td>@cred.tags.find(t => t.key == "Stack").map(_.value).getOrElse("")</td>
+                    <td>
+                        @if(IamUnrecognisedUsers.isTaggedForUnrecognisedUser(cred.tags)) {
+                            <i class="material-icons left green-text" data-position="bottom">check</i>
+                        } else {
+                            <i class="material-icons left black-text" data-position="bottom">unpublished</i>
+                        }
+                    </td>
+                    <td>@views.html.fragments.humanReportStatus(cred.reportStatus)</td>
                 </tr>
             }
 
@@ -101,8 +108,9 @@
                     <td>
                         <span>@CredentialsReportDisplay.toDayString(cred.lastActivityDay)</span>
                     </td>
-                    <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
                     <td>@cred.tags.find(t => t.key == "Stack").map(_.value).getOrElse("")</td>
+                    <td><span>-</span></td>
+                    <td>@views.html.fragments.machineReportStatus(cred.reportStatus)</td>
                 </tr>
             }
             </tbody>

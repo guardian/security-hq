@@ -25,7 +25,7 @@ class AuthController(environment: Environment, val config: Configuration, val au
   }
 
   def logout = Action { implicit request =>
-    Redirect(routes.HQController.index()).withNewSession
+    Redirect(routes.HQController.index).withNewSession
   }
 
   def oauthCallback = Action.async { implicit request =>

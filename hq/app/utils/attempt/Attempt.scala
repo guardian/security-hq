@@ -37,6 +37,23 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) ext
   }
 
   /**
+    * Perform a side effect when the attempt completes, while still passing the value through.
+    *
+    * This is most useful for logging at the edge of a program that needs to return an Attempt.
+    */
+  def tap(sideEffect: Either[FailedAttempt, A] => Unit)(implicit ec: ExecutionContext): Attempt[A] = {
+    asFuture.foreach(sideEffect)
+    this
+  }
+
+  /**
+    * Discards the result type and returns unit if this attempt succeeded.
+    */
+  def unit(implicit ec: ExecutionContext): Attempt[Unit] = {
+    map(_ => ())
+  }
+
+  /**
     * If there is an error in the Future itself (e.g. a timeout) we convert it to a
     * Left so we have a consistent error representation. Unfortunately, this means
     * the error isn't being handled properly so we're left with just the information
@@ -213,10 +230,10 @@ object Attempt {
       val prom = Promise[A]()
       schedule(
         new TimerTask {
-          def run() {
+          def run(): Unit = {
             ctx.execute(
               new Runnable {
-                def run() {
+                def run(): Unit = {
                   prom.complete(Try(body))
                 }
               }

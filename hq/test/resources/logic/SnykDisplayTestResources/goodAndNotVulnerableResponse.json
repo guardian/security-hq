@@ -1,9 +1,4 @@
 {
-  "ok": true,
-  "issues": {
-    "vulnerabilities": [],
-    "licenses": []
-  },
-  "dependencyCount": 0,
-  "packageManager": "sbt"
+  "results": [],
+  "total": 0
 }

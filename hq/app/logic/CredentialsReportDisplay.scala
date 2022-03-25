@@ -3,6 +3,7 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
+import IamUnrecognisedUsers.isTaggedForUnrecognisedUser
 import utils.attempt.FailedAttempt
 
 import java.net.URLEncoder
@@ -39,7 +40,7 @@ object CredentialsReportDisplay {
     if (VulnerableAccessKeys.hasOutdatedMachineKeyIncludingDisabled(keys))
       Red(Seq(OutdatedKey))
     else if (!keys.exists(_.keyStatus == AccessKeyEnabled))
-      Amber
+      Amber()
     else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
       Blue
     else Green
@@ -47,16 +48,22 @@ object CredentialsReportDisplay {
 
   private[logic] def humanReportStatus(cred: IAMCredential): ReportStatus = {
     val keys = List(accessKey1Details(cred), accessKey2Details(cred))
+
     //TODO: Scala 2.13 has Option builder `when` which is a nicer syntax than Some(...).filter
     val redStatusReasons: Seq[ReportStatusReason] = Seq(
       Some(MissingMfa).filterNot(_ => cred.mfaActive),
       Some(OutdatedKey).filter(_ => VulnerableAccessKeys.hasOutdatedHumanKeyIncludingDisabled(keys))
     ).flatten
 
+    val amberStatusReasons: Seq[ReportStatusReason] = Seq(
+      Some(ActiveAccessKey).filter(_ => keys.exists(_.keyStatus == AccessKeyEnabled)),
+      Some(MissingUsernameTag).filterNot(_ => IamUnrecognisedUsers.isTaggedForUnrecognisedUser(cred.tags))
+    ).flatten
+
     if (redStatusReasons.nonEmpty)
       Red(redStatusReasons)
-    else if (keys.exists(_.keyStatus == AccessKeyEnabled))
-      Amber
+    else if (amberStatusReasons.nonEmpty)
+      Amber(amberStatusReasons)
     else if (Days.daysBetween(lastActivityDate(cred).getOrElse(DateTime.now), DateTime.now).getDays > 365)
       Blue
     else Green
@@ -112,35 +119,18 @@ object CredentialsReportDisplay {
     val reportStatuses = (report.humanUsers ++ report.machineUsers)
       .map(_.reportStatus)
 
-    val warnings = reportStatuses.collect({ case Amber => }).size
+    val warnings = reportStatuses.collect({ case Amber(_) => }).size
     val errors = reportStatuses.collect({ case Red(_) => }).size
     val others = reportStatuses.collect({ case Blue => }).size
 
     ReportSummary(warnings, errors, others)
   }
 
-  /*
-    This should be considered temporary (hence duplication of the above). It is to support a rollout
-    of the critical errors in security HQ (so we have visibility) without yet updating other dashboards
-   */
-  def reportStatusSummaryWithoutOutdatedKeys(report: CredentialReportDisplay): ReportSummary = {
-    val reportStatuses = (report.humanUsers ++ report.machineUsers)
-      .map(_.reportStatus)
-
-    val warnings = reportStatuses.collect({ case Amber => }).size
-    val errors = reportStatuses.collect({
-      case status: Red if !status.reasons.forall(_ == OutdatedKey) =>
-    }).size
-    val others = reportStatuses.collect({ case Blue => }).size
-
-    ReportSummary(warnings, errors, others)
-  }
-
   def exposedKeysSummary(allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]): Map[AwsAccount, Boolean] = {
-    allReports.mapValues {
+    allReports.view.mapValues {
       case Right(keys) if keys.nonEmpty => true
       case _ => false
-    }
+    }.toMap
   }
 
   def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
@@ -164,7 +154,7 @@ object CredentialsReportDisplay {
   implicit val reportStatusOrdering: Ordering[ReportStatus] = new Ordering[ReportStatus] {
     private def statusCode(status: ReportStatus): Int = status match {
       case Red(_) => 0
-      case Amber => 1
+      case Amber(_) => 1
       case _ => 99
     }
 
