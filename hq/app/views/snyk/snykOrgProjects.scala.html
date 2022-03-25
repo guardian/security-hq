@@ -1,4 +1,5 @@
 @import logic.SnykDisplay._
+@import logic.DateUtils
 @import model._
 
 @(orgIssues: SnykOrganisationIssues)(implicit assets: AssetsFinder)
@@ -20,17 +21,55 @@
             @for(project <- sortProjects(orgIssues.projectIssues).take(5)) {
                 <tr>
                     <td>
-                        <a target="_blank" rel="noopener noreferrer" href="@linkToSnykProject(project, orgIssues.organisation, None)">@project.project.fold("")(_.name)</a>
+                        <a target="_blank" rel="noopener noreferrer" href="@project.project.fold("")(_.url)">@project.project.fold("")(_.name)</a>
                     </td>
                     <td>@project.critical</td>
                     <td>@project.high</td>
                     <td>@project.medium</td>
                     <td>@project.low</td>
-            <tr>
+                </tr>
             }
             </tbody>
         </table>
     </div>
+}
+
+@topOldVulnerabilities() = {
+    @defining(top5OldCriticalOrHighVulnerabilities(orgIssues)) { oldIssues =>
+        @if(oldIssues.nonEmpty) {
+            <div class="row">
+                <div class="col s12">
+                    <h5>Top 5 old critical/high vulnerabilities</h5>
+                    <table class="striped responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Issue</th>
+                                <th>Severity</th>
+                                <th>Project</th>
+                                <th>Introduced</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for(issue <- oldIssues) {
+                                <tr>
+                                    <td>
+                                        <a target="_blank" rel="noopener noreferrer" href="@linkToSnykIssue(issue)">@issue.issue.title</a>
+                                    </td>
+                                    <td>@issue.issue.severity</td>
+                                    <td>
+                                        <a target="_blank" rel="noopener noreferrer" href="@issue.project.fold("")(_.url)">@issue.project.fold("-")(_.name)</a>
+                                    </td>
+                                    <td>
+                                        @DateUtils.printDay(issue.introducedDate)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
 }
 
 <div class="row">
@@ -39,7 +78,7 @@
           @if(longLivedHighVulnerabilities.size > 0 || longLivedCriticalVulnerabilities.size > 0) {
               <div class="card-panel">
                   <i class="material-icons left red-text">warning</i>
-                  <span>This organisation contains critical or high severity vulnerabilities older than the maximum permitted age</span>
+                  <span>This organisation contains @{longLivedCriticalVulnerabilities.size} critical and @{longLivedHighVulnerabilities.size} high severity vulnerabilities older than the maximum permitted age</span>
                   <a target="_blank" rel="noopener noreferrer" href="@{s"https://snyk.io/org/${orgIssues.organisation.name}/reports/issues"}">
                       <i class="material-icons right">open_in_new</i>
                   </a>
@@ -80,3 +119,5 @@
         </div>
     }
 </div>
+
+@topOldVulnerabilities()
