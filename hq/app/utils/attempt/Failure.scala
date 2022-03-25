@@ -52,6 +52,12 @@ object Failure {
     Failure(details, friendlyMessage, 500)
   }
 
+  def notYetLoaded(accountId: String, cacheContent: String): Failure = {
+    val details = s"Cache service error; $cacheContent not yet loaded for $accountId"
+    val friendlyMessage = s"We have not yet loaded the $cacheContent data for $accountId"
+    Failure(details, friendlyMessage, 503)
+  }
+
   def cacheServiceErrorPerAccount(accountId: String, cacheContent: String): Failure = {
     val details = s"Cache service error; unable to retrieve $cacheContent for $accountId"
     val friendlyMessage = s"Missing $cacheContent data for $accountId"
