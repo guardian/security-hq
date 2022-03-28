@@ -27,13 +27,6 @@
     "typescript": "~4.2.2"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudwatch": "1.140.0",
-    "@aws-cdk/aws-ec2": "1.140.0",
-    "@aws-cdk/aws-events-targets": "1.140.0",
-    "@aws-cdk/aws-iam": "1.140.0",
-    "@aws-cdk/aws-lambda": "1.140.0",
-    "@aws-cdk/aws-s3": "1.140.0",
-    "@aws-cdk/cloudformation-include": "^1.140.0",
     "@aws-cdk/core": "1.140.0",
     "@guardian/cdk": "34.1.0",
     "source-map-support": "^0.5.16"
