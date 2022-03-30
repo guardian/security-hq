@@ -14,5 +14,6 @@ jobs:
     uses: guardian/.github/.github/workflows/sbt-node-snyk-pr.yml@ja-snyk-pr
     with:
       ORG: guardian-security
+      SEVERITY_THRESHOLD: critical
     secrets:
        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
