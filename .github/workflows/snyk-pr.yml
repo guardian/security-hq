@@ -11,7 +11,7 @@ on:
 
 jobs:
   security:
-    uses: guardian/.github/.github/workflows/sbt-node-snyk-pr.yml
+    uses: guardian/.github/.github/workflows/sbt-node-snyk-pr.yml@main
     with:
       ORG: guardian-security
       SEVERITY_THRESHOLD: critical
