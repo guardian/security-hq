@@ -179,5 +179,3 @@ lazy val root = (project in file(".")).
   )
 
 addCommandAlias("dependency-tree", "dependencyTree")
-
-

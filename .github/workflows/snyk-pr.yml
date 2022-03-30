@@ -1,0 +1,19 @@
+# This action tests a PR for critical vulnerabilities
+# The paths restriction is optional, but it's recommendeded to reduce the risk of this workflow producing unhelpful results
+name: Snyk
+
+on:
+  pull_request:
+    paths:
+      - 'build.sbt'
+      - 'package.json'
+      - 'cdk/package.json'
+
+jobs:
+  security:
+    uses: guardian/.github/.github/workflows/sbt-node-snyk-pr.yml
+    with:
+      ORG: guardian-security
+      SEVERITY_THRESHOLD: critical
+    secrets:
+       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
