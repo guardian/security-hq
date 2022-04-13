@@ -58,7 +58,7 @@ jobs:
         run: |
           LAST_TEAMCITY_BUILD=1265
           export GITHUB_RUN_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))
-          ./script/ci "${{ github.actor }}"
+          ./script/ci
   dependabot-ci:
     if: github.actor = 'dependabot[bot]'
     runs-on: ubuntu-latest
