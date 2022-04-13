@@ -12,6 +12,7 @@ on:
       - main
 jobs:
   CI:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
 
     # See https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
@@ -25,7 +26,6 @@ jobs:
       # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
       # See https://github.com/aws-actions/configure-aws-credentials
       - uses: aws-actions/configure-aws-credentials@v1
-        if: github.actor != 'dependabot[bot]'
         with:
           role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           aws-region: eu-west-1
@@ -58,4 +58,26 @@ jobs:
         run: |
           LAST_TEAMCITY_BUILD=1265
           export GITHUB_RUN_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))
-          ./script/ci ${{ github.actor }}
+          ./script/ci "${{ github.actor }}"
+  dependabot-ci:
+    if: github.actor = 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Configuring caching is also recommended.
+      # See https://github.com/actions/setup-java
+      - name: Setup Java 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      # (Respects .nvmrc)
+      - name: Setup Node
+        uses: guardian/actions-setup-node@v2.4.1
+        with:
+          cache: 'yarn'
+      - name: Run dependabot specific ci script
+        run: |
+          ./script/dependabot-ci

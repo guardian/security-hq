@@ -7,8 +7,4 @@ set -e
     ./script/ci
 )
 
-./sbt --no-conf '; project hq; clean; compile'
-# Only publish artifact if this isn't a build triggered by dependabot
-if [[ "$1" != "dependabot[bot]" ]]; then
-  ./sbt --no-conf 'riffRaffAddManifest; riffRaffUpload'
-fi
+./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'
