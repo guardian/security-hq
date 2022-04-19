@@ -1243,9 +1243,9 @@
     eslint-plugin-import "2.24.0"
     eslint-plugin-prettier "3.4.0"
 
-"@guardian/private-infrastructure-config@git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.0":
-  version "1.1.3"
-  resolved "git+ssh://git@github.com:guardian/private-infrastructure-config.git#c1789051594a2dc5a21fd49f1bd571613131403b"
+"@guardian/private-infrastructure-config@git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.1":
+  version "1.2.0"
+  resolved "git+ssh://git@github.com:guardian/private-infrastructure-config.git#c4cb5466ab2918448128c8d87b3029e1e77f821c"
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
