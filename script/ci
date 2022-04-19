@@ -2,14 +2,14 @@
 
 set -e
 
-SHOULD_UPLOAD_TO_RIFFRAFF="$1"
+UPLOAD_TO_RIFFRAFF="$1"
 
 (
     cd cdk
     ./script/ci
 )
 
-if [ "$SHOULD_UPLOAD_TO_RIFFRAFF" = "true" ]; then
+if [ "$UPLOAD_TO_RIFFRAFF" = "true" ]; then
     ./sbt --no-conf '; project hq; clean; compile; riffRaffAddManifest; riffRaffUpload'
 else
     ./sbt --no-conf '; project hq; clean; compile'
