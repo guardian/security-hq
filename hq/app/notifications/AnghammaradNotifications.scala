@@ -50,7 +50,7 @@ object AnghammaradNotifications extends Logging {
          |If this is not rectified before ${printDay(now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation))},
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
-    val subject = s"Action ${awsAccount.name}: Vulnerable credential"
+    val subject = s"Action required: vulnerable credential detected in ${awsAccount.name}"
     Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
@@ -63,7 +63,7 @@ object AnghammaradNotifications extends Logging {
          |If this is not rectified before ${printDay(now.plusDays(daysBetweenFinalNotificationAndRemediation))},
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
-    val subject = s"Action ${awsAccount.name}: Vulnerable credential will be disabled soon"
+    val subject = s"Action required: vulnerable credential in ${awsAccount.name} will be disabled soon"
     Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
