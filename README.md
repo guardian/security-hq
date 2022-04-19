@@ -202,6 +202,21 @@ If you have it installed, you can run:
 
 `cfn_nag_scan --input-path cloudformation/*`
 
+### Dependabot
+
+This repo has [dependabot security updates
+enabled])(https://github.com/guardian/security-hq/security/dependabot), which
+means dependabot will open PRs to fix security vulnerabilities in JS prod and dev
+dependencies. Note that this is different from the dependabot dependency updates
+feature, which auto-updates all dependencies to their latest versions, which
+this repo does not have enabled.
+
+The dependabot PRs are built as usual, except for the fact that the builds are not uploaded
+to riff raff. This is due to them not having access to the repo secrets. If you'd like to
+deploy a dependabot PR to test before merging, you'll need to manually trigger a
+build yourself. This will provide the build environment access to the necessary
+secrets.
+
 ## Introduction to Security HQ's features
 
 ### Credentials Reaper
