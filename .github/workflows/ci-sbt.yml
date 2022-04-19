@@ -19,12 +19,15 @@ jobs:
       # required by aws-actions/configure-aws-credentials
       id-token: write
       contents: read
+    env:
+      UPLOAD_TO_RIFFRAFF: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v2
 
       # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
       # See https://github.com/aws-actions/configure-aws-credentials
       - uses: aws-actions/configure-aws-credentials@v1
+        if: env.UPLOAD_TO_RIFFRAFF == 'true'
         with:
           role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           aws-region: eu-west-1
@@ -57,4 +60,4 @@ jobs:
         run: |
           LAST_TEAMCITY_BUILD=1265
           export GITHUB_RUN_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))
-          ./script/ci
+          ./script/ci $UPLOAD_TO_RIFFRAFF
