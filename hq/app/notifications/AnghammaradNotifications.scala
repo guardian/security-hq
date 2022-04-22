@@ -42,15 +42,16 @@ object AnghammaradNotifications extends Logging {
     Tag.tagsToAnghammaradTargets(iamUser.tags) :+ Account(awsAccount.accountNumber)
 
   def outdatedCredentialWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime, now: DateTime): Notification = {
+    val deadline = printDay(now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation))
     val message =
       s"""
          |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
          |which has been flagged because it was last rotated on ${printDay(problemCreationDate)}.
          |(if you're already planning on doing this, please ignore this message).
-         |If this is not rectified before ${printDay(now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation))},
+         |If this is not rectified before $deadline,
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
-    val subject = s"Action required: vulnerable credential detected in ${awsAccount.name}"
+    val subject = s"Action required by $deadline: vulnerable credential detected in ${awsAccount.name}"
     Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
