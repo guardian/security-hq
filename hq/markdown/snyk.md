@@ -25,7 +25,7 @@ section of the dashboard).
 
 ## Integrating Snyk with your project(s)
 
-By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has it's limitation and it's less accurate.
+By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has its limitation and it's less accurate.
 
 You can find how to do this in the [snyk actions repo](https://github.com/guardian/.github/tree/main/.github/workflows).
 
