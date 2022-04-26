@@ -25,16 +25,9 @@ section of the dashboard).
 
 ## Integrating Snyk with your project(s)
 
-By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has it's limitation and it's less accurate. Here's how to do it using GH Actions:
+By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has its limitation and it's less accurate.
 
-1. Make sure your repo has the `SNYK_TOKEN` available under 'Organization secrets' (Go to Settings -> Secrets). If it does not, ask an engineering manager to enable it for your repo.
-1. Create a file called `snyk.yml` in the `/.github/workflows/` folder of your repo. Paste one the appropriate code snippets from below into your new file.
-1. Edit the `org` argument in the code snippet to your org's code. We have several organisations in our Snyk account. To get your organisation's code go to the [Snyk dashboard](https://app.snyk.io/org/), select the org you want then obtain the code from the URL.  
-![image](https://user-images.githubusercontent.com/48949546/112194614-f6985880-8c00-11eb-946f-a88fdae57662.jpg)
-1. If your package file does not live in the main folder you will need to add a `--file` argument, such as the one in the Node example below. 
-
-
-
+You can find how to do this in the [snyk actions repo](https://github.com/guardian/.github/tree/main/.github/workflows).
 
 Setting up this Action will take care of updating your project's entry in snyk.io daily or whenever a new push to `main` takes place. It will also add feedback to commits and PRs, showing developers if their branch has any security vulnerabilities.
 
@@ -75,7 +68,7 @@ jobs:
 
 ```
 
-### Scala 
+### Scala
 
 ```
 # This action runs every day at 6 AM and on every push
@@ -185,9 +178,9 @@ appropriate to consider alternatives.
 ## Deserialization of Untrusted Data: Jackson Databind
 At the time of writing, this vulnerability makes up 74% of our 'high severity' vulnerabilities in Snyk. In the majority
 of cases this library is imported as a transitive dependency to our projects rather than being used directly - typically
-by the AWS SDK. This makes fixing it more challenging than you might expect, because it requires and AWS SDK upgrade 
+by the AWS SDK. This makes fixing it more challenging than you might expect, because it requires and AWS SDK upgrade
 rather than simply moving to the latest minor version of the jackson databind library. In some cases it's not possible to fix
-this via an AWS SDK upgrade and you have to override the dependency. 
+this via an AWS SDK upgrade and you have to override the dependency.
 
 For now, our recommendation is to *focus on other Snyk issues first*. For further info on this, there's a helpful thread
 on google chat [here](https://chat.google.com/room/AAAAFug03y8/3p2y42sYhMc) and an in depth blog post about the issue
