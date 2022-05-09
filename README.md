@@ -19,6 +19,11 @@ account's health from a security point of view.
 
 ### Getting started
 
+There are lots of good Java version managers, but we recommend
+[asdf](https://asdf-vm.com/) here. Once installed, it will respect the
+`.tools-versions` file in the root of the repository to ensure you are using the
+same Java version (11) and distribution (Corretto) as prod.
+
 ### AWS Configuration
 
 _Note: this section is only necessary if you do not already have another means of accessing your account(s) with the required permissions. Particularly, that is true for Guardian developers, who can use temporary credentials from Janus in the usual way._
@@ -45,7 +50,7 @@ Create the entry below in `~/.aws/config` file.
 
 ```
 [profile security-test]
-region = eu-west-1   
+region = eu-west-1
 ```
 
 ### Other Configuration
@@ -57,7 +62,7 @@ There are two other files that you will need to run security HQ locally. These a
 
 Both of these files can be found in the Security AWS account in S3 here `s3://security-dist/security/DEV/security-hq/`.
 
-To access the Security AWS account you will need to raise a PR in [Janus](https://github.com/guardian/janus/blob/main/guData/src/main/scala/com/gu/janus/data/Access.scala) 
+To access the Security AWS account you will need to raise a PR in [Janus](https://github.com/guardian/janus/blob/main/guData/src/main/scala/com/gu/janus/data/Access.scala)
 to get access to the Security account (`Security.dev` should be appropriate).
 
 Once you have Janus credentials for the AWS Security account, you can copy the files from S3 by using the following:
@@ -68,17 +73,17 @@ Once you have Janus credentials for the AWS Security account, you can copy the f
 
 ### Adding additional AWS accounts for local development
 
-When running security HQ locally, you can modify the list of AWS accounts to include additional account. 
+When running security HQ locally, you can modify the list of AWS accounts to include additional account.
 For example, you may want to add a specific account for debugging purposes. You will need valid AWS credentials for any accounts you wish to include.
 
-It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`, 
+It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`,
 add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
 
 ```
 AWS_ACCOUNTS = [
   {
    name = "Deploy Tools"
-   id = "deployTools" 
+   id = "deployTools"
    roleArn = ""
   }
 ]
@@ -221,19 +226,19 @@ secrets.
 
 ### Credentials Reaper
 The Credentials Reaper is a feature in Security HQ which automatically disables permanent IAM users
-with access keys that haven’t been rotated within 90 days for users with a password (human users) 
-or 365 days for users without a password (machine users). 
+with access keys that haven’t been rotated within 90 days for users with a password (human users)
+or 365 days for users without a password (machine users).
 It also disables permanent users who have left the Guardian.
 
-The reaper sends email notifications to the AWS account the user is in, before disabling a user. 
+The reaper sends email notifications to the AWS account the user is in, before disabling a user.
 The emails are sent via Anghammarad and uses it's AWS Account to email address mappings.
 
-You can also find the dynamo table in the Security AWS Account. 
+You can also find the dynamo table in the Security AWS Account.
 
 ### Lambda
 Security HQ holds a Lambda, which checks for security groups that are open to the world, except ELB groups. This data is used for `https://security-hq.gutools.co.uk/security-groups`.
 
-It is deployed as a stack set and is defined in  `cloudformation/watched-account.template.yaml`. 
+It is deployed as a stack set and is defined in  `cloudformation/watched-account.template.yaml`.
 This lambda is deployed manually by creating a JAR file locally and uploading it to S3: `s3://guardian-dist/guardian/PROD/securitygroups-lambda/`. The version name is important, because
 the cloudformation has a paramter, `version`, which is used to locate the correct S3 file. The stackset is then deployed manually again to all accounts from the root account.
 
