@@ -1,20 +1,5 @@
-import {
-  ComparisonOperator,
-  Metric,
-  TreatMissingData,
-} from '@aws-cdk/aws-cloudwatch';
-import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
-import {
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-  Peer,
-} from '@aws-cdk/aws-ec2';
-import { EmailSubscription } from '@aws-cdk/aws-sns-subscriptions';
-import type { App, CfnElement } from '@aws-cdk/core';
-import { Duration, RemovalPolicy } from '@aws-cdk/core';
-import { AccessScope, GuApplicationPorts, GuEc2App } from '@guardian/cdk';
-import { Stage } from '@guardian/cdk/lib/constants/stage';
+import { GuEc2App } from '@guardian/cdk';
+import { AccessScope } from '@guardian/cdk/lib/constants';
 import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
 import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
 import {
@@ -35,13 +20,26 @@ import {
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 import { GuardianPublicNetworks } from '@guardian/private-infrastructure-config';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import type { App } from 'aws-cdk-lib';
+import {
+  ComparisonOperator,
+  Metric,
+  TreatMissingData,
+} from 'aws-cdk-lib/aws-cloudwatch';
+import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import {
+  InstanceClass,
+  InstanceSize,
+  InstanceType,
+  Peer,
+} from 'aws-cdk-lib/aws-ec2';
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
     app: 'security-hq',
   };
-
-  migratedFromCloudFormation = true;
 
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
@@ -60,8 +58,11 @@ export class SecurityHQ extends GuStack {
         type: AttributeType.NUMBER,
       },
     });
-    const defaultChild = table.node.defaultChild as unknown as CfnElement;
-    defaultChild.overrideLogicalId('SecurityHqIamDynamoTable');
+
+    this.overrideLogicalId(table, {
+      logicalId: 'SecurityHqIamDynamoTable',
+      reason: 'Migrated from a YAML template',
+    });
 
     const distBucket = GuDistributionBucketParameter.getInstance(this);
 
@@ -77,10 +78,7 @@ export class SecurityHQ extends GuStack {
     );
     const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
 
-    const domainNames = {
-      [Stage.CODE]: { domainName: 'security-hq.code.dev-gutools.co.uk' },
-      [Stage.PROD]: { domainName: 'security-hq.gutools.co.uk' },
-    };
+    const domainName = 'security-hq.gutools.co.uk';
 
     const ec2App = new GuEc2App(this, {
       access: {
@@ -88,13 +86,14 @@ export class SecurityHQ extends GuStack {
         cidrRanges: [Peer.ipv4(GuardianPublicNetworks.London)],
       },
       app: 'security-hq',
-      applicationPort: GuApplicationPorts.Play,
+      applicationPort: 9000,
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
-      certificateProps: domainNames,
+      certificateProps: {
+        domainName,
+      },
       monitoringConfiguration: { noMonitoring: true },
       scaling: {
-        CODE: { minimumInstances: 1 },
-        PROD: { minimumInstances: 1 },
+        minimumInstances: 1,
       },
       userData: `#!/bin/bash -ev
 # setup security-hq
@@ -135,7 +134,7 @@ dpkg -i /tmp/installer.deb`,
 
     new GuCname(this, 'security-hq.gutools.co.uk', {
       app: SecurityHQ.app.app,
-      domainNameProps: domainNames,
+      domainName,
       ttl: Duration.hours(1),
       resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
     });

@@ -10,15 +10,18 @@
     "test": "jest",
     "format": "prettier --write \"{lib,bin}/**/*.ts\"",
     "cdk": "cdk",
-    "lint": "eslint lib/** bin/** --ext .ts --no-error-on-unmatched-pattern"
+    "lint": "eslint lib/** bin/** --ext .ts --no-error-on-unmatched-pattern",
+    "diff": "cdk diff --path-metadata false --version-reporting false",
+    "synth": "cdk synth --path-metadata false --version-reporting false"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.140.0",
     "@guardian/eslint-config-typescript": "^0.7.0",
     "@guardian/private-infrastructure-config": "git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.1",
     "@types/jest": "^26.0.20",
     "@types/node": "14.14.37",
-    "aws-cdk": "1.140.0",
+    "aws-cdk": "2.25.0",
+    "aws-cdk-lib": "2.25.0",
+    "constructs": "10.1.17",
     "eslint": "^7.18.0",
     "jest": "^26.6.3",
     "prettier": "^2.2.0",
@@ -27,8 +30,7 @@
     "typescript": "~4.2.2"
   },
   "dependencies": {
-    "@aws-cdk/core": "1.140.0",
-    "@guardian/cdk": "34.1.0",
+    "@guardian/cdk": "45.0.0",
     "source-map-support": "^0.5.16"
   }
 }

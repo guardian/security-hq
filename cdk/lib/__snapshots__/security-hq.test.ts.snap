@@ -2,22 +2,6 @@
 
 exports[`HQ stack matches the snapshot 1`] = `
 Object {
-  "Mappings": Object {
-    "securityhq": Object {
-      "CODE": Object {
-        "alarmActionsEnabled": false,
-        "domainName": "security-hq.code.dev-gutools.co.uk",
-        "maxInstances": 2,
-        "minInstances": 1,
-      },
-      "PROD": Object {
-        "alarmActionsEnabled": true,
-        "domainName": "security-hq.gutools.co.uk",
-        "maxInstances": 2,
-        "minInstances": 1,
-      },
-    },
-  },
   "Outputs": Object {
     "LoadBalancerSecurityhqDnsName": Object {
       "Description": "DNS entry for LoadBalancerSecurityhq",
@@ -58,18 +42,9 @@ Object {
       "Description": "SSM parameter containing the Name (not ARN) on the kinesis stream",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "Stage": Object {
-      "AllowedValues": Array [
-        "CODE",
-        "PROD",
-      ],
-      "Default": "CODE",
-      "Description": "Stage name",
-      "Type": "String",
-    },
     "VpcId": Object {
       "Default": "/account/vpc/primary/id",
-      "Description": "Virtual Private Cloud to run EC2 instances within",
+      "Description": "Virtual Private Cloud to run EC2 instances within. Should NOT be the account default VPC.",
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>",
     },
     "securityhqPrivateSubnets": Object {
@@ -112,24 +87,8 @@ Object {
         "LaunchConfigurationName": Object {
           "Ref": "AutoScalingGroupSecurityhqLaunchConfig4307528E",
         },
-        "MaxSize": Object {
-          "Fn::FindInMap": Array [
-            "securityhq",
-            Object {
-              "Ref": "Stage",
-            },
-            "maxInstances",
-          ],
-        },
-        "MinSize": Object {
-          "Fn::FindInMap": Array [
-            "securityhq",
-            Object {
-              "Ref": "Stage",
-            },
-            "minInstances",
-          ],
-        },
+        "MaxSize": "2",
+        "MinSize": "1",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -152,6 +111,13 @@ Object {
             "Value": "guardian/security-hq",
           },
           Object {
+            "Key": "LogKinesisStreamName",
+            "PropagateAtLaunch": true,
+            "Value": Object {
+              "Ref": "LoggingStreamName",
+            },
+          },
+          Object {
             "Key": "Name",
             "PropagateAtLaunch": true,
             "Value": "security-hq/AutoScalingGroupSecurityhq",
@@ -164,9 +130,7 @@ Object {
           Object {
             "Key": "Stage",
             "PropagateAtLaunch": true,
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "TargetGroupARNs": Array [
@@ -202,6 +166,9 @@ Object {
           "Ref": "AMISecurityhq",
         },
         "InstanceType": "t4g.large",
+        "MetadataOptions": Object {
+          "HttpTokens": "required",
+        },
         "SecurityGroups": Array [
           Object {
             "Fn::GetAtt": Array [
@@ -229,29 +196,17 @@ aws --region eu-west-1 s3 cp s3://",
                 Object {
                   "Ref": "DistributionBucketName",
                 },
-                "/security/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/security-hq/security-hq.conf /etc/gu
+                "/security/PROD/security-hq/security-hq.conf /etc/gu
 aws --region eu-west-1 s3 cp s3://",
                 Object {
                   "Ref": "DistributionBucketName",
                 },
-                "/security/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/security-hq/security-hq-service-account-cert.json /etc/gu
+                "/security/PROD/security-hq/security-hq-service-account-cert.json /etc/gu
 aws --region eu-west-1 s3 cp s3://",
                 Object {
                   "Ref": "DistributionBucketName",
                 },
-                "/security/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/security-hq/security-hq.deb /tmp/installer.deb
+                "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
 
 dpkg -i /tmp/installer.deb",
               ],
@@ -264,15 +219,7 @@ dpkg -i /tmp/installer.deb",
     "CertificateSecurityhqD266EC9D": Object {
       "DeletionPolicy": "Retain",
       "Properties": Object {
-        "DomainName": Object {
-          "Fn::FindInMap": Array [
-            "securityhq",
-            Object {
-              "Ref": "Stage",
-            },
-            "domainName",
-          ],
-        },
+        "DomainName": "security-hq.gutools.co.uk",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -292,9 +239,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "ValidationMethod": "DNS",
@@ -351,15 +296,7 @@ dpkg -i /tmp/installer.deb",
     },
     "DisableAccessKeyFailureAlarm03FFC3CB": Object {
       "Properties": Object {
-        "ActionsEnabled": Object {
-          "Fn::FindInMap": Array [
-            "securityhq",
-            Object {
-              "Ref": "Stage",
-            },
-            "alarmActionsEnabled",
-          ],
-        },
+        "ActionsEnabled": true,
         "AlarmActions": Array [
           Object {
             "Fn::Join": Array [
@@ -507,11 +444,7 @@ dpkg -i /tmp/installer.deb",
                     Object {
                       "Ref": "DistributionBucketName",
                     },
-                    "/security/",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                    "/security-hq/*",
+                    "/security/PROD/security-hq/*",
                   ],
                 ],
               },
@@ -582,9 +515,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "VpcId": Object {
@@ -742,9 +673,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
       },
@@ -820,9 +749,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "Type": "application",
@@ -851,9 +778,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "VpcId": Object {
@@ -901,9 +826,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
       },
@@ -940,11 +863,7 @@ dpkg -i /tmp/installer.deb",
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":parameter/",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                    "/security/security-hq",
+                    ":parameter/PROD/security/security-hq",
                   ],
                 ],
               },
@@ -967,11 +886,7 @@ dpkg -i /tmp/installer.deb",
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":parameter/",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                    "/security/security-hq/*",
+                    ":parameter/PROD/security/security-hq/*",
                   ],
                 ],
               },
@@ -990,15 +905,7 @@ dpkg -i /tmp/installer.deb",
     },
     "RemovePasswordFailureAlarm68B6574A": Object {
       "Properties": Object {
-        "ActionsEnabled": Object {
-          "Fn::FindInMap": Array [
-            "securityhq",
-            Object {
-              "Ref": "Stage",
-            },
-            "alarmActionsEnabled",
-          ],
-        },
+        "ActionsEnabled": true,
         "AlarmActions": Array [
           Object {
             "Fn::Join": Array [
@@ -1073,9 +980,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "VpcId": Object {
@@ -1120,11 +1025,7 @@ dpkg -i /tmp/installer.deb",
                     Object {
                       "Ref": "AuditDataS3BucketName",
                     },
-                    "/security/",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                    "/*",
+                    "/security/PROD/*",
                   ],
                 ],
               },
@@ -1220,9 +1121,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
       },
@@ -1257,9 +1156,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "TargetGroupAttributes": Array [
@@ -1314,9 +1211,7 @@ dpkg -i /tmp/installer.deb",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "PROD",
           },
         ],
         "VpcId": Object {
@@ -1327,15 +1222,7 @@ dpkg -i /tmp/installer.deb",
     },
     "securityhqgutoolscouk": Object {
       "Properties": Object {
-        "Name": Object {
-          "Fn::FindInMap": Array [
-            "securityhq",
-            Object {
-              "Ref": "Stage",
-            },
-            "domainName",
-          ],
-        },
+        "Name": "security-hq.gutools.co.uk",
         "RecordType": "CNAME",
         "ResourceRecords": Array [
           Object {
@@ -1345,9 +1232,7 @@ dpkg -i /tmp/installer.deb",
             ],
           },
         ],
-        "Stage": Object {
-          "Ref": "Stage",
-        },
+        "Stage": "PROD",
         "TTL": 3600,
       },
       "Type": "Guardian::DNS::RecordSet",
