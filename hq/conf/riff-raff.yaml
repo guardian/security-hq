@@ -10,18 +10,6 @@ deployments:
       bucket: security-dist
     dependencies: [security-hq-cfn]
 
-# Upgrading @guardian/cdk is resulting in some resources in this stack being replaced.
-# Removing the Riff-Raff deployment whilst we understand why.
-# It might be best to move the VPC stack into it's own repository as it is account wide.
-#  security-vpc-cfn:
-#    type: cloud-formation
-#    app: security-vpc
-#    parameters:
-#      prependStackToCloudFormationStackName: false
-#      cloudFormationStackByTags: false
-#      cloudFormationStackName: security-vpc
-#      templatePath: cfn.json
-
   security-hq-cfn:
     type: cloud-formation
     app: security-hq
