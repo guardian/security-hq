@@ -9,4 +9,3 @@ dist
 # CDK asset staging directory
 .cdk.staging
 cdk.out
-!cdk.out/security-vpc.template.json
