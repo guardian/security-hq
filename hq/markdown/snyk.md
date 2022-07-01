@@ -27,82 +27,9 @@ section of the dashboard).
 
 By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has its limitation and it's less accurate.
 
-You can find how to do this in the [snyk actions repo](https://github.com/guardian/.github/tree/main/.github/workflows).
-
 Setting up this Action will take care of updating your project's entry in snyk.io daily or whenever a new push to `main` takes place. It will also add feedback to commits and PRs, showing developers if their branch has any security vulnerabilities.
 
-
-### Node
-```
-# This action runs every day at 6 AM and on every push
-# If the branch it's running on is main then it will run snyk monitor (reports vulnerabilities to snyk.io)
-# Otherwise it will run snyk test
-name: Snyk
-
-on:
-  schedule:
-    - cron: "0 6 * * *"
-  push:
-  workflow_dispatch:
-
-jobs:
-  security:
-    runs-on: ubuntu-latest
-    env:
-      SNYK_COMMAND: test
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-
-      - name: Set command to monitor
-        if: github.ref == 'refs/heads/main'
-        run: echo "SNYK_COMMAND=monitor" >> $GITHUB_ENV
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@0.3.0
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --org=REPLACE_WITH_YOUR_ORG --project-name=${{ github.repository }} --file=./app/yarn.lock
-          command: ${{ env.SNYK_COMMAND }}
-
-```
-
-### Scala
-
-```
-# This action runs every day at 6 AM and on every push
-# If the branch it's running on is main then it will run snyk monitor (reports vulnerabilities to snyk.io)
-# Otherwise it will run snyk test
-name: Snyk
-
-on:
-  schedule:
-    - cron: '0 6 * * *'
-  push:
-  workflow_dispatch:
-
-jobs:
-  security:
-    runs-on: ubuntu-latest
-    env:
-      SNYK_COMMAND: test
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
-
-      - name: Set command to monitor
-        if: github.ref == 'refs/heads/main'
-        run: echo "SNYK_COMMAND=monitor" >> $GITHUB_ENV
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/scala@0.3.0
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --org=REPLACE_WITH_YOUR_ORG --project-name=${{ github.repository }}
-          command: ${{ env.SNYK_COMMAND }}
-```
+You can find how to do this in the [snyk actions repo](https://github.com/guardian/.github/tree/main/.github/workflows).
 
 ## Eliminating Vulnerabilities
 
