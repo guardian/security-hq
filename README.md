@@ -57,8 +57,8 @@ region = eu-west-1
 
 There are two other files that you will need to run security HQ locally. These are:
 
-1.  `~/.gu/security-hq.local.conf` (Please update the value of key `GOOGLE_SERVICE_ACCOUNT_CERT_PATH`)
-1. `~/.gu/security-hq-service-account-cert.json`
+1. `~/.gu/security-hq.local.conf`
+2. `~/.gu/security-hq-service-account-cert.json`
 
 Both of these files can be found in the Security AWS account in S3 here `s3://security-dist/security/DEV/security-hq/`.
 
@@ -69,6 +69,13 @@ Once you have Janus credentials for the AWS Security account, you can copy the f
 ```
  aws s3 cp s3://security-dist/security/DEV/security-hq/security-hq.local.conf ~/.gu --profile security
  aws s3 cp s3://security-dist/security/DEV/security-hq/security-hq-service-account-cert.json ~/.gu --profile security
+```
+
+You will then need to update `~/.gu/security-hq.local.conf` as follows:
+
+```
+# Update this path to reference your home directory
+GOOGLE_SERVICE_ACCOUNT_CERT_PATH="/Users/ADD_YOUR_NAME/.gu/security-hq-service-account-cert.json"
 ```
 
 ### Adding additional AWS accounts for local development
@@ -131,21 +138,6 @@ run each of these commands:
 
 4. Now when you run the project (see next step for details), it will also be accessible via [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
-### Running project
-From the root of the project:
-
-1. Get Security Janus credentials.
-
-2. Ensure you are running Java 11
-
-3. Run sbt: `$ ./sbt`
-
-4. Select the project that you want to run: `sbt:security-hq> project hq`
-
-5. Start the application: `sbt:security-hq> run`
-
-Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
-
 ### DynamoDB local setup
 
 Running Security HQ locally requires a local instance of DynamoDb to connect
@@ -158,6 +150,21 @@ is running. This only needs to be done once, as the database is stored on disk
 and persistent between application runs.
 
 1. `$ ./script/setup`
+
+### Running project
+From the root of the project:
+
+1. Get Security Janus credentials.
+
+2. Ensure you are running Java 11
+
+3. Run sbt: `$ ./sbt` (you must use this script to start SBT as it loads the local config copied from S3 in the previous steps).
+
+4. Select the project that you want to run: `sbt:security-hq> project hq`
+
+5. Start the application: `sbt:security-hq> run`
+
+Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
 ### Working with CSS and JS
 
@@ -174,7 +181,6 @@ Before beginning, you may want to install a node version manager, such as [nvm](
 2. Then install all the dependencies by running:
 
 `$ yarn`
-
 
 ##### Running checks with Yarn
 
