@@ -16,7 +16,7 @@ This may not work if you are already signed into another Snyk account, so you ma
 
 We have an enterprise group called 'The Guardian'. Everyone will get added to the organisation `guardian-people`
 (under our enterprise group) when they first log in. Once team members have signed in, they should be added
-to other organisations for each team. You will not be able to see teams you are not a member of.
+to other organisations corresponding to teams they are a part of. You will not be able to see organisations you are not a member of.
 
 Developers can be added to a team by a group admin (a few individuals or the InfoSec team) or an admin of the desired
 organisation. You will probably also want to upgrade team members from collaborators to admins (in the members
