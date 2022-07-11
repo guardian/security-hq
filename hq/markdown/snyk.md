@@ -25,12 +25,13 @@ section of the dashboard).
 ## Integrating Snyk with your project(s)
 
 By far the most effective way to integrate Snyk is through GitHub Actions. Setting up this Action will send a list of
-your project's dependencies to snyk.io whenever a new push to `main` takes place. You can find how to do this in the
-[snyk actions repo](https://github.com/guardian/.github/tree/main/.github/workflows). Snyk will take this list and compare
-it to a list of vulnerable dependencies daily. If any new ones are found, team members will be notified by email, and it
-will show up on the UI as a vulnerable project. If a patch is available, it will indicate this. A failed action does not
-indicate that your project is vulnerable, it just means the action was unable to complete. This may be because it can't
-communicate with snyk's servers, or perhaps a required plugin has been removed.
+your project's dependencies to snyk.io whenever a new push to `main` takes place. We have created a reusable workflow
+that can be used to achieve this, it can be found [here](https://github.com/guardian/.github/tree/main/.github/workflows)
+along with usage instructions. Snyk will take this list of dependencies and compare it to a list of vulnerable
+dependencies daily. If any new ones are found, team members will be notified by email, and it will show up on the UI as
+a vulnerable project. If a patch is available, it will indicate this. A failed action does not indicate that your project
+is vulnerable, it just means the action was unable to complete. This may be because it can't communicate with snyk's
+servers, or perhaps a required plugin has been removed.
 
 This snyk action can produce feedback a little more slowly than other methods, so for an extra layer of security, we
 recommend developers install the Snyk plugins for their IDEs (available for both IntelliJ and VSCode at the time of
