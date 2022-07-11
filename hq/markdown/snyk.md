@@ -33,7 +33,7 @@ a vulnerable project. If a patch is available, it will indicate this. A failed a
 is vulnerable, it just means the action was unable to complete. This may be because it can't communicate with snyk's
 servers, or perhaps a required plugin has been removed.
 
-This snyk action can produce feedback a little more slowly than other methods, so for an extra layer of security, we
+This method provides a consistent means for testing the security of our deployed software, but it has a long feedback loop for identifying vulnerabilities that are introduced during development. For faster feedback, we 
 recommend developers install the Snyk plugins for their IDEs (available for both IntelliJ and VSCode at the time of
 writing).
 
