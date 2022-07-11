@@ -15,21 +15,28 @@ special link.
 This may not work if you are already signed into another Snyk account, so you may need to logout first.
 
 We have an enterprise group called 'The Guardian'. Everyone will get added to the organisation `guardian-people`
-(under our enterprise group) when they first log in. Once team members have signed in, they can be added
-to other organisations for each team. However, other organisations will not appear in the dropdown menu until
-you have been added to them.
+(under our enterprise group) when they first log in. Once team members have signed in, they should be added
+to other organisations corresponding to teams they are a part of. You will not be able to see organisations you are not a member of.
 
-This needs to be done by a group admin (a few individuals or the InfoSec team) or an admin of the desired
+Developers can be added to a team by a group admin (a few individuals or the InfoSec team) or an admin of the desired
 organisation. You will probably also want to upgrade team members from collaborators to admins (in the members
 section of the dashboard).
 
 ## Integrating Snyk with your project(s)
 
-By far the most effective way to integrate Snyk is through GitHub Actions. You can also add projects via the Snyk UI, but that method has its limitation and it's less accurate.
+By far the most effective way to integrate Snyk is through GitHub Actions. Setting up this Action will send a list of
+your project's dependencies to snyk.io whenever a new push to `main` takes place. We have created a reusable workflow
+that can be used to achieve this, it can be found [here](https://github.com/guardian/.github/tree/main/.github/workflows)
+along with usage instructions. Snyk will take this list of dependencies and compare it to a list of vulnerable
+dependencies daily. If any new ones are found, team members will be notified by email, and it will show up on the UI as
+a vulnerable project. If a patch is available, it will indicate this. A failed action does not indicate that your project
+is vulnerable, it just means the action was unable to complete. This may be because it can't communicate with snyk's
+servers, or perhaps a required plugin has been removed.
 
-Setting up this Action will take care of updating your project's entry in snyk.io daily or whenever a new push to `main` takes place. It will also add feedback to commits and PRs, showing developers if their branch has any security vulnerabilities.
-
-You can find how to do this in the [snyk actions repo](https://github.com/guardian/.github/tree/main/.github/workflows).
+This method provides a consistent means for testing the security of our deployed software, but it has a long feedback
+loop for identifying vulnerabilities that are introduced during development. For faster feedback, we recommend
+developers install the Snyk plugins for their IDEs (available for both IntelliJ and VSCode at the time of writing),
+and/or use the PR action, which can be found in the same location as the other workflow above.
 
 ## Eliminating Vulnerabilities
 
@@ -85,9 +92,8 @@ The worst case scenario is that the library is still vulnerable, has no alternat
 may wish to build and release anyway, ideally reporting the situation to a risk register. This is most likely to happen when
 a new vulnerability is discovered and the library publisher has not had chance to respond.
 
-In this case you can create an exemption by ignoring the vulnerability. The easiest way to do this is to ignore it
-from the Snyk dashboard. Do not ignore vulnerabilities forever, and ideally make sure you will be told when a fix
-is available.
+In this case you can create a time-limited exemption by ignoring the vulnerability. The easiest way to do this is from
+the Snyk dashboard. Do not ignore vulnerabilities forever, and ideally make sure you will be told when a fix is available.
 
 When an exemption expires, the test will start to fail again (see Reviewing Expired Exemptions below).
 If a review still finds no mitigation available, then it is trivial to extend by changing the date and committing.
