@@ -155,7 +155,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-      "ch.qos.logback" %  "logback-classic" % "1.2.3",
+      "ch.qos.logback" %  "logback-classic" % "1.2.11",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
