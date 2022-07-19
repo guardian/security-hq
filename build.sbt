@@ -35,7 +35,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-googleauth" %% "play-v28" % "2.2.2",
       "com.gu.play-secret-rotation" %% "play-v28" % "0.33",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.33",
-      "joda-time" % "joda-time" % "2.10.5",
+      "joda-time" % "joda-time" % "2.10.14",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
