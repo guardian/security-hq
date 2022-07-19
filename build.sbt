@@ -32,7 +32,7 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %% "play-v28" % "2.2.2",
+      "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
       "com.gu.play-secret-rotation" %% "play-v28" % "0.35",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.35",
       "joda-time" % "joda-time" % "2.10.14",
