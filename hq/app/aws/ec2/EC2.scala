@@ -4,8 +4,6 @@ import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
 import aws.ec2.EFS.filterOutEfsUnknownUsages
 import aws.support.TrustedAdvisorSGOpenPorts
 import aws.{AwsClient, AwsClients}
-import cats.instances.map._
-import cats.instances.set._
 import cats.syntax.semigroup._
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2Async

@@ -1,13 +1,13 @@
 addSbtPlugin("com.gu" % "sbt-riffraff-artifact" % "1.1.18")
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.6")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10")
 
-addSbtPlugin("com.localytics" % "sbt-dynamodb" % "2.0.2")
+addSbtPlugin("com.localytics" % "sbt-dynamodb" % "2.0.3")
 
 libraryDependencies += "org.vafer" % "jdeb" % "1.10" artifacts Artifact("jdeb", "jar", "jar")
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.13")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.16")
 
 // web plugins
 
