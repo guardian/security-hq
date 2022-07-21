@@ -16,7 +16,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.11.1034"
 val playJsonVersion = "2.8.2"
-val jacksonVersion = "2.12.7"
+val jacksonVersion = "2.13.3"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
 // See https://github.com/akka/akka/pull/30375
