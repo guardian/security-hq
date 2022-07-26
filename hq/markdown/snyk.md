@@ -7,7 +7,8 @@ vulnerabilities in your application.
 
 ## Getting set up
 
-To access snyk, go to [their website](https://app.snyk.io/) and sign up via Enterprise SSO. Any other method won't work.
+To access snyk, go to [their website](https://app.snyk.io/login/sso) to sign up via Enterprise SSO. Any other method won't
+work and might have adverse consequences.
 This also may not work if you are already signed into another Snyk account, so you may need to logout first.
 
 We have an enterprise group called 'The Guardian'. Everyone will get added to the organisation `guardian-people`
