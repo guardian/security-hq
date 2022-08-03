@@ -64,7 +64,7 @@ lazy val hq = (project in file("hq"))
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "7.2" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-      "com.gu" % "kinesis-logback-appender" % "1.4.4",
+      "com.gu" % "kinesis-logback-appender" % "2.0.3",
       "com.gu" %% "janus-config-tools" % "0.0.5"
     ),
     Assets / pipelineStages := Seq(digest),
