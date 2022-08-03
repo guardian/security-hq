@@ -3,7 +3,9 @@ name: CI
 
 on:
   pull_request:
-
+    branches-ignore:
+      - dependency-updates
+      
   # Manual invocation.
   workflow_dispatch:
 
