@@ -14,8 +14,8 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.11.1034"
-val playJsonVersion = "2.9.2"
+val awsSdkVersion = "1.12.274"
+val playJsonVersion = "2.8.2"
 val jacksonVersion = "2.12.7"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
@@ -63,7 +63,7 @@ lazy val hq = (project in file("hq"))
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "6.6" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.2" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" % "kinesis-logback-appender" % "1.4.4",
       "com.gu" %% "janus-config-tools" % "0.0.5"
     ),
