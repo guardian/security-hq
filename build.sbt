@@ -15,8 +15,8 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.276"
-val playJsonVersion = "2.9.2"
-val jacksonVersion = "2.12.7"
+val playJsonVersion = "2.8.2"
+val jacksonVersion = "2.13.3"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
 // See https://github.com/akka/akka/pull/30375
@@ -33,8 +33,8 @@ lazy val hq = (project in file("hq"))
       ws,
       filters,
       "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
-      "com.gu.play-secret-rotation" %% "play-v28" % "0.35",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.35",
+      "com.gu.play-secret-rotation" %% "play-v28" % "0.36",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.36",
       "joda-time" % "joda-time" % "2.10.14",
       "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
@@ -53,7 +53,7 @@ lazy val hq = (project in file("hq"))
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "2.5.6",
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.8.0",
       "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.16.0" % Test,
