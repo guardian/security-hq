@@ -27,4 +27,4 @@
 
 <!-- Have CSS or JS changes been checked and fixed by Prettier? -->
 
-<!-- Does this PR meet the contributing guidelines? https://git.io/vNUJt -->
+<!-- Does this PR meet the contributing guidelines? https://github.com/guardian/security-hq/blob/main/.github/CONTRIBUTING.md -->
