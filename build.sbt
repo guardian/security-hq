@@ -14,8 +14,8 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.276"
-val playJsonVersion = "2.8.2"
+val awsSdkVersion = "1.12.281"
+val playJsonVersion = "2.9.2"
 val jacksonVersion = "2.13.3"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
@@ -35,7 +35,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
       "com.gu.play-secret-rotation" %% "play-v28" % "0.36",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.36",
-      "joda-time" % "joda-time" % "2.10.14",
+      "joda-time" % "joda-time" % "2.11.0",
       "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
@@ -64,7 +64,7 @@ lazy val hq = (project in file("hq"))
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "7.2" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-      "com.gu" % "kinesis-logback-appender" % "1.4.4",
+      "com.gu" % "kinesis-logback-appender" % "2.1.0",
       "com.gu" %% "janus-config-tools" % "0.0.5"
     ),
     Assets / pipelineStages := Seq(digest),
