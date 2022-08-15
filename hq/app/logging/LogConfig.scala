@@ -15,6 +15,7 @@ import play.api.libs.json.Json
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider
 import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
 
 import java.net.InetSocketAddress
 import scala.util.Try
@@ -37,7 +38,8 @@ object LogConfig {
 
     val instanceProvider = InstanceProfileCredentialsProvider.create()
     val stsClient = StsClient.builder().credentialsProvider(instanceProvider).build
-    new StsAssumeRoleCredentialsProvider.Builder(stsRole, sessionId).stsClient(stsClient).build
+    val assumeRoleRequest = AssumeRoleRequest.builder().roleArn(stsRole).roleSessionName(sessionId).build()
+    StsAssumeRoleCredentialsProvider.builder().refreshRequest(assumeRoleRequest).stsClient(stsClient).build
   }
 
   def initLocalLogShipping(config: LoggingConfig): Unit = {
