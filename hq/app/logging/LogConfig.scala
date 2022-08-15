@@ -1,22 +1,22 @@
 package logging
 
-import java.net.InetSocketAddress
-
 import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.{Logger => LogbackLogger}
-import com.amazonaws.auth.{InstanceProfileCredentialsProvider, STSAssumeRoleSessionCredentialsProvider}
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
+import ch.qos.logback.classic.{ Logger => LogbackLogger }
 import com.gu.logback.appender.kinesis.KinesisAppender
 import config.LoggingConfig
 import model.DEV
 import net.logstash.logback.appender.LogstashTcpSocketAppender
 import net.logstash.logback.encoder.LogstashEncoder
 import net.logstash.logback.layout.LogstashLayout
-import org.slf4j.{LoggerFactory, Logger => SLFLogger}
+import org.slf4j.{ LoggerFactory, Logger => SLFLogger }
 import play.api.ApplicationLoader.Context
 import play.api.LoggerConfigurator
 import play.api.libs.json.Json
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider
+import software.amazon.awssdk.services.sts.StsClient
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
 
+import java.net.InetSocketAddress
 import scala.util.Try
 
 object LogConfig {
@@ -35,9 +35,9 @@ object LogConfig {
   private def buildCredentialsProvider(stsRole: String, config: LoggingConfig) = {
     val sessionId = s"${config.app}-session"
 
-    val instanceProvider = InstanceProfileCredentialsProvider.getInstance
-    val stsClient = AWSSecurityTokenServiceClientBuilder.standard.withCredentials(instanceProvider).build
-    new STSAssumeRoleSessionCredentialsProvider.Builder(stsRole, sessionId).withStsClient(stsClient).build
+    val instanceProvider = InstanceProfileCredentialsProvider.create()
+    val stsClient = StsClient.builder().credentialsProvider(instanceProvider).build
+    new StsAssumeRoleCredentialsProvider.Builder(stsRole, sessionId).stsClient(stsClient).build
   }
 
   def initLocalLogShipping(config: LoggingConfig): Unit = {
