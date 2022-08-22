@@ -14,7 +14,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.281"
+val awsSdkVersion = "1.12.286"
 val playJsonVersion = "2.9.2"
 val jacksonVersion = "2.13.3"
 
@@ -53,7 +53,7 @@ lazy val hq = (project in file("hq"))
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "2.8.0",
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.9.0",
       "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.16.0" % Test,
