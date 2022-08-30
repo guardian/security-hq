@@ -96,7 +96,6 @@ object LogConfig {
             appender.setStreamName(streamName)
             appender.setContext(context)
             appender.setLayout(layout)
-            appender.setRoleToAssumeArn(stsRole)
             appender.setCredentialsProvider(buildCredentialsProvider(stsRole, config))
             appender.start()
             rootLogger.addAppender(appender)
