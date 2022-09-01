@@ -155,7 +155,8 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      "ch.qos.logback" %  "logback-classic" % "1.2.11",
+      // Not upgradeable until Play moves to 1.3+ as well. It depends on slf4j 2, which has breaking changes
+      "ch.qos.logback" % "logback-classic" % "1.2.11", // scala-steward:off,
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
