@@ -14,8 +14,8 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.286"
-val playJsonVersion = "2.9.2"
+val awsSdkVersion = "1.12.294"
+val playJsonVersion = "2.9.3"
 val jacksonVersion = "2.13.3"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
@@ -35,7 +35,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
       "com.gu.play-secret-rotation" %% "play-v28" % "0.36",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.36",
-      "joda-time" % "joda-time" % "2.11.0",
+      "joda-time" % "joda-time" % "2.11.1",
       "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
@@ -155,7 +155,8 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      "ch.qos.logback" %  "logback-classic" % "1.2.11",
+      // Not upgradeable until Play moves to 1.3+ as well. It depends on slf4j 2, which has breaking changes
+      "ch.qos.logback" % "logback-classic" % "1.2.11", // scala-steward:off,
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
