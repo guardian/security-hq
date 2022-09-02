@@ -20,7 +20,7 @@
     "@guardian/private-infrastructure-config": "git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.1",
     "@types/jest": "^26.0.20",
     "@types/node": "14.14.37",
-    "aws-cdk": "2.29.1",
+    "aws-cdk": "2.40.0",
     "aws-cdk-lib": "2.29.1",
     "constructs": "10.1.42",
     "eslint": "^8.23.0",
