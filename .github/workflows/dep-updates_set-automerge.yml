@@ -8,4 +8,6 @@ on:
 jobs:
   set-automerge:
     name: Set automerge on opened PRs targeting the tracking branch
+    permissions:
+      pull-requests: write
     uses: guardian/.github/.github/workflows/pr-batching_set-automerge.yml@js/dependabot-perms
