@@ -10,4 +10,4 @@ jobs:
     name: Set automerge on opened PRs targeting the tracking branch
     permissions:
       contents: write
-    uses: guardian/.github/.github/workflows/pr-batching_set-automerge.yml@1.0.1
+    uses: guardian/.github/.github/workflows/pr-batching_set-automerge.yml@v1.0.1
