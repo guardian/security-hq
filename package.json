@@ -11,7 +11,7 @@
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-prettier": "3.4.1",
-    "materialize-css": "0.100.2",
+    "materialize-css": "1.0.0",
     "prettier": "2.7.1",
     "stylelint": "14.11.0",
     "stylelint-config-recommended": "9.0.0",
