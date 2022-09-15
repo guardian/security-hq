@@ -6,6 +6,7 @@ import sbt.Keys.libraryDependencies
 
 import scala.concurrent.duration.DurationInt
 
+
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.2.0"
