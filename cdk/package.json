@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@guardian/cdk": "47.3.3",
-    "@guardian/eslint-config-typescript": "^1.0.8",
+    "@guardian/eslint-config-typescript": "^1.0.11",
     "@guardian/private-infrastructure-config": "git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.1",
     "@types/jest": "^29.0.1",
     "@types/node": "18.7.15",
