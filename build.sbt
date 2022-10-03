@@ -14,9 +14,9 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.294"
+val awsSdkVersion = "1.12.313"
 val playJsonVersion = "2.9.3"
-val jacksonVersion = "2.13.3"
+val jacksonVersion = "2.13.4"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
 // See https://github.com/akka/akka/pull/30375
@@ -35,7 +35,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
       "com.gu.play-secret-rotation" %% "play-v28" % "0.36",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.36",
-      "joda-time" % "joda-time" % "2.11.1",
+      "joda-time" % "joda-time" % "2.11.2",
       "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
@@ -53,10 +53,10 @@ lazy val hq = (project in file("hq"))
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "2.9.0",
-      "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.10.0",
+      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.16.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "1.2.0",
 
@@ -152,7 +152,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
-      "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
       // Not upgradeable until Play moves to 1.3+ as well. It depends on slf4j 2, which has breaking changes
