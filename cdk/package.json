@@ -22,7 +22,7 @@
     "@types/node": "18.8.0",
     "aws-cdk": "2.42.0",
     "aws-cdk-lib": "2.44.0",
-    "constructs": "10.1.113",
+    "constructs": "10.1.120",
     "eslint": "^8.23.1",
     "jest": "^29.0.3",
     "prettier": "^2.7.1",

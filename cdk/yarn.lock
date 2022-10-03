@@ -1461,10 +1461,10 @@ concat-map@0.0.1:
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
-constructs@10.1.113:
-  version "10.1.113"
-  resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.1.113.tgz#7acef04470e5e152d627edf3eba929a505ad779d"
-  integrity sha512-BhX7nHQjCWykIONFw6IlvCHizHB+ruz2Jncgmrosv8yGX8U1pF4SJTrSCqBdbA/aaXusNPpgFD2asRu3gOCjgA==
+constructs@10.1.120:
+  version "10.1.120"
+  resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.1.120.tgz#1a5cda4a68962ed7c617cc5241f90750ea85fd9e"
+  integrity sha512-joHfWQubSbemOgVz+VeiN6t07oS1rG3Tg9c0AxQ0MJRuxbUkDM3PoUB9uWBKxWnMlWI523lYTTuNqA25b3gWcQ==
 
 constructs@10.1.91:
   version "10.1.91"
