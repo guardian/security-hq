@@ -1,69 +1,107 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`HQ stack matches the snapshot 1`] = `
-Object {
-  "Outputs": Object {
-    "LoadBalancerSecurityhqDnsName": Object {
+{
+  "Metadata": {
+    "gu:cdk:constructs": [
+      "GuDistributionBucketParameter",
+      "GuStringParameter",
+      "GuAnghammaradTopicParameter",
+      "GuAnghammaradSenderPolicy",
+      "GuPutCloudwatchMetricsPolicy",
+      "GuGetS3ObjectsPolicy",
+      "GuDynamoDBReadPolicy",
+      "GuDynamoDBWritePolicy",
+      "GuAllowPolicy",
+      "GuAllowPolicy",
+      "GuVpcParameter",
+      "GuSubnetListParameter",
+      "GuCertificate",
+      "GuInstanceRole",
+      "GuSSMRunCommandPolicy",
+      "GuDescribeEC2Policy",
+      "GuLoggingStreamNameParameter",
+      "GuLogShippingPolicy",
+      "GuGetDistributablePolicy",
+      "GuParameterStoreReadPolicy",
+      "GuAmiParameter",
+      "GuHttpsEgressSecurityGroup",
+      "GuAutoScalingGroup",
+      "GuWazuhAccess",
+      "GuSubnetListParameter",
+      "GuApplicationLoadBalancer",
+      "GuApplicationTargetGroup",
+      "GuHttpsApplicationListener",
+      "GuSecurityGroup",
+      "GuSnsTopic",
+      "GuParameter",
+      "GuAlarm",
+      "GuAlarm",
+    ],
+    "gu:cdk:version": "TEST",
+  },
+  "Outputs": {
+    "LoadBalancerSecurityhqDnsName": {
       "Description": "DNS entry for LoadBalancerSecurityhq",
-      "Value": Object {
-        "Fn::GetAtt": Array [
+      "Value": {
+        "Fn::GetAtt": [
           "LoadBalancerSecurityhqF59D9B82",
           "DNSName",
         ],
       },
     },
   },
-  "Parameters": Object {
-    "AMISecurityhq": Object {
+  "Parameters": {
+    "AMISecurityhq": {
       "Description": "Amazon Machine Image ID for the app security-hq. Use this in conjunction with AMIgo to keep AMIs up to date.",
       "Type": "AWS::EC2::Image::Id",
     },
-    "AnghammaradSnsArn": Object {
+    "AnghammaradSnsArn": {
       "Default": "/account/services/anghammarad.topic.arn",
       "Description": "SSM parameter containing the ARN of the Anghammarad SNS topic",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "AuditDataS3BucketName": Object {
+    "AuditDataS3BucketName": {
       "Default": "/security/security-hq/audit-data-s3-bucket/name",
       "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "CloudwatchAlarmEmailDestination": Object {
+    "CloudwatchAlarmEmailDestination": {
       "Description": "Send Security HQ cloudwatch alarms to this email address",
       "Type": "String",
     },
-    "DistributionBucketName": Object {
+    "DistributionBucketName": {
       "Default": "/account/services/artifact.bucket",
       "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "LoggingStreamName": Object {
+    "LoggingStreamName": {
       "Default": "/account/services/logging.stream.name",
       "Description": "SSM parameter containing the Name (not ARN) on the kinesis stream",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "VpcId": Object {
+    "VpcId": {
       "Default": "/account/vpc/primary/id",
       "Description": "Virtual Private Cloud to run EC2 instances within. Should NOT be the account default VPC.",
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>",
     },
-    "securityhqPrivateSubnets": Object {
+    "securityhqPrivateSubnets": {
       "Default": "/account/vpc/primary/subnets/private",
       "Description": "A list of private subnets",
       "Type": "AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>",
     },
-    "securityhqPublicSubnets": Object {
+    "securityhqPublicSubnets": {
       "Default": "/account/vpc/primary/subnets/public",
       "Description": "A list of public subnets",
       "Type": "AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>",
     },
   },
-  "Resources": Object {
-    "AssumeRole3910C09D": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+  "Resources": {
+    "AssumeRole3910C09D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Resource": "*",
@@ -72,138 +110,138 @@ Object {
           "Version": "2012-10-17",
         },
         "PolicyName": "AssumeRole3910C09D",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "AutoScalingGroupSecurityhqASG8DD277A5": Object {
-      "Properties": Object {
+    "AutoScalingGroupSecurityhqASG8DD277A5": {
+      "Properties": {
         "HealthCheckGracePeriod": 120,
         "HealthCheckType": "ELB",
-        "LaunchConfigurationName": Object {
+        "LaunchConfigurationName": {
           "Ref": "AutoScalingGroupSecurityhqLaunchConfig4307528E",
         },
         "MaxSize": "2",
         "MinSize": "1",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "PropagateAtLaunch": true,
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:pattern-name",
             "PropagateAtLaunch": true,
             "Value": "GuEc2App",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "PropagateAtLaunch": true,
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "PropagateAtLaunch": true,
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "LogKinesisStreamName",
             "PropagateAtLaunch": true,
-            "Value": Object {
+            "Value": {
               "Ref": "LoggingStreamName",
             },
           },
-          Object {
+          {
             "Key": "Name",
             "PropagateAtLaunch": true,
             "Value": "security-hq/AutoScalingGroupSecurityhq",
           },
-          Object {
+          {
             "Key": "Stack",
             "PropagateAtLaunch": true,
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "PropagateAtLaunch": true,
             "Value": "PROD",
           },
         ],
-        "TargetGroupARNs": Array [
-          Object {
+        "TargetGroupARNs": [
+          {
             "Ref": "TargetGroupSecurityhq530DEDAA",
           },
         ],
-        "VPCZoneIdentifier": Object {
+        "VPCZoneIdentifier": {
           "Ref": "securityhqPrivateSubnets",
         },
       },
       "Type": "AWS::AutoScaling::AutoScalingGroup",
     },
-    "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7": Object {
-      "Properties": Object {
-        "Roles": Array [
-          Object {
+    "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7": {
+      "Properties": {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::InstanceProfile",
     },
-    "AutoScalingGroupSecurityhqLaunchConfig4307528E": Object {
-      "DependsOn": Array [
+    "AutoScalingGroupSecurityhqLaunchConfig4307528E": {
+      "DependsOn": [
         "InstanceRoleSecurityhq7C08CA33",
       ],
-      "Properties": Object {
-        "IamInstanceProfile": Object {
+      "Properties": {
+        "IamInstanceProfile": {
           "Ref": "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7",
         },
-        "ImageId": Object {
+        "ImageId": {
           "Ref": "AMISecurityhq",
         },
         "InstanceType": "t4g.large",
-        "MetadataOptions": Object {
+        "MetadataOptions": {
           "HttpTokens": "required",
         },
-        "SecurityGroups": Array [
-          Object {
-            "Fn::GetAtt": Array [
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": [
               "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
               "GroupId",
             ],
           },
-          Object {
-            "Fn::GetAtt": Array [
+          {
+            "Fn::GetAtt": [
               "WazuhSecurityGroup",
               "GroupId",
             ],
           },
         ],
-        "UserData": Object {
-          "Fn::Base64": Object {
-            "Fn::Join": Array [
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "#!/bin/bash -ev
 # setup security-hq
 mkdir -p /etc/gu
 
 aws --region eu-west-1 s3 cp s3://",
-                Object {
+                {
                   "Ref": "DistributionBucketName",
                 },
                 "/security/PROD/security-hq/security-hq.conf /etc/gu
 aws --region eu-west-1 s3 cp s3://",
-                Object {
+                {
                   "Ref": "DistributionBucketName",
                 },
                 "/security/PROD/security-hq/security-hq-service-account-cert.json /etc/gu
 aws --region eu-west-1 s3 cp s3://",
-                Object {
+                {
                   "Ref": "DistributionBucketName",
                 },
                 "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
@@ -216,28 +254,28 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::AutoScaling::LaunchConfiguration",
     },
-    "CertificateSecurityhqD266EC9D": Object {
+    "CertificateSecurityhqD266EC9D": {
       "DeletionPolicy": "Retain",
-      "Properties": Object {
+      "Properties": {
         "DomainName": "security-hq.gutools.co.uk",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
@@ -247,12 +285,12 @@ dpkg -i /tmp/installer.deb",
       "Type": "AWS::CertificateManager::Certificate",
       "UpdateReplacePolicy": "Retain",
     },
-    "DescribeEC2PolicyFF5F9295": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "DescribeEC2PolicyFF5F9295": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "autoscaling:DescribeAutoScalingInstances",
                 "autoscaling:DescribeAutoScalingGroups",
                 "ec2:DescribeTags",
@@ -265,19 +303,19 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "describe-ec2-policy",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "DescribeRegions9F63D96D": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "DescribeRegions9F63D96D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "ec2:DescribeRegions",
               "Effect": "Allow",
               "Resource": "*",
@@ -286,33 +324,33 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "DescribeRegions9F63D96D",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "DisableAccessKeyFailureAlarm03FFC3CB": Object {
-      "Properties": Object {
+    "DisableAccessKeyFailureAlarm03FFC3CB": {
+      "Properties": {
         "ActionsEnabled": true,
-        "AlarmActions": Array [
-          Object {
-            "Fn::Join": Array [
+        "AlarmActions": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:aws:sns:",
-                Object {
+                {
                   "Ref": "AWS::Region",
                 },
                 ":",
-                Object {
+                {
                   "Ref": "AWS::AccountId",
                 },
                 ":",
-                Object {
-                  "Fn::GetAtt": Array [
+                {
+                  "Fn::GetAtt": [
                     "NotificationTopicEB7A0DF1",
                     "TopicName",
                   ],
@@ -324,8 +362,8 @@ dpkg -i /tmp/installer.deb",
         "AlarmDescription": "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
         "AlarmName": "Security HQ failed to disable a vulnerable access key (new stack)",
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
-        "Dimensions": Array [
-          Object {
+        "Dimensions": [
+          {
             "Name": "ReaperExecutionStatus",
             "Value": "Failure",
           },
@@ -340,12 +378,12 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::CloudWatch::Alarm",
     },
-    "DynamoReadF4CBA3FD": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "DynamoReadF4CBA3FD": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "dynamodb:BatchGetItem",
                 "dynamodb:GetItem",
                 "dynamodb:Scan",
@@ -353,20 +391,20 @@ dpkg -i /tmp/installer.deb",
                 "dynamodb:GetRecords",
               ],
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:dynamodb:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":table/",
-                    Object {
+                    {
                       "Ref": "SecurityHqIamDynamoTable",
                     },
                   ],
@@ -377,40 +415,40 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "DynamoReadF4CBA3FD",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "DynamoWrite95D291C9": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "DynamoWrite95D291C9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
                 "dynamodb:DeleteItem",
                 "dynamodb:UpdateItem",
               ],
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:dynamodb:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":table/",
-                    Object {
+                    {
                       "Ref": "SecurityHqIamDynamoTable",
                     },
                   ],
@@ -421,27 +459,27 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "DynamoWrite95D291C9",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GetDistributablePolicySecurityhqC6808A6A": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "GetDistributablePolicySecurityhqC6808A6A": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:s3:::",
-                    Object {
+                    {
                       "Ref": "DistributionBucketName",
                     },
                     "/security/PROD/security-hq/*",
@@ -453,22 +491,22 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "GetDistributablePolicySecurityhqC6808A6A",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GuAnghammaradSenderPolicy674A3874": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "GuAnghammaradSenderPolicy674A3874": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "sns:Publish",
               "Effect": "Allow",
-              "Resource": Object {
+              "Resource": {
                 "Ref": "AnghammaradSnsArn",
               },
             },
@@ -476,19 +514,19 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "GuAnghammaradSenderPolicy674A3874",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88": Object {
-      "Properties": Object {
+    "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88": {
+      "Properties": {
         "GroupDescription": "Allow all outbound HTTPS traffic",
-        "SecurityGroupEgress": Array [
-          Object {
+        "SecurityGroupEgress": [
+          {
             "CidrIp": "0.0.0.0/0",
             "Description": "Allow all outbound HTTPS traffic",
             "FromPort": 443,
@@ -496,47 +534,47 @@ dpkg -i /tmp/installer.deb",
             "ToPort": 443,
           },
         ],
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
         ],
-        "VpcId": Object {
+        "VpcId": {
           "Ref": "VpcId",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqLoadBalancerSecurityhqSecurityGroup3F506C5990004DFA1452": Object {
-      "Properties": Object {
+    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqLoadBalancerSecurityhqSecurityGroup3F506C5990004DFA1452": {
+      "Properties": {
         "Description": "Load balancer to target",
         "FromPort": 9000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
+        "GroupId": {
+          "Fn::GetAtt": [
             "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
             "GroupId",
           ],
         },
         "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
             "LoadBalancerSecurityhqSecurityGroup66272916",
             "GroupId",
           ],
@@ -545,19 +583,19 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqRestrictedIngressSecurityGroupSecurityhq2DC7AECE90009FDEBE14": Object {
-      "Properties": Object {
+    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqRestrictedIngressSecurityGroupSecurityhq2DC7AECE90009FDEBE14": {
+      "Properties": {
         "Description": "Load balancer to target",
         "FromPort": 9000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
+        "GroupId": {
+          "Fn::GetAtt": [
             "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
             "GroupId",
           ],
         },
         "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
             "RestrictedIngressSecurityGroupSecurityhqCA18D247",
             "GroupId",
           ],
@@ -566,30 +604,30 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "GuLogShippingPolicy981BFE5A": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "GuLogShippingPolicy981BFE5A": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "kinesis:Describe*",
                 "kinesis:Put*",
               ],
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:kinesis:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":stream/",
-                    Object {
+                    {
                       "Ref": "LoggingStreamName",
                     },
                   ],
@@ -600,19 +638,19 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "GuLogShippingPolicy981BFE5A",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GuPutCloudwatchMetricsPolicyC5BCE402": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "GuPutCloudwatchMetricsPolicyC5BCE402": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "cloudwatch:PutMetricData",
               "Effect": "Allow",
               "Resource": "*",
@@ -621,28 +659,28 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "GuPutCloudwatchMetricsPolicyC5BCE402",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "InstanceRoleSecurityhq7C08CA33": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "InstanceRoleSecurityhq7C08CA33": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
-                "Service": Object {
-                  "Fn::Join": Array [
+              "Principal": {
+                "Service": {
+                  "Fn::Join": [
                     "",
-                    Array [
+                    [
                       "ec2.",
-                      Object {
+                      {
                         "Ref": "AWS::URLSuffix",
                       },
                     ],
@@ -654,24 +692,24 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "Path": "/",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
@@ -679,24 +717,24 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::IAM::Role",
     },
-    "ListenerSecurityhq0F356342": Object {
-      "Properties": Object {
-        "Certificates": Array [
-          Object {
-            "CertificateArn": Object {
+    "ListenerSecurityhq0F356342": {
+      "Properties": {
+        "Certificates": [
+          {
+            "CertificateArn": {
               "Ref": "CertificateSecurityhqD266EC9D",
             },
           },
         ],
-        "DefaultActions": Array [
-          Object {
-            "TargetGroupArn": Object {
+        "DefaultActions": [
+          {
+            "TargetGroupArn": {
               "Ref": "TargetGroupSecurityhq530DEDAA",
             },
             "Type": "forward",
           },
         ],
-        "LoadBalancerArn": Object {
+        "LoadBalancerArn": {
           "Ref": "LoadBalancerSecurityhqF59D9B82",
         },
         "Port": 443,
@@ -704,50 +742,50 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
     },
-    "LoadBalancerSecurityhqF59D9B82": Object {
-      "Properties": Object {
-        "LoadBalancerAttributes": Array [
-          Object {
+    "LoadBalancerSecurityhqF59D9B82": {
+      "Properties": {
+        "LoadBalancerAttributes": [
+          {
             "Key": "deletion_protection.enabled",
             "Value": "true",
           },
         ],
         "Scheme": "internet-facing",
-        "SecurityGroups": Array [
-          Object {
-            "Fn::GetAtt": Array [
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": [
               "LoadBalancerSecurityhqSecurityGroup66272916",
               "GroupId",
             ],
           },
-          Object {
-            "Fn::GetAtt": Array [
+          {
+            "Fn::GetAtt": [
               "RestrictedIngressSecurityGroupSecurityhqCA18D247",
               "GroupId",
             ],
           },
         ],
-        "Subnets": Object {
+        "Subnets": {
           "Ref": "securityhqPublicSubnets",
         },
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
@@ -756,49 +794,49 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
     },
-    "LoadBalancerSecurityhqSecurityGroup66272916": Object {
-      "Properties": Object {
+    "LoadBalancerSecurityhqSecurityGroup66272916": {
+      "Properties": {
         "GroupDescription": "Automatically created Security Group for ELB securityhqLoadBalancerSecurityhq4820B44E",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
         ],
-        "VpcId": Object {
+        "VpcId": {
           "Ref": "VpcId",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "LoadBalancerSecurityhqSecurityGrouptosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C90004679E20B": Object {
-      "Properties": Object {
+    "LoadBalancerSecurityhqSecurityGrouptosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C90004679E20B": {
+      "Properties": {
         "Description": "Load balancer to target",
-        "DestinationSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
             "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
             "GroupId",
           ],
         },
         "FromPort": 9000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
+        "GroupId": {
+          "Fn::GetAtt": [
             "LoadBalancerSecurityhqSecurityGroup66272916",
             "GroupId",
           ],
@@ -808,23 +846,23 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
-    "NotificationTopicEB7A0DF1": Object {
-      "Properties": Object {
+    "NotificationTopicEB7A0DF1": {
+      "Properties": {
         "DisplayName": "Security HQ notifications",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
@@ -832,35 +870,35 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::SNS::Topic",
     },
-    "NotificationTopicTokenSubscription180FA58AD": Object {
-      "Properties": Object {
-        "Endpoint": Object {
+    "NotificationTopicTokenSubscription180FA58AD": {
+      "Properties": {
+        "Endpoint": {
           "Ref": "CloudwatchAlarmEmailDestination",
         },
         "Protocol": "email",
-        "TopicArn": Object {
+        "TopicArn": {
           "Ref": "NotificationTopicEB7A0DF1",
         },
       },
       "Type": "AWS::SNS::Subscription",
     },
-    "ParameterStoreReadSecurityhq5E138D38": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "ParameterStoreReadSecurityhq5E138D38": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "ssm:GetParametersByPath",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:ssm:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":parameter/PROD/security/security-hq",
@@ -868,22 +906,22 @@ dpkg -i /tmp/installer.deb",
                 ],
               },
             },
-            Object {
-              "Action": Array [
+            {
+              "Action": [
                 "ssm:GetParameters",
                 "ssm:GetParameter",
               ],
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:ssm:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":parameter/PROD/security/security-hq/*",
@@ -895,33 +933,33 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "parameter-store-read-policy",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "RemovePasswordFailureAlarm68B6574A": Object {
-      "Properties": Object {
+    "RemovePasswordFailureAlarm68B6574A": {
+      "Properties": {
         "ActionsEnabled": true,
-        "AlarmActions": Array [
-          Object {
-            "Fn::Join": Array [
+        "AlarmActions": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:aws:sns:",
-                Object {
+                {
                   "Ref": "AWS::Region",
                 },
                 ":",
-                Object {
+                {
                   "Ref": "AWS::AccountId",
                 },
                 ":",
-                Object {
-                  "Fn::GetAtt": Array [
+                {
+                  "Fn::GetAtt": [
                     "NotificationTopicEB7A0DF1",
                     "TopicName",
                   ],
@@ -933,8 +971,8 @@ dpkg -i /tmp/installer.deb",
         "AlarmDescription": "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
         "AlarmName": "Security HQ failed to remove a vulnerable password (new stack)",
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
-        "Dimensions": Array [
-          Object {
+        "Dimensions": [
+          {
             "Name": "ReaperExecutionStatus",
             "Value": "Failure",
           },
@@ -949,11 +987,11 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::CloudWatch::Alarm",
     },
-    "RestrictedIngressSecurityGroupSecurityhqCA18D247": Object {
-      "Properties": Object {
+    "RestrictedIngressSecurityGroupSecurityhqCA18D247": {
+      "Properties": {
         "GroupDescription": "Allow restricted ingress from CIDR ranges",
-        "SecurityGroupIngress": Array [
-          Object {
+        "SecurityGroupIngress": [
+          {
             "CidrIp": "192.168.1.1/22",
             "Description": "Allow access on port 443 from 192.168.1.1/22",
             "FromPort": 443,
@@ -961,46 +999,46 @@ dpkg -i /tmp/installer.deb",
             "ToPort": 443,
           },
         ],
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
         ],
-        "VpcId": Object {
+        "VpcId": {
           "Ref": "VpcId",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "RestrictedIngressSecurityGroupSecurityhqtosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C9000A501F165": Object {
-      "Properties": Object {
+    "RestrictedIngressSecurityGroupSecurityhqtosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C9000A501F165": {
+      "Properties": {
         "Description": "Load balancer to target",
-        "DestinationSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
             "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
             "GroupId",
           ],
         },
         "FromPort": 9000,
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
+        "GroupId": {
+          "Fn::GetAtt": [
             "RestrictedIngressSecurityGroupSecurityhqCA18D247",
             "GroupId",
           ],
@@ -1010,19 +1048,19 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
-    "S3AuditRead9DF4AE59": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "S3AuditRead9DF4AE59": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:aws:s3:::",
-                    Object {
+                    {
                       "Ref": "AuditDataS3BucketName",
                     },
                     "/security/PROD/*",
@@ -1034,20 +1072,20 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "S3AuditRead9DF4AE59",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "SSMRunCommandPolicy244E1613": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "SSMRunCommandPolicy244E1613": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "ec2messages:AcknowledgeMessage",
                 "ec2messages:DeleteMessage",
                 "ec2messages:FailMessage",
@@ -1070,56 +1108,56 @@ dpkg -i /tmp/installer.deb",
           "Version": "2012-10-17",
         },
         "PolicyName": "ssm-run-command-policy",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "SecurityHqIamDynamoTable": Object {
+    "SecurityHqIamDynamoTable": {
       "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
+      "Properties": {
+        "AttributeDefinitions": [
+          {
             "AttributeName": "id",
             "AttributeType": "S",
           },
-          Object {
+          {
             "AttributeName": "dateNotificationSent",
             "AttributeType": "N",
           },
         ],
-        "KeySchema": Array [
-          Object {
+        "KeySchema": [
+          {
             "AttributeName": "id",
             "KeyType": "HASH",
           },
-          Object {
+          {
             "AttributeName": "dateNotificationSent",
             "KeyType": "RANGE",
           },
         ],
-        "ProvisionedThroughput": Object {
+        "ProvisionedThroughput": {
           "ReadCapacityUnits": 5,
           "WriteCapacityUnits": 5,
         },
         "TableName": "security-hq-iam",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
@@ -1128,8 +1166,8 @@ dpkg -i /tmp/installer.deb",
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
-    "TargetGroupSecurityhq530DEDAA": Object {
-      "Properties": Object {
+    "TargetGroupSecurityhq530DEDAA": {
+      "Properties": {
         "HealthCheckIntervalSeconds": 10,
         "HealthCheckPath": "/healthcheck",
         "HealthCheckProtocol": "HTTP",
@@ -1137,58 +1175,58 @@ dpkg -i /tmp/installer.deb",
         "HealthyThresholdCount": 5,
         "Port": 9000,
         "Protocol": "HTTP",
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "App",
             "Value": "security-hq",
           },
-          Object {
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
         ],
-        "TargetGroupAttributes": Array [
-          Object {
+        "TargetGroupAttributes": [
+          {
             "Key": "deregistration_delay.timeout_seconds",
             "Value": "30",
           },
-          Object {
+          {
             "Key": "stickiness.enabled",
             "Value": "false",
           },
         ],
         "TargetType": "instance",
         "UnhealthyThresholdCount": 2,
-        "VpcId": Object {
+        "VpcId": {
           "Ref": "VpcId",
         },
       },
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
     },
-    "WazuhSecurityGroup": Object {
-      "Properties": Object {
+    "WazuhSecurityGroup": {
+      "Properties": {
         "GroupDescription": "Allow outbound traffic from wazuh agent to manager",
-        "SecurityGroupEgress": Array [
-          Object {
+        "SecurityGroupEgress": [
+          {
             "CidrIp": "0.0.0.0/0",
             "Description": "Wazuh event logging",
             "FromPort": 1514,
             "IpProtocol": "tcp",
             "ToPort": 1514,
           },
-          Object {
+          {
             "CidrIp": "0.0.0.0/0",
             "Description": "Wazuh agent registration",
             "FromPort": 1515,
@@ -1196,37 +1234,37 @@ dpkg -i /tmp/installer.deb",
             "ToPort": 1515,
           },
         ],
-        "Tags": Array [
-          Object {
+        "Tags": [
+          {
             "Key": "gu:cdk:version",
             "Value": "TEST",
           },
-          Object {
+          {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
           },
-          Object {
+          {
             "Key": "Stack",
             "Value": "security",
           },
-          Object {
+          {
             "Key": "Stage",
             "Value": "PROD",
           },
         ],
-        "VpcId": Object {
+        "VpcId": {
           "Ref": "VpcId",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "securityhqgutoolscouk": Object {
-      "Properties": Object {
+    "securityhqgutoolscouk": {
+      "Properties": {
         "Name": "security-hq.gutools.co.uk",
         "RecordType": "CNAME",
-        "ResourceRecords": Array [
-          Object {
-            "Fn::GetAtt": Array [
+        "ResourceRecords": [
+          {
+            "Fn::GetAtt": [
               "LoadBalancerSecurityhqF59D9B82",
               "DNSName",
             ],

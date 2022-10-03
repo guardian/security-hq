@@ -15,3 +15,7 @@ updates:
     schedule:
       interval: "weekly"
     target-branch: "dependency-updates"
+    ignore:
+      - dependency-name: "aws-cdk"
+      - dependency-name: "aws-cdk-lib"
+      - dependency-name: "constructs"
