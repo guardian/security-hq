@@ -17,6 +17,7 @@ GET        /security-groups                           controllers.SecurityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
 
 GET        /snyk                                      controllers.SnykController.snyk
+GET        /snyk/:snykOrg                             controllers.SnykController.snykOrg(snykOrg)
 
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError

@@ -91,6 +91,9 @@ class CacheService(
 
   def getAllSnykResults: Attempt[List[SnykOrganisationIssues]] = snykBox.get()
 
+  def getSnykOrgResults(orgName: String): Attempt[Option[SnykOrganisationIssues]] =
+    snykBox.get().map { _.find(_.organisation.name ==orgName) }
+
   def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 
   def refreshCredentialsBox(): Unit = {

@@ -34,4 +34,15 @@ class SnykController(val config: Configuration,
     }
   }
 
+  def snykOrg(snykOrg: String) = authAction.async {
+    attempt {
+      for {
+        maybeSnykOrgResult <- cacheService.getSnykOrgResults(snykOrg)
+      } yield maybeSnykOrgResult match {
+        case Some(snykOrgResult) => Ok(views.html.snyk.snykOrg(snykOrgResult))
+        case None => NotFound
+      }
+    }
+  }
+
 }
