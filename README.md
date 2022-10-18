@@ -164,7 +164,7 @@ From the root of the project:
 
 5. Start the application: `sbt:security-hq> run`
 
-Once the sever has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
+Once the server has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
 ### Working with CSS and JS
 
