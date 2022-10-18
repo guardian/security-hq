@@ -126,10 +126,21 @@ object Config {
     } yield AwsAccount(id, name, roleArn, number)
   }
 
+  private def parseCommaSeperatedValues(rawString: String): List[String] =
+    rawString
+      .split(",")
+      .map(_.trim)
+      .toList
+
   def getSnykConfig(config: Configuration): SnykConfig = {
+    val excludeOrgs = config.getOptional[String]("snyk.excludeOrgs")
+      .map(parseCommaSeperatedValues)
+      .getOrElse(List.empty)
+
     SnykConfig(
-      SnykToken(requiredString(config, "snyk.token")),
-      SnykGroupId(requiredString(config, "snyk.organisation"))
+      snykToken = SnykToken(requiredString(config, "snyk.token")),
+      snykGroupId = SnykGroupId(requiredString(config, "snyk.organisation")),
+      excludeOrgs = excludeOrgs
     )
   }
 
