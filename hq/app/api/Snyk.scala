@@ -60,7 +60,13 @@ object Snyk {
       organisationResponse <- Snyk.getSnykOrganisations(snykConfig.snykToken, wsClient)
       organisations <- SnykDisplay.parseOrganisations(organisationResponse.body, snykConfig.snykGroupId)
 
-      vulnerabilitiesResponse <- Attempt.labelledTraverse(organisations)(Snyk.getOrganisationVulnerabilities(_, snykConfig.snykToken, wsClient))
+      filteredOrgs = organisations.filterNot { org =>
+        snykConfig.excludeOrgs.contains(org.name)
+      }
+
+      vulnerabilitiesResponse <- Attempt.labelledTraverse(filteredOrgs)(
+        Snyk.getOrganisationVulnerabilities(_, snykConfig.snykToken, wsClient)
+      )
       orgIssues <- SnykDisplay.parseOrganisationVulnerabilities(vulnerabilitiesResponse)
     } yield orgIssues
   }
