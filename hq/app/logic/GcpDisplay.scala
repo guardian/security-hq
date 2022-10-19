@@ -5,7 +5,7 @@ import com.google.cloud.securitycenter.v1.SecurityCenterClient.ListFindingsPaged
 import com.google.cloud.securitycenter.v1.{Finding, ListFindingsRequest, OrganizationName, SecurityCenterClient, SourceName}
 import com.google.protobuf.Value
 import config.Config
-import model.{GcpFinding,ReportSummary,ReportSummaryWithFindings}
+import model.{GcpFinding,GcpReportSummary,GcpReportSummaryWithFindings}
 import org.joda.time.DateTime
 import play.api.{Configuration, Logging}
 import utils.attempt.Attempt
@@ -17,10 +17,10 @@ object GcpDisplay extends Logging {
  
   val dateTimePattern = "dd/MM/yy"
 
-  def reportStatusSummary(reportFindings: Map[String, Seq[GcpFinding]]): List[(String, ReportSummaryWithFindings)] = {
+  def reportStatusSummary(reportFindings: Map[String, Seq[GcpFinding]]): List[(String, GcpReportSummaryWithFindings)] = {
     reportFindings.map { case (projectName, findings) => 
-      (projectName, ReportSummaryWithFindings(
-        ReportSummary(
+      (projectName, GcpReportSummaryWithFindings(
+        GcpReportSummary(
           findings.count(_.severity == Severity.CRITICAL),
           findings.count(_.severity == Severity.HIGH),
           findings.count(_.severity == Severity.MEDIUM),
@@ -30,7 +30,7 @@ object GcpDisplay extends Logging {
     }.toList
   }
 
-  def sortProjectsByReportSummary(projectSummaryWithFindings: List[(String, ReportSummaryWithFindings)]): List[(String, ReportSummaryWithFindings)] = {
+  def sortProjectsByReportSummary(projectSummaryWithFindings: List[(String, GcpReportSummaryWithFindings)]): List[(String, GcpReportSummaryWithFindings)] = {
     projectSummaryWithFindings.sortBy { case (project, summaryWithFindings) => 
       val reportSummary = summaryWithFindings.reportSummary
       (-reportSummary.critical, -reportSummary.high, -reportSummary.medium, -reportSummary.low, -reportSummary.unspecified, project)

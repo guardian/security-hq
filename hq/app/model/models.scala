@@ -288,6 +288,6 @@ case class GcpFinding(
 
 case class GcpSccConfig(orgId: String, sourceId: String)
 
-case class ReportSummary(critical: Int, high: Int, medium: Int, low:Int, unspecified: Int)
+case class GcpReportSummary(critical: Int, high: Int, medium: Int, low:Int, unspecified: Int)
 
-case class ReportSummaryWithFindings(reportSummary: ReportSummary, reportFindings: Seq[GcpFinding])
+case class GcpReportSummaryWithFindings(reportSummary: GcpReportSummary, reportFindings: Seq[GcpFinding])
