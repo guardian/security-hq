@@ -275,7 +275,7 @@ case class SnykError(error: String)
 
 case class Documentation(title: String, description: String, icon: String, slug: String)
 
-case class GcpReport(reportDate: DateTime, finding: Map[String, Seq[GcpFinding]] = Map.empty)
+case class GcpReport(reportDate: DateTime, findings: Map[String, Seq[GcpFinding]] = Map.empty)
 
 case class GcpFinding(
   project: String,
@@ -287,3 +287,7 @@ case class GcpFinding(
 )
 
 case class GcpSccConfig(orgId: String, sourceId: String)
+
+case class GcpReportSummary(critical: Int, high: Int, medium: Int, low: Int, unspecified: Int)
+
+case class GcpReportSummaryWithFindings(reportSummary: GcpReportSummary, reportFindings: Seq[GcpFinding])
