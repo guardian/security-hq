@@ -63,7 +63,7 @@
 
         <div class="row">
             <ul class="collapsible" data-collapsible="accordion">
-                @for((projectName, summaryWithFindings) <- GcpDisplay.sortProjectsByReportSummary(GcpDisplay.reportStatusSummary(report.findings))) {
+                @for((projectName, summaryWithFindings) <- GcpDisplay.reportStatusSummary(report.findings)) {
                     <li>
                     <div class="collapsible-header" tabindex="22">
                     <i class="material-icons">keyboard_arrow_down</i>

@@ -18,16 +18,16 @@ object GcpDisplay extends Logging {
   val dateTimePattern = "dd/MM/yy"
 
   def reportStatusSummary(reportFindings: Map[String, Seq[GcpFinding]]): List[(String, GcpReportSummaryWithFindings)] = {
-    reportFindings.map { case (projectName, findings) => 
-      (projectName, GcpReportSummaryWithFindings(
-        GcpReportSummary(
-          findings.count(_.severity == Severity.CRITICAL),
-          findings.count(_.severity == Severity.HIGH),
-          findings.count(_.severity == Severity.MEDIUM),
-          findings.count(_.severity == Severity.LOW),
-          findings.count(_.severity == Severity.SEVERITY_UNSPECIFIED)
-        ),findings ))
-    }.toList
+    sortProjectsByReportSummary(reportFindings.map { case (projectName, findings) =>
+          (projectName, GcpReportSummaryWithFindings(
+            GcpReportSummary(
+              findings.count(_.severity == Severity.CRITICAL),
+              findings.count(_.severity == Severity.HIGH),
+              findings.count(_.severity == Severity.MEDIUM),
+              findings.count(_.severity == Severity.LOW),
+              findings.count(_.severity == Severity.SEVERITY_UNSPECIFIED)
+            ),findings ))
+        }.toList)
   }
 
   def sortProjectsByReportSummary(projectSummaryWithFindings: List[(String, GcpReportSummaryWithFindings)]): List[(String, GcpReportSummaryWithFindings)] = {
