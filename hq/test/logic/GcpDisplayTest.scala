@@ -2,12 +2,13 @@ package logic
 
 import model._
 import org.joda.time.DateTime
-import org.scalatest.{FreeSpec, Matchers}
+import org.scalatest.freespec.AnyFreeSpec
 import GcpDisplay._
 import com.google.cloud.securitycenter.v1.Finding.Severity
+import org.scalatest.matchers.should.Matchers
 
 
-class GcPDisplayTest extends FreeSpec with Matchers {
+class GcPDisplayTest extends AnyFreeSpec with Matchers {
     val dateTime = DateTime.now()
 
     "sortProjectsByReportSummary" - {
