@@ -324,14 +324,14 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@guardian/cdk@48.0.1":
-  version "48.0.1"
-  resolved "https://registry.yarnpkg.com/@guardian/cdk/-/cdk-48.0.1.tgz#299da1ec8a27375840f04d26920a25e89975367d"
-  integrity sha512-oiRqEozzsi6kMrbBe1Fvv+wgVlQZnRUZ7DNF+CByVwpbfvAp7dAeE5K6cRrU7NlE/erR0QGPH1TZkO4g5fqnXQ==
+"@guardian/cdk@48.1.0":
+  version "48.1.0"
+  resolved "https://registry.yarnpkg.com/@guardian/cdk/-/cdk-48.1.0.tgz#2b775610ecefdf41f6195f756d39a4a1d7359598"
+  integrity sha512-mMfdwBcsoXzPNcc4PDzgyUa3jfbUVKdxXBBUzsJBs0xdZWBcFvDmhsfwkpdn8cwaa9n7PZA7OdHc1f7LtF2lpw==
   dependencies:
-    "@oclif/core" "1.16.4"
+    "@oclif/core" "1.16.5"
     aws-cdk-lib "2.45.0"
-    aws-sdk "^2.1229.0"
+    aws-sdk "^2.1235.0"
     chalk "^4.1.2"
     codemaker "^1.69.0"
     constructs "10.1.127"
@@ -670,10 +670,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@oclif/core@1.16.4":
-  version "1.16.4"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.16.4.tgz#fafa338ada0624d7f1adac036302b05a37cd96d0"
-  integrity sha512-l+xHtVMteJWeTZZ+f2yLyNjf69X0mhAH8GILXnmoAGAemXbc1DVstvloxOouarvm9xyHHhquzO1Qg5l6xa1VIw==
+"@oclif/core@1.16.5":
+  version "1.16.5"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-1.16.5.tgz#248c3371b615462a6ee6826a3c316bdc54dc5193"
+  integrity sha512-Jb58K79AALkLmY0PNU1Jx4Z+/JIWtpgtRbei92PIIBx+TaAmYgVySNI1beInZFNOpGo2fhxVBp+yr3DZ38z3kQ==
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     "@oclif/screen" "^3.0.2"
@@ -1124,10 +1124,10 @@ aws-cdk@2.39.1:
   optionalDependencies:
     fsevents "2.3.2"
 
-aws-sdk@^2.1229.0:
-  version "2.1233.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1233.0.tgz#3386515966ca8a5baac048d986ad0977119c0765"
-  integrity sha512-e1GbVltsoQpWvx0gxQlEtKOdOrNWyjhD8bjFIMx/3Nwwzw4ac2KOy7CyC5I+lBj8el4AB0399umLHJZmL5WcVg==
+aws-sdk@^2.1235.0:
+  version "2.1238.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1238.0.tgz#4d67f7c9f2a3d293b94b6f78a15651e8fd886778"
+  integrity sha512-DCXAj98lFW0y2Ickm0MbXnxzbG5IDrhBXs6Wx+vscrYNFRjy7JGau9HACY8aFoesMQz8PzNmJKR82Dg2NsGvDg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
