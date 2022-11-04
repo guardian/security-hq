@@ -132,7 +132,7 @@ dpkg -i /tmp/installer.deb`,
       },
     });
 
-    new GuCname(this, 'security-hq.gutools', {
+    new GuCname(this, 'security-hq.gutools.co.uk', {
       app: SecurityHQ.app.app,
       domainName,
       ttl: Duration.hours(1),

@@ -1260,7 +1260,7 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "securityhqgutools": {
+    "securityhqgutoolscouk": {
       "Properties": {
         "Name": "security-hq.gutools.co.uk",
         "RecordType": "CNAME",
