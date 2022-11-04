@@ -14,7 +14,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.313"
+val awsSdkVersion = "1.12.334"
 val playJsonVersion = "2.9.3"
 val jacksonVersion = "2.13.4"
 
@@ -155,8 +155,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      // Not upgradeable until Play moves to 1.3+ as well. It depends on slf4j 2, which has breaking changes
-      "ch.qos.logback" % "logback-classic" % "1.2.11", // scala-steward:off,
+      "ch.qos.logback" % "logback-classic" % "1.2.11",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
