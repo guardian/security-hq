@@ -88,16 +88,6 @@ lazy val hq = (project in file("hq"))
     Test / parallelExecution := false,
     Test / fork := false,
 
-    // start DynamoDB on run
-    dynamoDBLocalDownloadDir := file(".dynamodb-local"),
-    dynamoDBLocalPort := 8000,
-    dynamoDBLocalDownloadIfOlderThan := 14.days,
-    startDynamoDBLocal := startDynamoDBLocal.dependsOn(Compile / compile).value,
-    Compile / run := (Compile / run).dependsOn(startDynamoDBLocal).evaluated,
-    dynamoDBLocalSharedDB := true,
-    dynamoDBLocalInMemory := false,
-    dynamoDBLocalDBPath := Some(System.getProperty("user.home") ++ "/.gu/security-hq"),
-
     Debian / serverLoading := Some(Systemd),
     debianPackageDependencies := Seq("java-11-amazon-corretto-jdk:arm64"),
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
