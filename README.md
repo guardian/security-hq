@@ -1,11 +1,7 @@
-Security HQ
-===========
-
+# Security HQ
 Centralised security information for AWS accounts.
 
-Security HQ webapp
-==================
-
+## Security HQ webapp
 This webapp presents the primary interface for Security HQ.
 
 The `watched-account` CloudFormation template will create ConfigRules
@@ -15,73 +11,39 @@ presents the data collected by those processes.
 It also provides an interface on some markers of a watched AWS
 account's health from a security point of view.
 
-## Development
+## Local development
+### Requirements
+1. Java 11. See [.tool-versions](.tool-versions) for the exact version. [asdf](https://asdf-vm.com/) is the recommended Java version manager.
+2. [Docker](https://docs.docker.com/desktop/install/mac-install/).
+3. [dev-nginx](https://github.com/guardian/dev-nginx).
+4. AWS credentials for the `security` profile.
 
-### Getting started
+> **Note**
+> Guardian Engineers can use credentials from Janus.
+> External engineers can use the [CloudFormation template](cloudformation/security-test-user.yaml) to provision an IAM user, and create an access key separately.
 
-There are lots of good Java version managers, but we recommend
-[asdf](https://asdf-vm.com/) here. Once installed, it will respect the
-`.tools-versions` file in the root of the repository to ensure you are using the
-same Java version (11) and distribution (Corretto) as prod.
+### Setup
+1. Ensure requirements are met. See above.
+2. Run the setup script:
 
-### AWS Configuration
+   ```bash
+   ./script/setup
+   ```
 
-_Note: this section is only necessary if you do not already have another means of accessing your account(s) with the required permissions. Particularly, that is true for Guardian developers, who can use temporary credentials from Janus in the usual way._
-
-The security-test-user CloudFormation template should create a user with all the required permissions.
-
-Once the CloudFormation is complete and the user created, you will need to create an access key for this user.
-
-In the console, select the user and then under `security credentials` click `create access key`.
-
-You will be presented with an *Access key ID* and a *Secret access key* that you are going to use during the next step.
-
-Create the file `~/.aws/credentials` with the following contents
-
-```
-[security-test]
-aws_access_key_id = <Access key ID>
-aws_secret_access_key = <Secret Access key>
-```
-
-If you already had this file, you should just add this section.
-
-Create the entry below in `~/.aws/config` file.
-
-```
-[profile security-test]
-region = eu-west-1
-```
-
-### Other Configuration
-
-There are two other files that you will need to run security HQ locally. These are:
-
-1. `~/.gu/security-hq.local.conf`
-2. `~/.gu/security-hq-service-account-cert.json`
-
-Both of these files can be found in the Security AWS account in S3 here `s3://security-dist/security/DEV/security-hq/`.
-
-To access the Security AWS account you will need to raise a PR in [Janus](https://github.com/guardian/janus/blob/main/guData/src/main/scala/com/gu/janus/data/Access.scala)
-to get access to the Security account (`Security.dev` should be appropriate).
-
-Once you have Janus credentials for the AWS Security account, you can copy the files from S3 by using the following:
-```
- aws s3 cp s3://security-dist/security/DEV/security-hq/security-hq.local.conf ~/.gu --profile security
- aws s3 cp s3://security-dist/security/DEV/security-hq/security-hq-service-account-cert.json ~/.gu --profile security
-```
-
-You will then need to update `~/.gu/security-hq.local.conf` as follows:
-
-```
-# Update this path to reference your home directory
-GOOGLE_SERVICE_ACCOUNT_CERT_PATH="/Users/ADD_YOUR_NAME/.gu/security-hq-service-account-cert.json"
-```
+### Running locally
+1. Ensure requirements are met. See above.
+2. Ensure project has been setup. See above.
+3. Run the start script:
+   
+   ```bash
+   ./script/start
+   ```
+4. Open [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
 
 ### Adding additional AWS accounts for local development
-
-When running security HQ locally, you can modify the list of AWS accounts to include additional account.
-For example, you may want to add a specific account for debugging purposes. You will need valid AWS credentials for any accounts you wish to include.
+When running Security HQ locally, you can modify the list of AWS accounts to include additional account.
+For example, you may want to add a specific account for debugging purposes. 
+You will need valid AWS credentials for any accounts you wish to include.
 
 It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`,
 add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
@@ -96,108 +58,40 @@ AWS_ACCOUNTS = [
 ]
 ```
 
-The value of `id` should be the same as the AWS Profile name, which you can see when you copy your credentials from Janus. You can add a `roleArn` if you want to generate an IAM report, otherwise you don't need it.
+The value of `id` should be the same as the AWS Profile name, which you can see when you copy your credentials from Janus.
+You can add a `roleArn` if you want to generate an IAM report, otherwise you don't need it.
 
 ### AWS Security Policies
 See `watched-account` template under `cloudformation` folder for the security policies needed to run security-hq.
 
-### nginx setup
+### Client Side
+Security HQ uses [Prettier](https://prettier.io) and [ESLint](https://eslint.org/docs/about/) to provide opinionated code formatting and linting.
+As part of the automated build, all CSS and JS will be validated using the rules of Prettier and ESLint.
 
-When running security-hq locally you will always need nginx running in the background. You only need to configure dev-nginx once (as described in step 2), but if you restart your computer, you will need to run `sudo nginx` to restart the nginx process.
+1. Install `yarn`:
 
-To check nginx is running, you can run `ps -e | grep nginx` and you should receive a response that includes `nginx: master process nginx` and `nginx: worker process`.
+   ```bash
+   npm install -g yarn
+   ```
 
-1. Install dev-nginx:
+2. Install dependencies:
+   
+   ```bash
+   yarn
+   ```
 
-[dev-nginx](https://github.com/guardian/dev-nginx) contains a number of generic useful scripts to:
-- issue certs locally (and automatically trust them)
-- [generate an nginx config file](https://github.com/guardian/dev-nginx#setup-app) from a yaml definition
+3. Check for any CSS issues:
 
-MacOS users:
+   ```bash
+   yarn run sass-lint
+   ```
+   
+4. Check for linting and Prettier issues:
 
-```bash
-brew tap guardian/homebrew-devtools
-brew install guardian/devtools/dev-nginx
-```
-
-There are further instructions in the [dev-nginx](https://github.com/guardian/dev-nginx) repo.
-
-2. configure dev-nginx:
-
-run each of these commands:
-
-`dev-nginx add-to-hosts-file security-hq.local.dev-gutools.co.uk`
-
-`dev-nginx setup-cert security-hq.local.dev-gutools.co.uk`
-
-`dev-nginx setup-app nginx/nginx-mapping.yml`
-
-1. To stop and restart nginx you can now run:
-
-`dev-nginx restart-nginx`
-
-4. Now when you run the project (see next step for details), it will also be accessible via [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
-
-### DynamoDB local setup
-
-Running Security HQ locally requires a local instance of DynamoDb to connect
-to. The `run` tasks handles most of the work automatically by starting and
-stopping `DynamoDBLocal` as appropriate. It does not, however, create a table
-for the application to use.
-
-To do that, the following script needs to be executed _while_ the application
-is running. This only needs to be done once, as the database is stored on disk
-and persistent between application runs.
-
-1. `$ ./script/setup`
-
-### Running project
-From the root of the project:
-
-1. Get Security Janus credentials.
-
-2. Ensure you are running Java 11
-
-3. Run sbt: `$ ./sbt` (you must use this script to start SBT as it loads the local config copied from S3 in the previous steps).
-
-4. Select the project that you want to run: `sbt:security-hq> project hq`
-
-5. Start the application: `sbt:security-hq> run`
-
-Once the server has started, the webapp is accessible at [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
-
-### Working with CSS and JS
-
-Security HQ uses [Prettier](https://prettier.io) and [ESLint](https://eslint.org/docs/about/) to provide opinionated code formatting and linting. As part of the automated build, all CSS and JS will be validated using the rules of Prettier and ESLint.
-
-#### Testing changes, and passing code validation
-
-Before beginning, you may want to install a node version manager, such as [nvm](https://github.com/creationix/nvm).
-
-1. You will need to install [Yarn](https://yarnpkg.com) to handle the project dependencies:
-	- Linux: Instructions can be found here: [https://yarnpkg.com/lang/en/docs/install/#linux-tab](https://yarnpkg.com/lang/en/docs/install/#linux-tab)
-	- Mac OSX: `$ brew install yarn`
-
-2. Then install all the dependencies by running:
-
-`$ yarn`
-
-##### Running checks with Yarn
-
-To see any errors and warnings for the CSS use:
-
-`$ yarn run sass-lint`
-
-To see any errors and warnings for the JS use:
-
-`$ yarn run eslint`
-
-To attempt to auto-fix the CSS and JS, you can try using Prettier:
-
-`$ yarn run prettier`
-
-**N.B. Although Prettier will write to the files, changes will still need to be staged afterwards.**
-
+   ```bash
+   yarn run eslint
+   yarn run prettier
+   ```
 
 ##### Checking CloudFormation
 
@@ -213,7 +107,7 @@ If you have it installed, you can run:
 
 `cfn_nag_scan --input-path cloudformation/*`
 
-### Dependabot
+## Dependabot
 
 This repo has [dependabot security updates
 enabled])(https://github.com/guardian/security-hq/security/dependabot), which
