@@ -15,7 +15,7 @@
     "prettier": "2.7.1",
     "stylelint": "14.14.1",
     "stylelint-config-recommended": "9.0.0",
-    "snyk": "1.1053.0"
+    "snyk": "1.1058.0"
   },
   "prettier": {
     "singleQuote": true
