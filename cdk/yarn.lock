@@ -324,16 +324,16 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@guardian/cdk@48.4.1":
-  version "48.4.1"
-  resolved "https://registry.yarnpkg.com/@guardian/cdk/-/cdk-48.4.1.tgz#ca8a83681ccccf61ac9eccfc6fc188a7ea8a02f4"
-  integrity sha512-4Rg65AsqnY3oHJ8iE67Wx96ZauHob+26L/gfEAWCJlH3EsU8lUe2J+Mj7U/UYUWsD2JcOPXBgzpfPHMAgkoC6w==
+"@guardian/cdk@48.5.0":
+  version "48.5.0"
+  resolved "https://registry.yarnpkg.com/@guardian/cdk/-/cdk-48.5.0.tgz#f77b67ae100365d11c4bb3150febcfe1c420e2bd"
+  integrity sha512-LTSf4MbGCwz2sZEi+/RokUhtGk2O42M5Ij1XDJGTbjMH01+hw1c2RU/gtVEFiDtr1qy0y4fU1CZW2r1EXNAMrw==
   dependencies:
     "@oclif/core" "1.20.4"
     aws-cdk-lib "2.50.0"
-    aws-sdk "^2.1250.0"
+    aws-sdk "^2.1252.0"
     chalk "^4.1.2"
-    codemaker "^1.70.0"
+    codemaker "^1.71.0"
     constructs "10.1.155"
     git-url-parse "^13.1.0"
     js-yaml "^4.1.0"
@@ -341,7 +341,7 @@
     lodash.kebabcase "^4.1.1"
     lodash.upperfirst "^4.3.1"
     read-pkg-up "7.0.1"
-    yargs "^17.6.0"
+    yargs "^17.6.2"
 
 "@guardian/eslint-config-typescript@^1.0.11":
   version "1.0.11"
@@ -1117,10 +1117,10 @@ aws-cdk@2.45.0:
   optionalDependencies:
     fsevents "2.3.2"
 
-aws-sdk@^2.1250.0:
-  version "2.1253.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1253.0.tgz#28ac12775f4d1589e366db6f2b162d8ea150c2ad"
-  integrity sha512-jlEfWPmRGRdeSVhtRhZnX/vvbJtHu6wzrm7DEUytef5I8P9kxFXnY/lByaXN20WpoU9Kw8zcEOVYIre4LLgswA==
+aws-sdk@^2.1252.0:
+  version "2.1258.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1258.0.tgz#35cadaef14e2cebe0ed13029d2d9f84bb3cf2e8b"
+  integrity sha512-siqNFXlhJZVN1BizPZebJViFXtTUPgcA+yLfHKl2eC4Ied7kE7spOjZmAzpuiGUTzFagk1oWCaJ1Hit4llIoGg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -1364,10 +1364,10 @@ co@^4.6.0:
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==
 
-codemaker@^1.70.0:
-  version "1.70.0"
-  resolved "https://registry.yarnpkg.com/codemaker/-/codemaker-1.70.0.tgz#37fe0745556a65a45789a6ce3b6cf6ee77b989ce"
-  integrity sha512-ZiS349YLSwzoe9ZVfupMBd794x3IO4Au6JsyYCchFjbBCzU10TllLigFWSQuVKXBpaBk3I6QhaDuK+JsosDKsg==
+codemaker@^1.71.0:
+  version "1.71.0"
+  resolved "https://registry.yarnpkg.com/codemaker/-/codemaker-1.71.0.tgz#f065b290f33e730c877642d9456671470d3e5c38"
+  integrity sha512-kjpPxr5TRMYr2BG0EP9IEjQAeE6lTT9fybnCBxQdw3ebVoG8pvMshsQmoMwreL7IaloV8EYIkA+cfr/UpQ6CCg==
   dependencies:
     camelcase "^6.3.0"
     decamelize "^5.0.1"
@@ -4079,7 +4079,7 @@ yargs-parser@^21.0.1, yargs-parser@^21.1.1:
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-21.1.1.tgz#9096bceebf990d21bb31fa9516e0ede294a77d35"
   integrity sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==
 
-yargs@^17.3.1, yargs@^17.6.0:
+yargs@^17.3.1, yargs@^17.6.2:
   version "17.6.2"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-17.6.2.tgz#2e23f2944e976339a1ee00f18c77fedee8332541"
   integrity sha512-1/9UrdHjDZc0eOU0HxOHoS78C69UD3JRMvzlJ7S79S2nTaWRA/whGCTV8o9e/N/1Va9YIV7Q4sOxD8VV4pCWOw==
