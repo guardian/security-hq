@@ -30,7 +30,7 @@ object Snyk {
   }
 
   def getOrganisationVulnerabilities(organisation: SnykOrganisation, token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[String] = {
-    val snykIssuesUrl = s"https://snyk.io/api/v1/reporting/issues/latest?sortBy=severity&order=desc&perPage=1000"
+    val snykIssuesUrl = s"https://snyk.io/api/v1/reporting/issues/latest?sortBy=priorityScore&order=desc&perPage=1000"
     val orgIssuesFilter = Json.obj(
       "filters" -> Json.obj(
         "orgs" -> JsArray(List(
