@@ -6,8 +6,6 @@ deployments:
 
   security-hq:
     type: autoscaling
-    parameters:
-      bucket: security-dist
     dependencies: [security-hq-cfn]
 
   security-hq-cfn:
