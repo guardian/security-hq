@@ -136,11 +136,6 @@ exports[`HQ stack matches the snapshot 1`] = `
             "Value": "security-hq",
           },
           {
-            "Key": "gu:cdk:pattern-name",
-            "PropagateAtLaunch": true,
-            "Value": "GuEc2App",
-          },
-          {
             "Key": "gu:cdk:version",
             "PropagateAtLaunch": true,
             "Value": "TEST",
@@ -272,6 +267,10 @@ dpkg -i /tmp/installer.deb",
           {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Name",
+            "Value": "security-hq/CertificateSecurityhq",
           },
           {
             "Key": "Stack",
@@ -677,17 +676,7 @@ dpkg -i /tmp/installer.deb",
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": {
-                "Service": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "ec2.",
-                      {
-                        "Ref": "AWS::URLSuffix",
-                      },
-                    ],
-                  ],
-                },
+                "Service": "ec2.amazonaws.com",
               },
             },
           ],
