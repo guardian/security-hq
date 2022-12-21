@@ -7,13 +7,14 @@ import org.joda.time.{DateTime, Hours, Seconds}
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
 import logic.DateUtils
+import play.api.Logging
 import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 
-object CredentialsReport {
+object CredentialsReport extends Logging {
 
   def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
 
@@ -80,7 +81,7 @@ object CredentialsReport {
   }
 
   def parseCredentialsReport(contents: String): List[IAMCredential] = {
-      CSVReader.open(new StringReader(contents)).allWithHeaders().map { row =>
+      val iamCredentialsReport = CSVReader.open(new StringReader(contents)).allWithHeaders().map { row =>
         IAMCredential(
           user = row.getOrElse("user", "no username available"),
           arn = row.getOrElse("arn", "no ARN available"),
@@ -107,5 +108,11 @@ object CredentialsReport {
           cert2LastRotated = row.get("cert_2_last_rotated").flatMap(parseDateTimeOpt)
         )
       }
+
+    iamCredentialsReport.foreach(iamCred => {
+      logger.info(s"User: ${iamCred.user}. $iamCred")
+    })
+
+    iamCredentialsReport
   }
 }
