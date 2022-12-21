@@ -7,12 +7,13 @@ import org.joda.time.{DateTime, Hours, Seconds}
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
 import logic.DateUtils
-import play.api.Logging
+import net.logstash.logback.marker.Markers.appendEntries
+import play.api.{Logging, MarkerContext}
 import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
-
+import scala.jdk.CollectionConverters._
 
 object CredentialsReport extends Logging {
 
@@ -109,8 +110,15 @@ object CredentialsReport extends Logging {
         )
       }
 
-    iamCredentialsReport.foreach(iamCred => {
-      logger.info(s"User: ${iamCred.user}. $iamCred")
+    iamCredentialsReport.filter(x => x.passwordEnabled.contains(true)).foreach(iamCred => {
+      val mandatoryMarkers = Map(
+        "User" -> iamCred.user,
+        "PasswordEnabled" -> iamCred.passwordEnabled.getOrElse(false),
+        "Arn" -> iamCred.arn
+      )
+
+      val markers = MarkerContext(appendEntries(mandatoryMarkers.asJava))
+      logger.info(s"${iamCred.user} user has non-Janus access to AWS: $iamCred")(markers)
     })
 
     iamCredentialsReport
