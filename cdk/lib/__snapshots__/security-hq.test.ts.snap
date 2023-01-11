@@ -35,6 +35,8 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuHttpsApplicationListener",
       "GuSecurityGroup",
       "GuCname",
+      "GuHttpsEgressSecurityGroup",
+      "GuStringParameter",
       "GuSnsTopic",
       "GuParameter",
       "GuAlarm",
@@ -67,6 +69,10 @@ exports[`HQ stack matches the snapshot 1`] = `
       "Default": "/security/security-hq/audit-data-s3-bucket/name",
       "Description": "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
       "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "ClientId": {
+      "Description": "Google OAuth client ID",
+      "Type": "String",
     },
     "CloudwatchAlarmEmailDestination": {
       "Description": "Send Security HQ cloudwatch alarms to this email address",
@@ -254,7 +260,7 @@ dpkg -i /tmp/installer.deb",
     "CertificateSecurityhqD266EC9D": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "DomainName": "security-hq.gutools.co.uk",
+        "DomainName": "public.security-hq.gutools.co.uk",
         "Tags": [
           {
             "Key": "App",
@@ -605,6 +611,27 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
+    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqidpaccessSecurityhqE586B5AB900017582D17": {
+      "Properties": {
+        "Description": "Load balancer to target",
+        "FromPort": 9000,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "idpaccessSecurityhq802D3912",
+            "GroupId",
+          ],
+        },
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "GuLogShippingPolicy981BFE5A": {
       "Properties": {
         "PolicyDocument": {
@@ -719,6 +746,26 @@ dpkg -i /tmp/installer.deb",
         ],
         "DefaultActions": [
           {
+            "AuthenticateOidcConfig": {
+              "AuthenticationRequestExtraParams": {
+                "hd": "guardian.co.uk",
+              },
+              "AuthorizationEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+              "ClientId": {
+                "Ref": "ClientId",
+              },
+              "ClientSecret": "{{resolve:secretsmanager:/PROD/deploy/security-hq/client-secret:SecretString:::}}",
+              "Issuer": "https://accounts.google.com",
+              "OnUnauthenticatedRequest": "authenticate",
+              "Scope": "openid",
+              "TokenEndpoint": "https://oauth2.googleapis.com/token",
+              "UserInfoEndpoint": "https://openidconnect.googleapis.com/v1/userinfo",
+            },
+            "Order": 1,
+            "Type": "authenticate-oidc",
+          },
+          {
+            "Order": 2,
             "TargetGroupArn": {
               "Ref": "TargetGroupSecurityhq530DEDAA",
             },
@@ -752,6 +799,12 @@ dpkg -i /tmp/installer.deb",
           {
             "Fn::GetAtt": [
               "RestrictedIngressSecurityGroupSecurityhqCA18D247",
+              "GroupId",
+            ],
+          },
+          {
+            "Fn::GetAtt": [
+              "idpaccessSecurityhq802D3912",
               "GroupId",
             ],
           },
@@ -1249,9 +1302,70 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
+    "idpaccessSecurityhq802D3912": {
+      "Properties": {
+        "GroupDescription": "Allow all outbound HTTPS traffic",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound HTTPS traffic",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "security-hq",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "idpaccessSecurityhqtosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C9000FCD2D08D": {
+      "Properties": {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+            "GroupId",
+          ],
+        },
+        "FromPort": 9000,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "idpaccessSecurityhq802D3912",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
     "securityhqgutoolscouk": {
       "Properties": {
-        "Name": "security-hq.gutools.co.uk",
+        "Name": "public.security-hq.gutools.co.uk",
         "RecordType": "CNAME",
         "ResourceRecords": [
           {
