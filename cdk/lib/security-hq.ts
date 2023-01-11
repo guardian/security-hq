@@ -34,8 +34,8 @@ import {
   InstanceType,
   Peer,
 } from 'aws-cdk-lib/aws-ec2';
-import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import {ListenerAction, UnauthenticatedAction} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
