@@ -20,7 +20,7 @@ import {
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 import { GuardianPublicNetworks } from '@guardian/private-infrastructure-config';
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import {Duration, RemovalPolicy, SecretValue} from 'aws-cdk-lib';
 import type { App } from 'aws-cdk-lib';
 import {
   ComparisonOperator,
@@ -35,6 +35,7 @@ import {
   Peer,
 } from 'aws-cdk-lib/aws-ec2';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+import {ListenerAction, UnauthenticatedAction} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
@@ -130,6 +131,27 @@ dpkg -i /tmp/installer.deb`,
           }),
         ],
       },
+    });
+
+    const clientId = new GuStringParameter(this, "ClientId", {
+      description: "Google OAuth client ID",
+    });
+
+    ec2App.listener.addAction("Google Auth", {
+      action: ListenerAction.authenticateOidc({
+        authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+        issuer: "https://accounts.google.com",
+        scope: "openid",
+        authenticationRequestExtraParams: { hd: "guardian.co.uk" },
+        onUnauthenticatedRequest: UnauthenticatedAction.AUTHENTICATE,
+
+        tokenEndpoint: "https://oauth2.googleapis.com/token",
+
+        userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
+        clientId: clientId.valueAsString,
+        clientSecret: SecretValue.secretsManager(`${this.stage}/security/janus/clientSecret`),
+        next: ListenerAction.forward([ec2App.targetGroup]),
+      }),
     });
 
     new GuCname(this, 'security-hq.gutools.co.uk', {
