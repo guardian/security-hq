@@ -21,7 +21,7 @@ trait SecurityHQAuthActions extends LoginSupport {
   override val authConfig: GoogleAuthConfig
 
   val googleGroupChecker: GoogleGroupChecker = Config.googleGroupChecker
-  val requiredGoogleGroups = Set(Config.twoFAGroup)
+  val requiredGoogleGroups: Set[String] = Set(Config.twoFAGroup, Config.departmentGroup)
   val authAction = new AuthAction[AnyContent](authConfig, loginTarget, bodyParser)(ec)
 
 }
