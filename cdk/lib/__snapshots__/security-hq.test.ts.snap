@@ -33,7 +33,6 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuApplicationLoadBalancer",
       "GuApplicationTargetGroup",
       "GuHttpsApplicationListener",
-      "GuSecurityGroup",
       "GuCname",
       "GuHttpsEgressSecurityGroup",
       "GuStringParameter",
@@ -590,27 +589,6 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupIngress",
     },
-    "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqRestrictedIngressSecurityGroupSecurityhq2DC7AECE90009FDEBE14": {
-      "Properties": {
-        "Description": "Load balancer to target",
-        "FromPort": 9000,
-        "GroupId": {
-          "Fn::GetAtt": [
-            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": {
-          "Fn::GetAtt": [
-            "RestrictedIngressSecurityGroupSecurityhqCA18D247",
-            "GroupId",
-          ],
-        },
-        "ToPort": 9000,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
     "GuHttpsEgressSecurityGroupSecurityhqfromsecurityhqidpaccessSecurityhqE586B5AB900017582D17": {
       "Properties": {
         "Description": "Load balancer to target",
@@ -798,12 +776,6 @@ dpkg -i /tmp/installer.deb",
           },
           {
             "Fn::GetAtt": [
-              "RestrictedIngressSecurityGroupSecurityhqCA18D247",
-              "GroupId",
-            ],
-          },
-          {
-            "Fn::GetAtt": [
               "idpaccessSecurityhq802D3912",
               "GroupId",
             ],
@@ -841,6 +813,15 @@ dpkg -i /tmp/installer.deb",
     "LoadBalancerSecurityhqSecurityGroup66272916": {
       "Properties": {
         "GroupDescription": "Automatically created Security Group for ELB securityhqLoadBalancerSecurityhq4820B44E",
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow from anyone on port 443",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
         "Tags": [
           {
             "Key": "App",
@@ -1030,67 +1011,6 @@ dpkg -i /tmp/installer.deb",
         "TreatMissingData": "notBreaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
-    },
-    "RestrictedIngressSecurityGroupSecurityhqCA18D247": {
-      "Properties": {
-        "GroupDescription": "Allow restricted ingress from CIDR ranges",
-        "SecurityGroupIngress": [
-          {
-            "CidrIp": "192.168.1.1/22",
-            "Description": "Allow access on port 443 from 192.168.1.1/22",
-            "FromPort": 443,
-            "IpProtocol": "tcp",
-            "ToPort": 443,
-          },
-        ],
-        "Tags": [
-          {
-            "Key": "App",
-            "Value": "security-hq",
-          },
-          {
-            "Key": "gu:cdk:version",
-            "Value": "TEST",
-          },
-          {
-            "Key": "gu:repo",
-            "Value": "guardian/security-hq",
-          },
-          {
-            "Key": "Stack",
-            "Value": "security",
-          },
-          {
-            "Key": "Stage",
-            "Value": "PROD",
-          },
-        ],
-        "VpcId": {
-          "Ref": "VpcId",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "RestrictedIngressSecurityGroupSecurityhqtosecurityhqGuHttpsEgressSecurityGroupSecurityhqFDD8E89C9000A501F165": {
-      "Properties": {
-        "Description": "Load balancer to target",
-        "DestinationSecurityGroupId": {
-          "Fn::GetAtt": [
-            "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
-            "GroupId",
-          ],
-        },
-        "FromPort": 9000,
-        "GroupId": {
-          "Fn::GetAtt": [
-            "RestrictedIngressSecurityGroupSecurityhqCA18D247",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 9000,
-      },
-      "Type": "AWS::EC2::SecurityGroupEgress",
     },
     "S3AuditRead9DF4AE59": {
       "Properties": {
