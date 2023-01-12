@@ -16,6 +16,7 @@ import com.google.cloud.securitycenter.v1.{OrganizationName, SecurityCenterClien
 import config.Config
 import logic.GcpDisplay
 import model._
+import net.logstash.logback.marker.Markers.appendEntries
 import play.api._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.WSClient
@@ -26,6 +27,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
 import utils.Box
+import scala.jdk.CollectionConverters._
 
 class CacheService(
     config: Configuration,
@@ -122,6 +124,24 @@ class CacheService(
     for {
       allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(accounts, taClients)
     } yield {
+      allExposedKeys foreach {
+        case (account, Right(exposedIAMKeys)) =>
+          exposedIAMKeys foreach {
+            key => {
+              val mandatoryMarkers = Map(
+                "account" -> account,
+                "username" -> key.username,
+                "keyId" -> key.keyId,
+                "fraudType" -> key.fraudType,
+                "updated" -> key.updated
+              )
+              val markers = MarkerContext(appendEntries(mandatoryMarkers.asJava))
+              logger.warn(s"Detected exposed key in account $account")(markers)
+            }
+          }
+        case (_, Left(err)) => logger.error(s"Error refreshing exposed keys data due to: ${err.failures.map(_.friendlyMessage).mkString(", ")}")
+      }
+
       logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
     }
