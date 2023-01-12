@@ -2,11 +2,12 @@ package aws
 
 import com.amazonaws.AmazonWebServiceRequest
 import com.amazonaws.handlers.AsyncHandler
-import play.api.Logging
+import net.logstash.logback.marker.Markers.appendEntries
+import play.api.{Logging, MarkerContext}
 import utils.attempt.{Attempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
-
+import scala.jdk.CollectionConverters._
 
 class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T], clientContext: AwsClient[_]) extends AsyncHandler[R, T] with Logging {
   def onError(e: Exception): Unit = {
@@ -19,7 +20,7 @@ class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T
   }
 }
 
-object AwsAsyncHandler {
+object AwsAsyncHandler extends Logging {
   private val ServiceName = ".*Service: ([^;]+);.*".r
   def awsToScala[R <: AmazonWebServiceRequest, T, Client](client: AwsClient[Client])(sdkMethod: Client => ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
     val p = Promise[T]()
@@ -33,6 +34,15 @@ object AwsAsyncHandler {
         case ServiceName(serviceName) => Some(serviceName)
         case _ => None
       }
+
+      val markers = MarkerContext(appendEntries(
+        Map(
+          "serviceName" -> serviceNameOpt.getOrElse("unknown")
+        ).asJava
+      ))
+
+      logger.error(s"AWS error: ${e.getMessage}")(markers)
+
       if (e.getMessage.contains("The security token included in the request is expired")) {
         Failure.expiredCredentials(serviceNameOpt, awsClient).attempt
       } else if (e.getMessage.contains("Unable to load AWS credentials from any provider in the chain")) {
