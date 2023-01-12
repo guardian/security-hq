@@ -33,7 +33,7 @@ object Config {
 
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
-  val documentationLinks = List (
+  val documentationLinks: List[Documentation] = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
     Documentation("Software dependency checks", "Integrate Snyk for software vulnerability reports.", "security", "snyk"),
     Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),
@@ -100,6 +100,9 @@ object Config {
 
   def twoFAGroup(implicit config: Configuration): String = {
     requiredString(config, "auth.google.2faGroupId")
+  }
+  def departmentGroup(implicit config: Configuration): String = {
+    requiredString(config, "auth.google.departmentGroupId")
   }
 
   private def requiredString(config: Configuration, key: String): String = {

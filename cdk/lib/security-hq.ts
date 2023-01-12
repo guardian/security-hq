@@ -10,6 +10,7 @@ import {
 } from '@guardian/cdk/lib/constructs/core';
 import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
 import { GuCname } from '@guardian/cdk/lib/constructs/dns';
+import { GuHttpsEgressSecurityGroup } from '@guardian/cdk/lib/constructs/ec2';
 import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
@@ -20,7 +21,7 @@ import {
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 import { GuardianPublicNetworks } from '@guardian/private-infrastructure-config';
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import type { App } from 'aws-cdk-lib';
 import {
   ComparisonOperator,
@@ -34,6 +35,7 @@ import {
   InstanceType,
   Peer,
 } from 'aws-cdk-lib/aws-ec2';
+import { ListenerAction, UnauthenticatedAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class SecurityHQ extends GuStack {
@@ -78,7 +80,7 @@ export class SecurityHQ extends GuStack {
     );
     const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
 
-    const domainName = 'security-hq.gutools.co.uk';
+    const domainName = 'public.security-hq.gutools.co.uk';
 
     const ec2App = new GuEc2App(this, {
       access: {
@@ -137,6 +139,33 @@ dpkg -i /tmp/installer.deb`,
       domainName,
       ttl: Duration.hours(1),
       resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
+    });
+
+    // Need to give the ALB outbound access on 443 for the IdP endpoints (to support Google Auth).
+    const outboundHttpsSecurityGroup = new GuHttpsEgressSecurityGroup(this, "idp-access", {
+      app: SecurityHQ.app.app,
+      vpc: ec2App.vpc,
+    });
+
+    ec2App.loadBalancer.addSecurityGroup(outboundHttpsSecurityGroup);
+
+    const clientId = new GuStringParameter(this, "ClientId", {
+      description: "Google OAuth client ID",
+    });
+
+    ec2App.listener.addAction("DefaultAction", {
+      action: ListenerAction.authenticateOidc({
+        authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+        issuer: "https://accounts.google.com",
+        scope: "openid",
+        authenticationRequestExtraParams: { hd: "guardian.co.uk" },
+        onUnauthenticatedRequest: UnauthenticatedAction.AUTHENTICATE,
+        tokenEndpoint: "https://oauth2.googleapis.com/token",
+        userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
+        clientId: clientId.valueAsString,
+        clientSecret: SecretValue.secretsManager(`/${this.stage}/deploy/security-hq/client-secret`),
+        next: ListenerAction.forward([ec2App.targetGroup]),
+      }),
     });
 
     const notificationTopic = new GuSnsTopic(this, 'NotificationTopic', {
