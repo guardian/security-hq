@@ -20,7 +20,6 @@ import {
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
-import { GuardianPublicNetworks } from '@guardian/private-infrastructure-config';
 import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import type { App } from 'aws-cdk-lib';
 import {
@@ -33,7 +32,6 @@ import {
   InstanceClass,
   InstanceSize,
   InstanceType,
-  Peer,
 } from 'aws-cdk-lib/aws-ec2';
 import { ListenerAction, UnauthenticatedAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
@@ -84,8 +82,7 @@ export class SecurityHQ extends GuStack {
 
     const ec2App = new GuEc2App(this, {
       access: {
-        scope: AccessScope.RESTRICTED,
-        cidrRanges: [Peer.ipv4(GuardianPublicNetworks.London)],
+        scope: AccessScope.PUBLIC
       },
       app: 'security-hq',
       applicationPort: 9000,
