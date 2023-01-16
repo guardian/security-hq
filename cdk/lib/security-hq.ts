@@ -32,8 +32,8 @@ import {
   InstanceSize,
   InstanceType,
 } from 'aws-cdk-lib/aws-ec2';
-import { Topic } from 'aws-cdk-lib/aws-sns';
 import { ListenerAction, UnauthenticatedAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class SecurityHQ extends GuStack {
