@@ -36,7 +36,6 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuCname",
       "GuHttpsEgressSecurityGroup",
       "GuStringParameter",
-      "GuSnsTopic",
       "GuParameter",
       "GuAlarm",
       "GuAlarm",
