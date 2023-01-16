@@ -19,7 +19,6 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
-import { GuSnsTopic } from '@guardian/cdk/lib/constructs/sns';
 import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import type { App } from 'aws-cdk-lib';
 import {
@@ -33,6 +32,7 @@ import {
   InstanceSize,
   InstanceType,
 } from 'aws-cdk-lib/aws-ec2';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { ListenerAction, UnauthenticatedAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
@@ -165,7 +165,7 @@ dpkg -i /tmp/installer.deb`,
       }),
     });
 
-    const notificationTopic = new GuSnsTopic(this, 'NotificationTopic', {
+    const notificationTopic = new Topic(this, 'NotificationTopic', {
       displayName: 'Security HQ notifications',
     });
     const emailDest = new GuParameter(this, 'CloudwatchAlarmEmailDestination', {
