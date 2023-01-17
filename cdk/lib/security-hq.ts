@@ -35,6 +35,7 @@ import {
 import { ListenerAction, UnauthenticatedAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+import { ParameterDataType, ParameterTier, StringParameter } from "aws-cdk-lib/aws-ssm";
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
@@ -145,6 +146,16 @@ dpkg -i /tmp/installer.deb`,
     });
 
     ec2App.loadBalancer.addSecurityGroup(outboundHttpsSecurityGroup);
+
+    // This parameter is used by https://github.com/guardian/waf
+    new StringParameter(this, "AlbSsmParam", {
+      parameterName: `/infosec/waf/services/${this.stage}/security-hq-alb-arn`,
+      description: `The arn of the ALB for security-hq-${this.stage}. N.B. this parameter is created via cdk`,
+      simpleName: false,
+      stringValue: ec2App.loadBalancer.loadBalancerArn,
+      tier: ParameterTier.STANDARD,
+      dataType: ParameterDataType.TEXT,
+    });
 
     const clientId = new GuStringParameter(this, "ClientId", {
       description: "Google OAuth client ID",

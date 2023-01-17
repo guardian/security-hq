@@ -103,6 +103,25 @@ exports[`HQ stack matches the snapshot 1`] = `
     },
   },
   "Resources": {
+    "AlbSsmParam485C1D52": {
+      "Properties": {
+        "DataType": "text",
+        "Description": "The arn of the ALB for security-hq-PROD. N.B. this parameter is created via cdk",
+        "Name": "/infosec/waf/services/PROD/security-hq-alb-arn",
+        "Tags": {
+          "Stack": "security",
+          "Stage": "PROD",
+          "gu:cdk:version": "TEST",
+          "gu:repo": "guardian/security-hq",
+        },
+        "Tier": "Standard",
+        "Type": "String",
+        "Value": {
+          "Ref": "LoadBalancerSecurityhqF59D9B82",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
     "AssumeRole3910C09D": {
       "Properties": {
         "PolicyDocument": {
