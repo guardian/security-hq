@@ -18,7 +18,7 @@
     "@guardian/cdk": "49.0.1",
     "@guardian/eslint-config-typescript": "^2.0.0",
     "@guardian/private-infrastructure-config": "git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.1",
-    "@types/jest": "^29.2.5",
+    "@types/jest": "^29.2.6",
     "@types/node": "18.11.18",
     "aws-cdk": "2.59.0",
     "aws-cdk-lib": "2.59.0",
