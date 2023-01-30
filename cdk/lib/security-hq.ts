@@ -21,6 +21,7 @@ import {
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import type { App } from 'aws-cdk-lib';
+import { CfnCertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   ComparisonOperator,
   Metric,
@@ -135,9 +136,26 @@ dpkg -i /tmp/installer.deb`,
       },
     });
 
+    // Despite what the ID value is, this CNAME is for public.security-hq.gutools.co.uk
     new GuCname(this, 'security-hq.gutools.co.uk', {
       app: SecurityHQ.app.app,
       domainName,
+      ttl: Duration.hours(1),
+      resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
+    });
+
+    const certificate = this.node
+      .findAll()
+      .find((_) => _ instanceof CfnCertificate) as CfnCertificate;
+
+    certificate.subjectAlternativeNames = [
+      ...(certificate.subjectAlternativeNames ?? []),
+      'security-hq.gutools.co.uk',
+    ];
+
+    new GuCname(this, 'DnsRecord', {
+      app: SecurityHQ.app.app,
+      domainName: 'security-hq.gutools.co.uk',
       ttl: Duration.hours(1),
       resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
     });
