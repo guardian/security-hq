@@ -34,7 +34,6 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuApplicationTargetGroup",
       "GuHttpsApplicationListener",
       "GuCname",
-      "GuCname",
       "GuHttpsEgressSecurityGroup",
       "GuStringParameter",
       "GuParameter",
@@ -278,10 +277,7 @@ dpkg -i /tmp/installer.deb",
     "CertificateSecurityhqD266EC9D": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "DomainName": "public.security-hq.gutools.co.uk",
-        "SubjectAlternativeNames": [
-          "security-hq.gutools.co.uk",
-        ],
+        "DomainName": "security-hq.gutools.co.uk",
         "Tags": [
           {
             "Key": "App",
@@ -1349,23 +1345,6 @@ dpkg -i /tmp/installer.deb",
         "ToPort": 9000,
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
-    },
-    "securityhqgutoolscouk": {
-      "Properties": {
-        "Name": "public.security-hq.gutools.co.uk",
-        "RecordType": "CNAME",
-        "ResourceRecords": [
-          {
-            "Fn::GetAtt": [
-              "LoadBalancerSecurityhqF59D9B82",
-              "DNSName",
-            ],
-          },
-        ],
-        "Stage": "PROD",
-        "TTL": 3600,
-      },
-      "Type": "Guardian::DNS::RecordSet",
     },
   },
 }
