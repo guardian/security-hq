@@ -797,6 +797,34 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
     },
+    "ListenerSecurityhqredirectRule34167D17": {
+      "Properties": {
+        "Actions": [
+          {
+            "RedirectConfig": {
+              "Host": "security-hq.gutools.co.uk",
+              "StatusCode": "HTTP_301",
+            },
+            "Type": "redirect",
+          },
+        ],
+        "Conditions": [
+          {
+            "Field": "host-header",
+            "HostHeaderConfig": {
+              "Values": [
+                "public.security-hq.gutools.co.uk",
+              ],
+            },
+          },
+        ],
+        "ListenerArn": {
+          "Ref": "ListenerSecurityhq0F356342",
+        },
+        "Priority": 1,
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+    },
     "LoadBalancerSecurityhqF59D9B82": {
       "Properties": {
         "LoadBalancerAttributes": [

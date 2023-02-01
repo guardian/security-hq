@@ -31,6 +31,7 @@ import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { InstanceClass, InstanceSize, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import {
   ListenerAction,
+  ListenerCondition,
   UnauthenticatedAction,
 } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Topic } from 'aws-cdk-lib/aws-sns';
@@ -201,6 +202,17 @@ dpkg -i /tmp/installer.deb`,
         ),
         next: ListenerAction.forward([ec2App.targetGroup]),
       }),
+    });
+
+    ec2App.listener.addAction('redirect', {
+      action: ListenerAction.redirect({
+        permanent: true,
+        host: 'security-hq.gutools.co.uk',
+      }),
+      conditions: [
+        ListenerCondition.hostHeaders(['public.security-hq.gutools.co.uk']),
+      ],
+      priority: 1,
     });
 
     const notificationTopic = new Topic(this, 'NotificationTopic', {
