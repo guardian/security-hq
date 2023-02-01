@@ -21,21 +21,25 @@ import {
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
 import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import type { App } from 'aws-cdk-lib';
+import { CfnCertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   ComparisonOperator,
   Metric,
   TreatMissingData,
 } from 'aws-cdk-lib/aws-cloudwatch';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { InstanceClass, InstanceSize, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import {
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-} from 'aws-cdk-lib/aws-ec2';
-import { ListenerAction, UnauthenticatedAction } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+  ListenerAction,
+  UnauthenticatedAction,
+} from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
-import { ParameterDataType, ParameterTier, StringParameter } from "aws-cdk-lib/aws-ssm";
+import {
+  ParameterDataType,
+  ParameterTier,
+  StringParameter,
+} from 'aws-cdk-lib/aws-ssm';
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
@@ -83,7 +87,7 @@ export class SecurityHQ extends GuStack {
 
     const ec2App = new GuEc2App(this, {
       access: {
-        scope: AccessScope.PUBLIC
+        scope: AccessScope.PUBLIC,
       },
       app: 'security-hq',
       applicationPort: 9000,
@@ -132,6 +136,7 @@ dpkg -i /tmp/installer.deb`,
       },
     });
 
+    // Despite what the ID value is, this CNAME is for public.security-hq.gutools.co.uk
     new GuCname(this, 'security-hq.gutools.co.uk', {
       app: SecurityHQ.app.app,
       domainName,
@@ -139,16 +144,36 @@ dpkg -i /tmp/installer.deb`,
       resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
     });
 
-    // Need to give the ALB outbound access on 443 for the IdP endpoints (to support Google Auth).
-    const outboundHttpsSecurityGroup = new GuHttpsEgressSecurityGroup(this, "idp-access", {
+    const certificate = this.node
+      .findAll()
+      .find((_) => _ instanceof CfnCertificate) as CfnCertificate;
+
+    certificate.subjectAlternativeNames = [
+      ...(certificate.subjectAlternativeNames ?? []),
+      'security-hq.gutools.co.uk',
+    ];
+
+    new GuCname(this, 'DnsRecord', {
       app: SecurityHQ.app.app,
-      vpc: ec2App.vpc,
+      domainName: 'security-hq.gutools.co.uk',
+      ttl: Duration.hours(1),
+      resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
     });
+
+    // Need to give the ALB outbound access on 443 for the IdP endpoints (to support Google Auth).
+    const outboundHttpsSecurityGroup = new GuHttpsEgressSecurityGroup(
+      this,
+      'idp-access',
+      {
+        app: SecurityHQ.app.app,
+        vpc: ec2App.vpc,
+      }
+    );
 
     ec2App.loadBalancer.addSecurityGroup(outboundHttpsSecurityGroup);
 
     // This parameter is used by https://github.com/guardian/waf
-    new StringParameter(this, "AlbSsmParam", {
+    new StringParameter(this, 'AlbSsmParam', {
       parameterName: `/infosec/waf/services/${this.stage}/security-hq-alb-arn`,
       description: `The arn of the ALB for security-hq-${this.stage}. N.B. this parameter is created via cdk`,
       simpleName: false,
@@ -157,21 +182,23 @@ dpkg -i /tmp/installer.deb`,
       dataType: ParameterDataType.TEXT,
     });
 
-    const clientId = new GuStringParameter(this, "ClientId", {
-      description: "Google OAuth client ID",
+    const clientId = new GuStringParameter(this, 'ClientId', {
+      description: 'Google OAuth client ID',
     });
 
-    ec2App.listener.addAction("DefaultAction", {
+    ec2App.listener.addAction('DefaultAction', {
       action: ListenerAction.authenticateOidc({
-        authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-        issuer: "https://accounts.google.com",
-        scope: "openid",
-        authenticationRequestExtraParams: { hd: "guardian.co.uk" },
+        authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+        issuer: 'https://accounts.google.com',
+        scope: 'openid',
+        authenticationRequestExtraParams: { hd: 'guardian.co.uk' },
         onUnauthenticatedRequest: UnauthenticatedAction.AUTHENTICATE,
-        tokenEndpoint: "https://oauth2.googleapis.com/token",
-        userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
+        tokenEndpoint: 'https://oauth2.googleapis.com/token',
+        userInfoEndpoint: 'https://openidconnect.googleapis.com/v1/userinfo',
         clientId: clientId.valueAsString,
-        clientSecret: SecretValue.secretsManager(`/${this.stage}/deploy/security-hq/client-secret`),
+        clientSecret: SecretValue.secretsManager(
+          `/${this.stage}/deploy/security-hq/client-secret`
+        ),
         next: ListenerAction.forward([ec2App.targetGroup]),
       }),
     });
