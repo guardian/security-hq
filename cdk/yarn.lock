@@ -340,10 +340,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@guardian/cdk@49.1.0":
-  version "49.1.0"
-  resolved "https://registry.yarnpkg.com/@guardian/cdk/-/cdk-49.1.0.tgz#e9a9209416066ccb3016a824fe09adcd13c313bd"
-  integrity sha512-2QKzixZxBx7c53ITpXG3hHZVoUqu+awd7PGZtx132MtrjV5hEN3G7sLtICdezMLxXPbIcagHRfk8yasu1Zi7bA==
+"@guardian/cdk@49.2.0":
+  version "49.2.0"
+  resolved "https://registry.yarnpkg.com/@guardian/cdk/-/cdk-49.2.0.tgz#43fc9a46c114ff72412aaa9657f6c074e6d7dced"
+  integrity sha512-n/jFc/ZJ1NKftrj+gqO1LZ6ic5P9ejIHHt28MyCMDcPA/bQzXoHbYLIaLXf0clV59TCGDxPh6YpasyMHrcj5tQ==
   dependencies:
     "@oclif/core" "1.24.2"
     aws-cdk-lib "2.59.0"
