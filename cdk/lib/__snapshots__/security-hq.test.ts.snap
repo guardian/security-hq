@@ -16,6 +16,8 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuAllowPolicy",
       "GuVpcParameter",
       "GuSubnetListParameter",
+      "GuSubnetListParameter",
+      "GuEc2App",
       "GuCertificate",
       "GuInstanceRole",
       "GuSSMRunCommandPolicy",
@@ -28,10 +30,11 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuHttpsEgressSecurityGroup",
       "GuAutoScalingGroup",
       "GuWazuhAccess",
-      "GuSubnetListParameter",
       "GuApplicationLoadBalancer",
       "GuApplicationTargetGroup",
       "GuHttpsApplicationListener",
+      "GuCname",
+      "GuCname",
       "GuHttpsEgressSecurityGroup",
       "GuStringParameter",
       "GuParameter",
@@ -157,11 +160,6 @@ exports[`HQ stack matches the snapshot 1`] = `
             "Key": "App",
             "PropagateAtLaunch": true,
             "Value": "security-hq",
-          },
-          {
-            "Key": "gu:cdk:pattern-name",
-            "PropagateAtLaunch": true,
-            "Value": "GuEc2App",
           },
           {
             "Key": "gu:cdk:version",
@@ -298,6 +296,10 @@ dpkg -i /tmp/installer.deb",
           {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Name",
+            "Value": "security-hq/CertificateSecurityhq",
           },
           {
             "Key": "Stack",
@@ -896,17 +898,7 @@ dpkg -i /tmp/installer.deb",
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": {
-                "Service": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "ec2.",
-                      {
-                        "Ref": "AWS::URLSuffix",
-                      },
-                    ],
-                  ],
-                },
+                "Service": "ec2.amazonaws.com",
               },
             },
           ],
