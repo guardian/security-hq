@@ -16,8 +16,6 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuAllowPolicy",
       "GuVpcParameter",
       "GuSubnetListParameter",
-      "GuSubnetListParameter",
-      "GuEc2App",
       "GuCertificate",
       "GuInstanceRole",
       "GuSSMRunCommandPolicy",
@@ -30,14 +28,15 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuHttpsEgressSecurityGroup",
       "GuAutoScalingGroup",
       "GuWazuhAccess",
+      "GuSubnetListParameter",
       "GuApplicationLoadBalancer",
       "GuApplicationTargetGroup",
       "GuHttpsApplicationListener",
-      "GuCname",
-      "GuCname",
       "GuHttpsEgressSecurityGroup",
       "GuStringParameter",
       "GuParameter",
+      "GuAlarm",
+      "GuAlarm",
       "GuAlarm",
       "GuAlarm",
     ],
@@ -158,6 +157,11 @@ exports[`HQ stack matches the snapshot 1`] = `
             "Key": "App",
             "PropagateAtLaunch": true,
             "Value": "security-hq",
+          },
+          {
+            "Key": "gu:cdk:pattern-name",
+            "PropagateAtLaunch": true,
+            "Value": "GuEc2App",
           },
           {
             "Key": "gu:cdk:version",
@@ -294,10 +298,6 @@ dpkg -i /tmp/installer.deb",
           {
             "Key": "gu:repo",
             "Value": "guardian/security-hq",
-          },
-          {
-            "Key": "Name",
-            "Value": "security-hq/CertificateSecurityhq",
           },
           {
             "Key": "Stack",
@@ -712,6 +712,182 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::IAM::Policy",
     },
+    "HTTPCodeELB4XXCountpercentage4A4BE250": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "HTTPCode_ELB_4XX_Count errors as a percentage of all requests.",
+        "AlarmName": "HTTPCode_ELB_4XX_Count-percentage",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "(m1/m2)*100",
+            "Id": "expr_1",
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "LoadBalancer",
+                    "Value": {
+                      "Fn::GetAtt": [
+                        "LoadBalancerSecurityhqF59D9B82",
+                        "LoadBalancerFullName",
+                      ],
+                    },
+                  },
+                ],
+                "MetricName": "HTTPCode_ELB_4XX_Count",
+                "Namespace": "AWS/ApplicationELB",
+              },
+              "Period": 600,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "LoadBalancer",
+                    "Value": {
+                      "Fn::GetAtt": [
+                        "LoadBalancerSecurityhqF59D9B82",
+                        "LoadBalancerFullName",
+                      ],
+                    },
+                  },
+                ],
+                "MetricName": "RequestCount",
+                "Namespace": "AWS/ApplicationELB",
+              },
+              "Period": 600,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "missing",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "HTTPCodeELB5XXCountpercentage8EA6CE98": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "HTTPCode_ELB_5XX_Count errors as a percentage of all requests.",
+        "AlarmName": "HTTPCode_ELB_5XX_Count-percentage",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "(m1/m2)*100",
+            "Id": "expr_1",
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "LoadBalancer",
+                    "Value": {
+                      "Fn::GetAtt": [
+                        "LoadBalancerSecurityhqF59D9B82",
+                        "LoadBalancerFullName",
+                      ],
+                    },
+                  },
+                ],
+                "MetricName": "HTTPCode_ELB_5XX_Count",
+                "Namespace": "AWS/ApplicationELB",
+              },
+              "Period": 600,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "LoadBalancer",
+                    "Value": {
+                      "Fn::GetAtt": [
+                        "LoadBalancerSecurityhqF59D9B82",
+                        "LoadBalancerFullName",
+                      ],
+                    },
+                  },
+                ],
+                "MetricName": "RequestCount",
+                "Namespace": "AWS/ApplicationELB",
+              },
+              "Period": 600,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "missing",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
     "InstanceRoleSecurityhq7C08CA33": {
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -720,7 +896,17 @@ dpkg -i /tmp/installer.deb",
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": {
-                "Service": "ec2.amazonaws.com",
+                "Service": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "ec2.",
+                      {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                    ],
+                  ],
+                },
               },
             },
           ],

@@ -19,17 +19,20 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from '@guardian/cdk/lib/constructs/iam';
 import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
-import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
+import type { GuApplicationLoadBalancer } from '@guardian/cdk/lib/constructs/loadbalancing';
 import type { App } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import { CfnCertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   ComparisonOperator,
+  MathExpression,
   Metric,
   TreatMissingData,
 } from 'aws-cdk-lib/aws-cloudwatch';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { InstanceClass, InstanceSize, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import {
+  HttpCodeElb,
   ListenerAction,
   ListenerCondition,
   UnauthenticatedAction,
@@ -49,6 +52,39 @@ export class SecurityHQ extends GuStack {
 
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
+
+    function httpErrorRateAlarm(
+      scope: GuStack,
+      alb: GuApplicationLoadBalancer,
+      responseType: HttpCodeElb,
+      notificationTopic: Topic,
+      period: Duration = Duration.minutes(10),
+      errorPercentage: number = 10,
+      evaluationPeriods: number = 1
+    ): GuAlarm {
+      const errorMetric = alb.metricHttpCodeElb(responseType);
+
+      const mathExpression = new MathExpression({
+        expression: '(m1/m2)*100',
+        period,
+        usingMetrics: {
+          m1: errorMetric,
+          m2: alb.metricRequestCount(),
+        },
+      });
+
+      return new GuAlarm(scope, `${errorMetric.metricName}-percentage`, {
+        app: SecurityHQ.app.app,
+        metric: mathExpression,
+        alarmDescription: `${errorMetric.metricName} errors as a percentage of all requests.`,
+        snsTopicName: notificationTopic.topicName,
+        threshold: errorPercentage,
+        evaluationPeriods,
+        alarmName: `${errorMetric.metricName}-percentage`,
+        comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+        treatMissingData: TreatMissingData.MISSING,
+      });
+    }
 
     const table = new Table(this, 'DynamoTable', {
       tableName: `security-hq-iam`,
@@ -268,5 +304,18 @@ dpkg -i /tmp/installer.deb`,
       treatMissingData: TreatMissingData.NOT_BREACHING,
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
+
+    httpErrorRateAlarm(
+      this,
+      ec2App.loadBalancer,
+      HttpCodeElb.ELB_5XX_COUNT,
+      notificationTopic
+    );
+    httpErrorRateAlarm(
+      this,
+      ec2App.loadBalancer,
+      HttpCodeElb.ELB_4XX_COUNT,
+      notificationTopic
+    );
   }
 }
