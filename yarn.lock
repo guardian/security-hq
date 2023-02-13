@@ -1773,10 +1773,10 @@ slice-ansi@^4.0.0:
     astral-regex "^2.0.0"
     is-fullwidth-code-point "^3.0.0"
 
-snyk@1.1096.0:
-  version "1.1096.0"
-  resolved "https://registry.yarnpkg.com/snyk/-/snyk-1.1096.0.tgz#bc6e6406c82409926fafdf8f19b0201b70da7682"
-  integrity sha512-sdlaejAJQE6Ka1P2x5nwRkCmkBCLmo/0W+B1BJZVlt53RMSer/MCLVqKf7sSeSXdfBoQnnskJVYQ3qMMWzl2pA==
+snyk@1.1100.0:
+  version "1.1100.0"
+  resolved "https://registry.yarnpkg.com/snyk/-/snyk-1.1100.0.tgz#d2702a443da8284755a7cd785c19aa74b0106748"
+  integrity sha512-f+k5tc3mU4Y48aZKLo1lM5Z7k+LlymGBQvxKXTzvQawmK6tMvbYgV1hn0JbVHDgdLeCrPpvxsTthDa75L8kteg==
 
 source-map-js@^1.0.2:
   version "1.0.2"
