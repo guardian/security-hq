@@ -6,15 +6,9 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    target-branch: "dependency-updates"
-  - package-ecosystem: "npm"
     directory: "/cdk"
     schedule:
-      interval: "weekly"
-    target-branch: "dependency-updates"
+      interval: "monthly"
     ignore:
       - dependency-name: "aws-cdk"
       - dependency-name: "aws-cdk-lib"
