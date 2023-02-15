@@ -64,35 +64,6 @@ You can add a `roleArn` if you want to generate an IAM report, otherwise you don
 ### AWS Security Policies
 See `watched-account` template under `cloudformation` folder for the security policies needed to run security-hq.
 
-### Client Side
-Security HQ uses [Prettier](https://prettier.io) and [ESLint](https://eslint.org/docs/about/) to provide opinionated code formatting and linting.
-As part of the automated build, all CSS and JS will be validated using the rules of Prettier and ESLint.
-
-1. Install `yarn`:
-
-   ```bash
-   npm install -g yarn
-   ```
-
-2. Install dependencies:
-   
-   ```bash
-   yarn
-   ```
-
-3. Check for any CSS issues:
-
-   ```bash
-   yarn run sass-lint
-   ```
-   
-4. Check for linting and Prettier issues:
-
-   ```bash
-   yarn run eslint
-   yarn run prettier
-   ```
-
 ##### Checking CloudFormation
 
 The aws cli can perform some basic template validation.

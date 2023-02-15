@@ -3,7 +3,7 @@ name: CI
 
 on:
   pull_request:
-      
+
   # Manual invocation.
   workflow_dispatch:
 
@@ -41,11 +41,12 @@ jobs:
           distribution: 'corretto'
           cache: 'sbt'
 
-      # (Respects .nvmrc)
       - name: Setup Node
-        uses: guardian/actions-setup-node@v2.4.1
+        uses: actions/setup-node@v3
         with:
+          node-version-file: '.nvmrc'
           cache: 'yarn'
+          cache-dependency-path: 'cdk/yarn.lock'
 
       - name: Add SSH key for accessing @guardian/private-infrastructure-config
         uses: guardian/actions-read-private-repos@v0.1.0
