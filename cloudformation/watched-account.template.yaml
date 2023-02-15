@@ -66,6 +66,7 @@ Resources:
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport
             - cloudformation:DescribeStacks
+            - cloudformation:ListStacks
             - iam:ListUserTags
             - iam:ListAccessKeys
             - iam:ListMFADevices
