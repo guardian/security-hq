@@ -1,94 +1,94 @@
-import { GuEc2App } from '@guardian/cdk';
-import { AccessScope } from '@guardian/cdk/lib/constants';
-import { GuAlarm } from '@guardian/cdk/lib/constructs/cloudwatch';
-import type { GuStackProps } from '@guardian/cdk/lib/constructs/core';
+import { GuEc2App } from "@guardian/cdk";
+import { AccessScope } from "@guardian/cdk/lib/constants";
+import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
+import type { GuStackProps } from "@guardian/cdk/lib/constructs/core";
 import {
   GuDistributionBucketParameter,
   GuParameter,
   GuStack,
   GuStringParameter,
-} from '@guardian/cdk/lib/constructs/core';
-import type { AppIdentity } from '@guardian/cdk/lib/constructs/core/identity';
-import { GuCname } from '@guardian/cdk/lib/constructs/dns';
-import { GuHttpsEgressSecurityGroup } from '@guardian/cdk/lib/constructs/ec2';
+} from "@guardian/cdk/lib/constructs/core";
+import type { AppIdentity } from "@guardian/cdk/lib/constructs/core/identity";
+import { GuCname } from "@guardian/cdk/lib/constructs/dns";
+import { GuHttpsEgressSecurityGroup } from "@guardian/cdk/lib/constructs/ec2";
 import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
   GuGetS3ObjectsPolicy,
   GuPutCloudwatchMetricsPolicy,
-} from '@guardian/cdk/lib/constructs/iam';
-import { GuAnghammaradSenderPolicy } from '@guardian/cdk/lib/constructs/iam/policies/anghammarad';
-import { Duration, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
-import type { App } from 'aws-cdk-lib';
+} from "@guardian/cdk/lib/constructs/iam";
+import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
+import { Duration, RemovalPolicy, SecretValue } from "aws-cdk-lib";
+import type { App } from "aws-cdk-lib";
 import {
   ComparisonOperator,
   Metric,
   TreatMissingData,
-} from 'aws-cdk-lib/aws-cloudwatch';
-import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { InstanceClass, InstanceSize, InstanceType } from 'aws-cdk-lib/aws-ec2';
+} from "aws-cdk-lib/aws-cloudwatch";
+import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
+import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
 import {
   ListenerAction,
   UnauthenticatedAction,
-} from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { Topic } from 'aws-cdk-lib/aws-sns';
-import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { Topic } from "aws-cdk-lib/aws-sns";
+import { EmailSubscription } from "aws-cdk-lib/aws-sns-subscriptions";
 import {
   ParameterDataType,
   ParameterTier,
   StringParameter,
-} from 'aws-cdk-lib/aws-ssm';
+} from "aws-cdk-lib/aws-ssm";
 
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
-    app: 'security-hq',
+    app: "security-hq",
   };
 
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
 
-    const table = new Table(this, 'DynamoTable', {
+    const table = new Table(this, "DynamoTable", {
       tableName: `security-hq-iam`,
       removalPolicy: RemovalPolicy.RETAIN,
       readCapacity: 5,
       writeCapacity: 5,
       partitionKey: {
-        name: 'id',
+        name: "id",
         type: AttributeType.STRING,
       },
       sortKey: {
-        name: 'dateNotificationSent',
+        name: "dateNotificationSent",
         type: AttributeType.NUMBER,
       },
     });
 
     this.overrideLogicalId(table, {
-      logicalId: 'SecurityHqIamDynamoTable',
-      reason: 'Migrated from a YAML template',
+      logicalId: "SecurityHqIamDynamoTable",
+      reason: "Migrated from a YAML template",
     });
 
     const distBucket = GuDistributionBucketParameter.getInstance(this);
 
     const auditDataS3BucketName = new GuStringParameter(
       this,
-      'AuditDataS3BucketName',
+      "AuditDataS3BucketName",
       {
         description:
-          'Name of the S3 bucket to fetch auditable data from (e.g. Janus data)',
+          "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
         default: `/${this.stack}/${SecurityHQ.app.app}/audit-data-s3-bucket/name`,
         fromSSM: true,
       }
     );
     const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
 
-    const domainName = 'security-hq.gutools.co.uk';
+    const domainName = "security-hq.gutools.co.uk";
 
     const ec2App = new GuEc2App(this, {
       access: {
         scope: AccessScope.PUBLIC,
       },
-      app: 'security-hq',
+      app: "security-hq",
       applicationPort: 9000,
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
       certificateProps: {
@@ -111,31 +111,31 @@ dpkg -i /tmp/installer.deb`,
         additionalPolicies: [
           GuAnghammaradSenderPolicy.getInstance(this),
           new GuPutCloudwatchMetricsPolicy(this),
-          new GuGetS3ObjectsPolicy(this, 'S3AuditRead', {
+          new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
             bucketName: auditDataS3BucketName.valueAsString,
             paths: [auditDataS3BucketPath],
           }),
-          new GuDynamoDBReadPolicy(this, 'DynamoRead', {
+          new GuDynamoDBReadPolicy(this, "DynamoRead", {
             tableName: table.tableName,
           }),
-          new GuDynamoDBWritePolicy(this, 'DynamoWrite', {
+          new GuDynamoDBWritePolicy(this, "DynamoWrite", {
             tableName: table.tableName,
           }),
           // Allow security HQ to assume roles in watched accounts.
-          new GuAllowPolicy(this, 'AssumeRole', {
-            resources: ['*'],
-            actions: ['sts:AssumeRole'],
+          new GuAllowPolicy(this, "AssumeRole", {
+            resources: ["*"],
+            actions: ["sts:AssumeRole"],
           }),
           // Get the list of regions.
-          new GuAllowPolicy(this, 'DescribeRegions', {
-            resources: ['*'],
-            actions: ['ec2:DescribeRegions'],
+          new GuAllowPolicy(this, "DescribeRegions", {
+            resources: ["*"],
+            actions: ["ec2:DescribeRegions"],
           }),
         ],
       },
     });
 
-    new GuCname(this, 'DnsRecord', {
+    new GuCname(this, "DnsRecord", {
       app: SecurityHQ.app.app,
       domainName,
       ttl: Duration.hours(1),
@@ -145,7 +145,7 @@ dpkg -i /tmp/installer.deb`,
     // Need to give the ALB outbound access on 443 for the IdP endpoints (to support Google Auth).
     const outboundHttpsSecurityGroup = new GuHttpsEgressSecurityGroup(
       this,
-      'idp-access',
+      "idp-access",
       {
         app: SecurityHQ.app.app,
         vpc: ec2App.vpc,
@@ -155,7 +155,7 @@ dpkg -i /tmp/installer.deb`,
     ec2App.loadBalancer.addSecurityGroup(outboundHttpsSecurityGroup);
 
     // This parameter is used by https://github.com/guardian/waf
-    new StringParameter(this, 'AlbSsmParam', {
+    new StringParameter(this, "AlbSsmParam", {
       parameterName: `/infosec/waf/services/${this.stage}/security-hq-alb-arn`,
       description: `The arn of the ALB for security-hq-${this.stage}. N.B. this parameter is created via cdk`,
       simpleName: false,
@@ -164,19 +164,19 @@ dpkg -i /tmp/installer.deb`,
       dataType: ParameterDataType.TEXT,
     });
 
-    const clientId = new GuStringParameter(this, 'ClientId', {
-      description: 'Google OAuth client ID',
+    const clientId = new GuStringParameter(this, "ClientId", {
+      description: "Google OAuth client ID",
     });
 
-    ec2App.listener.addAction('DefaultAction', {
+    ec2App.listener.addAction("DefaultAction", {
       action: ListenerAction.authenticateOidc({
-        authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-        issuer: 'https://accounts.google.com',
-        scope: 'openid',
-        authenticationRequestExtraParams: { hd: 'guardian.co.uk' },
+        authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+        issuer: "https://accounts.google.com",
+        scope: "openid",
+        authenticationRequestExtraParams: { hd: "guardian.co.uk" },
         onUnauthenticatedRequest: UnauthenticatedAction.AUTHENTICATE,
-        tokenEndpoint: 'https://oauth2.googleapis.com/token',
-        userInfoEndpoint: 'https://openidconnect.googleapis.com/v1/userinfo',
+        tokenEndpoint: "https://oauth2.googleapis.com/token",
+        userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
         clientId: clientId.valueAsString,
         clientSecret: SecretValue.secretsManager(
           `/${this.stage}/deploy/security-hq/client-secret`
@@ -185,54 +185,54 @@ dpkg -i /tmp/installer.deb`,
       }),
     });
 
-    const notificationTopic = new Topic(this, 'NotificationTopic', {
-      displayName: 'Security HQ notifications',
+    const notificationTopic = new Topic(this, "NotificationTopic", {
+      displayName: "Security HQ notifications",
     });
-    const emailDest = new GuParameter(this, 'CloudwatchAlarmEmailDestination', {
-      description: 'Send Security HQ cloudwatch alarms to this email address',
+    const emailDest = new GuParameter(this, "CloudwatchAlarmEmailDestination", {
+      description: "Send Security HQ cloudwatch alarms to this email address",
     });
     notificationTopic.addSubscription(
       new EmailSubscription(emailDest.valueAsString)
     );
 
-    new GuAlarm(this, 'RemovePasswordFailureAlarm', {
+    new GuAlarm(this, "RemovePasswordFailureAlarm", {
       app: SecurityHQ.app.app,
       alarmName:
-        'Security HQ failed to remove a vulnerable password (new stack)',
+        "Security HQ failed to remove a vulnerable password (new stack)",
       alarmDescription:
-        'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
+        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
       snsTopicName: notificationTopic.topicName,
       threshold: 1,
       evaluationPeriods: 1,
       metric: new Metric({
-        metricName: 'IamRemovePassword',
-        namespace: 'SecurityHQ',
+        metricName: "IamRemovePassword",
+        namespace: "SecurityHQ",
         period: Duration.seconds(60),
-        statistic: 'sum',
+        statistic: "sum",
         dimensionsMap: {
-          ReaperExecutionStatus: 'Failure',
+          ReaperExecutionStatus: "Failure",
         },
       }),
       treatMissingData: TreatMissingData.NOT_BREACHING,
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
 
-    new GuAlarm(this, 'DisableAccessKeyFailureAlarm', {
+    new GuAlarm(this, "DisableAccessKeyFailureAlarm", {
       app: SecurityHQ.app.app,
       alarmName:
-        'Security HQ failed to disable a vulnerable access key (new stack)',
+        "Security HQ failed to disable a vulnerable access key (new stack)",
       alarmDescription:
-        'The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.',
+        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
       snsTopicName: notificationTopic.topicName,
       threshold: 1,
       evaluationPeriods: 1,
       metric: new Metric({
-        metricName: 'IamDisableAccessKey',
-        namespace: 'SecurityHQ',
+        metricName: "IamDisableAccessKey",
+        namespace: "SecurityHQ",
         period: Duration.seconds(60),
-        statistic: 'sum',
+        statistic: "sum",
         dimensionsMap: {
-          ReaperExecutionStatus: 'Failure',
+          ReaperExecutionStatus: "Failure",
         },
       }),
       treatMissingData: TreatMissingData.NOT_BREACHING,
