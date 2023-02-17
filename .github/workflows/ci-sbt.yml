@@ -42,8 +42,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: 'yarn'
-          cache-dependency-path: 'cdk/yarn.lock'
+          cache: 'npm'
+          cache-dependency-path: 'cdk/package-lock.json'
 
       # 1. Seed the build number with last number from TeamCity.
       #    Update `LAST_TEAMCITY_BUILD` as needed or remove entirely if changing Riff-Raff project name.

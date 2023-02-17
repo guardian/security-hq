@@ -2,7 +2,7 @@
 
 set -e
 
-yarn install --frozen-lockfile # prevent updates
-yarn lint
-yarn test
-yarn synth
+npm ci
+npm run lint
+npm test
+npm run synth
