@@ -45,11 +45,6 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: 'cdk/yarn.lock'
 
-      - name: Add SSH key for accessing @guardian/private-infrastructure-config
-        uses: guardian/actions-read-private-repos@v0.1.0
-        with:
-          private-ssh-keys: ${{ secrets.PRIVATE_INFRASTRUCTURE_CONFIG_DEPLOY_KEY }}
-
       # 1. Seed the build number with last number from TeamCity.
       #    Update `LAST_TEAMCITY_BUILD` as needed or remove entirely if changing Riff-Raff project name.
       # 2. Execute `script/ci`, a script that will compile, run tests etc.
