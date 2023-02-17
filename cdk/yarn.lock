@@ -379,10 +379,6 @@
     eslint-plugin-eslint-comments "3.2.0"
     eslint-plugin-import "2.26.0"
 
-"@guardian/private-infrastructure-config@git+ssh://git@github.com:guardian/private-infrastructure-config.git#1.2.1":
-  version "1.2.0"
-  resolved "git+ssh://git@github.com:guardian/private-infrastructure-config.git#c4cb5466ab2918448128c8d87b3029e1e77f821c"
-
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.11.8.tgz#03595ac2075a4dc0f191cc2131de14fbd7d410b9"
