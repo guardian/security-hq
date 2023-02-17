@@ -45,13 +45,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'cdk/package-lock.json'
 
-      # 1. Seed the build number with last number from TeamCity.
-      #    Update `LAST_TEAMCITY_BUILD` as needed or remove entirely if changing Riff-Raff project name.
-      # 2. Execute `script/ci`, a script that will compile, run tests etc.
-      #    Ensure this file exists in your repository and has executable permissions (`chmod u+x script/ci`).
-      # See https://github.com/github/scripts-to-rule-them-all
       - name: Run script/ci
-        run: |
-          LAST_TEAMCITY_BUILD=1265
-          export GITHUB_RUN_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))
-          ./script/ci
+        run: ./script/ci
+
+      - uses: guardian/actions-riff-raff@v2
+        with:
+          projectName: security-hq
+          # Seed the build number with last number from TeamCity.
+          buildNumberOffset: 1265
+          configPath: hq/conf/riff-raff.yaml
+          contentDirectories: |
+            security-hq-cfn:
+              - cdk/cdk.out/security-hq.template.json
+            security-hq:
+              - hq/target/security-hq.deb

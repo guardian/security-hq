@@ -1,5 +1,3 @@
-import com.gu.riffraff.artifact.RiffRaffArtifact
-import com.gu.riffraff.artifact.RiffRaffArtifact.autoImport._
 import com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd
 import play.sbt.PlayImport.PlayKeys._
 import sbt.Keys.libraryDependencies
@@ -23,7 +21,7 @@ val jacksonVersion = "2.13.4"
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % VersionScheme.Always
 
 lazy val hq = (project in file("hq"))
-  .enablePlugins(PlayScala, RiffRaffArtifact, SbtWeb, JDebPackaging, SystemdPlugin)
+  .enablePlugins(PlayScala, SbtWeb, JDebPackaging, SystemdPlugin)
   .disablePlugins(sbtassembly.AssemblyPlugin)
   .settings(
     name := """security-hq""",
@@ -93,17 +91,6 @@ lazy val hq = (project in file("hq"))
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "Security HQ app.",
     packageDescription := """Deb for Security HQ - the Guardian's service to centralise security information for our AWS accounts.""",
-    riffRaffPackageType := (Debian / packageBin).value,
-    riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
-    riffRaffUploadManifestBucket := Option("riffraff-builds"),
-
-    riffRaffAddManifestDir := Option("hq/public"),
-    riffRaffArtifactResources  := Seq(
-      riffRaffPackageType.value -> s"${name.value}/${name.value}.deb",
-      baseDirectory.value / "conf" / "riff-raff.yaml" -> "riff-raff.yaml",
-      file("cdk/cdk.out/security-hq.template.json") -> s"${name.value}-cfn/cfn.json"
-    ),
-
     Universal / javaOptions ++= Seq(
       "-Dpidfile.path=/dev/null",
       "-Dconfig.file=/etc/gu/security-hq.conf",
