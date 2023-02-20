@@ -14,7 +14,7 @@ deployments:
     parameters:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: security-hq
-      templatePath: cfn.json
+      templatePath: security-hq.template.json
       amiParameter: AMISecurityhq
       amiEncrypted: true
       amiTags:
