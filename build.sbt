@@ -15,7 +15,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.409"
-val playJsonVersion = "2.9.3"
+val playJsonVersion = "2.9.4"
 val jacksonVersion = "2.13.4"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
