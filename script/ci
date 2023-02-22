@@ -2,11 +2,6 @@
 
 set -e
 
-(
-    cd cdk
-    ./script/ci
-)
-
 ./sbt --no-conf '; project hq; clean; compile; Debian / packageBin'
 
 # `sbt Debian / packageBin` produces `hq/target/security-hq_0.2.0_all.deb`. Rename it to something easier.
