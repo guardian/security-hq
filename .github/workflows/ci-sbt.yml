@@ -22,6 +22,10 @@ jobs:
           cache-dependency-path: 'cdk/package-lock.json'
       - run: ./script/ci
         working-directory: cdk
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cdk
+          path: cdk/cdk.out/security-hq.template.json
   SBT:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +36,12 @@ jobs:
           distribution: 'corretto'
           cache: 'sbt'
       - run: ./script/ci
+      - uses: actions/upload-artifact@v3
+        with:
+          name: sbt
+          path: |
+            hq/conf/riff-raff.yaml
+            hq/target/security-hq.deb
   Riff-Raff:
     runs-on: ubuntu-latest
     # See https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
@@ -41,6 +51,12 @@ jobs:
       contents: read
     needs: [CDK, SBT]
     steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: cdk
+      - uses: actions/download-artifact@v3
+        with:
+          name: sbt
       # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
       # See https://github.com/aws-actions/configure-aws-credentials
       - uses: aws-actions/configure-aws-credentials@v1
@@ -52,9 +68,9 @@ jobs:
           projectName: security-hq
           # Seed the build number with last number from TeamCity.
           buildNumberOffset: 1265
-          configPath: hq/conf/riff-raff.yaml
+          configPath: conf/riff-raff.yaml
           contentDirectories: |
             security-hq-cfn:
-              - cdk/cdk.out/security-hq.template.json
+              - security-hq.template.json
             security-hq:
-              - hq/target/security-hq.deb
+              - target/security-hq.deb
