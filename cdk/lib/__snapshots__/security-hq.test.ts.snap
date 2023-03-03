@@ -27,8 +27,8 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuParameterStoreReadPolicy",
       "GuAmiParameter",
       "GuHttpsEgressSecurityGroup",
-      "GuAutoScalingGroup",
       "GuWazuhAccess",
+      "GuAutoScalingGroup",
       "GuApplicationLoadBalancer",
       "GuApplicationTargetGroup",
       "GuHttpsApplicationListener",
@@ -146,8 +146,16 @@ exports[`HQ stack matches the snapshot 1`] = `
       "Properties": {
         "HealthCheckGracePeriod": 120,
         "HealthCheckType": "ELB",
-        "LaunchConfigurationName": {
-          "Ref": "AutoScalingGroupSecurityhqLaunchConfig4307528E",
+        "LaunchTemplate": {
+          "LaunchTemplateId": {
+            "Ref": "securityPRODsecurityhq7917BE18",
+          },
+          "Version": {
+            "Fn::GetAtt": [
+              "securityPRODsecurityhq7917BE18",
+              "LatestVersionNumber",
+            ],
+          },
         },
         "MaxSize": "2",
         "MinSize": "1",
@@ -175,11 +183,6 @@ exports[`HQ stack matches the snapshot 1`] = `
             },
           },
           {
-            "Key": "Name",
-            "PropagateAtLaunch": true,
-            "Value": "security-hq/AutoScalingGroupSecurityhq",
-          },
-          {
             "Key": "Stack",
             "PropagateAtLaunch": true,
             "Value": "security",
@@ -200,78 +203,6 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
       },
       "Type": "AWS::AutoScaling::AutoScalingGroup",
-    },
-    "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7": {
-      "Properties": {
-        "Roles": [
-          {
-            "Ref": "InstanceRoleSecurityhq7C08CA33",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::InstanceProfile",
-    },
-    "AutoScalingGroupSecurityhqLaunchConfig4307528E": {
-      "DependsOn": [
-        "InstanceRoleSecurityhq7C08CA33",
-      ],
-      "Properties": {
-        "IamInstanceProfile": {
-          "Ref": "AutoScalingGroupSecurityhqInstanceProfile9E45D8A7",
-        },
-        "ImageId": {
-          "Ref": "AMISecurityhq",
-        },
-        "InstanceType": "t4g.large",
-        "MetadataOptions": {
-          "HttpTokens": "required",
-        },
-        "SecurityGroups": [
-          {
-            "Fn::GetAtt": [
-              "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
-              "GroupId",
-            ],
-          },
-          {
-            "Fn::GetAtt": [
-              "WazuhSecurityGroup",
-              "GroupId",
-            ],
-          },
-        ],
-        "UserData": {
-          "Fn::Base64": {
-            "Fn::Join": [
-              "",
-              [
-                "#!/bin/bash -ev
-# setup security-hq
-mkdir -p /etc/gu
-
-aws --region eu-west-1 s3 cp s3://",
-                {
-                  "Ref": "DistributionBucketName",
-                },
-                "/security/PROD/security-hq/security-hq.conf /etc/gu
-aws --region eu-west-1 s3 cp s3://",
-                {
-                  "Ref": "DistributionBucketName",
-                },
-                "/security/PROD/security-hq/security-hq-service-account-cert.json /etc/gu
-aws --region eu-west-1 s3 cp s3://",
-                {
-                  "Ref": "DistributionBucketName",
-                },
-                "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
-
-dpkg -i /tmp/installer.deb",
-              ],
-            ],
-          },
-        },
-      },
-      "Type": "AWS::AutoScaling::LaunchConfiguration",
     },
     "CertificateSecurityhqD266EC9D": {
       "DeletionPolicy": "Retain",
@@ -919,6 +850,27 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
+    "LoadBalancerSecurityhqSecurityGrouptosecurityhqWazuhSecurityGroup2170179090005CEC6EA5": {
+      "Properties": {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "WazuhSecurityGroup",
+            "GroupId",
+          ],
+        },
+        "FromPort": 9000,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "LoadBalancerSecurityhqSecurityGroup66272916",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
     "NotificationTopicEB7A0DF1": {
       "Properties": {
         "DisplayName": "Security HQ notifications",
@@ -1234,6 +1186,48 @@ dpkg -i /tmp/installer.deb",
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
+    "WazuhSecurityGroupfromsecurityhqLoadBalancerSecurityhqSecurityGroup3F506C599000D1DF39FC": {
+      "Properties": {
+        "Description": "Load balancer to target",
+        "FromPort": 9000,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "WazuhSecurityGroup",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "LoadBalancerSecurityhqSecurityGroup66272916",
+            "GroupId",
+          ],
+        },
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "WazuhSecurityGroupfromsecurityhqidpaccessSecurityhqE586B5AB90008AA86839": {
+      "Properties": {
+        "Description": "Load balancer to target",
+        "FromPort": 9000,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "WazuhSecurityGroup",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "idpaccessSecurityhq802D3912",
+            "GroupId",
+          ],
+        },
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "idpaccessSecurityhq802D3912": {
       "Properties": {
         "GroupDescription": "Allow all outbound HTTPS traffic",
@@ -1294,6 +1288,182 @@ dpkg -i /tmp/installer.deb",
         "ToPort": 9000,
       },
       "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "idpaccessSecurityhqtosecurityhqWazuhSecurityGroup2170179090009AFEA76B": {
+      "Properties": {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "WazuhSecurityGroup",
+            "GroupId",
+          ],
+        },
+        "FromPort": 9000,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "idpaccessSecurityhq802D3912",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 9000,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "securityPRODsecurityhq7917BE18": {
+      "Properties": {
+        "LaunchTemplateData": {
+          "IamInstanceProfile": {
+            "Arn": {
+              "Fn::GetAtt": [
+                "securityPRODsecurityhqProfileC4C6F731",
+                "Arn",
+              ],
+            },
+          },
+          "ImageId": {
+            "Ref": "AMISecurityhq",
+          },
+          "InstanceType": "t4g.large",
+          "MetadataOptions": {
+            "HttpTokens": "required",
+          },
+          "SecurityGroupIds": [
+            {
+              "Fn::GetAtt": [
+                "GuHttpsEgressSecurityGroupSecurityhq0F9CBE88",
+                "GroupId",
+              ],
+            },
+            {
+              "Fn::GetAtt": [
+                "WazuhSecurityGroup",
+                "GroupId",
+              ],
+            },
+          ],
+          "TagSpecifications": [
+            {
+              "ResourceType": "instance",
+              "Tags": [
+                {
+                  "Key": "gu:cdk:version",
+                  "Value": "TEST",
+                },
+                {
+                  "Key": "gu:repo",
+                  "Value": "guardian/security-hq",
+                },
+                {
+                  "Key": "Name",
+                  "Value": "security-hq/security-PROD-security-hq",
+                },
+                {
+                  "Key": "Stack",
+                  "Value": "security",
+                },
+                {
+                  "Key": "Stage",
+                  "Value": "PROD",
+                },
+              ],
+            },
+            {
+              "ResourceType": "volume",
+              "Tags": [
+                {
+                  "Key": "gu:cdk:version",
+                  "Value": "TEST",
+                },
+                {
+                  "Key": "gu:repo",
+                  "Value": "guardian/security-hq",
+                },
+                {
+                  "Key": "Name",
+                  "Value": "security-hq/security-PROD-security-hq",
+                },
+                {
+                  "Key": "Stack",
+                  "Value": "security",
+                },
+                {
+                  "Key": "Stage",
+                  "Value": "PROD",
+                },
+              ],
+            },
+          ],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Join": [
+                "",
+                [
+                  "#!/bin/bash -ev
+# setup security-hq
+mkdir -p /etc/gu
+
+aws --region eu-west-1 s3 cp s3://",
+                  {
+                    "Ref": "DistributionBucketName",
+                  },
+                  "/security/PROD/security-hq/security-hq.conf /etc/gu
+aws --region eu-west-1 s3 cp s3://",
+                  {
+                    "Ref": "DistributionBucketName",
+                  },
+                  "/security/PROD/security-hq/security-hq-service-account-cert.json /etc/gu
+aws --region eu-west-1 s3 cp s3://",
+                  {
+                    "Ref": "DistributionBucketName",
+                  },
+                  "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
+
+dpkg -i /tmp/installer.deb",
+                ],
+              ],
+            },
+          },
+        },
+        "TagSpecifications": [
+          {
+            "ResourceType": "launch-template",
+            "Tags": [
+              {
+                "Key": "gu:cdk:version",
+                "Value": "TEST",
+              },
+              {
+                "Key": "gu:repo",
+                "Value": "guardian/security-hq",
+              },
+              {
+                "Key": "Name",
+                "Value": "security-hq/security-PROD-security-hq",
+              },
+              {
+                "Key": "Stack",
+                "Value": "security",
+              },
+              {
+                "Key": "Stage",
+                "Value": "PROD",
+              },
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::EC2::LaunchTemplate",
+    },
+    "securityPRODsecurityhqProfileC4C6F731": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
     },
   },
 }
