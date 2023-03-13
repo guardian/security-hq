@@ -11,6 +11,10 @@ presents the data collected by those processes.
 It also provides an interface on some markers of a watched AWS
 account's health from a security point of view.
 
+## Trusted Advisor
+Security HQ uses information from AWS Trusted Advisor.
+This might not be as up to date as one might wish and because noticeable for S3 buckets.
+
 ## Local development
 ### Requirements
 1. Java 11. See [.tool-versions](.tool-versions) for the exact version. [asdf](https://asdf-vm.com/) is the recommended Java version manager.
@@ -31,17 +35,22 @@ account's health from a security point of view.
    ```
 
 ### Running locally
-1. Ensure requirements are met. See above.
-2. Ensure project has been setup. See above.
-3. Run the start script:
+1. Ensure project has been setup as described in the previous section.
+2. Run the start script:
    
    ```bash
    ./script/start
    ```
-4. Open [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
+3. Open [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
+
+If you want to debug, you can run 
+   ```bash
+   ./script/start --debug
+   ```
+You will need to attach you debugger (Remote JVM Debug) to the right port (possibly 1058)
 
 ### Adding additional AWS accounts for local development
-When running Security HQ locally, you can modify the list of AWS accounts to include additional account.
+When running Security HQ locally, you can modify the list of AWS accounts to include additional accounts.
 For example, you may want to add a specific account for debugging purposes. 
 You will need valid AWS credentials for any accounts you wish to include.
 
@@ -100,3 +109,13 @@ the cloudformation has a paramter, `version`, which is used to locate the correc
 
 The build and deploy process is manual at present. The lambda was deployed once in 2018 and hasn't been updated since. Health tickets have been put onto the backlog to try to improve this process.
 
+## Further docs in this repo
+[Guardduty](hq/markdown/guardduty-sechub-common-problems.md)
+
+[Snyk](hq/markdown/snyk.md)
+
+[SSH Access](hq/markdown/ssh-access.md)
+
+[Vulnerability Management](hq/markdown/vulnerability-management.md)
+
+[Wazuh](hq/markdown/wazuh.md)
