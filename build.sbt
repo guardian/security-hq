@@ -120,7 +120,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
   settings(
     name := """lambda-common""",
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-events" % "3.11.0",
+      "com.amazonaws" % "aws-lambda-java-events" % "3.11.1",
       "com.amazonaws" % "aws-lambda-java-core" % "1.2.2",
       "com.amazonaws" % "aws-java-sdk-lambda" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
