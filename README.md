@@ -13,7 +13,7 @@ account's health from a security point of view.
 
 ## Trusted Advisor
 Security HQ uses information from AWS Trusted Advisor.
-This might not be as up to date as one might wish and because noticeable for S3 buckets.
+This might not be as up to date as one might wish and may be noticeable for S3 buckets.
 
 ## Local development
 ### Requirements
