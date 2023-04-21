@@ -12,7 +12,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.418"
+val awsSdkVersion = "1.12.440"
 val playJsonVersion = "2.9.3"
 val jacksonVersion = "2.13.4"
 
@@ -51,7 +51,7 @@ lazy val hq = (project in file("hq"))
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "2.10.0",
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.20.0",
       "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
@@ -61,7 +61,7 @@ lazy val hq = (project in file("hq"))
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.2" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.3" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" % "kinesis-logback-appender" % "2.1.0",
       "com.gu" %% "janus-config-tools" % "0.0.5"
     ),
@@ -120,7 +120,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
   settings(
     name := """lambda-common""",
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-events" % "3.11.0",
+      "com.amazonaws" % "aws-lambda-java-events" % "3.11.1",
       "com.amazonaws" % "aws-lambda-java-core" % "1.2.2",
       "com.amazonaws" % "aws-java-sdk-lambda" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
