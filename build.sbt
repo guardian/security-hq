@@ -13,8 +13,8 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.462"
-val playJsonVersion = "2.9.4"
-val jacksonVersion = "2.13.5"
+val playJsonVersion = "2.9.3"
+val jacksonVersion = "2.13.4"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
 // See https://github.com/akka/akka/pull/30375
@@ -30,11 +30,11 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %% "play-v28" % "2.2.7",
-      "com.gu.play-secret-rotation" %% "play-v28" % "0.37",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.37",
-      "joda-time" % "joda-time" % "2.12.5",
-      "org.typelevel" %% "cats-core" % "2.9.0",
+      "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
+      "com.gu.play-secret-rotation" %% "play-v28" % "0.36",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.36",
+      "joda-time" % "joda-time" % "2.11.2",
+      "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
@@ -45,14 +45,14 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-efs" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion,
-      "com.vladsch.flexmark" % "flexmark" % "0.64.8",
+      "com.vladsch.flexmark" % "flexmark" % "0.64.0",
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-ssm" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-      "com.google.cloud" % "google-cloud-securitycenter" % "2.26.0",
-      "org.scalatest" %% "scalatest" % "3.2.16" % Test,
+      "com.google.cloud" % "google-cloud-securitycenter" % "2.20.0",
+      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
@@ -62,7 +62,7 @@ lazy val hq = (project in file("hq"))
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "7.3" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-      "com.gu" % "kinesis-logback-appender" % "2.1.1",
+      "com.gu" % "kinesis-logback-appender" % "2.1.0",
       "com.gu" %% "janus-config-tools" % "0.0.5"
     ),
     Assets / pipelineStages := Seq(digest),
@@ -129,10 +129,10 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
-      "org.scalatest" %% "scalatest" % "3.2.16" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      "ch.qos.logback" % "logback-classic" % "1.2.12",
+      "ch.qos.logback" % "logback-classic" % "1.2.11",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
