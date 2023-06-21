@@ -141,7 +141,7 @@ Resources:
       FunctionName: SHQ-security-groups-notifier
       Description: Checks for SGs that are open to the world, excepting ELB groups
       Handler: com.gu.hq.Lambda
-      Runtime: java8
+      Runtime: java11
       MemorySize: 512
       Timeout: 300
       Role: !GetAtt SecurityGroupsLambdaRole.Arn
