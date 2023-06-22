@@ -9,7 +9,11 @@ import com.typesafe.scalalogging.StrictLogging
 object JsonParsing extends StrictLogging {
   import JSON._
 
-  def eventDetails(event: ConfigEvent): Option[InvokingEvent] = extract[InvokingEvent](Json.parse(event.getInvokingEvent))
+  def eventDetails(event: ConfigEvent): Option[InvokingEvent] = {
+    val x = extract[InvokingEvent](Json.parse(event.getInvokingEvent))
+    logger.info(x.map(_.configurationItemDiff.map(_.changedProperties)).toString)
+    x
+  }
 
   def accountMapping(accountsMappingJson: String): Option[Map[String, String]] =
     extract[Map[String, String]](Json.parse(accountsMappingJson))
