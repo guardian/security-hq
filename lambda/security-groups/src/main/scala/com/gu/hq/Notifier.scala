@@ -45,7 +45,6 @@ object Notifier extends StrictLogging {
     notification: Notification,
     topicArn: String,
     snsClient: AmazonSNSAsync): Unit = {
-
     val result = Anghammarad.notify(notification, topicArn, snsClient)
 
     try {

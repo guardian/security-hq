@@ -8,14 +8,18 @@ import com.typesafe.scalalogging.StrictLogging
 
 
 class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
-  private val region = Regions.fromName(System.getenv("AWS_DEFAULT_REGION"))
+  private val region = Regions.EU_WEST_1//Regions.fromName(System.getenv("AWS_DEFAULT_REGION"))
   private val elbClient = AWS.elbClient(region)
   private val snsClient = AWS.snsClient(region)
   private val stsClient = AWS.stsClient(region)
   private val s3Client = AWS.s3Client(region)
-  private val snsTopicArn = sys.env("SnsTopicArn")
+  private val snsTopicArn = //sys.env("SnsTopicArn")
 
   override def handleRequest(input: ConfigEvent, context: Context): Unit = {
+    doTheThing(input)
+  }
+
+  def doTheThing(input: ConfigEvent): Unit = {
     logger.debug(s"Starting check of $input")
     for {
       invokingEvent <- JsonParsing.eventDetails(input)
