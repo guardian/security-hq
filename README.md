@@ -13,7 +13,7 @@ account's health from a security point of view.
 
 ## Trusted Advisor
 Security HQ uses information from AWS Trusted Advisor.
-This might not be as up to date as one might wish and may be noticeable for S3 buckets.
+This might not be as up-to-date as one might wish and may be noticeable for S3 buckets.
 
 ## Local development
 ### Requirements
@@ -96,7 +96,7 @@ or 365 days for users without a password (machine users).
 It also disables permanent users who have left the Guardian.
 
 The reaper sends email notifications to the AWS account the user is in, before disabling a user.
-The emails are sent via Anghammarad and uses it's AWS Account to email address mappings.
+The emails are sent via Anghammarad and uses its AWS Account to email address mappings.
 
 You can also find the dynamo table in the Security AWS Account.
 
@@ -104,10 +104,14 @@ You can also find the dynamo table in the Security AWS Account.
 Security HQ holds a Lambda, which checks for security groups that are open to the world, except ELB groups. This data is used for `https://security-hq.gutools.co.uk/security-groups`.
 
 It is deployed as a stack set and is defined in  `cloudformation/watched-account.template.yaml`.
-This lambda is deployed manually by creating a JAR file locally and uploading it to S3: `s3://guardian-dist/guardian/PROD/securitygroups-lambda/`. The version name is important, because
-the cloudformation has a paramter, `version`, which is used to locate the correct S3 file. The stackset is then deployed manually again to all accounts from the root account.
 
-The build and deploy process is manual at present. The lambda was deployed once in 2018 and hasn't been updated since. Health tickets have been put onto the backlog to try to improve this process.
+#### Deployment
+1. Update the version in `build.sbt`.
+2. Build the lambda by running `.script/package-lambda`.
+2. Upload it to S3 (ask DevX where the bucket is located).
+3. Deploy the stack set manually (ask DevX if you are unsure of how to do this), making sure to update the version parameter.
+
+**NOTE: The version is important**, because the cloudformation `version` parameter is used to locate the correct S3 file. The lambda code will not change unless a new version is deployed, even if the infrastructure changes. 
 
 ## Further docs in this repo
 [Guardduty](hq/markdown/guardduty-sechub-common-problems.md)

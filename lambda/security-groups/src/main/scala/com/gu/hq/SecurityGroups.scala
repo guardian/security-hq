@@ -31,7 +31,7 @@ object SecurityGroups extends StrictLogging{
       Open
     }
     else {
-      logger.info(s"Closed: ${sgConfiguration.groupName}")
+      logger.info(s"Not open to world: ${sgConfiguration.groupName}")
       NotOpen
     }
   }

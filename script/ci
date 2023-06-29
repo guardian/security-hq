@@ -9,6 +9,6 @@ set -e
 
 ./sbt --no-conf '; project hq; clean; compile; Debian / packageBin'
 
-# `sbt Debian / packageBin` produces `hq/target/security-hq_0.2.0_all.deb`. Rename it to something easier.
+# `sbt Debian / packageBin` produces `hq/target/security-hq_x.x.x_all.deb`. Rename it to something easier.
 # TODO Work out how to do this within build.sbt
-mv hq/target/security-hq_0.2.0_all.deb hq/target/security-hq.deb
+mv hq/target/security-hq_*_all.deb hq/target/security-hq.deb

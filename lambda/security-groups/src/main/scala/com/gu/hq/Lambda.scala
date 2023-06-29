@@ -33,13 +33,3 @@ class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
     } Notifier.send(notification, snsTopicArn, snsClient)
   }
 }
-
-/*
-Added as a quick way to validate the assembled jar file can be run locally.
-TODO: remove this!
- */
-object Lambda {
-  def main(args: Array[String]): Unit = {
-    println(s"Hello, world! ${args(0)}")
-  }
-}
