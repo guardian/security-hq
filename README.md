@@ -105,7 +105,7 @@ Security HQ holds a Lambda, which checks for security groups that are open to th
 
 It is deployed as a stack set and is defined in  `cloudformation/watched-account.template.yaml`.
 
-#### Deployment
+#### Deployment (currently manual)
 1. Update the version in `build.sbt`.
 2. Build the lambda by running `.script/package-lambda`.
 2. Upload it to S3 (ask DevX where the bucket is located).
