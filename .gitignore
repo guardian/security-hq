@@ -162,3 +162,6 @@ project/project
 
 # Build server protocol (introduced in sbt 1.4.0)
 .bsp
+
+# Ignore jar files in root
+*.jar

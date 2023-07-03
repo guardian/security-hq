@@ -2,11 +2,12 @@ package com.gu.hq
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.gu.hq.lambda.model.SGConfiguration
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.jdk.CollectionConverters._
 
 
-object SecurityGroups {
+object SecurityGroups extends StrictLogging{
   private[hq] def openToWorld(sGConfiguration: SGConfiguration): Boolean = {
     sGConfiguration.ipPermissions.exists(_.ipRanges.contains("0.0.0.0/0"))
   }
@@ -21,9 +22,18 @@ object SecurityGroups {
     val open = openToWorld(sgConfiguration)
     val elbSg = attachedToElb(sgConfiguration, loadBalancers)
 
-    if (open && elbSg) OpenELB
-    else if (open) Open
-    else NotOpen
+    if (open && elbSg) {
+      logger.warn(s"Open to world and attached to ELB: ${sgConfiguration.groupName}")
+      OpenELB
+    }
+    else if (open) {
+      logger.warn(s"Open to world: ${sgConfiguration.groupName}")
+      Open
+    }
+    else {
+      logger.info(s"Not open to world: ${sgConfiguration.groupName}")
+      NotOpen
+    }
   }
 
   sealed trait SgStatus

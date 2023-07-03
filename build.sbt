@@ -6,7 +6,7 @@ import scala.concurrent.duration.DurationInt
 
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
-ThisBuild / version := "0.2.0"
+ThisBuild / version := "0.3.2"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
@@ -14,11 +14,16 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.499"
 val playJsonVersion = "2.9.3"
-val jacksonVersion = "2.13.4"
+val jacksonVersion = "2.15.1"
 
 // Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
 // See https://github.com/akka/akka/pull/30375
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % VersionScheme.Always
+
+val mergeStrategySettings= assemblyMergeStrategy := {
+  case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
+  case _ => MergeStrategy.first
+}
 
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, SbtWeb, JDebPackaging, SystemdPlugin)
@@ -103,14 +108,16 @@ lazy val hq = (project in file("hq"))
       "-J-XX:MaxMetaspaceSize=300m",
       "-J-Xlog:gc*",
       s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
-    )
+    ),
+    mergeStrategySettings
 
   )
 
 // More will go here!
 
 lazy val commonLambdaSettings = Seq(
-  Universal / topLevelDirectory := None
+  Universal / topLevelDirectory := None,
+  mergeStrategySettings
 )
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
@@ -129,7 +136,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
-      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.15" % Test,
       "com.typesafe.play" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
       "ch.qos.logback" % "logback-classic" % "1.2.11",
