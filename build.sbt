@@ -57,11 +57,12 @@ lazy val hq = (project in file("hq"))
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "com.google.cloud" % "google-cloud-securitycenter" % "2.20.0",
-      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.15" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
-      "com.gu" %% "anghammarad-client" % "1.2.0",
+      "com.gu" %% "anghammarad-client" % "1.7.4",
+      "org.json" % "json" % "20230227", //evict 20180130 from anghammarad-client
 
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
@@ -151,7 +152,8 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
     name := """securitygroups-lambda""",
     assembly / assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
-      "com.gu" %% "anghammarad-client" % "1.2.0"
+      "com.gu" %% "anghammarad-client" % "1.7.4",
+      "org.json" % "json" % "20230227", //evict 20180130 from anghammarad-client
     )
 )
 
