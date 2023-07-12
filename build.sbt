@@ -6,7 +6,7 @@ import scala.concurrent.duration.DurationInt
 
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
-ThisBuild / version := "0.4.1"
+ThisBuild / version := "0.4.2"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
