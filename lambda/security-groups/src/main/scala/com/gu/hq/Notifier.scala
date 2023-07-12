@@ -31,27 +31,16 @@ object Notifier extends StrictLogging {
     }
   }
 
-  private def getTag(targetTags: List[Tag], key: String): Option[String] = {
-    targetTags.find(t => t.key.equals(key)).map(t => t.value)
-  }
-
   def createNotification(groupId: String, targetTags: List[Tag], accountId: String, accountName:String, regionName: String): Notification = {
     val actions = List(
       Action("View in AWS Console", s"https://$regionName.console.aws.amazon.com/ec2/v2/home?region=$regionName#SecurityGroups:search=$groupId")
     )
-
-    val stack = getTag(targetTags, "Stack").getOrElse("unknown")
-    val stage = getTag(targetTags, "Stage").getOrElse("unknown")
-    val app = getTag(targetTags, "App").getOrElse("unknown")
-    val repo = getTag(targetTags, "gu:repo").getOrElse("unknown")
-
     val message =
       s"""
          |Warning: Security group **$groupId** in account **$accountName** is open to the world.
          |
-         |Stack: $stack, Stage: $stage, App: $app
-         |
-         |Repository: $repo
+         |The security group has ${targetTags.length} tags.
+         |${targetTags.map(t => s"*${t.key}*: ${t.value}").mkString(", ")}
          |
          |""".stripMargin
     val targets = getTargetsFromTags(targetTags, accountId)
@@ -76,8 +65,8 @@ object Notifier extends StrictLogging {
   }
 
   private def getTargetsFromTags(tags: List[Tag], account: String):List[Target] = {
-    val stack = getTag(tags, "Stack").map(t => Stack(t))
-    val app = getTag(tags, "App").map(t => App(t))
+    val stack = tags.find(t => t.key.equals("Stack")).map(t => Stack(t.value))
+    val app = tags.find(t => t.key.equals("App")).map(t => App(t.value))
     List(stack, app, Some(AwsAccount(account))).flatten
   }
 }
