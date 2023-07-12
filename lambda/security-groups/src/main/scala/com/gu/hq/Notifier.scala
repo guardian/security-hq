@@ -40,7 +40,7 @@ object Notifier extends StrictLogging {
          |Warning: Security group **$groupId** in account **$accountName** is open to the world.
          |
          |The security group has ${targetTags.length} tags.
-         |${targetTags.map(t => s"*${t.key}*: ${t.value}").mkString(", ")}
+         |${targetTags.map(t => s"**${t.key}**: ${t.value}").mkString(", ")}
          |
          |""".stripMargin
     val targets = getTargetsFromTags(targetTags, accountId)
