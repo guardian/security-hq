@@ -792,6 +792,15 @@ exports[`HQ stack matches the snapshot 1`] = `
     "LoadBalancerSecurityhqSecurityGroup66272916": {
       "Properties": {
         "GroupDescription": "Automatically created Security Group for ELB securityhqLoadBalancerSecurityhq4820B44E",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow to IdP endpoint",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
         "SecurityGroupIngress": [
           {
             "CidrIp": "0.0.0.0/0",
