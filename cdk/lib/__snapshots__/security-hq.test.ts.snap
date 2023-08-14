@@ -1320,6 +1320,9 @@ exports[`HQ stack matches the snapshot 1`] = `
       "Type": "AWS::EC2::SecurityGroupEgress",
     },
     "securityPRODsecurityhq7917BE18": {
+      "DependsOn": [
+        "InstanceRoleSecurityhq7C08CA33",
+      ],
       "Properties": {
         "LaunchTemplateData": {
           "IamInstanceProfile": {
