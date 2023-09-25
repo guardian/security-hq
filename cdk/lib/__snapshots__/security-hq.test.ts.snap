@@ -362,25 +362,47 @@ exports[`HQ stack matches the snapshot 1`] = `
                 "dynamodb:GetRecords",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:dynamodb:",
-                    {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":table/",
-                    {
-                      "Ref": "SecurityHqIamDynamoTable",
-                    },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:dynamodb:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":table/",
+                      {
+                        "Ref": "SecurityHqIamDynamoTable",
+                      },
+                    ],
                   ],
-                ],
-              },
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:dynamodb:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":table/",
+                      {
+                        "Ref": "SecurityHqIamDynamoTable",
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
             },
           ],
           "Version": "2012-10-17",
@@ -406,25 +428,47 @@ exports[`HQ stack matches the snapshot 1`] = `
                 "dynamodb:UpdateItem",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:dynamodb:",
-                    {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":table/",
-                    {
-                      "Ref": "SecurityHqIamDynamoTable",
-                    },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:dynamodb:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":table/",
+                      {
+                        "Ref": "SecurityHqIamDynamoTable",
+                      },
+                    ],
                   ],
-                ],
-              },
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:dynamodb:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":table/",
+                      {
+                        "Ref": "SecurityHqIamDynamoTable",
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
             },
           ],
           "Version": "2012-10-17",
