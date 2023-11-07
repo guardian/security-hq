@@ -17,10 +17,6 @@ do
       CONF_PARAMS=""
       shift
     fi
-    if [ "$arg" == "--ship-logs" ]; then
-      export LOCAL_LOG_SHIPPING=true
-      shift
-    fi
 done
 
 java $DEBUG_PARAMS \
