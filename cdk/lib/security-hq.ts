@@ -85,6 +85,9 @@ export class SecurityHQ extends GuStack {
     const domainName = "security-hq.gutools.co.uk";
 
     const ec2App = new GuEc2App(this, {
+      applicationLogging: {
+        enabled: true
+      },
       access: {
         scope: AccessScope.PUBLIC,
       },

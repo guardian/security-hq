@@ -192,6 +192,11 @@ exports[`HQ stack matches the snapshot 1`] = `
             "PropagateAtLaunch": true,
             "Value": "PROD",
           },
+          {
+            "Key": "SystemdUnit",
+            "PropagateAtLaunch": true,
+            "Value": "security-hq.service",
+          },
         ],
         "TargetGroupARNs": [
           {
