@@ -8,4 +8,5 @@ new SecurityHQ(app, "security-hq", {
   stage: "PROD",
   cloudFormationStackName: "security-hq-PROD",
   env: { region: "eu-west-1" },
+  withBackup: true,
 });
