@@ -1151,6 +1151,10 @@ exports[`HQ stack matches the snapshot 1`] = `
             "Key": "Stage",
             "Value": "PROD",
           },
+          Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
         ],
       },
       "Type": "AWS::DynamoDB::Table",

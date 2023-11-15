@@ -19,7 +19,7 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
-import { Duration, RemovalPolicy, SecretValue } from "aws-cdk-lib";
+import { Duration, RemovalPolicy, SecretValue, Tags } from "aws-cdk-lib";
 import type { App } from "aws-cdk-lib";
 import {
   ComparisonOperator,
@@ -62,6 +62,9 @@ export class SecurityHQ extends GuStack {
         type: AttributeType.NUMBER,
       },
     });
+
+    // Enable automated backups for the ownership table via https://github.com/guardian/aws-backup
+    Tags.of(table).add("devx-backup-enabled", "true");
 
     this.overrideLogicalId(table, {
       logicalId: "SecurityHqIamDynamoTable",
