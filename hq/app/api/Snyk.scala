@@ -15,14 +15,14 @@ object Snyk {
     wsClient.url(url).addHttpHeaders("Authorization" -> s"token ${token.value}")
 
   def getSnykOrganisations(token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[WSResponse] = {
-    val snykOrgUrl = "https://snyk.io/api/v1/orgs"
+    val snykOrgUrl = "https://snyk.io/api/orgs"
     val futureResponse = snykRequest(token, snykOrgUrl, wsClient).get()
     handleFuture(futureResponse, "organisation")
   }
 
   def getProjects(token: SnykToken, organisations: List[SnykOrganisation], wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[List[(SnykOrganisation, String)]] = {
     Attempt.labelledTraverse(organisations) { organisation =>
-      val snykProjectsUrl = s"https://snyk.io/api/v1/org/${organisation.id}/projects"
+      val snykProjectsUrl = s"https://snyk.io/api/org/${organisation.id}/projects"
       val futureResponse = snykRequest(token, snykProjectsUrl, wsClient).get()
         .map(response => response.body)
       handleFuture(futureResponse, "project")
@@ -30,7 +30,7 @@ object Snyk {
   }
 
   def getOrganisationVulnerabilities(organisation: SnykOrganisation, token: SnykToken, wsClient: WSClient)(implicit ec: ExecutionContext): Attempt[String] = {
-    val snykIssuesUrl = s"https://snyk.io/api/v1/reporting/issues/latest?sortBy=priorityScore&order=desc&perPage=1000"
+    val snykIssuesUrl = s"https://snyk.io/api/reporting/issues/latest?sortBy=priorityScore&order=desc&perPage=1000"
     val orgIssuesFilter = Json.obj(
       "filters" -> Json.obj(
         "orgs" -> JsArray(List(
