@@ -53,6 +53,7 @@ jobs:
           projectName: security-hq
           # Seed the build number with last number from TeamCity.
           buildNumberOffset: 1265
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           configPath: hq/conf/riff-raff.yaml
           contentDirectories: |
             security-hq-cfn:
