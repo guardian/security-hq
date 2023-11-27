@@ -19,6 +19,7 @@ jobs:
       # required by aws-actions/configure-aws-credentials
       id-token: write
       contents: read
+      pull-requests: write # required by guardian/actions-riff-raff
     steps:
       - uses: actions/checkout@v4
 
