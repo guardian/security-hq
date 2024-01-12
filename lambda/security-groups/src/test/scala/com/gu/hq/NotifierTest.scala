@@ -83,5 +83,14 @@ class NotifierTest extends AnyFreeSpec with Matchers with OptionValues {
       val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
       notification.target.toSet should contain allOf (Stack("stack"), App("app"))
     }
+
+    "puts each tag on a new line" in {
+      val notification = createNotification(groupId, targetTags, accountId, accountName, regionName)
+      notification.message should contain
+        """**Stack**: stack
+           |**App**: app
+           |**Stage**: PROD
+           |**Irrelevant**: foo""".stripMargin
+    }
   }
 }
