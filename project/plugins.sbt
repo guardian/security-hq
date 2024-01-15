@@ -3,7 +3,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
 libraryDependencies += "org.vafer" % "jdeb" % "1.10" artifacts Artifact("jdeb", "jar", "jar")
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.16")
+addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.1")
 
 // web plugins
 
