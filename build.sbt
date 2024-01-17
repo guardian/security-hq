@@ -10,11 +10,6 @@ ThisBuild / version := "0.5.0"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
-// We need to avoid a binary-incompatible version conflict - because janus-config-tools v.0.0.5 requires com.typesafe.play:twirl-api_2.13:1.4.2
-ThisBuild / libraryDependencySchemes ++= Seq(
-  "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
-)
-
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.635"
@@ -70,7 +65,7 @@ lazy val hq = (project in file("hq"))
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "7.3" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-      "com.gu" %% "janus-config-tools" % "0.0.5"
+      "com.gu" %% "janus-config-tools" % "0.0.6"
     ),
 
     
