@@ -6,19 +6,15 @@ import scala.concurrent.duration.DurationInt
 
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
-ThisBuild / version := "0.4.2"
+ThisBuild / version := "0.5.0"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.635"
-val playJsonVersion = "2.9.3"
+val playJsonVersion = "3.0.1"
 val jacksonVersion = "2.15.1"
-
-// Until all dependencies are on scala-java8-compat v1.x, this avoids unnecessary fatal eviction errors
-// See https://github.com/akka/akka/pull/30375
-ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % VersionScheme.Always
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -35,9 +31,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %% "play-v28" % "2.2.6",
-      "com.gu.play-secret-rotation" %% "play-v28" % "0.36",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "0.36",
+      "com.gu.play-googleauth" %%  "play-v30" % "3.0.6",
+      "com.gu.play-secret-rotation" %% "play-v30" % "6.0.8",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "6.0.8",
       "joda-time" % "joda-time" % "2.11.2",
       "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
@@ -69,8 +65,10 @@ lazy val hq = (project in file("hq"))
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "7.3" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-      "com.gu" %% "janus-config-tools" % "0.0.5"
+      "com.gu" %% "janus-config-tools" % "0.0.6"
     ),
+
+    
     Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
@@ -138,7 +136,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "org.scalatest" %% "scalatest" % "3.2.15" % Test,
-      "com.typesafe.play" %% "play-json" % playJsonVersion,
+      "org.playframework" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
       "ch.qos.logback" % "logback-classic" % "1.4.14",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion

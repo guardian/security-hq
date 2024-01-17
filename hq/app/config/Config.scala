@@ -5,7 +5,7 @@ import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
-import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker, GoogleServiceAccount}
+import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker}
 import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV1, SecretSupplier}
 import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}
 import model._
