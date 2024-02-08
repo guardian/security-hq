@@ -13,8 +13,7 @@ However, there are quite a few scenarios where public access might be required.
 
 ## Buckets serving assets for the website e.g. images, static files.
 You should *never* use an S3 bucket to serve public assets to users directly - instead you should use a CDN such as Fastly
-or CloudFront. If you are using CloudFront, it should be straightforward to make your bucket private so that it can
-only be accessed via CloudFront.
+or CloudFront. If you are using CloudFront, make your bucket private so that it can only be accessed via CloudFront.
 
 If you are using Fastly, setting up [authentication to a private bucket](https://docs.fastly.com/en/guides/amazon-s3#using-an-amazon-s3-private-bucket)
 is possible, but quite complicated, involving permanent AWS IAM credentials ending up in VCL. If you don't make the bucket
@@ -49,6 +48,7 @@ prior to enforcing IMDSv2. You can see the difference between IMDSv1 and IMDSv2 
 
 You will also experience problems with this change if you are using the instance metadata service within your app via an old 
 version of the AWS SDK. You will need to be using at least version 1.11.678 or 2.10.20 of the AWS SDK to get IMDSv2 support. 
+<!-- alex ignore simple -->
 If you are using the guardian [simple configuration library](https://github.com/guardian/simple-configuration) you'll need 
 to make sure you're on the latest version.
 
