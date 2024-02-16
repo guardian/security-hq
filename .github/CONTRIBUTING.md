@@ -47,6 +47,7 @@ This is applicable to [GMG employees](http://www.gmgplc.co.uk/).
 
 ### External contributions
 
+<!-- alex ignore simple -->
 Firstly, thanks for helping make our service better! Secondly, we'll try and make this as simple as possible.
 
 - Fork the project on GitHub, patch the code, and submit a pull request.
@@ -59,10 +60,10 @@ Finally, have you considered [working for us](https://workforus.theguardian.com/
 
 Here's some wise words from [@gklopper](https://github.com/gklopper).
 
-We only merge to main when the software is ready to go live. This will be different for each thing we do, it might be as simple as showing the person next to you that the typo has been fixed, or you might spend an afternoon with Security or InfoSec looking over your shoulder.
+We only merge to main when the software is ready to go live. This will be different for each thing we do, it might be as quick as showing the person next to you that the typo has been fixed, or you might spend an afternoon with Security or InfoSec looking over your shoulder.
 
 If in doubt ask the team, **the team is your conscience**.
 
 Once deployed to `PROD` check that your software is doing what you expected.
 
-If it is a bit late in the day or it is nearly lunch and you do not want to deploy to PROD immediately then do not merge to main.
+If it is a bit late in the day, or it is nearly lunch and you do not want to deploy to PROD immediately then do not merge to main.
