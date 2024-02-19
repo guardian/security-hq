@@ -101,14 +101,14 @@ We recommend adding a standard DescribeEC2Policy to the InstanceRole, which adds
 
 ### Adding the wazuh-agent role in amigo
 
-This is the easy part. You edit your recipe, tick the box next to the wazuh-agent role, save, and bake!
+Edit your recipe, tick the box next to the wazuh-agent role, save, and bake!
 
 ## Testing
 
 The system is ready to test once the new bake is finished and the application has been redeployed in riff raff. This will pick up the freshly baked ami with
 the wazuh agent ready to go.
 
-First thing to test is if your service is still running properly. It's highly unlikely that the agent will disrupt your service, but it's of course
+First thing to test is if your service is still running properly. It's highly unlikely that the agent will disrupt your service, but it's
 worth checking.
 
 Second, we'll want to see if the agent has booted and connected to the central server. Unfortunately, access to the wazuh
@@ -133,7 +133,7 @@ So, for example to check the wazuh status for *all instances tagged 'amiable'* I
 
 `ssm cmd -c "service wazuh-agent status | grep Active && journalctl -u wazuh-agent | grep -E \"(Valid|error)\"" -p deployTools  -t amiable`
 
-If you just want to run the command on a specific instance you can use `-i` instead of `-t` and specify the instance id.
+If you want to run the command on one specific instance you can use `-i` instead of `-t` and specify the instance id.
 
 In a happy scenario this should give you output looking a bit like this, telling you that the agent is running  and has
 authenticated correctly.

@@ -26,8 +26,8 @@ your project's dependencies to snyk.io whenever a new push to `main` takes place
 that can be used to achieve this, it can be found [here](https://github.com/guardian/.github/tree/main/.github/workflows)
 along with usage instructions. Snyk will take this list of dependencies and compare it to a list of vulnerable
 dependencies daily. If any new ones are found, team members will be notified by email, and it will show up on the UI as
-a vulnerable project. If a patch is available, it will indicate this. A failed action does not indicate that your project
-is vulnerable, it just means the action was unable to complete. This may be because it can't communicate with snyk's
+a vulnerable project. If a patch is available, it will indicate this. A failed action does **not** indicate that your project
+is vulnerable, rather that the action was unable to complete. This may be because it can't communicate with snyk's
 servers, or perhaps a required plugin has been removed.
 
 This method provides a consistent means for testing the security of our deployed software, but it has a long feedback
@@ -51,7 +51,7 @@ Note that examples are all for sbt projects, however nodejs and other projects w
 When you visit a vulnerability report from the output (eg https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-31573),
 you may see a 'Remediation' section at the bottom.  If not, you will have to read the text and decide for yourself!
 
-If there is a known non-vulnerable version listed, you can simply change the dependency declaration as below:
+If there is a known non-vulnerable version listed, you can change the dependency declaration as below:
 
 ```
 $ git diff build.sbt
@@ -109,8 +109,8 @@ appropriate to consider alternatives.
 At the time of writing, this vulnerability makes up 74% of our 'high severity' vulnerabilities in Snyk. In the majority
 of cases this library is imported as a transitive dependency to our projects rather than being used directly - typically
 by the AWS SDK. This makes fixing it more challenging than you might expect, because it requires and AWS SDK upgrade
-rather than simply moving to the latest minor version of the jackson databind library. In some cases it's not possible to fix
-this via an AWS SDK upgrade and you have to override the dependency.
+rather than moving to the latest minor version of the jackson databind library. In some cases it's not possible to fix
+this via an AWS SDK upgrade, and you have to override the dependency.
 
 For now, our recommendation is to *focus on other Snyk issues first*. For further info on this, there's a helpful thread
 on google chat [here](https://chat.google.com/room/AAAAFug03y8/3p2y42sYhMc) and an in depth blog post about the issue

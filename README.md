@@ -54,7 +54,7 @@ When running Security HQ locally, you can modify the list of AWS accounts to inc
 For example, you may want to add a specific account for debugging purposes. 
 You will need valid AWS credentials for any accounts you wish to include.
 
-It's really easy to add a new AWS account! Go to `~/.gu/security-hq.local.conf`,
+To add a new AWS account, go to `~/.gu/security-hq.local.conf`,
 add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
 
 ```

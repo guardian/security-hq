@@ -51,7 +51,7 @@ object AnghammaradNotifications extends Logging {
          |If this is not rectified before $deadline,
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
-    val subject = s"Action required by $deadline: vulnerable credential detected in ${awsAccount.name}"
+    val subject = s"Action required by $deadline: long-lived credential detected in ${awsAccount.name}"
     Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
@@ -65,7 +65,7 @@ object AnghammaradNotifications extends Logging {
          |If this is not rectified before $deadline,
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
-    val subject = s"Action required by $deadline: vulnerable credential in ${awsAccount.name} will be disabled soon"
+    val subject = s"Action required by $deadline: long-lived credential in ${awsAccount.name} will be disabled soon"
     Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
@@ -76,7 +76,7 @@ object AnghammaradNotifications extends Logging {
          |because it was last rotated on ${printDay(problemCreationDate)}.
          |If you still require the disabled user, add new access keys(s) and rotate regularly. Otherwise, delete them.
          |""".stripMargin
-    val subject = s"DISABLED Vulnerable credential in ${awsAccount.name}"
+    val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
     Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
   }
 
