@@ -49,7 +49,7 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@v3
+      - uses: guardian/actions-riff-raff@v4
         with:
           projectName: security-hq
           # Seed the build number with last number from TeamCity.
