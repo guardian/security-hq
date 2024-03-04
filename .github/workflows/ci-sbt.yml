@@ -16,19 +16,12 @@ jobs:
 
     # See https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
     permissions:
-      # required by aws-actions/configure-aws-credentials
+      # required by guardian/actions-riff-raff
       id-token: write
       contents: read
       pull-requests: write # required by guardian/actions-riff-raff
     steps:
       - uses: actions/checkout@v4
-
-      # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
-      # See https://github.com/aws-actions/configure-aws-credentials
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
-          aws-region: eu-west-1
 
       # Configuring caching is also recommended.
       # See https://github.com/actions/setup-java
@@ -49,9 +42,10 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@v3
+      - uses: guardian/actions-riff-raff@v4
         with:
           projectName: security-hq
+          roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           # Seed the build number with last number from TeamCity.
           buildNumberOffset: 1265
           githubToken: ${{ secrets.GITHUB_TOKEN }}
