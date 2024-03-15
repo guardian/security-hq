@@ -31,9 +31,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "3.0.6",
-      "com.gu.play-secret-rotation" %% "play-v30" % "6.0.8",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "6.0.8",
+      "com.gu.play-googleauth" %%  "play-v30" % "4.0.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "7.1.0",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "7.1.0",
       "joda-time" % "joda-time" % "2.11.2",
       "org.typelevel" %% "cats-core" % "2.8.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.10",
@@ -68,7 +68,7 @@ lazy val hq = (project in file("hq"))
       "com.gu" %% "janus-config-tools" % "0.0.6"
     ),
 
-    
+
     Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
