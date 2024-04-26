@@ -5,7 +5,7 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProvider, AWSCredentialsProviderChain, STSAssumeRoleSessionCredentialsProvider}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.client.builder.{AwsAsyncClientBuilder, AwsClientBuilder}
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{Region, RegionUtils, Regions}
 import com.amazonaws.services.cloudformation.{AmazonCloudFormationAsync, AmazonCloudFormationAsyncClientBuilder}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
 import com.amazonaws.services.ec2.{AmazonEC2Async, AmazonEC2AsyncClientBuilder}
@@ -40,14 +40,14 @@ object AWS {
   private[aws] def clients[A, B <: AwsClientBuilder[B, A]](
     builder: AwsClientBuilder[B, A],
     configuration: Configuration,
-    regionList: Regions*
+    regionList: Region*
   ): AwsClients[A] = {
     for {
       account <- Config.getAwsAccounts(configuration)
       region <- regionList
       client = builder
         .withCredentials(credentialsProvider(account))
-        .withRegion(region)
+        .withRegion(region.getName)
         .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
         .build()
     } yield AwsClient(client, account, region)
@@ -56,22 +56,22 @@ object AWS {
   private def withCustomThreadPool[A, B <: AwsAsyncClientBuilder[B, A]] = (asyncClientBuilder: AwsAsyncClientBuilder[B, A]) =>
     asyncClientBuilder.withExecutorFactory(() => newCachedThreadPool())
 
-  def ec2Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonEC2Async] =
+  def ec2Clients(configuration: Configuration, regions: List[Region]): AwsClients[AmazonEC2Async] =
     clients(withCustomThreadPool(AmazonEC2AsyncClientBuilder.standard()), configuration, regions:_*)
 
-  def cfnClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonCloudFormationAsync] =
+  def cfnClients(configuration: Configuration, regions: List[Region]): AwsClients[AmazonCloudFormationAsync] =
     clients(withCustomThreadPool(AmazonCloudFormationAsyncClientBuilder.standard()), configuration, regions:_*)
 
   // Only needs Regions.US_EAST_1
-  def taClients(configuration: Configuration, region: Regions = Regions.US_EAST_1): AwsClients[AWSSupportAsync] =
+  def taClients(configuration: Configuration, region: Region = RegionUtils.getRegion("us-east-1")): AwsClients[AWSSupportAsync] =
     clients(withCustomThreadPool(AWSSupportAsyncClientBuilder.standard()), configuration, region)
 
-  def s3Clients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonS3] =
+  def s3Clients(configuration: Configuration, regions: List[Region]): AwsClients[AmazonS3] =
     clients(AmazonS3ClientBuilder.standard(), configuration, regions:_*)
 
-  def iamClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonIdentityManagementAsync] =
+  def iamClients(configuration: Configuration, regions: List[Region]): AwsClients[AmazonIdentityManagementAsync] =
     clients(withCustomThreadPool(AmazonIdentityManagementAsyncClientBuilder.standard()), configuration, regions:_*)
 
-  def efsClients(configuration: Configuration, regions: List[Regions]): AwsClients[AmazonElasticFileSystemAsync] =
+  def efsClients(configuration: Configuration, regions: List[Region]): AwsClients[AmazonElasticFileSystemAsync] =
     clients(withCustomThreadPool(AmazonElasticFileSystemAsyncClientBuilder.standard()), configuration, regions:_*)
 }

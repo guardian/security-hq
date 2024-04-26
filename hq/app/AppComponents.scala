@@ -4,7 +4,7 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{Region, RegionUtils, Regions}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
@@ -29,6 +29,7 @@ import utils.attempt.Attempt
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 class AppComponents(context: Context)
@@ -53,14 +54,14 @@ class AppComponents(context: Context)
   //  - Regions.values() returns Chinese and US government regions that are not accessible with the same AWS account
   //  - available regions can return regions that are not in the SDK and so Regions.findName will fail
   // to solve these we return the intersection of available regions and regions.values()
-  private val availableRegions = {
-    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region).build(), AwsAccount(stack, stack, stack, stack), Config.region)
+  private val availableRegions: List[Region] = {
+    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region.getName).build(), AwsAccount(stack, stack, stack, stack), Config.region)
     try {
-      val availableRegionsAttempt: Attempt[List[Regions]] = for {
+      val availableRegionsAttempt: Attempt[List[Region]] = for {
         regionList <- EC2.getAvailableRegions(ec2Client)
         regionStringSet = regionList.map(_.getRegionName).toSet
-      } yield Regions.values.filter(r => regionStringSet.contains(r.getName)).toList
-      Await.result(availableRegionsAttempt.asFuture, 30 seconds).getOrElse(List(Config.region, Regions.US_EAST_1))
+      } yield RegionUtils.getRegions().asScala.filter(r => regionStringSet.contains(r.getName)).toList
+      Await.result(availableRegionsAttempt.asFuture, 30 seconds).getOrElse(List(Config.region, RegionUtils.getRegion("us-east-1")))
     } finally {
       ec2Client.client.shutdown()
     }
@@ -87,12 +88,12 @@ class AppComponents(context: Context)
   )
   private val securitySnsClient = AmazonSNSAsyncClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region)
+    .withRegion(Config.region.getName)
     .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
     .build()
   private val securitySsmClient = AWSSimpleSystemsManagementClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region)
+    .withRegion(Config.region.getName)
     .build()
   private val googleAuthConfig = Config.googleSettings(stage, stack, configuration, securitySsmClient)
 
@@ -100,17 +101,17 @@ class AppComponents(context: Context)
     case PROD =>
       AmazonDynamoDBClientBuilder.standard()
         .withCredentials(securityCredentialsProvider)
-        .withRegion(Config.region)
+        .withRegion(Config.region.getName)
         .build()
     case DEV =>
       AmazonDynamoDBClientBuilder.standard()
         .withCredentials(securityCredentialsProvider)
-        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", Config.region.name))
+        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", Config.region.getName))
         .build()
   }
   private val securityS3Client = AmazonS3ClientBuilder.standard()
     .withCredentials(securityCredentialsProvider)
-    .withRegion(Config.region)
+    .withRegion(Config.region.getName)
     .build()
 
   private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()

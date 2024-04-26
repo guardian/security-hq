@@ -1,6 +1,6 @@
 package aws
 
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{RegionUtils, Regions}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.freespec.AnyFreeSpec
 import play.api.Configuration
@@ -35,7 +35,7 @@ class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
     )
     val configuration = Configuration(config)
 
-    val regions = List(Regions.EU_WEST_1, Regions.EU_WEST_2, Regions.EU_WEST_3, Regions.EU_CENTRAL_1)
+    val regions = List(RegionUtils.getRegion("eu-west-1"), RegionUtils.getRegion("eu-west-2"), RegionUtils.getRegion("eu-west-3"), RegionUtils.getRegion("eu-central-1"))
 
     //Two accounts, three regions.
     val allRegionsSize = regions.size * 2

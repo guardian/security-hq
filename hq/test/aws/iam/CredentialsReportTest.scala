@@ -1,7 +1,7 @@
 package aws.iam
 
 import aws.iam.CredentialsReport.credentialsReportReadyForRefresh
-import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.regions.{Region, RegionUtils}
 import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.OptionValues
@@ -131,7 +131,7 @@ class CredentialsReportTest extends AnyFreeSpec with Matchers with OptionValues 
           Symbol("accessKey1Active") (true),
           Symbol("accessKey1LastRotated") (Some(new DateTime(2015, 10, 22, 14, 45, 0, DateTimeZone.UTC))),
           Symbol("accessKey1LastUsedDate") (Some(new DateTime(2017, 8, 30, 13, 32, 0, DateTimeZone.UTC))),
-          Symbol("accessKey1LastUsedRegion") (Some(Region.getRegion(Regions.EU_WEST_1))),
+          Symbol("accessKey1LastUsedRegion") (Some(RegionUtils.getRegion("eu-west-1"))),
           Symbol("accessKey1LastUsedService") (Some("ec2"))
         )
       }

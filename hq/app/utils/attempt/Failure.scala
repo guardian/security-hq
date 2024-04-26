@@ -1,9 +1,6 @@
 package utils.attempt
 
 import aws.AwsClient
-import com.amazonaws.regions.Regions
-import model.AwsAccount
-
 
 case class FailedAttempt(failures: List[Failure]) {
   def statusCode: Int = failures.map(_.statusCode).max
@@ -78,7 +75,7 @@ object Failure {
 
   def contextString(clientContext: AwsClient[_]): String = {
     val acc = s"account: ${clientContext.account.name}"
-    val reg = s"region: ${clientContext.region.name}"
+    val reg = s"region: ${clientContext.region.getName}"
     s"$acc, $reg"
   }
 

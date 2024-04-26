@@ -1,6 +1,6 @@
 package aws.cloudformation
 
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{RegionUtils, Regions}
 import com.amazonaws.services.cloudformation.model.Stack
 import model.AwsStack
 import org.scalatest.freespec.AnyFreeSpec
@@ -10,7 +10,7 @@ class CloudFormationTest extends AnyFreeSpec with Matchers {
 
   "parseStacks" - {
     val stackId = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345"
-    val region = Regions.EU_WEST_1
+    val region = RegionUtils.getRegion("eu-west-1")
     val exampleStack = new Stack().withStackId(stackId).withStackName("example-stack-A")
 
     "will parse and extract each stack, including setting the the region" in {

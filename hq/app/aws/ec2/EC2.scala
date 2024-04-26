@@ -5,7 +5,7 @@ import aws.ec2.EFS.filterOutEfsUnknownUsages
 import aws.support.TrustedAdvisorSGOpenPorts
 import aws.{AwsClient, AwsClients}
 import cats.syntax.semigroup._
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{RegionUtils, Regions}
 import com.amazonaws.services.ec2.AmazonEC2Async
 import com.amazonaws.services.ec2.model._
 import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
@@ -39,7 +39,7 @@ object EC2 {
       efsClients: AwsClients[AmazonElasticFileSystemAsync]
     )(implicit ec: ExecutionContext): Attempt[Map[String, Set[SGInUse]]] = {
     val allSgIds = TrustedAdvisorSGOpenPorts.sgIds(sgReport)
-    val activeRegions = sgReport.flaggedResources.map(sgInfo => Regions.fromName(sgInfo.region)).distinct
+    val activeRegions = sgReport.flaggedResources.map(sgInfo => RegionUtils.getRegion(sgInfo.region)).distinct
 
     val efsSgs: Attempt[Map[String, Set[SGInUse]]] = for {
       efsSecGrps <- Attempt.traverse(activeRegions){ region =>
@@ -83,7 +83,7 @@ object EC2 {
       sgUsage <- getSgsUsage(sgResult, account, ec2Clients, efsClients)
       flaggedSgs = sgResult.flaggedResources.filter(_.status != "ok")
       flaggedSgsIds = flaggedSgs.map(_.id)
-      regions = flaggedSgs.map(sg => Regions.fromName(sg.region)).distinct
+      regions = flaggedSgs.map(sg => RegionUtils.getRegion(sg.region)).distinct
       clients <- Attempt.traverse(regions)(region => ec2Clients.get(account, region))
       describeSecurityGroupsResults <- Attempt.traverse(clients)(EC2.describeSecurityGroups(flaggedSgsIds))
       sgTagDetails = describeSecurityGroupsResults.flatMap(extractTagsForSecurityGroups).toMap
@@ -210,7 +210,7 @@ object EC2 {
 
   private[ec2] def getVpcs(account: AwsAccount, flaggedSgs: List[SGOpenPortsDetail], ec2Clients: AwsClients[AmazonEC2Async])(vpcsDetailsF: AwsClient[AmazonEC2Async] => Attempt[Map[String, Vpc]])(implicit ec: ExecutionContext): Attempt[Map[String, Vpc]] = {
     Attempt.traverse(flaggedSgs.map(_.region).distinct) { region =>
-      val awsRegion = Regions.fromName(region)
+      val awsRegion = RegionUtils.getRegion(region)
       for {
         ec2Client <- ec2Clients.get(account, awsRegion)
         vpcDetails <- vpcsDetailsF(ec2Client)

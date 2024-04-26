@@ -5,7 +5,7 @@ import aws.AwsClients
 import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.Region
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.ec2.AmazonEC2Async
 import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
@@ -39,7 +39,7 @@ class CacheService(
     s3Clients: AwsClients[AmazonS3],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
     efsClients: AwsClients[AmazonElasticFileSystemAsync],
-    regions: List[Regions],
+    regions: List[Region],
     gcpClient: SecurityCenterClient
   )(implicit ec: ExecutionContext) extends Logging {
   private val accounts = Config.getAwsAccounts(config)
