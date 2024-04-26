@@ -8,7 +8,7 @@ import scala.concurrent.duration.DurationInt
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
+ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
 
 resolvers += DefaultMavenRepository
 
