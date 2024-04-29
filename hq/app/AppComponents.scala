@@ -49,18 +49,14 @@ class AppComponents(context: Context)
   private val stack = configuration.get[String]("stack")
   private val stage = Config.getStage(configuration)
 
-  // the aim of this is to get a list of available regions that we are able to access
-  // note that:
-  //  - Regions.values() returns Chinese and US government regions that are not accessible with the same AWS account
-  //  - available regions can return regions that are not in the SDK and so Regions.findName will fail
-  // to solve these we return the intersection of available regions and regions.values()
+  // the aim of this is to get all the regions that are available to this account
   private val availableRegions: List[Region] = {
     val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region.getName).build(), AwsAccount(stack, stack, stack, stack), Config.region)
     try {
       val availableRegionsAttempt: Attempt[List[Region]] = for {
-        regionList <- EC2.getAvailableRegions(ec2Client)
-        regionStringSet = regionList.map(_.getRegionName).toSet
-      } yield RegionUtils.getRegions().asScala.filter(r => regionStringSet.contains(r.getName)).toList
+        ec2RegionList <- EC2.getAvailableRegions(ec2Client)
+        regionList = ec2RegionList.map(ec2Region => RegionUtils.getRegion(ec2Region.getRegionName))
+      } yield regionList
       Await.result(availableRegionsAttempt.asFuture, 30 seconds).getOrElse(List(Config.region, RegionUtils.getRegion("us-east-1")))
     } finally {
       ec2Client.client.shutdown()
