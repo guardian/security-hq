@@ -73,7 +73,6 @@ class AppComponents(context: Context)
     logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
-  private val snykConfig = Config.getSnykConfig(configuration)
   private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
@@ -120,7 +119,6 @@ class AppComponents(context: Context)
     configuration,
     applicationLifecycle,
     environment,
-    snykConfig,
     wsClient,
     ec2Clients,
     cfnClients,
@@ -156,7 +154,6 @@ class AppComponents(context: Context)
     new CredentialsController(configuration, cacheService, googleAuthConfig),
     new BucketsController(configuration, cacheService, googleAuthConfig),
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
-    new SnykController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
     assets,
     new GcpController(configuration, googleAuthConfig, cacheService)

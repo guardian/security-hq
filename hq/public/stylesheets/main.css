@@ -10,9 +10,6 @@ DARK-TEAL:  #0B5351
 COMPLEMENT: #4E8098
  */
 
-html {
-  /*background-color: #009688;*/
-}
 
 body {
   display: flex;
@@ -25,8 +22,6 @@ main {
   flex: 1 0 auto;
 }
 
-footer {
-}
 
 nav {
   background-color: transparent;
@@ -415,17 +410,6 @@ table.iam-report__table th {
 
 .doc-content h4 {
   font-size: 1rem;
-}
-
-/* Snyk */
-
-.snyk-summary__count {
-  font-size: 5rem;
-  line-height: 1;
-}
-
-.snyk-summary__count-label {
-  font-size: 1.2rem;
 }
 
 /* footer */

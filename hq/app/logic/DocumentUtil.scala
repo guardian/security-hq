@@ -15,11 +15,10 @@ object DocumentUtil {
   private val parser = Parser.builder(options).build()
   private val renderer = HtmlRenderer.builder(options).build
 
-  def convert(markdownfile: String, sourceTransformation: String => String = identity): Option[Html] = {
+  def convert(markdownfile: String): Option[Html] = {
     getClass getResourceAsStream s"/$markdownfile.md" match {
       case is: InputStream =>
         val sourceString = Source.fromInputStream(is).mkString
-        val transformed = sourceTransformation(sourceString)
         Some(renderInputAsHtml(transformed))
       case _ =>
         None
@@ -29,9 +28,5 @@ object DocumentUtil {
   private def renderInputAsHtml(content: String) = {
     val document = parser.parse(content)
     new Html(renderer.render(document))
-  }
-
-  def replaceSnykSSOUrl(snykSSOUrl: String)(source: String): String = {
-    source.replace("%SNYK_SSO_LINK%", snykSSOUrl)
   }
 }

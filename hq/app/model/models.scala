@@ -241,42 +241,6 @@ case class MachineUser(
   val isHuman = false
 }
 
-case class SnykConfig(
-                       snykToken: SnykToken,
-                       snykGroupId: SnykGroupId,
-                       excludeOrgs: List[String] = List.empty
-                     )
-
-case class SnykToken(value: String) extends AnyVal
-
-case class SnykGroupId(value: String) extends AnyVal
-
-case class SnykGroup(name: String, id: String)
-
-case class SnykOrganisation(name: String, id: String, groupOpt: Option[SnykGroup])
-
-case class SnykProject(name: String, id: String, url: String)
-
-case class SnykIssue(title: String, id: String, severity: String)
-
-case class SnykProjectIssue(project: Option[SnykProject], introducedDate: DateTime, issue: SnykIssue)
-
-case class SnykProjectIssues(project: Option[SnykProject], vulnerabilities: List[SnykProjectIssue])  {
-  def critical: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("critical"))
-  def high: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("high"))
-  def medium: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("medium"))
-  def low: Int = vulnerabilities.count(s => s.issue.severity.equalsIgnoreCase("low"))
-}
-
-case class SnykOrganisationIssues(organisation: SnykOrganisation, projectIssues: List[SnykProjectIssues]) {
-  def critical: Int = projectIssues.map(_.critical).sum
-  def high: Int = projectIssues.map(_.high).sum
-  def medium: Int = projectIssues.map(_.medium).sum
-  def low: Int = projectIssues.map(_.low).sum
-}
-
-case class SnykError(error: String)
-
 case class Documentation(title: String, description: String, icon: String, slug: String)
 
 case class GcpReport(reportDate: DateTime, findings: Map[String, Seq[GcpFinding]] = Map.empty)
