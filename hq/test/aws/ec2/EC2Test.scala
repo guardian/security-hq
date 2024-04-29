@@ -250,7 +250,7 @@ class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPro
     val vpcsResult = Attempt.Right(vpcsMap)
     val clients = List(
       AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion("eu-west-1").build(), AwsAccount("security-test", "security", "security-test", "123456789"), RegionUtils.getRegion("eu-west-1")),
-      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build(), AwsAccount("security-test", "security", "security-test", "123456789"), RegionUtils.getRegion("eu-west-2"))
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion("eu-west-2").build(), AwsAccount("security-test", "security", "security-test", "123456789"), RegionUtils.getRegion("eu-west-2"))
     )
 
     "getVpcs" - {
