@@ -19,7 +19,7 @@ object DocumentUtil {
     getClass getResourceAsStream s"/$markdownfile.md" match {
       case is: InputStream =>
         val sourceString = Source.fromInputStream(is).mkString
-        Some(renderInputAsHtml(transformed))
+        Some(renderInputAsHtml(sourceString))
       case _ =>
         None
     }
