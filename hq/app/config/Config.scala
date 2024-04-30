@@ -28,14 +28,10 @@ object Config {
   val daysBetweenFinalNotificationAndRemediation = 7
   val app = "security-hq"
 
-  val snykMaxAcceptableAgeOfCriticalVulnerabilities = 7
-  val snykMaxAcceptableAgeOfHighVulnerabilities = 14
-
   // TODO fetch the region dynamically from the instance
   val region: Regions = Regions.EU_WEST_1
   val documentationLinks: List[Documentation] = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
-    Documentation("Software dependency checks", "Integrate Snyk for software vulnerability reports.", "security", "snyk"),
     Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),
     Documentation("Vulnerabilities", "Developer guide to addressing vulnerabilities.", "format_list_numbered", "vulnerability-management")
   )
@@ -129,27 +125,6 @@ object Config {
     } yield AwsAccount(id, name, roleArn, number)
   }
 
-  private def parseCommaSeperatedValues(rawString: String): List[String] =
-    rawString
-      .split(",")
-      .map(_.trim)
-      .toList
-
-  def getSnykConfig(config: Configuration): SnykConfig = {
-    val excludeOrgs = config.getOptional[String]("snyk.excludeOrgs")
-      .map(parseCommaSeperatedValues)
-      .getOrElse(List.empty)
-
-    SnykConfig(
-      snykToken = SnykToken(requiredString(config, "snyk.token")),
-      snykGroupId = SnykGroupId(requiredString(config, "snyk.organisation")),
-      excludeOrgs = excludeOrgs
-    )
-  }
-
-  def getSnykSSOUrl(config: Configuration): Option[String] = {
-    config.getOptional[String]("snyk.ssoUrl")
-  }
 
   def getIamDynamoTableName(config: Configuration): Attempt[String] = {
     Attempt.fromOption(

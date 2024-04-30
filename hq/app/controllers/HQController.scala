@@ -33,10 +33,7 @@ class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
     // If the .md file extension is present, Play does not route the request correctly
     val fileRefWithoutMdExtension = file.stripSuffix(".md")
 
-    // Not required to run the app!
-    val snykSSOUrl = Config.getSnykSSOUrl(config).getOrElse("No SSO link configured")
-
-    DocumentUtil.convert(fileRefWithoutMdExtension, DocumentUtil.replaceSnykSSOUrl(snykSSOUrl)) match {
+    DocumentUtil.convert(fileRefWithoutMdExtension) match {
       case Some(rendered) =>
         Ok(views.html.doc(rendered))
       case None =>
