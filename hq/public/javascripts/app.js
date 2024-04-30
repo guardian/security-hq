@@ -90,23 +90,6 @@ $(document).ready(function() {
       ? $('.finding-unencrypted').show()
       : $('.finding-unencrypted').hide();
   });
-  $('.js-finding-filter-for-gcp').change(function() {
-    $('#show-critical-findings')[0].checked
-        ? $('.finding-critical').show()
-        : $('.finding-critical').hide();
-    $('#show-high-findings')[0].checked
-        ? $('.finding-high').show()
-        : $('.finding-high').hide();
-    $('#show-medium-findings')[0].checked
-        ? $('.finding-medium').show()
-        : $('.finding-medium').hide();
-    $('#show-low-findings')[0].checked
-        ? $('.finding-low').show()
-        : $('.finding-low').hide();
-    $('#show-unknown-findings')[0].checked
-        ? $('.finding-unknown').show()
-        : $('.finding-unknown').hide();
-  });
 
   $('.js-finding-details').click(function() {
     $(this).collapsible('destroy');
@@ -162,9 +145,4 @@ $(document).ready(function() {
       );
   });
   $('.tooltipped').tooltip({enterDelay: 0, inDuration: 100});
-
-  // Functionality for the GCP table
-  $('.js-read-more').click(function() {
-    $(this).parent().find('.gcp-toggle').toggle();
-  });
 });

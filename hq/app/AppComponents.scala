@@ -10,7 +10,6 @@ import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.sns.AmazonSNSAsyncClientBuilder
-import com.google.cloud.securitycenter.v1.{SecurityCenterClient, SecurityCenterSettings}
 import config.Config
 import controllers._
 import db.IamRemediationDb
@@ -109,9 +108,6 @@ class AppComponents(context: Context)
     .withRegion(Config.region.getName)
     .build()
 
-  private val securityCenterSettings = SecurityCenterSettings.newBuilder().setCredentialsProvider(Config.gcpCredentialsProvider(configuration)).build()
-  private val securityCenterClient = SecurityCenterClient.create(securityCenterSettings)
-
   private val cacheService = new CacheService(
     configuration,
     applicationLifecycle,
@@ -123,8 +119,7 @@ class AppComponents(context: Context)
     s3Clients,
     iamClients,
     efsClients,
-    availableRegions,
-    securityCenterClient
+    availableRegions
   )
 
   new MetricService(
@@ -153,6 +148,5 @@ class AppComponents(context: Context)
     new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
     assets,
-    new GcpController(configuration, googleAuthConfig, cacheService)
   )
 }

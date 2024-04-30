@@ -67,20 +67,6 @@ object Config {
     )
   }
 
-  def gcpSccAuthentication(implicit config: Configuration): GcpSccConfig = {
-    val gcpOrgId = requiredString(config, "gcp.orgId")
-    val gcpSccSourceId = requiredString(config, "gcp.sccSourceId")
-    GcpSccConfig(gcpOrgId, gcpSccSourceId)
-  }
-
-  def gcpCredentialsProvider(implicit config: Configuration): FixedCredentialsProvider = {
-    val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")
-    val tmpCredsFile = new FileInputStream(serviceAccountCertPath)
-    val scopesTmp= "https://www.googleapis.com/auth/cloud-platform"
-    val googleCredential = GoogleCredentials.fromStream(tmpCredsFile).createScoped(scopesTmp)
-    FixedCredentialsProvider.create(googleCredential)
-  }
-
   def googleGroupChecker(implicit config: Configuration): GoogleGroupChecker = {
     val twoFAUser = requiredString(config, "auth.google.2faUser")
     val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")

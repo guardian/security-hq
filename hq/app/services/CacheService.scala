@@ -13,7 +13,6 @@ import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.support.AWSSupportAsync
 import com.google.cloud.securitycenter.v1.{OrganizationName, SecurityCenterClient}
 import config.Config
-import logic.GcpDisplay
 import model._
 import play.api._
 import play.api.inject.ApplicationLifecycle
@@ -37,8 +36,7 @@ class CacheService(
     s3Clients: AwsClients[AmazonS3],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
     efsClients: AwsClients[AmazonElasticFileSystemAsync],
-    regions: List[Region],
-    gcpClient: SecurityCenterClient
+    regions: List[Region]
   )(implicit ec: ExecutionContext) extends Logging {
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
@@ -48,7 +46,6 @@ class CacheService(
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache("credentials"))
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache("exposed keys"))
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache("security groups"))
-  private val gcpBox: Box[Attempt[GcpReport]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
 
@@ -86,8 +83,6 @@ class CacheService(
     )
   }
 
-
-  def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 
   def refreshCredentialsBox(): Unit = {
     logger.info("Started refresh of the Credentials data")
@@ -131,19 +126,6 @@ class CacheService(
     }
   }
 
-  def refreshGcpBox(): Unit = {
-    logger.info("Started refresh of GCP data")
-    val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
-    for {
-      gcpFindings <- GcpDisplay.getGcpFindings(organisation, gcpClient, config)
-      gcpProjectToFinding = gcpFindings.groupBy(_.project)
-      report = GcpReport(DateTime.now, gcpProjectToFinding)
-    } yield {
-      logger.info("Sending the refreshed data to the GCP Box")
-      gcpBox.send(Attempt.Right(report))
-    }
-  }
-
   if (environment.mode != Mode.Test) {
     val initialDelay =
       if (environment.mode == Mode.Prod) 10.seconds
@@ -165,18 +147,11 @@ class CacheService(
       refreshCredentialsBox()
     }
 
-
-    val gcpSubscription = Observable.interval(initialDelay + 6000.millis, 90.minutes).subscribe { _ =>
-      logger.info("refreshing the GCP Box now")
-      refreshGcpBox()
-    }
-
     lifecycle.addStopHook { () =>
       publicBucketsSubscription.unsubscribe()
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
-      gcpSubscription.unsubscribe()
       Future.successful(())
     }
   }
