@@ -1,6 +1,5 @@
 package services
 
-import api.Snyk
 import aws.AwsClients
 import aws.ec2.EC2
 import aws.iam.IAMClient
@@ -31,7 +30,6 @@ class CacheService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    snykConfig: SnykConfig,
     wsClient: WSClient,
     ec2Clients: AwsClients[AmazonEC2Async],
     cfnClients: AwsClients[AmazonCloudFormationAsync],
@@ -50,7 +48,6 @@ class CacheService(
   private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache("credentials"))
   private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache("exposed keys"))
   private val sgsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]] = Box(startingCache("security groups"))
-  private val snykBox: Box[Attempt[List[SnykOrganisationIssues]]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorAllAccounts("cache").attempt)))
   private val gcpBox: Box[Attempt[GcpReport]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
 
   def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
@@ -89,10 +86,6 @@ class CacheService(
     )
   }
 
-  def getAllSnykResults: Attempt[List[SnykOrganisationIssues]] = snykBox.get()
-
-  def getSnykOrgResults(orgName: String): Attempt[Option[SnykOrganisationIssues]] =
-    snykBox.get().map { _.find(_.organisation.name ==orgName) }
 
   def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 
@@ -138,16 +131,6 @@ class CacheService(
     }
   }
 
-  def refreshSnykBox(): Unit = {
-    logger.info("Started refresh of the Snyk data")
-    for {
-      allSnykRuns <- Snyk.allSnykRuns(snykConfig, wsClient)
-    } yield {
-      logger.info("Sending the refreshed data to the Snyk Box")
-      snykBox.send(Attempt.Right(allSnykRuns))
-    }
-  }
-
   def refreshGcpBox(): Unit = {
     logger.info("Started refresh of GCP data")
     val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
@@ -182,9 +165,6 @@ class CacheService(
       refreshCredentialsBox()
     }
 
-    val snykSubscription = Observable.interval(initialDelay + 6000.millis, 30.minutes).subscribe { _ =>
-      refreshSnykBox()
-    }
 
     val gcpSubscription = Observable.interval(initialDelay + 6000.millis, 90.minutes).subscribe { _ =>
       logger.info("refreshing the GCP Box now")
@@ -196,7 +176,6 @@ class CacheService(
       exposedKeysSubscription.unsubscribe()
       sgSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
-      snykSubscription.unsubscribe()
       gcpSubscription.unsubscribe()
       Future.successful(())
     }

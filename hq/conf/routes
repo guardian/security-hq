@@ -16,9 +16,6 @@ GET        /buckets/:accountId                        controllers.BucketsControl
 GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
 GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
 
-GET        /snyk                                      controllers.SnykController.snyk
-GET        /snyk/:snykOrg                             controllers.SnykController.snykOrg(snykOrg)
-
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback

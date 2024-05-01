@@ -116,8 +116,6 @@ It is deployed as a stack set and is defined in  `cloudformation/watched-account
 ## Further docs in this repo
 [Guardduty](hq/markdown/guardduty-sechub-common-problems.md)
 
-[Snyk](hq/markdown/snyk.md)
-
 [SSH Access](hq/markdown/ssh-access.md)
 
 [Vulnerability Management](hq/markdown/vulnerability-management.md)
