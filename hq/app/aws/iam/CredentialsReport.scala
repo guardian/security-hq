@@ -4,7 +4,7 @@ import java.io.StringReader
 import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import com.github.tototoshi.csv._
 import org.joda.time.{DateTime, Hours, Seconds}
-import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.regions.{Region, RegionUtils, Regions}
 import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
 import logic.DateUtils
 import net.logstash.logback.marker.Markers.appendEntries
@@ -73,7 +73,7 @@ object CredentialsReport extends Logging {
 
   def parseRegionOpt(cell: String): Option[Region] = {
     if (cell == "N/A") None
-    else Some(Region.getRegion(Regions.fromName(cell)))
+    else Some(RegionUtils.getRegion(cell))
   }
 
   def parseStrOpt(cell: String): Option[String] = {

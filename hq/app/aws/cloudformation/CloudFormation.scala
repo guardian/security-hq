@@ -2,7 +2,7 @@ package aws.cloudformation
 
 import aws.{AwsClient, AwsClients}
 import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.Region
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.cloudformation.model._
 import model.{AwsAccount, AwsStack}
@@ -13,12 +13,12 @@ import scala.concurrent.ExecutionContext
 
 object CloudFormation {
 
-  private def getStackDescriptions(client: AwsClient[AmazonCloudFormationAsync], account: AwsAccount, region: Regions)(implicit ec: ExecutionContext): Attempt[List[Stack]] = {
+  private def getStackDescriptions(client: AwsClient[AmazonCloudFormationAsync], account: AwsAccount, region: Region)(implicit ec: ExecutionContext): Attempt[List[Stack]] = {
     val request = new DescribeStacksRequest()
     handleAWSErrs(client)(awsToScala(client)(_.describeStacksAsync)(request)).map(_.getStacks.asScala.toList)
   }
 
-  private def getStacks(account: AwsAccount, region: Regions, cfnClients: AwsClients[AmazonCloudFormationAsync])(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
+  private def getStacks(account: AwsAccount, region: Region, cfnClients: AwsClients[AmazonCloudFormationAsync])(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     for {
       cloudClient <- cfnClients.get(account, region)
       stacks <- getStackDescriptions(cloudClient, account, region)
@@ -28,14 +28,14 @@ object CloudFormation {
   def getStacksFromAllRegions(
     account: AwsAccount,
     cfnClients: AwsClients[AmazonCloudFormationAsync],
-    regions: List[Regions]
+    regions: List[Region]
   )(implicit ec: ExecutionContext): Attempt[List[AwsStack]] = {
     for {
       stacks <- Attempt.flatTraverse(regions)(region => getStacks(account, region, cfnClients))
     } yield stacks
   }
 
-  private[cloudformation] def parseStacks(stacks: List[Stack], region: Regions): List[AwsStack] = {
+  private[cloudformation] def parseStacks(stacks: List[Stack], region: Region): List[AwsStack] = {
     stacks.map { stack =>
       AwsStack(
         stack.getStackId,

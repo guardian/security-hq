@@ -1,7 +1,7 @@
 package aws.ec2
 
 import aws.AwsClient
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{RegionUtils, Regions}
 import com.amazonaws.services.ec2.AmazonEC2AsyncClientBuilder
 import com.amazonaws.services.ec2.model._
 import model.{AwsAccount, ELB, Ec2Instance, SGInUse, SGOpenPortsDetail, UnknownUsage}
@@ -249,8 +249,8 @@ class EC2Test extends AnyFreeSpec with Matchers with Checkers with ScalaCheckPro
     )
     val vpcsResult = Attempt.Right(vpcsMap)
     val clients = List(
-      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_1).build(), AwsAccount("security-test", "security", "security-test", "123456789"), Regions.EU_WEST_1),
-      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Regions.EU_WEST_2).build(), AwsAccount("security-test", "security", "security-test", "123456789"), Regions.EU_WEST_2)
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion("eu-west-1").build(), AwsAccount("security-test", "security", "security-test", "123456789"), RegionUtils.getRegion("eu-west-1")),
+      AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion("eu-west-2").build(), AwsAccount("security-test", "security", "security-test", "123456789"), RegionUtils.getRegion("eu-west-2"))
     )
 
     "getVpcs" - {

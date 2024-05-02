@@ -1,4 +1,4 @@
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.Region
 import model.AwsAccount
 import play.api.Logging
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -9,7 +9,7 @@ package object aws extends Logging {
   type AwsClients[A] = List[AwsClient[A]]
 
   implicit class AwsClientsList[A](clients: AwsClients[A])(implicit classTag: ClassTag[A]) {
-    def get(account: AwsAccount, region: Regions): Attempt[AwsClient[A]] = {
+    def get(account: AwsAccount, region: Region): Attempt[AwsClient[A]] = {
       val maybeClient = clients.find { client =>
         client.account == account && client.region.getName == region.getName
       }

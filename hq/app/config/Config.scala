@@ -1,7 +1,7 @@
 package config
 
 import aws.AwsClient
-import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.regions.{Region, RegionUtils, Regions}
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
@@ -29,7 +29,7 @@ object Config {
   val app = "security-hq"
 
   // TODO fetch the region dynamically from the instance
-  val region: Regions = Regions.EU_WEST_1
+  val region: Region = RegionUtils.getRegion("eu-west-1")
   val documentationLinks: List[Documentation] = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
     Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),

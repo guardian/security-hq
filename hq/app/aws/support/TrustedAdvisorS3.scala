@@ -3,7 +3,7 @@ package aws.support
 import aws.s3.S3
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
 import aws.{AwsClient, AwsClients}
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{RegionUtils, Regions}
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.{AmazonS3Exception, GetBucketEncryptionResult}
 import com.amazonaws.services.support.AWSSupportAsync
@@ -36,7 +36,7 @@ object TrustedAdvisorS3 {
 //  it to disk in its data centers and decrypts it when you download the object
   private def addEncryptionStatus(bucket: BucketDetail, account: AwsAccount, clients: AwsClients[AmazonS3])(implicit ec: ExecutionContext): Attempt[Option[BucketDetail]] = {
     val tryFindEncryptionStatus =
-      Try(Regions.fromName(bucket.region)).map { regions =>
+      Try(RegionUtils.getRegion(bucket.region)).map { regions =>
         clients.get(account, regions).flatMap { clientWrapper =>
           S3.getBucketEncryption(clientWrapper.client, bucket.bucketName)
         }

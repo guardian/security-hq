@@ -1,6 +1,6 @@
 package com.gu.hq
 
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{RegionUtils, Regions}
 import com.amazonaws.services.lambda.runtime.events.ConfigEvent
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import com.gu.hq.lambda.JsonParsing
@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 
 class Lambda extends RequestHandler[ConfigEvent, Unit] with StrictLogging {
-  private val region = Regions.fromName(System.getenv("AWS_DEFAULT_REGION"))
+  private val region = RegionUtils.getRegion(System.getenv("AWS_DEFAULT_REGION"))
   private val elbClient = AWS.elbClient(region)
   private val snsClient = AWS.snsClient(region)
   private val stsClient = AWS.stsClient(region)

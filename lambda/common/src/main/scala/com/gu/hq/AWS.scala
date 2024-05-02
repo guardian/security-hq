@@ -2,7 +2,7 @@ package com.gu.hq
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.Region
 import com.amazonaws.services.elasticloadbalancing.model.{DescribeLoadBalancersRequest, DescribeLoadBalancersResult}
 import com.amazonaws.services.elasticloadbalancing.{AmazonElasticLoadBalancingAsync, AmazonElasticLoadBalancingAsyncClient}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
@@ -28,22 +28,22 @@ object AWS {
   )
 
   // ELBs
-  def elbClient(region: Regions): AmazonElasticLoadBalancingAsync = {
-    AmazonElasticLoadBalancingAsyncClient.asyncBuilder().withRegion(region).withCredentials(securityCredentialsProviderChain).build()
+  def elbClient(region: Region): AmazonElasticLoadBalancingAsync = {
+    AmazonElasticLoadBalancingAsyncClient.asyncBuilder().withRegion(region.getName).withCredentials(securityCredentialsProviderChain).build()
   }
 
   // SNSs
-  def snsClient(region: Regions): AmazonSNSAsync = {
-    AmazonSNSAsyncClient.asyncBuilder().withRegion(region).withCredentials(securityCredentialsProviderChain ).build()
+  def snsClient(region: Region): AmazonSNSAsync = {
+    AmazonSNSAsyncClient.asyncBuilder().withRegion(region.getName).withCredentials(securityCredentialsProviderChain ).build()
   }
   // STS
-  def stsClient(region: Regions): AWSSecurityTokenServiceAsync = {
-    AWSSecurityTokenServiceAsyncClient.asyncBuilder().withRegion(region).withCredentials(securityCredentialsProviderChain ).build()
+  def stsClient(region: Region): AWSSecurityTokenServiceAsync = {
+    AWSSecurityTokenServiceAsyncClient.asyncBuilder().withRegion(region.getName).withCredentials(securityCredentialsProviderChain ).build()
   }
 
   // S3
-  def s3Client(region: Regions): AmazonS3 = {
-    AmazonS3ClientBuilder.standard().withRegion(region).withCredentials(securityCredentialsProviderChain).build()
+  def s3Client(region: Region): AmazonS3 = {
+    AmazonS3ClientBuilder.standard().withRegion(region.getName).withCredentials(securityCredentialsProviderChain).build()
   }
 
   def describeLoadBalancers(elbClient: AmazonElasticLoadBalancingAsync): DescribeLoadBalancersResult = {

@@ -3,7 +3,7 @@ package aws.iam
 import aws.AwsAsyncHandler._
 import aws.cloudformation.CloudFormation
 import aws.{AwsAsyncHandler, AwsClient, AwsClients}
-import com.amazonaws.regions.Regions
+import com.amazonaws.regions.{Region, RegionUtils, Regions}
 import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResult, ListUserTagsRequest, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResult}
@@ -20,7 +20,7 @@ import scala.jdk.CollectionConverters._
 
 object IAMClient extends Logging {
 
-  val SOLE_REGION = Regions.US_EAST_1
+  val SOLE_REGION = RegionUtils.getRegion("us-east-1")
 
   private def generateCredentialsReport(client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResult] = {
     val request = new GenerateCredentialReportRequest()
@@ -70,7 +70,7 @@ object IAMClient extends Logging {
     currentData: Either[FailedAttempt, CredentialReportDisplay],
     cfnClients: AwsClients[AmazonCloudFormationAsync],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
-    regions: List[Regions]
+    regions: List[Region]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
     val now = DateTime.now()
@@ -93,7 +93,7 @@ object IAMClient extends Logging {
     currentData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
     cfnClients: AwsClients[AmazonCloudFormationAsync],
     iamClients: AwsClients[AmazonIdentityManagementAsync],
-    regions: List[Regions]
+    regions: List[Region]
   )(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
