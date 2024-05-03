@@ -11,6 +11,7 @@ import {
 import type { AppIdentity } from "@guardian/cdk/lib/constructs/core/identity";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { GuHttpsEgressSecurityGroup } from "@guardian/cdk/lib/constructs/ec2";
+import { GuDynamoTable } from "@guardian/cdk/lib/constructs/dynamodb";
 import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
@@ -48,7 +49,7 @@ export class SecurityHQ extends GuStack {
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
 
-    const table = new Table(this, "DynamoTable", {
+    const table = new GuDynamoTable(this, "DynamoTable", {
       tableName: `security-hq-iam`,
       removalPolicy: RemovalPolicy.RETAIN,
       readCapacity: 5,
@@ -61,6 +62,7 @@ export class SecurityHQ extends GuStack {
         name: "dateNotificationSent",
         type: AttributeType.NUMBER,
       },
+      devXBackups: { enabled: true },
     });
 
     this.overrideLogicalId(table, {
