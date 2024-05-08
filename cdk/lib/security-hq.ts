@@ -10,8 +10,8 @@ import {
 } from "@guardian/cdk/lib/constructs/core";
 import type { AppIdentity } from "@guardian/cdk/lib/constructs/core/identity";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
-import { GuHttpsEgressSecurityGroup } from "@guardian/cdk/lib/constructs/ec2";
 import { GuDynamoTable } from "@guardian/cdk/lib/constructs/dynamodb";
+import { GuHttpsEgressSecurityGroup } from "@guardian/cdk/lib/constructs/ec2";
 import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
@@ -27,7 +27,7 @@ import {
   Metric,
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
-import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
+import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
 import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
 import {
   ListenerAction,
