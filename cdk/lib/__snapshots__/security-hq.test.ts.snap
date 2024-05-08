@@ -4,6 +4,7 @@ exports[`HQ stack matches the snapshot 1`] = `
 {
   "Metadata": {
     "gu:cdk:constructs": [
+      "GuDynamoTable",
       "GuDistributionBucketParameter",
       "GuStringParameter",
       "GuAnghammaradTopicParameter",
@@ -780,6 +781,14 @@ exports[`HQ stack matches the snapshot 1`] = `
             "Key": "deletion_protection.enabled",
             "Value": "true",
           },
+          {
+            "Key": "routing.http.x_amzn_tls_version_and_cipher_suite.enabled",
+            "Value": "true",
+          },
+          {
+            "Key": "routing.http.drop_invalid_header_fields.enabled",
+            "Value": "true",
+          },
         ],
         "Scheme": "internet-facing",
         "SecurityGroups": [
@@ -1102,6 +1111,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             "AttributeType": "N",
           },
         ],
+        "DeletionProtectionEnabled": true,
         "KeySchema": [
           {
             "AttributeName": "id",
@@ -1435,6 +1445,10 @@ exports[`HQ stack matches the snapshot 1`] = `
               "ResourceType": "instance",
               "Tags": [
                 {
+                  "Key": "App",
+                  "Value": "security-hq",
+                },
+                {
                   "Key": "gu:cdk:version",
                   "Value": "TEST",
                 },
@@ -1459,6 +1473,10 @@ exports[`HQ stack matches the snapshot 1`] = `
             {
               "ResourceType": "volume",
               "Tags": [
+                {
+                  "Key": "App",
+                  "Value": "security-hq",
+                },
                 {
                   "Key": "gu:cdk:version",
                   "Value": "TEST",
@@ -1517,6 +1535,10 @@ dpkg -i /tmp/installer.deb",
           {
             "ResourceType": "launch-template",
             "Tags": [
+              {
+                "Key": "App",
+                "Value": "security-hq",
+              },
               {
                 "Key": "gu:cdk:version",
                 "Value": "TEST",
