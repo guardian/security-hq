@@ -10,6 +10,7 @@ import {
 } from "@guardian/cdk/lib/constructs/core";
 import type { AppIdentity } from "@guardian/cdk/lib/constructs/core/identity";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
+import { GuDynamoTable } from "@guardian/cdk/lib/constructs/dynamodb";
 import { GuHttpsEgressSecurityGroup } from "@guardian/cdk/lib/constructs/ec2";
 import {
   GuAllowPolicy,
@@ -26,7 +27,7 @@ import {
   Metric,
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
-import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
+import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
 import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
 import {
   ListenerAction,
@@ -48,7 +49,7 @@ export class SecurityHQ extends GuStack {
   constructor(scope: App, id: string, props: GuStackProps) {
     super(scope, id, props);
 
-    const table = new Table(this, "DynamoTable", {
+    const table = new GuDynamoTable(this, "DynamoTable", {
       tableName: `security-hq-iam`,
       removalPolicy: RemovalPolicy.RETAIN,
       readCapacity: 5,
@@ -61,6 +62,7 @@ export class SecurityHQ extends GuStack {
         name: "dateNotificationSent",
         type: AttributeType.NUMBER,
       },
+      devXBackups: { enabled: true },
     });
 
     this.overrideLogicalId(table, {
