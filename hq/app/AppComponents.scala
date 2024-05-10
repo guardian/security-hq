@@ -29,7 +29,6 @@ import utils.attempt.Attempt
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 class AppComponents(context: Context)
@@ -70,12 +69,10 @@ class AppComponents(context: Context)
     logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
   }
 
-  private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
   private val s3Clients = AWS.s3Clients(configuration, availableRegions)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
-  private val efsClients = AWS.efsClients(configuration, availableRegions)
 
   private val securityCredentialsProvider = new AWSCredentialsProviderChain(
     new ProfileCredentialsProvider("security"),
@@ -116,13 +113,10 @@ class AppComponents(context: Context)
     configuration,
     applicationLifecycle,
     environment,
-    wsClient,
-    ec2Clients,
     cfnClients,
     taClients,
     s3Clients,
     iamClients,
-    efsClients,
     availableRegions,
     securityCenterClient
   )
@@ -150,7 +144,6 @@ class AppComponents(context: Context)
     new HQController(configuration, googleAuthConfig),
     new CredentialsController(configuration, cacheService, googleAuthConfig),
     new BucketsController(configuration, cacheService, googleAuthConfig),
-    new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
     assets,
     new GcpController(configuration, googleAuthConfig, cacheService)

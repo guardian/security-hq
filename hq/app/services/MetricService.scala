@@ -26,13 +26,6 @@ class MetricService(
     }
   }
 
-  def discardSuppressedSgs(sgsMap: Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]): Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = {
-    sgsMap.view.mapValues{
-      case Right(secGroups) => Right(secGroups.filter(!_._1.isSuppressed))
-      case left => left
-    }.toMap
-  }
-
   /*
    * The intended behaviour for this method is to only log data to cloudwatch if cache service has a full
    * data set. If any of it is missing, we try again in 6 hours.
@@ -49,12 +42,11 @@ class MetricService(
    * - https://github.com/guardian/security-hq/pull/245#discussion_r632548991
    */
   def postCachedContentsAsMetrics(): Unit = {
-    val allSgs = discardSuppressedSgs(cacheService.getAllSgs)
     val allExposedKeys = cacheService.getAllExposedKeys
     val allPublicBuckets = cacheService.getAllPublicBuckets
     val allCredentials = cacheService.getAllCredentials
 
-    val failures = collectFailures(List(allSgs, allExposedKeys, allPublicBuckets, allCredentials))
+    val failures = collectFailures(List(allExposedKeys, allPublicBuckets, allCredentials))
 
     if (failures.nonEmpty) {
       logger.warn(s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures")
@@ -63,7 +55,6 @@ class MetricService(
       for {
         gcpReport <- cacheService.getGcpReport
       } yield {
-        Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
         Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
         Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
         Cloudwatch.logMetricsForCredentialsReport(allCredentials)
