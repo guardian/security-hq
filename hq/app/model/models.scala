@@ -1,7 +1,6 @@
 package model
 
 import com.amazonaws.regions.Region
-import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
 

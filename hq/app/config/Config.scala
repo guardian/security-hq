@@ -1,10 +1,9 @@
 package config
 
 import aws.AwsClient
-import com.amazonaws.regions.{Region, RegionUtils, Regions}
+import com.amazonaws.regions.{Region, RegionUtils}
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
-import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+import com.google.auth.oauth2.{ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker}
 import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV1, SecretSupplier}
 import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}

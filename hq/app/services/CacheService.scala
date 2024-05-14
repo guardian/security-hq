@@ -11,7 +11,6 @@ import com.amazonaws.services.elasticfilesystem.AmazonElasticFileSystemAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.support.AWSSupportAsync
-import com.google.cloud.securitycenter.v1.{OrganizationName, SecurityCenterClient}
 import config.Config
 import model._
 import play.api._
