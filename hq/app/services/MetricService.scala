@@ -37,7 +37,7 @@ class MetricService(
    * The intended behaviour for this method is to only log data to cloudwatch if cache service has a full
    * data set. If any of it is missing, we try again in 6 hours.
    *
-   * This is counter intuitive. All the different datapoints (security groups, gcp vulnerabilities etc)
+   * This is counter intuitive. All the different datapoints (security groups etc)
    * are independent of each other, so it follows that we'd track them independently, and one being missing
    * shouldn't affect the other.
    *
@@ -60,15 +60,10 @@ class MetricService(
       logger.warn(s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures")
     } else {
       logger.info("Posting new metrics to cloudwatch")
-      for {
-        gcpReport <- cacheService.getGcpReport
-      } yield {
-        Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
-        Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
-        Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
-        Cloudwatch.logMetricsForCredentialsReport(allCredentials)
-        Cloudwatch.logMetricsForGCPReport(gcpReport)
-      }
+      Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
+      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
+      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
+      Cloudwatch.logMetricsForCredentialsReport(allCredentials)
     }
   }
 
