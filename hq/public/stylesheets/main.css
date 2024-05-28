@@ -255,11 +255,6 @@ nav {
   flex-grow: 2;
 }
 
-.finding-header span.finding-header__badge {
-  margin-left: 10px;
-  width: 80px;
-}
-
 .finding-container {
   display: grid;
   grid-column-gap: 10px;
