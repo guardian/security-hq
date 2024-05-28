@@ -147,7 +147,8 @@ class AppComponents(context: Context)
     cfnClients,
     taClients,
     s3Clients,
-    iamClients
+    iamClients,
+    availableRegions
   )
 
   new MetricService(

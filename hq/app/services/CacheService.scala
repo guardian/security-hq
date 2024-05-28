@@ -27,7 +27,8 @@ class CacheService(
     cfnClients: AwsClients[AmazonCloudFormationAsync],
     taClients: AwsClients[AWSSupportAsync],
     s3Clients: AwsClients[AmazonS3],
-    iamClients: AwsClients[AmazonIdentityManagementAsync]
+    iamClients: AwsClients[AmazonIdentityManagementAsync],
+    regions: List[Region]
 )(implicit ec: ExecutionContext)
     extends Logging {
   private val accounts = Config.getAwsAccounts(config)
