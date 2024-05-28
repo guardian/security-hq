@@ -131,15 +131,6 @@ case object Encrypted extends BucketEncryptionResponse
 case object NotEncrypted extends BucketEncryptionResponse
 case object BucketNotFound extends BucketEncryptionResponse
 
-sealed trait SGInUse
-case class Ec2Instance(instanceId: String) extends SGInUse
-case class ELB(description: String) extends SGInUse
-case class EfsVolume(description: String) extends SGInUse
-case class UnknownUsage(
-  description: String,
-  networkInterfaceId: String
-) extends SGInUse
-
 sealed trait Stage
 case object DEV extends Stage
 case object PROD extends Stage

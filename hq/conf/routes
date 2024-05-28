@@ -13,9 +13,6 @@ GET        /iam/refresh/all                           controllers.CredentialsCon
 GET        /buckets                                   controllers.BucketsController.buckets
 GET        /buckets/:accountId                        controllers.BucketsController.bucketsAccount(accountId)
 
-GET        /security-groups                           controllers.SecurityGroupsController.securityGroups
-GET        /security-groups/:accountId                controllers.SecurityGroupsController.securityGroupsAccount(accountId)
-
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback

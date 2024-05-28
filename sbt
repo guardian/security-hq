@@ -22,7 +22,6 @@ done
 java $DEBUG_PARAMS \
     -Xms1024M -Xmx4096M \
     -Xss1M \
-    -XX:+CMSClassUnloadingEnabled \
     $CONF_PARAMS \
     $COLOUR_PARAMS \
     -jar bin/sbt-launch.jar "$@"
