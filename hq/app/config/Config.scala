@@ -1,10 +1,9 @@
 package config
 
 import aws.AwsClient
-import com.amazonaws.regions.{Region, RegionUtils, Regions}
+import com.amazonaws.regions.{Region, RegionUtils}
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
-import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+import com.google.auth.oauth2.{ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker}
 import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV1, SecretSupplier}
 import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}
@@ -65,20 +64,6 @@ object Config {
       List(domain),
       antiForgeryChecker = AntiForgeryChecker(secretStateSupplier)
     )
-  }
-
-  def gcpSccAuthentication(implicit config: Configuration): GcpSccConfig = {
-    val gcpOrgId = requiredString(config, "gcp.orgId")
-    val gcpSccSourceId = requiredString(config, "gcp.sccSourceId")
-    GcpSccConfig(gcpOrgId, gcpSccSourceId)
-  }
-
-  def gcpCredentialsProvider(implicit config: Configuration): FixedCredentialsProvider = {
-    val serviceAccountCertPath = requiredString(config, "auth.google.serviceAccountCertPath")
-    val tmpCredsFile = new FileInputStream(serviceAccountCertPath)
-    val scopesTmp= "https://www.googleapis.com/auth/cloud-platform"
-    val googleCredential = GoogleCredentials.fromStream(tmpCredsFile).createScoped(scopesTmp)
-    FixedCredentialsProvider.create(googleCredential)
   }
 
   def googleGroupChecker(implicit config: Configuration): GoogleGroupChecker = {

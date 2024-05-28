@@ -1,7 +1,6 @@
 package model
 
 import com.amazonaws.regions.Region
-import com.google.cloud.securitycenter.v1.Finding.Severity
 import com.gu.anghammarad.models.{App, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
 
@@ -233,20 +232,3 @@ case class MachineUser(
 }
 
 case class Documentation(title: String, description: String, icon: String, slug: String)
-
-case class GcpReport(reportDate: DateTime, findings: Map[String, Seq[GcpFinding]] = Map.empty)
-
-case class GcpFinding(
-  project: String,
-  category: String,
-  severity: Severity,
-  eventTime: DateTime,
-  explanation: Option[String],
-  recommendation: Option[String]
-)
-
-case class GcpSccConfig(orgId: String, sourceId: String)
-
-case class GcpReportSummary(critical: Int, high: Int, medium: Int, low: Int, unspecified: Int)
-
-case class GcpReportSummaryWithFindings(reportSummary: GcpReportSummary, reportFindings: Seq[GcpFinding])

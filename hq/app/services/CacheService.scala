@@ -8,9 +8,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.support.AWSSupportAsync
-import com.google.cloud.securitycenter.v1.{OrganizationName, SecurityCenterClient}
 import config.Config
-import logic.GcpDisplay
 import model._
 import play.api._
 import play.api.inject.ApplicationLifecycle
@@ -29,52 +27,95 @@ class CacheService(
     cfnClients: AwsClients[AmazonCloudFormationAsync],
     taClients: AwsClients[AWSSupportAsync],
     s3Clients: AwsClients[AmazonS3],
-    iamClients: AwsClients[AmazonIdentityManagementAsync],
-    regions: List[Region],
-    gcpClient: SecurityCenterClient
-  )(implicit ec: ExecutionContext) extends Logging {
+    iamClients: AwsClients[AmazonIdentityManagementAsync]
+)(implicit ec: ExecutionContext)
+    extends Logging {
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
-    accounts.map(acc => (acc, Left(Failure.notYetLoaded(acc.id, cacheContent).attempt))).toMap
+    accounts
+      .map(acc =>
+        (acc, Left(Failure.notYetLoaded(acc.id, cacheContent).attempt))
+      )
+      .toMap
   }
-  private val publicBucketsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]]] = Box(startingCache("public buckets"))
-  private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] = Box(startingCache("credentials"))
-  private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] = Box(startingCache("exposed keys"))
-  private val gcpBox: Box[Attempt[GcpReport]] = Box(Attempt.fromEither(Left(Failure.cacheServiceErrorGcp("GCP").attempt)))
+  private val publicBucketsBox
+      : Box[Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]]] = Box(
+    startingCache("public buckets")
+  )
+  private val credentialsBox
+      : Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] =
+    Box(startingCache("credentials"))
+  private val exposedKeysBox
+      : Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] =
+    Box(startingCache("exposed keys"))
 
-  def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] = publicBucketsBox.get()
+  def getAllPublicBuckets
+      : Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] =
+    publicBucketsBox.get()
 
-  def getPublicBucketsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[BucketDetail]] = {
-    publicBucketsBox.get().getOrElse(
-      awsAccount,
-      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "public buckets").attempt)
-    )
+  def getPublicBucketsForAccount(
+      awsAccount: AwsAccount
+  ): Either[FailedAttempt, List[BucketDetail]] = {
+    publicBucketsBox
+      .get()
+      .getOrElse(
+        awsAccount,
+        Left(
+          Failure
+            .cacheServiceErrorPerAccount(awsAccount.id, "public buckets")
+            .attempt
+        )
+      )
   }
 
-  def getAllCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] = credentialsBox.get()
+  def getAllCredentials
+      : Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
+    credentialsBox.get()
 
-  def getCredentialsForAccount(awsAccount: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] = {
-    credentialsBox.get().getOrElse(
-      awsAccount,
-      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "credentials").attempt)
-    )
+  def getCredentialsForAccount(
+      awsAccount: AwsAccount
+  ): Either[FailedAttempt, CredentialReportDisplay] = {
+    credentialsBox
+      .get()
+      .getOrElse(
+        awsAccount,
+        Left(
+          Failure
+            .cacheServiceErrorPerAccount(awsAccount.id, "credentials")
+            .attempt
+        )
+      )
   }
 
-  def getAllExposedKeys: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]] = exposedKeysBox.get()
+  def getAllExposedKeys
+      : Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]] =
+    exposedKeysBox.get()
 
-  def getExposedKeysForAccount(awsAccount: AwsAccount): Either[FailedAttempt, List[ExposedIAMKeyDetail]] = {
-    exposedKeysBox.get().getOrElse(
-      awsAccount,
-      Left(Failure.cacheServiceErrorPerAccount(awsAccount.id, "exposed keys").attempt)
-    )
+  def getExposedKeysForAccount(
+      awsAccount: AwsAccount
+  ): Either[FailedAttempt, List[ExposedIAMKeyDetail]] = {
+    exposedKeysBox
+      .get()
+      .getOrElse(
+        awsAccount,
+        Left(
+          Failure
+            .cacheServiceErrorPerAccount(awsAccount.id, "exposed keys")
+            .attempt
+        )
+      )
   }
-
-  def getGcpReport: Attempt[GcpReport] = gcpBox.get()
 
   def refreshCredentialsBox(): Unit = {
     logger.info("Started refresh of the Credentials data")
     for {
-      updatedCredentialReports <- IAMClient.getAllCredentialReports(accounts, credentialsBox.get(), cfnClients, iamClients, regions)
+      updatedCredentialReports <- IAMClient.getAllCredentialReports(
+        accounts,
+        credentialsBox.get(),
+        cfnClients,
+        iamClients,
+        regions
+      )
     } yield {
       logger.info("Sending the refreshed data to the Credentials Box")
 
@@ -85,7 +126,11 @@ class CacheService(
   private def refreshPublicBucketsBox(): Unit = {
     logger.info("Started refresh of the public S3 buckets data")
     for {
-      allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(accounts, taClients, s3Clients)
+      allPublicBuckets <- TrustedAdvisorS3.getAllPublicBuckets(
+        accounts,
+        taClients,
+        s3Clients
+      )
     } yield {
       logger.info("Sending the refreshed data to the Public Buckets Box")
       publicBucketsBox.send(allPublicBuckets.toMap)
@@ -95,23 +140,13 @@ class CacheService(
   private def refreshExposedKeysBox(): Unit = {
     logger.info("Started refresh of the Exposed Keys data")
     for {
-      allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(accounts, taClients)
+      allExposedKeys <- TrustedAdvisorExposedIAMKeys.getAllExposedKeys(
+        accounts,
+        taClients
+      )
     } yield {
       logger.info("Sending the refreshed data to the Exposed Keys Box")
       exposedKeysBox.send(allExposedKeys.toMap)
-    }
-  }
-
-  def refreshGcpBox(): Unit = {
-    logger.info("Started refresh of GCP data")
-    val organisation = OrganizationName.of(Config.gcpSccAuthentication(config).orgId)
-    for {
-      gcpFindings <- GcpDisplay.getGcpFindings(organisation, gcpClient, config)
-      gcpProjectToFinding = gcpFindings.groupBy(_.project)
-      report = GcpReport(DateTime.now, gcpProjectToFinding)
-    } yield {
-      logger.info("Sending the refreshed data to the GCP Box")
-      gcpBox.send(Attempt.Right(report))
     }
   }
 
@@ -120,29 +155,28 @@ class CacheService(
       if (environment.mode == Mode.Prod) 10.seconds
       else Duration.Zero
 
-    val publicBucketsSubscription = Observable.interval(initialDelay + 1000.millis, 5.minutes).subscribe { _ =>
-      refreshPublicBucketsBox()
-    }
+    val publicBucketsSubscription =
+      Observable.interval(initialDelay + 1000.millis, 5.minutes).subscribe {
+        _ =>
+          refreshPublicBucketsBox()
+      }
 
-    val exposedKeysSubscription = Observable.interval(initialDelay + 2000.millis, 5.minutes).subscribe { _ =>
-      refreshExposedKeysBox()
-    }
+    val exposedKeysSubscription =
+      Observable.interval(initialDelay + 2000.millis, 5.minutes).subscribe {
+        _ =>
+          refreshExposedKeysBox()
+      }
 
-    val credentialsSubscription = Observable.interval(initialDelay + 4000.millis, 5.minutes).subscribe { _ =>
-      refreshCredentialsBox()
-    }
-
-
-    val gcpSubscription = Observable.interval(initialDelay + 6000.millis, 90.minutes).subscribe { _ =>
-      logger.info("refreshing the GCP Box now")
-      refreshGcpBox()
-    }
+    val credentialsSubscription =
+      Observable.interval(initialDelay + 4000.millis, 5.minutes).subscribe {
+        _ =>
+          refreshCredentialsBox()
+      }
 
     lifecycle.addStopHook { () =>
       publicBucketsSubscription.unsubscribe()
       exposedKeysSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
-      gcpSubscription.unsubscribe()
       Future.successful(())
     }
   }

@@ -2,9 +2,8 @@ package logging
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
-import com.google.cloud.securitycenter.v1.Finding
 import logic.CredentialsReportDisplay.{ReportSummary, reportStatusSummary}
-import model.{AwsAccount, CredentialReportDisplay, GcpFinding, GcpReport}
+import model.{AwsAccount, CredentialReportDisplay}
 import play.api.Logging
 import utils.attempt.FailedAttempt
 
@@ -24,25 +23,11 @@ object Cloudwatch extends Logging {
     val iamCredentialsCritical = Value("iam/credentials/critical")
     val iamCredentialsWarning = Value("iam/credentials/warning")
     val iamKeysTotal = Value("iam/keys/total")
-    val gcpTotal = Value("gcp/total")
-    val gcpCritical = Value("gcp/critical")
-    val gcpHigh = Value("gcp/high")
   }
 
   object ReaperExecutionStatus extends Enumeration {
     val success = Value("Success")
     val failure = Value("Failure")
-  }
-
-  def logMetricsForGCPReport(gcpReport: GcpReport): Unit = {
-    gcpReport.findings.toSeq.foreach {
-      case (project: String, findings: Seq[GcpFinding]) =>
-        val criticalFindings = findings.filter(_.severity == Finding.Severity.CRITICAL)
-        val highFindings = findings.filter(_.severity == Finding.Severity.HIGH)
-        putGcpMetric(project, Cloudwatch.DataType.gcpCritical, criticalFindings.length)
-        putGcpMetric(project, Cloudwatch.DataType.gcpHigh, highFindings.length)
-        putGcpMetric(project, Cloudwatch.DataType.gcpTotal, criticalFindings.length + highFindings.length)
-    }
   }
 
   def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] ) : Unit = {
@@ -68,10 +53,6 @@ object Cloudwatch extends Logging {
 
   def putAwsMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
     putMetric(defaultNamespace, "Vulnerabilities", Seq(("Account", account.name),("DataType", dataType.toString)), value)
-  }
-
-  def putGcpMetric(project: String, dataType: DataType.Value , value: Int): Unit = {
-    putMetric(defaultNamespace, "Vulnerabilities", Seq(("GcpProject", project),("DataType", dataType.toString)), value)
   }
 
   def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
