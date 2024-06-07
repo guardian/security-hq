@@ -16,11 +16,10 @@ class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
   extends BaseController with SecurityHQAuthActions {
 
   private val accounts = Config.getAwsAccounts(config)
-  private val iamReportLink = "https://metrics.gutools.co.uk/d/bdn97cui5rbi8f/iam-credentials-report"
 
   def index = authAction {
 
-    Ok(views.html.index(accounts, iamReportLink))
+    Ok(views.html.index(accounts))
   }
 
   def healthcheck = Action {
