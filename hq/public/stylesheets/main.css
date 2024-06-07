@@ -344,26 +344,6 @@ nav {
   white-space: nowrap;
 }
 
-/* IAM pages */
-
-.iam-header__name {
-  margin-right: auto;
-}
-
-.iam-icon--disabled {
-  opacity: 0.3;
-}
-
-table.iam-report__table td,
-table.iam-report__table th {
-  min-height: 21px;
-  box-sizing: initial;
-}
-
-.iam-modal__trigger {
-  height: 24px;
-}
-
 /* Docs */
 
 .docs-reports {
