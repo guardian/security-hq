@@ -13,11 +13,12 @@ import scala.concurrent.ExecutionContext
 
 class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
                   (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
-  extends BaseController  with SecurityHQAuthActions {
+  extends BaseController with SecurityHQAuthActions {
 
   private val accounts = Config.getAwsAccounts(config)
 
   def index = authAction {
+
     Ok(views.html.index(accounts))
   }
 
