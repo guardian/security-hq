@@ -6,9 +6,6 @@
 GET        /                                          controllers.HQController.index
 GET        /healthcheck                               controllers.HQController.healthcheck
 
-GET        /buckets                                   controllers.BucketsController.buckets
-GET        /buckets/:accountId                        controllers.BucketsController.bucketsAccount(accountId)
-
 GET        /login                                     controllers.AuthController.login
 GET        /loginError                                controllers.AuthController.loginError
 GET        /oauthCallback                             controllers.AuthController.oauthCallback
