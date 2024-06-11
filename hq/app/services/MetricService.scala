@@ -10,27 +10,22 @@ import utils.attempt.FailedAttempt
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class MetricService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
     cacheService: CacheService
-  )(implicit ec: ExecutionContext) extends Logging {
+)(implicit ec: ExecutionContext)
+    extends Logging {
 
-  def collectFailures[T](list: List[Map[AwsAccount, Either[FailedAttempt, T]]]): List[(AwsAccount, FailedAttempt)] = {
+  def collectFailures[T](
+      list: List[Map[AwsAccount, Either[FailedAttempt, T]]]
+  ): List[(AwsAccount, FailedAttempt)] = {
     list.flatMap { dataMap =>
-      dataMap.toSeq.collect {
-        case (account, Left(failedAttempt)) => (account, failedAttempt)
+      dataMap.toSeq.collect { case (account, Left(failedAttempt)) =>
+        (account, failedAttempt)
       }
     }
-  }
-
-  def discardSuppressedSgs(sgsMap: Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]]): Map[AwsAccount, Either[FailedAttempt, List[(SGOpenPortsDetail, Set[SGInUse])]]] = {
-    sgsMap.view.mapValues{
-      case Right(secGroups) => Right(secGroups.filter(!_._1.isSuppressed))
-      case left => left
-    }.toMap
   }
 
   /*
@@ -49,18 +44,20 @@ class MetricService(
    * - https://github.com/guardian/security-hq/pull/245#discussion_r632548991
    */
   def postCachedContentsAsMetrics(): Unit = {
-    val allSgs = discardSuppressedSgs(cacheService.getAllSgs)
     val allExposedKeys = cacheService.getAllExposedKeys
     val allPublicBuckets = cacheService.getAllPublicBuckets
     val allCredentials = cacheService.getAllCredentials
 
-    val failures = collectFailures(List(allSgs, allExposedKeys, allPublicBuckets, allCredentials))
+    val failures = collectFailures(
+      List(allExposedKeys, allPublicBuckets, allCredentials)
+    )
 
     if (failures.nonEmpty) {
-      logger.warn(s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures")
+      logger.warn(
+        s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures"
+      )
     } else {
       logger.info("Posting new metrics to cloudwatch")
-      Cloudwatch.logAsMetric(allSgs, Cloudwatch.DataType.sgTotal)
       Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
       Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
       Cloudwatch.logMetricsForCredentialsReport(allCredentials)
@@ -72,9 +69,10 @@ class MetricService(
       if (environment.mode == Mode.Prod) 15.minutes
       else Duration.Zero
 
-    val cloudwatchSubscription = Observable.interval(initialDelay, 6.hours).subscribe { _ =>
-      postCachedContentsAsMetrics()
-    }
+    val cloudwatchSubscription =
+      Observable.interval(initialDelay, 6.hours).subscribe { _ =>
+        postCachedContentsAsMetrics()
+      }
 
     lifecycle.addStopHook { () =>
       cloudwatchSubscription.unsubscribe()

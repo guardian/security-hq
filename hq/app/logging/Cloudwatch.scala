@@ -23,7 +23,6 @@ object Cloudwatch extends Logging {
     val iamCredentialsCritical = Value("iam/credentials/critical")
     val iamCredentialsWarning = Value("iam/credentials/warning")
     val iamKeysTotal = Value("iam/keys/total")
-    val sgTotal = Value("securitygroup/total")
   }
 
   object ReaperExecutionStatus extends Enumeration {

@@ -2,7 +2,10 @@ import aws.ec2.EC2
 import aws.{AWS, AwsClient}
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.auth.{AWSCredentialsProviderChain, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.auth.{
+  AWSCredentialsProviderChain,
+  DefaultAWSCredentialsProviderChain
+}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.regions.{Region, RegionUtils, Regions}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
@@ -28,17 +31,20 @@ import utils.attempt.Attempt
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 class AppComponents(context: Context)
-  extends BuiltInComponentsFromContext(context)
-  with CSRFComponents
-  with AhcWSComponents with AssetsComponents with Logging {
+    extends BuiltInComponentsFromContext(context)
+    with CSRFComponents
+    with AhcWSComponents
+    with AssetsComponents
+    with Logging {
 
   implicit val impWsClient: WSClient = wsClient
-  implicit val impPlayBodyParser: BodyParser[AnyContent] = playBodyParsers.default
-  implicit val impControllerComponents: ControllerComponents = controllerComponents
+  implicit val impPlayBodyParser: BodyParser[AnyContent] =
+    playBodyParsers.default
+  implicit val impControllerComponents: ControllerComponents =
+    controllerComponents
   implicit val impAssetsFinder: AssetsFinder = assetsFinder
   override lazy val httpFilters = Seq(
     csrfFilter,
@@ -50,60 +56,86 @@ class AppComponents(context: Context)
 
   // the aim of this is to get all the regions that are available to this account
   private val availableRegions: List[Region] = {
-    val ec2Client = AwsClient(AmazonEC2AsyncClientBuilder.standard().withRegion(Config.region.getName).build(), AwsAccount(stack, stack, stack, stack), Config.region)
+    val ec2Client = AwsClient(
+      AmazonEC2AsyncClientBuilder
+        .standard()
+        .withRegion(Config.region.getName)
+        .build(),
+      AwsAccount(stack, stack, stack, stack),
+      Config.region
+    )
     try {
       val availableRegionsAttempt: Attempt[List[Region]] = for {
         ec2RegionList <- EC2.getAvailableRegions(ec2Client)
-        regionList = ec2RegionList.map(ec2Region => RegionUtils.getRegion(ec2Region.getRegionName))
+        regionList = ec2RegionList.map(ec2Region =>
+          RegionUtils.getRegion(ec2Region.getRegionName)
+        )
       } yield regionList
-      Await.result(availableRegionsAttempt.asFuture, 30 seconds).getOrElse(List(Config.region, RegionUtils.getRegion("us-east-1")))
+      Await
+        .result(availableRegionsAttempt.asFuture, 30 seconds)
+        .getOrElse(List(Config.region, RegionUtils.getRegion("us-east-1")))
     } finally {
       ec2Client.client.shutdown()
     }
   }
 
-  logger.info(s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}")
+  logger.info(
+    s"Polling in the following regions: ${availableRegions.map(_.getName).mkString(", ")}"
+  )
 
-  val regionsNotInSdk: Set[String] = availableRegions.map(_.getName).toSet -- Regions.values().map(_.getName).toSet
+  val regionsNotInSdk: Set[String] = availableRegions
+    .map(_.getName)
+    .toSet -- Regions.values().map(_.getName).toSet
   if (regionsNotInSdk.nonEmpty) {
-    logger.warn(s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!")
+    logger.warn(
+      s"Regions exist that are not in the current SDK (${regionsNotInSdk.mkString(", ")}), update your SDK!"
+    )
   }
 
-  private val ec2Clients = AWS.ec2Clients(configuration, availableRegions)
   private val cfnClients = AWS.cfnClients(configuration, availableRegions)
   private val taClients = AWS.taClients(configuration)
   private val s3Clients = AWS.s3Clients(configuration, availableRegions)
   private val iamClients = AWS.iamClients(configuration, availableRegions)
-  private val efsClients = AWS.efsClients(configuration, availableRegions)
 
   private val securityCredentialsProvider = new AWSCredentialsProviderChain(
     new ProfileCredentialsProvider("security"),
     DefaultAWSCredentialsProviderChain.getInstance()
   )
-  private val securitySnsClient = AmazonSNSAsyncClientBuilder.standard()
+  private val securitySnsClient = AmazonSNSAsyncClientBuilder
+    .standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region.getName)
     .withClientConfiguration(new ClientConfiguration().withMaxConnections(10))
     .build()
-  private val securitySsmClient = AWSSimpleSystemsManagementClientBuilder.standard()
+  private val securitySsmClient = AWSSimpleSystemsManagementClientBuilder
+    .standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region.getName)
     .build()
-  private val googleAuthConfig = Config.googleSettings(stage, stack, configuration, securitySsmClient)
+  private val googleAuthConfig =
+    Config.googleSettings(stage, stack, configuration, securitySsmClient)
 
   private val securityDynamoDbClient = stage match {
     case PROD =>
-      AmazonDynamoDBClientBuilder.standard()
+      AmazonDynamoDBClientBuilder
+        .standard()
         .withCredentials(securityCredentialsProvider)
         .withRegion(Config.region.getName)
         .build()
     case DEV =>
-      AmazonDynamoDBClientBuilder.standard()
+      AmazonDynamoDBClientBuilder
+        .standard()
         .withCredentials(securityCredentialsProvider)
-        .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", Config.region.getName))
+        .withEndpointConfiguration(
+          new EndpointConfiguration(
+            "http://localhost:8000",
+            Config.region.getName
+          )
+        )
         .build()
   }
-  private val securityS3Client = AmazonS3ClientBuilder.standard()
+  private val securityS3Client = AmazonS3ClientBuilder
+    .standard()
     .withCredentials(securityCredentialsProvider)
     .withRegion(Config.region.getName)
     .build()
@@ -112,13 +144,10 @@ class AppComponents(context: Context)
     configuration,
     applicationLifecycle,
     environment,
-    wsClient,
-    ec2Clients,
     cfnClients,
     taClients,
     s3Clients,
     iamClients,
-    efsClients,
     availableRegions
   )
 
@@ -143,10 +172,7 @@ class AppComponents(context: Context)
   override def router: Router = new Routes(
     httpErrorHandler,
     new HQController(configuration, googleAuthConfig),
-    new CredentialsController(configuration, cacheService, googleAuthConfig),
-    new BucketsController(configuration, cacheService, googleAuthConfig),
-    new SecurityGroupsController(configuration, cacheService, googleAuthConfig),
     new AuthController(environment, configuration, googleAuthConfig),
-    assets,
+    assets
   )
 }
