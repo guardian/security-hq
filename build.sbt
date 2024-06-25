@@ -12,7 +12,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.728"
+val awsSdkVersion = "1.12.740"
 val playJsonVersion = "3.0.1"
 val jacksonVersion = "2.15.1"
 
@@ -125,7 +125,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
   settings(
     name := """lambda-common""",
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-events" % "3.11.5",
+      "com.amazonaws" % "aws-lambda-java-events" % "3.11.6",
       "com.amazonaws" % "aws-lambda-java-core" % "1.2.3",
       "com.amazonaws" % "aws-java-sdk-lambda" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
