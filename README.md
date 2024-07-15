@@ -114,10 +114,7 @@ It is deployed as a stack set and is defined in  `cloudformation/watched-account
 **NOTE: The version is important**, because the cloudformation `version` parameter is used to locate the correct S3 file. The lambda code will not change unless a new version is deployed, even if the infrastructure changes. 
 
 ## Further docs in this repo
-[Guardduty](hq/markdown/guardduty-sechub-common-problems.md)
 
 [SSH Access](hq/markdown/ssh-access.md)
-
-[Vulnerability Management](hq/markdown/vulnerability-management.md)
 
 [Wazuh](hq/markdown/wazuh.md)
