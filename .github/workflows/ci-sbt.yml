@@ -32,7 +32,7 @@ jobs:
           cache: 'sbt'
 
       - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -41,7 +41,7 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@80f11d69a223f464c96ff7a44469a4903d13989d # v4.0.3
+      - uses: guardian/actions-riff-raff@68a3a1914dda09a4a965f310c6be368715e97018 # v4.0.5
         with:
           projectName: security-hq
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
