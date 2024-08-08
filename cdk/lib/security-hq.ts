@@ -87,8 +87,7 @@ export class SecurityHQ extends GuStack {
     const domainName = "security-hq.gutools.co.uk";
 
     const userData = UserData.forLinux();
-    userData.addCommands(`#!/bin/bash -ev
-    # setup security-hq
+    userData.addCommands(`# setup security-hq
     mkdir -p /etc/gu
 
     aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.conf /etc/gu

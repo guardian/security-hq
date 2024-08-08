@@ -1552,8 +1552,7 @@ exports[`HQ stack matches the snapshot 1`] = `
                 "",
                 [
                   "#!/bin/bash
-#!/bin/bash -ev
-    # setup security-hq
+# setup security-hq
     mkdir -p /etc/gu
 
     aws --region eu-west-1 s3 cp s3://",
