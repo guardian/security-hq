@@ -28,7 +28,7 @@ import {
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
 import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
-import { InstanceClass, InstanceSize, InstanceType } from "aws-cdk-lib/aws-ec2";
+import { InstanceClass, InstanceSize, InstanceType, UserData } from "aws-cdk-lib/aws-ec2";
 import {
   ListenerAction,
   UnauthenticatedAction,
@@ -86,6 +86,17 @@ export class SecurityHQ extends GuStack {
 
     const domainName = "security-hq.gutools.co.uk";
 
+    const userData = UserData.forLinux();
+    userData.addCommands(`#!/bin/bash -ev
+    # setup security-hq
+    mkdir -p /etc/gu
+
+    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.conf /etc/gu
+    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-service-account-cert.json /etc/gu
+    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.deb /tmp/installer.deb
+
+    dpkg -i /tmp/installer.deb`);
+
     const ec2App = new GuEc2App(this, {
       applicationLogging: {
         enabled: true
@@ -103,15 +114,7 @@ export class SecurityHQ extends GuStack {
       scaling: {
         minimumInstances: 1,
       },
-      userData: `#!/bin/bash -ev
-# setup security-hq
-mkdir -p /etc/gu
-
-aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.conf /etc/gu
-aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-service-account-cert.json /etc/gu
-aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.deb /tmp/installer.deb
-
-dpkg -i /tmp/installer.deb`,
+      userData,
       roleConfiguration: {
         additionalPolicies: [
           GuAnghammaradSenderPolicy.getInstance(this),

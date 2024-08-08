@@ -1551,27 +1551,28 @@ exports[`HQ stack matches the snapshot 1`] = `
               "Fn::Join": [
                 "",
                 [
-                  "#!/bin/bash -ev
-# setup security-hq
-mkdir -p /etc/gu
+                  "#!/bin/bash
+#!/bin/bash -ev
+    # setup security-hq
+    mkdir -p /etc/gu
 
-aws --region eu-west-1 s3 cp s3://",
+    aws --region eu-west-1 s3 cp s3://",
                   {
                     "Ref": "DistributionBucketName",
                   },
                   "/security/PROD/security-hq/security-hq.conf /etc/gu
-aws --region eu-west-1 s3 cp s3://",
+    aws --region eu-west-1 s3 cp s3://",
                   {
                     "Ref": "DistributionBucketName",
                   },
                   "/security/PROD/security-hq/security-hq-service-account-cert.json /etc/gu
-aws --region eu-west-1 s3 cp s3://",
+    aws --region eu-west-1 s3 cp s3://",
                   {
                     "Ref": "DistributionBucketName",
                   },
                   "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
 
-dpkg -i /tmp/installer.deb",
+    dpkg -i /tmp/installer.deb",
                 ],
               ],
             },
