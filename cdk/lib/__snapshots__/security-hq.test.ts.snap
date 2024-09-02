@@ -1471,6 +1471,7 @@ exports[`HQ stack matches the snapshot 1`] = `
           "InstanceType": "t4g.large",
           "MetadataOptions": {
             "HttpTokens": "required",
+            "InstanceMetadataTags": "enabled",
           },
           "SecurityGroupIds": [
             {
