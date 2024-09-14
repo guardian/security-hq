@@ -38,6 +38,10 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'cdk/package-lock.json'
 
+      - run: |
+          LAST_TEAMCITY_BUILD=1265
+          echo "BUILD_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))" >> $GITHUB_ENV
+
       - name: Run script/ci
         run: ./script/ci
 
@@ -45,12 +49,11 @@ jobs:
         with:
           projectName: security-hq
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
-          # Seed the build number with last number from TeamCity.
-          buildNumberOffset: 1265
+          buildNumber: ${{ env.BUILD_NUMBER }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           configPath: hq/conf/riff-raff.yaml
           contentDirectories: |
             security-hq-cfn:
               - cdk/cdk.out/security-hq.template.json
             security-hq:
-              - hq/target/security-hq.deb
+              - dist
