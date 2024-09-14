@@ -15,7 +15,7 @@
     "synth": "cdk synth --path-metadata false --version-reporting false"
   },
   "devDependencies": {
-    "@guardian/cdk": "59.3.5",
+    "@guardian/cdk": "github:guardian/cdk#aa/ec2-AutoScalingReplacingUpdate",
     "@guardian/eslint-config-typescript": "^12.0.0",
     "@types/jest": "^29.5.12",
     "@types/node": "22.5.1",

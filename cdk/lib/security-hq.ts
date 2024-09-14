@@ -1,4 +1,3 @@
-import { GuEc2App } from "@guardian/cdk";
 import { AccessScope } from "@guardian/cdk/lib/constants";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import type { GuStackProps } from "@guardian/cdk/lib/constructs/core";
@@ -20,6 +19,7 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
+import { GuEc2AppExperimental } from "@guardian/cdk/lib/experimental/patterns/ec2-app";
 import { Duration, RemovalPolicy, SecretValue } from "aws-cdk-lib";
 import type { App } from "aws-cdk-lib";
 import {
@@ -96,7 +96,7 @@ export class SecurityHQ extends GuStack {
 
     dpkg -i /tmp/installer.deb`);
 
-    const ec2App = new GuEc2App(this, {
+    const ec2App = new GuEc2AppExperimental(this, {
       applicationLogging: {
         enabled: true
       },

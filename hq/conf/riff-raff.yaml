@@ -5,11 +5,10 @@ stacks:
 regions:
 - eu-west-1
 deployments:
-
   security-hq:
     type: autoscaling
-    dependencies: [security-hq-cfn]
-
+    actions:
+      - uploadArtifacts
   security-hq-cfn:
     type: cloud-formation
     app: security-hq
@@ -23,3 +22,5 @@ deployments:
         Recipe: arm64-jammy-java11-security
         BuiltBy: amigo
         AmigoStage: PROD
+    dependencies:
+      - security-hq
