@@ -1631,7 +1631,7 @@ trap exitTrap EXIT
                   {
                     "Ref": "DistributionBucketName",
                   },
-                  "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
+                  "/security/PROD/security-hq/security-hq-TEST.deb /tmp/installer.deb
 
     dpkg -i /tmp/installer.deb
 # GuEc2AppExperimental UserData Start
