@@ -18,7 +18,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuVpcParameter",
       "GuSubnetListParameter",
       "GuSubnetListParameter",
-      "GuEc2App",
+      "GuEc2AppExperimental",
       "GuCertificate",
       "GuInstanceRole",
       "GuSsmSshPolicy",
@@ -123,6 +123,34 @@ exports[`HQ stack matches the snapshot 1`] = `
       },
       "Type": "AWS::SSM::Parameter",
     },
+    "AsgRollingUpdatePolicy2A1DDC6F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "cloudformation:SignalResource",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "AWS::StackId",
+              },
+            },
+            {
+              "Action": "elasticloadbalancing:DescribeTargetHealth",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AsgRollingUpdatePolicy2A1DDC6F",
+        "Roles": [
+          {
+            "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "AssumeRole3910C09D": {
       "Properties": {
         "PolicyDocument": {
@@ -145,7 +173,17 @@ exports[`HQ stack matches the snapshot 1`] = `
       "Type": "AWS::IAM::Policy",
     },
     "AutoScalingGroupSecurityhqASG8DD277A5": {
+      "CreationPolicy": {
+        "AutoScalingCreationPolicy": {
+          "MinSuccessfulInstancesPercent": 100,
+        },
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT2M",
+        },
+      },
       "Properties": {
+        "DesiredCapacity": "1",
         "HealthCheckGracePeriod": 120,
         "HealthCheckType": "ELB",
         "LaunchTemplate": {
@@ -215,6 +253,18 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
       },
       "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "UpdatePolicy": {
+        "AutoScalingRollingUpdate": {
+          "MaxBatchSize": 2,
+          "MinInstancesInService": 1,
+          "MinSuccessfulInstancesPercent": 100,
+          "PauseTime": "PT2M",
+          "SuspendProcesses": [
+            "AlarmNotification",
+          ],
+          "WaitOnResourceSignals": true,
+        },
+      },
     },
     "CertificateSecurityhqD266EC9D": {
       "DeletionPolicy": "Retain",
@@ -1549,6 +1599,21 @@ exports[`HQ stack matches the snapshot 1`] = `
                 "",
                 [
                   "#!/bin/bash
+function exitTrap(){
+exitCode=$?
+
+        cfn-signal --stack ",
+                  {
+                    "Ref": "AWS::StackId",
+                  },
+                  "           --resource AutoScalingGroupSecurityhqASG8DD277A5           --region ",
+                  {
+                    "Ref": "AWS::Region",
+                  },
+                  "           --exit-code $exitCode || echo 'Failed to send Cloudformation Signal'
+        
+}
+trap exitTrap EXIT
 # setup security-hq
     mkdir -p /etc/gu
 
@@ -1568,7 +1633,39 @@ exports[`HQ stack matches the snapshot 1`] = `
                   },
                   "/security/PROD/security-hq/security-hq.deb /tmp/installer.deb
 
-    dpkg -i /tmp/installer.deb",
+    dpkg -i /tmp/installer.deb
+# GuEc2AppExperimental UserData Start
+
+      TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+      INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/instance-id")
+
+      STATE=$(aws elbv2 describe-target-health         --target-group-arn ",
+                  {
+                    "Ref": "TargetGroupSecurityhq530DEDAA",
+                  },
+                  "         --region ",
+                  {
+                    "Ref": "AWS::Region",
+                  },
+                  "         --targets Id=$INSTANCE_ID,Port=9000         --query "TargetHealthDescriptions[0].TargetHealth.State")
+
+      until [ "$STATE" == "\\"healthy\\"" ]; do
+        echo "Instance not yet healthy within target group. Current state $STATE. Sleeping..."
+        sleep 5
+        STATE=$(aws elbv2 describe-target-health           --target-group-arn ",
+                  {
+                    "Ref": "TargetGroupSecurityhq530DEDAA",
+                  },
+                  "           --region ",
+                  {
+                    "Ref": "AWS::Region",
+                  },
+                  "           --targets Id=$INSTANCE_ID,Port=9000           --query "TargetHealthDescriptions[0].TargetHealth.State")
+      done
+
+      echo "Instance is healthy in target group."
+      
+# GuEc2AppExperimental UserData End",
                 ],
               ],
             },
