@@ -163,10 +163,6 @@ exports[`HQ stack matches the snapshot 1`] = `
         "MetricsCollection": [
           {
             "Granularity": "1Minute",
-            "Metrics": [
-              "GroupTotalInstances",
-              "GroupInServiceInstances",
-            ],
           },
         ],
         "MinSize": "1",
