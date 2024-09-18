@@ -41,13 +41,23 @@ import {
   StringParameter,
 } from "aws-cdk-lib/aws-ssm";
 
+interface SecurityHQProps extends GuStackProps {
+  /**
+   * Which application build to run.
+   * This will typically match the build number provided by CI.
+   */
+  buildIdentifier: string;
+}
+
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
     app: "security-hq",
   };
 
-  constructor(scope: App, id: string, props: GuStackProps) {
+  constructor(scope: App, id: string, props: SecurityHQProps) {
     super(scope, id, props);
+
+    const { buildIdentifier } = props;
 
     const table = new GuDynamoTable(this, "DynamoTable", {
       tableName: `security-hq-iam`,
@@ -86,15 +96,13 @@ export class SecurityHQ extends GuStack {
 
     const domainName = "security-hq.gutools.co.uk";
 
-    const buildNumber = process.env.BUILD_NUMBER ?? "DEV";
-
     const userData = UserData.forLinux();
     userData.addCommands(`# setup security-hq
     mkdir -p /etc/gu
 
     aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.conf /etc/gu
     aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-service-account-cert.json /etc/gu
-    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-${buildNumber}.deb /tmp/installer.deb
+    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-${buildIdentifier}.deb /tmp/installer.deb
 
     dpkg -i /tmp/installer.deb`);
 
