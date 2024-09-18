@@ -1,4 +1,3 @@
-import { GuEc2App } from "@guardian/cdk";
 import { AccessScope } from "@guardian/cdk/lib/constants";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import type { GuStackProps } from "@guardian/cdk/lib/constructs/core";
@@ -20,6 +19,7 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
+import { GuEc2AppExperimental } from "@guardian/cdk/lib/experimental/patterns/ec2-app";
 import { Duration, RemovalPolicy, SecretValue } from "aws-cdk-lib";
 import type { App } from "aws-cdk-lib";
 import {
@@ -41,13 +41,23 @@ import {
   StringParameter,
 } from "aws-cdk-lib/aws-ssm";
 
+interface SecurityHQProps extends GuStackProps {
+  /**
+   * Which application build to run.
+   * This will typically match the build number provided by CI.
+   */
+  buildIdentifier: string;
+}
+
 export class SecurityHQ extends GuStack {
   private static app: AppIdentity = {
     app: "security-hq",
   };
 
-  constructor(scope: App, id: string, props: GuStackProps) {
+  constructor(scope: App, id: string, props: SecurityHQProps) {
     super(scope, id, props);
+
+    const { buildIdentifier } = props;
 
     const table = new GuDynamoTable(this, "DynamoTable", {
       tableName: `security-hq-iam`,
@@ -92,11 +102,11 @@ export class SecurityHQ extends GuStack {
 
     aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.conf /etc/gu
     aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-service-account-cert.json /etc/gu
-    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.deb /tmp/installer.deb
+    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-${buildIdentifier}.deb /tmp/installer.deb
 
     dpkg -i /tmp/installer.deb`);
 
-    const ec2App = new GuEc2App(this, {
+    const ec2App = new GuEc2AppExperimental(this, {
       applicationLogging: {
         enabled: true
       },
