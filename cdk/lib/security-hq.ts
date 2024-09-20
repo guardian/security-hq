@@ -107,6 +107,7 @@ export class SecurityHQ extends GuStack {
     dpkg -i /tmp/installer.deb`);
 
     const ec2App = new GuEc2AppExperimental(this, {
+      buildIdentifier,
       applicationLogging: {
         enabled: true
       },
