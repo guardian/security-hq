@@ -179,9 +179,12 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
         "ResourceSignal": {
           "Count": 1,
-          "Timeout": "PT2M",
+          "Timeout": "PT3M",
         },
       },
+      "DependsOn": [
+        "AsgRollingUpdatePolicy2A1DDC6F",
+      ],
       "Properties": {
         "DesiredCapacity": "1",
         "HealthCheckGracePeriod": 120,
@@ -258,7 +261,7 @@ exports[`HQ stack matches the snapshot 1`] = `
           "MaxBatchSize": 2,
           "MinInstancesInService": 1,
           "MinSuccessfulInstancesPercent": 100,
-          "PauseTime": "PT2M",
+          "PauseTime": "PT3M",
           "SuspendProcesses": [
             "AlarmNotification",
           ],
@@ -1542,6 +1545,10 @@ exports[`HQ stack matches the snapshot 1`] = `
                   "Value": "security-hq",
                 },
                 {
+                  "Key": "gu:build-identifier",
+                  "Value": "TEST",
+                },
+                {
                   "Key": "gu:cdk:version",
                   "Value": "TEST",
                 },
@@ -1569,6 +1576,10 @@ exports[`HQ stack matches the snapshot 1`] = `
                 {
                   "Key": "App",
                   "Value": "security-hq",
+                },
+                {
+                  "Key": "gu:build-identifier",
+                  "Value": "TEST",
                 },
                 {
                   "Key": "gu:cdk:version",
@@ -1650,7 +1661,7 @@ trap exitTrap EXIT
                   "         --targets Id=$INSTANCE_ID,Port=9000         --query "TargetHealthDescriptions[0].TargetHealth.State")
 
       until [ "$STATE" == "\\"healthy\\"" ]; do
-        echo "Instance not yet healthy within target group. Current state $STATE. Sleeping..."
+        echo "Instance running build TEST not yet healthy within target group. Current state $STATE. Sleeping..."
         sleep 5
         STATE=$(aws elbv2 describe-target-health           --target-group-arn ",
                   {
@@ -1663,7 +1674,7 @@ trap exitTrap EXIT
                   "           --targets Id=$INSTANCE_ID,Port=9000           --query "TargetHealthDescriptions[0].TargetHealth.State")
       done
 
-      echo "Instance is healthy in target group."
+      echo "Instance running build TEST is healthy in target group."
       
 # GuEc2AppExperimental UserData End",
                 ],
@@ -1678,6 +1689,10 @@ trap exitTrap EXIT
               {
                 "Key": "App",
                 "Value": "security-hq",
+              },
+              {
+                "Key": "gu:build-identifier",
+                "Value": "TEST",
               },
               {
                 "Key": "gu:cdk:version",
