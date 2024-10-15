@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - ts/fix-dependency-submission-workflow
   workflow_dispatch:
 jobs:
   dependency-graph:
