@@ -13,7 +13,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.777"
-val playJsonVersion = "3.0.1"
+val playJsonVersion = "3.0.5"
 val jacksonVersion = "2.18.1"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
