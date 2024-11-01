@@ -13,7 +13,7 @@ addSbtPlugin("com.github.sbt" % "sbt-less" % "1.5.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-jshint" % "2.0.1")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.10")
+addSbtPlugin("com.github.sbt" % "sbt-rjs" % "2.0.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.0.0")
 
