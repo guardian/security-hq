@@ -17,6 +17,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.10")
 
 addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.0.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.1.2")
+addSbtPlugin("com.github.sbt" % "sbt-mocha" % "2.1.0")
 
 addDependencyTreePlugin
