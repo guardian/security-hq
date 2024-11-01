@@ -7,7 +7,7 @@ addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.1")
 
 // web plugins
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.2")
+addSbtPlugin("com.github.sbt" % "sbt-coffeescript" % "1.11.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.2")
 
