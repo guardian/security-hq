@@ -57,7 +57,7 @@ lazy val hq = (project in file("hq"))
       "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "1.8.1",
-      "ch.qos.logback" % "logback-classic" % "1.4.14",
+      "ch.qos.logback" % "logback-classic" % "1.5.12",
 
 
       // logstash-logback-encoder brings in version 2.11.0
@@ -137,7 +137,7 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "org.scalatest" %% "scalatest" % "3.2.15" % Test,
       "org.playframework" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      "ch.qos.logback" % "logback-classic" % "1.4.14",
+      "ch.qos.logback" % "logback-classic" % "1.5.12",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
