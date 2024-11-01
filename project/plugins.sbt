@@ -9,7 +9,7 @@ addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.1")
 
 addSbtPlugin("com.github.sbt" % "sbt-coffeescript" % "1.11.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.2")
+addSbtPlugin("com.github.sbt" % "sbt-less" % "1.5.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-jshint" % "2.0.1")
 
