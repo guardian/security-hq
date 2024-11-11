@@ -10,5 +10,5 @@ class HstsFilter(implicit material: Materializer, ec: ExecutionContext) extends 
   def apply(next: RequestHeader => Future[Result])(header: RequestHeader): Future[Result] =
     next(header).map(_.withHeaders("Strict-Transport-Security" -> "max-age=31536000"))
 
-  override implicit def mat = material
+  override implicit def mat: Materializer = material
 }

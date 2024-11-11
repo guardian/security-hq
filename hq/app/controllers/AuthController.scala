@@ -4,7 +4,7 @@ import auth.SecurityHQAuthActions
 import com.gu.googleauth.GoogleAuthConfig
 import play.api.libs.ws.WSClient
 import play.api.mvc._
-import play.api.{Configuration, Environment}
+import play.api.{Configuration, Environment, Mode}
 
 import scala.concurrent.ExecutionContext
 
@@ -13,7 +13,7 @@ class AuthController(environment: Environment, val config: Configuration, val au
                     (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
   extends BaseController with SecurityHQAuthActions {
 
-  implicit val mode = environment.mode
+  implicit val mode: Mode = environment.mode
 
   def loginError = Action { implicit request =>
     val error = request.flash.get("error").getOrElse("There was an error logging in")
