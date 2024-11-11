@@ -54,7 +54,7 @@ lazy val hq = (project in file("hq"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.18.1" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "1.8.1",
       "ch.qos.logback" % "logback-classic" % "1.5.12",
