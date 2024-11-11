@@ -1,4 +1,4 @@
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.3.0")
 
 libraryDependencies += "org.vafer" % "jdeb" % "1.11" artifacts Artifact("jdeb", "jar", "jar")
 
