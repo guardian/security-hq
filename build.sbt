@@ -7,14 +7,14 @@ import scala.concurrent.duration.DurationInt
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
-ThisBuild / scalaVersion := "2.13.10"
+ThisBuild / scalaVersion := "2.13.15"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
 resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.777"
-val playJsonVersion = "3.0.1"
-val jacksonVersion = "2.17.2"
+val playJsonVersion = "3.0.4"
+val jacksonVersion = "2.18.1"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -31,12 +31,12 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "4.0.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "7.1.0",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "7.1.0",
-      "joda-time" % "joda-time" % "2.11.2",
-      "org.typelevel" %% "cats-core" % "2.8.0",
-      "com.github.tototoshi" %% "scala-csv" % "1.3.10",
+      "com.gu.play-googleauth" %%  "play-v30" % "15.1.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "11.3.8",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "11.3.8",
+      "joda-time" % "joda-time" % "2.13.0",
+      "org.typelevel" %% "cats-core" % "2.12.0",
+      "com.github.tototoshi" %% "scala-csv" % "1.4.1",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
@@ -46,24 +46,24 @@ lazy val hq = (project in file("hq"))
       "com.amazonaws" % "aws-java-sdk-efs" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion,
-      "com.vladsch.flexmark" % "flexmark" % "0.64.0",
+      "com.vladsch.flexmark" % "flexmark" % "0.64.8",
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-ssm" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "org.scalatest" %% "scalatest" % "3.2.14" % Test,
-      "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
+      "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.17.1" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "1.8.1",
-      "ch.qos.logback" % "logback-classic" % "1.4.14",
+      "ch.qos.logback" % "logback-classic" % "1.5.12",
 
 
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.3" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.4" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" %% "janus-config-tools" % "0.0.6"
     ),
 
@@ -134,10 +134,10 @@ lazy val lambdaCommon = (project in file("lambda/common")).
       "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
-      "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.playframework" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      "ch.qos.logback" % "logback-classic" % "1.4.14",
+      "ch.qos.logback" % "logback-classic" % "1.5.12",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
     )
   )
