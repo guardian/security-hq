@@ -31,12 +31,12 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "15.1.0",
+      "com.gu.play-googleauth" %%  "play-v30" % "15.1.1",
       "com.gu.play-secret-rotation" %% "play-v30" % "11.3.8",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "11.3.8",
       "joda-time" % "joda-time" % "2.13.0",
       "org.typelevel" %% "cats-core" % "2.12.0",
-      "com.github.tototoshi" %% "scala-csv" % "1.4.1",
+      "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
       "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
@@ -54,7 +54,7 @@ lazy val hq = (project in file("hq"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "org.scalatest" %% "scalatest" % "3.2.14" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.17.1" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.18.1" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "1.8.1",
       "ch.qos.logback" % "logback-classic" % "1.5.12",
@@ -63,7 +63,7 @@ lazy val hq = (project in file("hq"))
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.4" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "8.0" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" %% "janus-config-tools" % "0.0.6"
     ),
 
