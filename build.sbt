@@ -56,7 +56,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.18.1" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
-      "com.gu" %% "anghammarad-client" % "1.8.1",
+      "com.gu" %% "anghammarad-client" % "3.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.12",
 
 
@@ -64,7 +64,7 @@ lazy val hq = (project in file("hq"))
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
       "net.logstash.logback" % "logstash-logback-encoder" % "8.0" exclude("com.fasterxml.jackson.core", "jackson-databind"),
-      "com.gu" %% "janus-config-tools" % "0.0.6"
+      "com.gu" %% "janus-config-tools" % "1.0.0"
     ),
 
 
@@ -149,7 +149,7 @@ lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
     name := """securitygroups-lambda""",
     assembly / assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
-      "com.gu" %% "anghammarad-client" % "1.8.1"
+      "com.gu" %% "anghammarad-client" % "3.0.0"
     )
 )
 
