@@ -32,7 +32,7 @@ lazy val hq = (project in file("hq"))
       ws,
       filters,
       "com.gu.play-googleauth" %%  "play-v30" % "15.1.2",
-      "com.gu.play-secret-rotation" %% "play-v30" % "11.3.8",
+      "com.gu.play-secret-rotation" %% "play-v30" % "12.0.0",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "12.0.0",
       "joda-time" % "joda-time" % "2.13.0",
       "org.typelevel" %% "cats-core" % "2.12.0",
