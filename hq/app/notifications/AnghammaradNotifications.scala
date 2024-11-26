@@ -82,7 +82,7 @@ object AnghammaradNotifications extends Logging {
 
   private val genericOutdatedCredentialText = {
     s"""
-       |To find out how to rectify this, see Security HQ (https://security-hq.gutools.co.uk/iam).
+       |To find out how to rectify this, see Grafana (https://metrics.gutools.co.uk/d/bdn97cui5rbi8f/iam-credentials-report?orgId=1).
        |Here is some helpful documentation on:
        |rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html,
        |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,
@@ -94,7 +94,7 @@ object AnghammaradNotifications extends Logging {
     val message =
       s"""
          |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today.
-         |Please check Security HQ to review the IAM users in your account (https://security-hq.gutools.co.uk/iam).
+         |Please check Grafana to review the IAM users in your account (https://metrics.gutools.co.uk/d/bdn97cui5rbi8f/iam-credentials-report?orgId=1).
          |If you still require the disabled user, ensure they are tagged correctly with their Google username
          |and have an entry in Janus.
          |If the disabled user has left the organisation, they should be deleted.
