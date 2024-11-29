@@ -1,7 +1,5 @@
 package aws.s3
 
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.{AmazonS3Exception, GetBucketEncryptionResult}
 import model.{BucketEncryptionResponse, BucketNotFound, Encrypted, NotEncrypted}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -9,12 +7,17 @@ import scala.concurrent.ExecutionContext
 import scala.io.BufferedSource
 import scala.util.control.NonFatal
 
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.S3Exception
+import software.amazon.awssdk.services.s3.model.{GetObjectRequest, GetBucketEncryptionRequest}
+
 object S3 {
-  def getS3Object(s3Client: AmazonS3, bucket: String, key: String): Attempt[BufferedSource] = {
+  def getS3Object(s3Client: S3Client, bucket: String, key: String): Attempt[BufferedSource] = {
+    val request = GetObjectRequest.builder().bucket(bucket).key(key).build()
     try {
       Attempt.Right {
         scala.io.Source
-          .fromInputStream(s3Client.getObject(bucket, key).getObjectContent)
+          .fromInputStream(s3Client.getObject(request))
       }
     } catch {
       case NonFatal(e) =>
@@ -27,19 +30,20 @@ object S3 {
     }
   }
 
-  def getBucketEncryption(client: AmazonS3, bucketName: String)(implicit ec: ExecutionContext): Attempt[BucketEncryptionResponse] = {
+  def getBucketEncryption(client: S3Client, bucketName: String)(implicit ec: ExecutionContext): Attempt[BucketEncryptionResponse] = {
+    val request = GetBucketEncryptionRequest.builder().bucket(bucketName).build()
     try {
       Attempt.Right {
         Option(
-          client.getBucketEncryption(bucketName).getServerSideEncryptionConfiguration
+          client.getBucketEncryption(request).serverSideEncryptionConfiguration
         ).fold[BucketEncryptionResponse](NotEncrypted)(_ => Encrypted)
       }
     } catch {
       // If there is no bucket encryption, AWS returns an error...
       // Assume bucket is not encrypted if we receive the specific error
-      case e: AmazonS3Exception if e.getMessage.contains("ServerSideEncryptionConfigurationNotFoundError") =>
+      case e: S3Exception if e.getMessage.contains("ServerSideEncryptionConfigurationNotFoundError") =>
         Attempt.Right(NotEncrypted)
-      case e: AmazonS3Exception if e.getMessage.contains("NoSuchBucket") =>
+      case e: S3Exception if e.getMessage.contains("NoSuchBucket") =>
         Attempt.Right(BucketNotFound)
       case NonFatal(e) =>
         Attempt.Left(FailedAttempt(Failure(

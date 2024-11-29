@@ -1,7 +1,8 @@
 package com.gu.hq
 
-import com.amazonaws.services.elasticloadbalancing.model.{DescribeLoadBalancersResult, LoadBalancerDescription}
 import com.gu.hq.lambda.model.{IpPermission, SGConfiguration, UserIdGroupPair}
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.{DescribeLoadBalancersRequest, DescribeLoadBalancersResponse}
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.LoadBalancer
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -45,11 +46,12 @@ class SecurityGroupsTest extends AnyFreeSpec with Matchers {
   }
 
   "attachedToElb" - {
-    val loadBalancers = new DescribeLoadBalancersResult()
-      .withLoadBalancerDescriptions(
+    val loadBalancers = DescribeLoadBalancersResponse.builder.loadBalancers(
         elbWithSg("sg-123"),
         elbWithSg("sg-456", "sg-789")
       )
+      .build()
+
     val sgConf = SGConfiguration("owner", "sg name", "sg-id", "description", Nil, Nil, "vpc-id", Nil)
 
     "returns false if no ELBs use the provided security group" in {
@@ -74,9 +76,9 @@ class SecurityGroupsTest extends AnyFreeSpec with Matchers {
     }
   }
 
-  private def elbWithSg(sgIds: String *): LoadBalancerDescription = {
-    val elb = new LoadBalancerDescription()
-    elb.withSecurityGroups(sgIds:_*)
-    elb
+  private def elbWithSg(sgIds: String *): LoadBalancer = {
+    val elb = LoadBalancer.builder
+    elb.securityGroups(sgIds:_*)
+    elb.build
   }
 }

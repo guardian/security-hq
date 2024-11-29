@@ -1,11 +1,15 @@
 package config
 
+
+import com.gu.play.secretrotation.aws.parameterstore.SecretSupplier
+import com.gu.play.secretrotation.aws.parameterstore.AwsSdkV2
+
+
 import aws.AwsClient
-import com.amazonaws.regions.{Region, RegionUtils}
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement
 import com.google.auth.oauth2.{ServiceAccountCredentials}
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker}
-import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV1, SecretSupplier}
+
+
 import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}
 import model._
 import play.api.Configuration
@@ -18,6 +22,10 @@ import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.ssm.SsmClient
+
+
 
 object Config {
   val iamHumanUserRotationCadence: Long = 90
@@ -28,7 +36,7 @@ object Config {
   val app = "security-hq"
 
   // TODO fetch the region dynamically from the instance
-  val region: Region = RegionUtils.getRegion("eu-west-1")
+  val region: Region = Region.of("eu-west-1")
   val documentationLinks: List[Documentation] = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
     Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),
@@ -43,7 +51,7 @@ object Config {
     }
   }
 
-  def googleSettings(stage: Stage, stack: String, config: Configuration, ssmClient: AWSSimpleSystemsManagement): GoogleAuthConfig = {
+  def googleSettings(stage: Stage, stack: String, config: Configuration, ssmClient: SsmClient): GoogleAuthConfig = {
     val clientId = requiredString(config, "auth.google.clientId")
     val clientSecret = requiredString(config, "auth.google.clientSecret")
     val domain = requiredString(config, "auth.domain")
@@ -53,7 +61,7 @@ object Config {
       new SecretSupplier(
         TransitionTiming(usageDelay = ofMinutes(3), overlapDuration = ofHours(2)),
         s"/${stage.toString}/$stack/$app/play.http.secret.key",
-        AwsSdkV1(ssmClient)
+        AwsSdkV2(ssmClient)
       )
     }
 
