@@ -15,6 +15,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
@@ -37,9 +38,15 @@ object AWS {
     )
   }
 
+  private def stsClientForRoleAssumption(account: AwsAccount): StsClient = {
+    StsClient.builder.region(Config.region).credentialsProvider(ProfileCredentialsProvider.create(account.id)).build()
+  }
+
   private def credentialsProvider(account: AwsAccount): AwsCredentialsProviderChain = {
     AwsCredentialsProviderChain.of(
-      StsAssumeRoleCredentialsProvider.builder().refreshRequest(AssumeRoleRequest.builder.roleArn(account.roleArn).roleSessionName("security-hq").build()).build(),
+      StsAssumeRoleCredentialsProvider.builder()
+        .stsClient(stsClientForRoleAssumption(account))
+        .refreshRequest(AssumeRoleRequest.builder.roleArn(account.roleArn).roleSessionName("security-hq").build()).build(),
       ProfileCredentialsProvider.create(account.id)
     )
   }
