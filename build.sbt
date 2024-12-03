@@ -14,7 +14,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "1.12.778"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.18.1"
+val jacksonVersion = "2.18.2"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -31,9 +31,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "15.1.1",
-      "com.gu.play-secret-rotation" %% "play-v30" % "11.3.8",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "11.3.8",
+      "com.gu.play-googleauth" %%  "play-v30" % "15.1.2",
+      "com.gu.play-secret-rotation" %% "play-v30" % "13.0.0",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "13.0.0",
       "joda-time" % "joda-time" % "2.13.0",
       "org.typelevel" %% "cats-core" % "2.12.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
