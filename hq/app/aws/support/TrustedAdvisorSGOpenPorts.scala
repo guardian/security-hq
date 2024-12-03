@@ -2,8 +2,6 @@ package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult, refreshTrustedAdvisorChecks}
 import aws.AwsClient
-import com.amazonaws.services.support.AWSSupportAsync
-import com.amazonaws.services.support.model.{RefreshTrustedAdvisorCheckResult, TrustedAdvisorResourceDetail}
 import logic.Retry
 import model.{SGOpenPortsDetail, TrustedAdvisorDetailsResult}
 import utils.attempt.{Attempt, Failure}
@@ -12,12 +10,15 @@ import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+import software.amazon.awssdk.services.support.SupportAsyncClient
+import software.amazon.awssdk.services.support.model.{RefreshTrustedAdvisorCheckResponse, TrustedAdvisorResourceDetail}
+
 
 object TrustedAdvisorSGOpenPorts {
   val AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER = "HCP4007jGY"
   val SGIds = "^(sg-[\\w]+) \\((vpc-[\\w]+)\\)$".r
 
-  def getSGOpenPorts(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[SGOpenPortsDetail]] = {
+  def getSGOpenPorts(client: AwsClient[SupportAsyncClient])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[SGOpenPortsDetail]] = {
     getTrustedAdvisorCheckDetails(client, AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER)
       .flatMap(parseTrustedAdvisorCheckResult(parseSGOpenPortsDetail, ec))
   }
@@ -28,33 +29,33 @@ object TrustedAdvisorSGOpenPorts {
 
 
   private[support] def parseSGOpenPortsDetail(detail: TrustedAdvisorResourceDetail): Attempt[SGOpenPortsDetail] = {
-    detail.getMetadata.asScala.toList match {
+    detail.metadata.asScala.toList match {
       case region :: name :: SGIds(sgId, vpcId) :: protocol :: alertLevel :: port :: _ =>
         Attempt.Right {
           SGOpenPortsDetail(
-            status = detail.getStatus,
-            region = detail.getRegion,
+            status = detail.status,
+            region = detail.region,
             name = name,
             id = sgId,
             vpcId = vpcId,
             protocol = protocol,
             port = port,
             alertLevel = alertLevel,
-            isSuppressed = detail.getIsSuppressed
+            isSuppressed = detail.isSuppressed
           )
         }
       case region :: name :: sgId :: protocol :: alertLevel :: port :: _ =>
         Attempt.Right {
           SGOpenPortsDetail(
-            status = detail.getStatus,
-            region = detail.getRegion,
+            status = detail.status,
+            region = detail.region,
             name = name,
             id = sgId,
             vpcId = "EC2 classic",
             protocol = protocol,
             port = port,
             alertLevel = alertLevel,
-            isSuppressed = detail.getIsSuppressed
+            isSuppressed = detail.isSuppressed
           )
         }
       case metadata =>
@@ -64,10 +65,10 @@ object TrustedAdvisorSGOpenPorts {
     }
   }
 
-  def refreshSGOpenPorts(client: AwsClient[AWSSupportAsync])(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResult] = {
+  def refreshSGOpenPorts(client: AwsClient[SupportAsyncClient])(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResponse] = {
     val delay = 3.seconds
     val checkId = AWS_SECURITY_GROUPS_PORTS_UNRESTRICTED_IDENTIFIER
-    Retry.until(refreshTrustedAdvisorChecks(client, checkId), _.getStatus.getStatus == "success", s"Failed to refresh $checkId report", delay)
+    Retry.until(refreshTrustedAdvisorChecks(client, checkId), _.status.status == "success", s"Failed to refresh $checkId report", delay)
   }
 
 }

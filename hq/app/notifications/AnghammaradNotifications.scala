@@ -1,6 +1,5 @@
 package notifications
 
-import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAccount => Account}
 import config.Config.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
@@ -10,6 +9,7 @@ import org.joda.time.DateTime
 import play.api.Logging
 import utils.attempt.{Attempt, Failure}
 
+import software.amazon.awssdk.services.sns.SnsAsyncClient
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
@@ -18,7 +18,7 @@ object AnghammaradNotifications extends Logging {
   def send(
     notification: Notification,
     topicArn: String,
-    snsClient: AmazonSNSAsync,
+    snsClient: SnsAsyncClient,
   )(implicit executionContext: ExecutionContext): Attempt[String] = {
     Attempt.fromFuture(Anghammarad.notify(notification, topicArn, snsClient)) { case NonFatal(e) =>
       Failure(

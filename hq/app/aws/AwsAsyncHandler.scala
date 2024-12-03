@@ -5,6 +5,8 @@ import com.amazonaws.handlers.AsyncHandler
 import play.api.Logging
 import utils.attempt.{Attempt, Failure}
 
+import java.util.concurrent.CompletableFuture
+
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 
@@ -21,10 +23,14 @@ class AwsAsyncPromiseHandler[R <: AmazonWebServiceRequest, T](promise: Promise[T
 
 object AwsAsyncHandler {
   private val ServiceName = ".*Service: ([^;]+);.*".r
-  def awsToScala[R <: AmazonWebServiceRequest, T, Client](client: AwsClient[Client])(sdkMethod: Client => ( (R, AsyncHandler[R, T]) => java.util.concurrent.Future[T])): (R => Future[T]) = { req =>
-    val p = Promise[T]()
-    sdkMethod(client.client)(req, new AwsAsyncPromiseHandler(p, client))
-    p.future
+
+  def asScala[T](cf: CompletableFuture[T]): Future[T] = {
+    val p = Promise[T]()                                                                                                                                           
+    cf.whenCompleteAsync{ (result, ex) =>                                                                                                                          
+      if (result == null) p failure ex                                                                                                                             
+      else                p success result                                                                                                                         
+    }                                                                                                                                                              
+    p.future 
   }
 
   def handleAWSErrs[T, Client](awsClient: AwsClient[Client])(f: => Future[T])(implicit ec: ExecutionContext): Attempt[T] = {

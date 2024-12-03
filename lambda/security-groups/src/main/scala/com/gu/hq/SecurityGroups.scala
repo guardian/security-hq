@@ -1,8 +1,8 @@
 package com.gu.hq
 
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.gu.hq.lambda.model.SGConfiguration
 import com.typesafe.scalalogging.StrictLogging
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.{DescribeLoadBalancersRequest, DescribeLoadBalancersResponse}
 
 import scala.jdk.CollectionConverters._
 
@@ -12,13 +12,13 @@ object SecurityGroups extends StrictLogging{
     sGConfiguration.ipPermissions.exists(_.ipRanges.contains("0.0.0.0/0"))
   }
 
-  private[hq] def attachedToElb(sgConfiguration: SGConfiguration, loadBalancers: DescribeLoadBalancersResult): Boolean = {
-    val elbDescriptions = loadBalancers.getLoadBalancerDescriptions.asScala.toSet
-    val elbSGs = elbDescriptions.flatMap(_.getSecurityGroups.asScala)
+  private[hq] def attachedToElb(sgConfiguration: SGConfiguration, loadBalancers: DescribeLoadBalancersResponse): Boolean = {
+    val elbDescriptions = loadBalancers.loadBalancers.asScala.toSet
+    val elbSGs = elbDescriptions.flatMap(_.securityGroups.asScala)
     elbSGs.contains(sgConfiguration.groupId)
   }
 
-  def status(sgConfiguration: SGConfiguration, loadBalancers: DescribeLoadBalancersResult): SgStatus = {
+  def status(sgConfiguration: SGConfiguration, loadBalancers: DescribeLoadBalancersResponse): SgStatus = {
     val open = openToWorld(sgConfiguration)
     val elbSg = attachedToElb(sgConfiguration, loadBalancers)
 

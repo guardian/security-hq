@@ -1,12 +1,12 @@
 package aws.support
 
-import com.amazonaws.services.support.model.TrustedAdvisorResourceDetail
 import model._
 import org.scalacheck.Gen
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import utils.attempt.AttemptValues
+import software.amazon.awssdk.services.support.model.TrustedAdvisorResourceDetail
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,12 +16,14 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
   "parsing details" - {
     "works on example data" in {
       val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
-      val detail = new TrustedAdvisorResourceDetail()
-        .withIsSuppressed(false)
-        .withMetadata(metadata.asJava)
-        .withRegion("eu-west-1")
-        .withStatus("ok")
-        .withResourceId("abcdefz")
+      val detail = TrustedAdvisorResourceDetail.builder
+        .isSuppressed(false)
+        .metadata(metadata.asJava)
+        .region("eu-west-1")
+        .status("ok")
+        .resourceId("abcdefz")
+        .build()
+
       TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail).value() should have(
         Symbol("region") ("eu-west-1"),
         Symbol("name") ("launch-wizard-1"),
@@ -38,24 +40,28 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
 
     "works on example data if there is no vpc" in {
       val metadataWithoutVpc = List("eu-west-1", "launch-wizard-1", "sg-12345a", "tcp", "Yellow", "22")
-      val detailWithoutVpc = new TrustedAdvisorResourceDetail()
-        .withIsSuppressed(false)
-        .withMetadata(metadataWithoutVpc.asJava)
-        .withRegion("eu-west-1")
-        .withStatus("ok")
-        .withResourceId("abcdefz")
+      val detailWithoutVpc = TrustedAdvisorResourceDetail.builder
+        .isSuppressed(false)
+        .metadata(metadataWithoutVpc.asJava)
+        .region("eu-west-1")
+        .status("ok")
+        .resourceId("abcdefz")
+        .build()
+
       val vpcId = TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detailWithoutVpc).value().vpcId
       vpcId shouldEqual "EC2 classic"
     }
 
     "returns a failure if it cannot parse the result" in {
       val badMetadata: List[String] = Nil
-      val badDetail = new TrustedAdvisorResourceDetail()
-        .withIsSuppressed(false)
-        .withMetadata(badMetadata.asJava)
-        .withRegion("eu-west-1")
-        .withStatus("ok")
-        .withResourceId("abcdefz")
+      val badDetail = TrustedAdvisorResourceDetail.builder
+        .isSuppressed(false)
+        .metadata(badMetadata.asJava)
+        .region("eu-west-1")
+        .status("ok")
+        .resourceId("abcdefz")
+        .build()
+
       TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(badDetail).isFailedAttempt() shouldEqual true
     }
   }

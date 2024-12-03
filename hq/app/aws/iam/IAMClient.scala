@@ -3,10 +3,7 @@ package aws.iam
 import aws.AwsAsyncHandler._
 import aws.cloudformation.CloudFormation
 import aws.{AwsAsyncHandler, AwsClient, AwsClients}
-import com.amazonaws.regions.{Region, RegionUtils, Regions}
-import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileRequest, DeleteLoginProfileResult, GenerateCredentialReportRequest, GenerateCredentialReportResult, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResult, ListUserTagsRequest, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResult}
+
 import logic.{CredentialsReportDisplay, Retry}
 import model.{AwsAccount, CredentialActive, CredentialDisabled, CredentialMetadata, CredentialReportDisplay, HumanUser, IAMCredential, IAMCredentialsReport, IAMUser, Tag}
 import org.joda.time.DateTime
@@ -17,30 +14,36 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileRequest, DeleteLoginProfileResponse, GenerateCredentialReportRequest, GenerateCredentialReportResponse, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResponse, ListUserTagsRequest, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResponse, StatusType}
+import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.s3.S3AsyncClient
+
 
 object IAMClient extends Logging {
 
-  val SOLE_REGION = RegionUtils.getRegion("us-east-1")
+  val SOLE_REGION = Region.of("us-east-1")
 
-  private def generateCredentialsReport(client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResult] = {
-    val request = new GenerateCredentialReportRequest()
-    handleAWSErrs(client)(awsToScala(client)(_.generateCredentialReportAsync)(request))
+  private def generateCredentialsReport(client: AwsClient[IamAsyncClient])(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResponse] = {
+    val request = GenerateCredentialReportRequest.builder.build()
+    handleAWSErrs(client)(asScala(client.client.generateCredentialReport(request)))
   }
 
-  private def getCredentialsReport(client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
-    val request = new GetCredentialReportRequest()
-    handleAWSErrs(client)(awsToScala(client)(_.getCredentialReportAsync)(request)).flatMap(CredentialsReport.extractReport)
+  private def getCredentialsReport(client: AwsClient[IamAsyncClient])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
+    val request = GetCredentialReportRequest.builder.build()
+    handleAWSErrs(client)(asScala(client.client.getCredentialReport(request))).flatMap(CredentialsReport.extractReport)
   }
 
   /**
     * Attempts to update 'credential' with tags fetched from AWS. If the request to AWS fails, return the original credential
     * @return Updated or original credential
     */
-  private def enrichCredentialWithTags(credential: IAMCredential, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext) = {
-    val request = new ListUserTagsRequest().withUserName(credential.user)
-    val result = awsToScala(client)(_.listUserTagsAsync)(request)
+  private def enrichCredentialWithTags(credential: IAMCredential, client: AwsClient[IamAsyncClient])(implicit ec: ExecutionContext) = {
+    val request = ListUserTagsRequest.builder.userName(credential.user).build()
+    val result = asScala(client.client.listUserTags(request))
     result.map { tagsResult =>
-      val tagsList = tagsResult.getTags.asScala.toList.map(t => Tag(t.getKey, t.getValue))
+      val tagsList = tagsResult.tags.asScala.toList.map(t => Tag(t.key, t.value))
       credential.copy(tags = tagsList)
     }
       // If the request to fetch tags fails, just return the original user
@@ -50,7 +53,7 @@ object IAMClient extends Logging {
       }
   }
 
-  private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
+  private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[IamAsyncClient])(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
     val updatedEntries = Future.sequence(report.entries.map(e => {
       // the root user isn't a normal IAM user - exclude from tag lookup
       if (!IAMCredential.isRootUser(e.user)) {
@@ -68,8 +71,8 @@ object IAMClient extends Logging {
   def getCredentialReportDisplay(
     account: AwsAccount,
     currentData: Either[FailedAttempt, CredentialReportDisplay],
-    cfnClients: AwsClients[AmazonCloudFormationAsync],
-    iamClients: AwsClients[AmazonIdentityManagementAsync],
+    cfnClients: AwsClients[CloudFormationAsyncClient],
+    iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val delay = 3.seconds
@@ -91,8 +94,8 @@ object IAMClient extends Logging {
   def getAllCredentialReports(
     accounts: Seq[AwsAccount],
     currentData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
-    cfnClients: AwsClients[AmazonCloudFormationAsync],
-    iamClients: AwsClients[AmazonIdentityManagementAsync],
+    cfnClients: AwsClients[CloudFormationAsyncClient],
+    iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
   )(implicit executionContext: ExecutionContext): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
@@ -102,60 +105,60 @@ object IAMClient extends Logging {
     }
   }
 
-  def listUserAccessKeys(account: AwsAccount, user: IAMUser, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[List[CredentialMetadata]] = {
+  def listUserAccessKeys(account: AwsAccount, user: IAMUser, iamClients: AwsClients[IamAsyncClient])(implicit ec: ExecutionContext): Attempt[List[CredentialMetadata]] = {
     for {
       client <- iamClients.get(account, SOLE_REGION)
       result <- listAccessKeys(client, user)
-      keyMetdatas = result.getAccessKeyMetadata.asScala.toList
+      keyMetdatas = result.accessKeyMetadata.asScala.toList
       credentialMetadatas <- Attempt.traverse(keyMetdatas) { akm =>
         for {
-          credentialStatus <- akm.getStatus match {
-            case "Active" =>
+          credentialStatus <- akm.status match {
+            case StatusType.ACTIVE =>
               Attempt.Right (CredentialActive)
-            case "Inactive" =>
+            case StatusType.INACTIVE =>
               Attempt.Right (CredentialDisabled)
-            case unexpected =>
+            case StatusType.UNKNOWN_TO_SDK_VERSION =>
               Attempt.Left {
                 Failure (
-                  s"Could not create credential metadata from unexpected status value $unexpected (expected 'Active' or 'Inactive')",
+                  s"Could not create credential metadata from status value, as it is unknown to SDK version (expected 'Active' or 'Inactive')",
                   "Couldn't lookup AWS Access Key metadata",
                   500
                 )
               }
           }
-        } yield CredentialMetadata(akm.getUserName, akm.getAccessKeyId, new DateTime(akm.getCreateDate), credentialStatus)
+        } yield CredentialMetadata(akm.userName, akm.accessKeyId, new DateTime(akm.createDate), credentialStatus)
       }
     } yield credentialMetadatas
   }
 
-  private def listAccessKeys(client: AwsClient[AmazonIdentityManagementAsync], user: IAMUser)(implicit ec: ExecutionContext): Attempt[ListAccessKeysResult] = {
-    val request = new ListAccessKeysRequest().withUserName(user.username)
-    handleAWSErrs(client)(awsToScala(client)(_.listAccessKeysAsync)(request))
+  private def listAccessKeys(client: AwsClient[IamAsyncClient], user: IAMUser)(implicit ec: ExecutionContext): Attempt[ListAccessKeysResponse] = {
+    val request = ListAccessKeysRequest.builder.userName(user.username).build()
+    handleAWSErrs(client)(asScala(client.client.listAccessKeys(request)))
   }
 
-  def disableAccessKey(awsAccount: AwsAccount, username: String, accessKeyId: String, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[UpdateAccessKeyResult] = {
-    val request = new UpdateAccessKeyRequest()
-      .withUserName(username)
-      .withAccessKeyId(accessKeyId)
-      .withStatus("Inactive")
+  def disableAccessKey(awsAccount: AwsAccount, username: String, accessKeyId: String, iamClients: AwsClients[IamAsyncClient])(implicit ec: ExecutionContext): Attempt[UpdateAccessKeyResponse] = {
+    val request = UpdateAccessKeyRequest.builder
+      .userName(username)
+      .accessKeyId(accessKeyId)
+      .status("Inactive")
+      .build()
     for {
       client <- iamClients.get(awsAccount, SOLE_REGION)
-      result <- handleAWSErrs(client)(awsToScala(client)(_.updateAccessKeyAsync)(request))
+      result <- handleAWSErrs(client)(asScala(client.client.updateAccessKey(request)))
     } yield result
   }
 
-  private def handleDeleteLoginProfileErrs(awsClient: AwsClient[AmazonIdentityManagementAsync], username: String)(f: => Future[DeleteLoginProfileResult])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] =
+  private def handleDeleteLoginProfileErrs(awsClient: AwsClient[IamAsyncClient], username: String)(f: => Future[DeleteLoginProfileResponse])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResponse]] =
     AwsAsyncHandler.handleAWSErrs(awsClient)(f.map(Some.apply).recover({
       case e if e.getMessage.contains(s"Login Profile for User $username cannot be found") => None
       case _: NoSuchEntityException => None
     }))
 
-  def deleteLoginProfile(awsAccount: AwsAccount, username: String, iamClients: AwsClients[AmazonIdentityManagementAsync])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResult]] = {
-    val request = new DeleteLoginProfileRequest()
-      .withUserName(username)
+  def deleteLoginProfile(awsAccount: AwsAccount, username: String, iamClients: AwsClients[IamAsyncClient])(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResponse]] = {
+    val request = DeleteLoginProfileRequest.builder.userName(username).build()
     for {
       client <- iamClients.get(awsAccount, SOLE_REGION)
-      result <- handleDeleteLoginProfileErrs(client, username)(awsToScala(client)(_.deleteLoginProfileAsync)(request))
+      result <- handleDeleteLoginProfileErrs(client, username)(asScala(client.client.deleteLoginProfile(request)))
     } yield result
   }
 }
