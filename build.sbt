@@ -112,48 +112,12 @@ lazy val hq = (project in file("hq"))
 
   )
 
-// More will go here!
 
-lazy val commonLambdaSettings = Seq(
-  Universal / topLevelDirectory := None,
-  mergeStrategySettings
-)
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
 
-lazy val lambdaCommon = (project in file("lambda/common")).
-  settings(commonLambdaSettings: _*).
-  settings(
-    name := """lambda-common""",
-    libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-events" % "3.14.0",
-      "com.amazonaws" % "aws-lambda-java-core" % "1.2.3",
-      "software.amazon.awssdk" % "s3" % awsSdkVersion,
-      "software.amazon.awssdk" % "elasticloadbalancingv2" % awsSdkVersion,
-      "software.amazon.awssdk" % "sts" % awsSdkVersion,
-      "software.amazon.awssdk" % "sns" % awsSdkVersion,
-
-      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
-      "org.playframework" %% "play-json" % playJsonVersion,
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-      "ch.qos.logback" % "logback-classic" % "1.5.12",
-      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
-    )
-  )
-
-lazy val lambdaSecurityGroups = (project in file("lambda/security-groups")).
-  settings(commonLambdaSettings: _*).
-  dependsOn(lambdaCommon % "compile->compile;test->test").
-  settings(
-    name := """securitygroups-lambda""",
-    assembly / assemblyJarName := s"${name.value}-${version.value}.jar",
-    libraryDependencies ++= Seq(
-      "com.gu" %% "anghammarad-client" % "4.0.0"
-    )
-)
-
 lazy val root = (project in file(".")).
-  aggregate(hq, lambdaCommon, lambdaSecurityGroups).
+  aggregate(hq).
   settings(
     name := """security-hq"""
   )
