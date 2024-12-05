@@ -18,14 +18,6 @@ case class AwsStack(
   region: String
 )
 
-case class StackResource(
-  stackId: String,
-  stackName: String,
-  physicalResourceId: String,
-  logicalResourceId: String,
-  resourceStatus: String,
-  resourceType: String
-)
 
 case class IAMCredentialsReport(
   generatedAt: DateTime,

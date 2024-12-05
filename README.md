@@ -100,19 +100,6 @@ The emails are sent via Anghammarad and uses its AWS Account to email address ma
 
 You can also find the dynamo table in the Security AWS Account.
 
-### Lambda
-Security HQ holds a Lambda, which checks for security groups that are open to the world, except ELB groups. This data is used for `https://security-hq.gutools.co.uk/security-groups`.
-
-It is deployed as a stack set and is defined in  `cloudformation/watched-account.template.yaml`.
-
-#### Deployment (currently manual)
-1. Update the version in `build.sbt`.
-2. Build the lambda by running `.script/package-lambda`.
-2. Upload it to S3 (ask DevX where the bucket is located).
-3. Deploy the stack set manually (ask DevX if you are unsure of how to do this), making sure to update the version parameter.
-
-**NOTE: The version is important**, because the cloudformation `version` parameter is used to locate the correct S3 file. The lambda code will not change unless a new version is deployed, even if the infrastructure changes. 
-
 ## Further docs in this repo
 
 [SSH Access](hq/markdown/ssh-access.md)

@@ -66,16 +66,6 @@ $(document).ready(function() {
     });
   });
 
-  // Extra interactions for the dropdowns on the Security Groups page
-  $('.js-finding-details').hover(
-    function() {
-      $(this).collapsible('open', 0);
-    },
-    function() {
-      $(this).collapsible('close', 0);
-    }
-  );
-
   // filtering table results
   $('.js-finding-filter').change(function() {
     $('#show-ignored-findings')[0].checked
