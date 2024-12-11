@@ -1,21 +1,22 @@
 package aws.ec2
 
-import aws.AwsAsyncHandler.{awsToScala, handleAWSErrs}
+import aws.AwsAsyncHandler.{asScala, handleAWSErrs}
 import aws.AwsClient
-import com.amazonaws.services.ec2.AmazonEC2Async
-import com.amazonaws.services.ec2.model._
 import utils.attempt.Attempt
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
+import software.amazon.awssdk.services.ec2.Ec2AsyncClient
+import software.amazon.awssdk.services.ec2.model.DescribeRegionsRequest
+import software.amazon.awssdk.services.ec2.model.Region
 
 object EC2 {
 
-  def getAvailableRegions(client: AwsClient[AmazonEC2Async])(implicit ec: ExecutionContext): Attempt[List[Region]] = {
-    val request = new DescribeRegionsRequest()
-    handleAWSErrs(client)(awsToScala(client)(_.describeRegionsAsync)(request)).map { result =>
-      result.getRegions.asScala.toList
+  def getAvailableRegions(client: AwsClient[Ec2AsyncClient])(implicit ec: ExecutionContext): Attempt[List[Region]] = {
+    val request = DescribeRegionsRequest.builder.build()
+    handleAWSErrs(client)(asScala(client.client.describeRegions(request))).map { result =>
+      result.regions.asScala.toList
     }
   }
 

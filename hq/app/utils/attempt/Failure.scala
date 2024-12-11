@@ -69,7 +69,7 @@ object Failure {
 
   def contextString(clientContext: AwsClient[_]): String = {
     val acc = s"account: ${clientContext.account.name}"
-    val reg = s"region: ${clientContext.region.getName}"
+    val reg = s"region: ${clientContext.region.id}"
     s"$acc, $reg"
   }
 

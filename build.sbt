@@ -12,9 +12,9 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "1.12.778"
+val awsSdkVersion = "2.29.25"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.18.1"
+val jacksonVersion = "2.18.2"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -31,24 +31,25 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "15.1.1",
-      "com.gu.play-secret-rotation" %% "play-v30" % "11.3.8",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v1" % "11.3.8",
+      "com.gu.play-googleauth" %%  "play-v30" % "17.0.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "13.1.0",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "13.1.0",
+
       "joda-time" % "joda-time" % "2.13.0",
       "org.typelevel" %% "cats-core" % "2.12.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
-      "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-iam" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-support" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-ec2" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-cloudformation" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-efs" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion,
+      "software.amazon.awssdk" % "iam" % awsSdkVersion,
+      "software.amazon.awssdk" % "cloudformation" % awsSdkVersion,
+      "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
+      "software.amazon.awssdk" % "dynamodb" % awsSdkVersion,
+      "software.amazon.awssdk" % "ec2" % awsSdkVersion,
+      "software.amazon.awssdk" % "efs" % awsSdkVersion,
+      "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "software.amazon.awssdk" % "sns" % awsSdkVersion,
+      "software.amazon.awssdk" % "ssm" % awsSdkVersion,
+      "software.amazon.awssdk" % "sts" % awsSdkVersion,
+      "software.amazon.awssdk" % "support" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.64.8",
-      "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-ssm" % awsSdkVersion,
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
@@ -127,13 +128,11 @@ lazy val lambdaCommon = (project in file("lambda/common")).
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-events" % "3.14.0",
       "com.amazonaws" % "aws-lambda-java-core" % "1.2.3",
-      "com.amazonaws" % "aws-java-sdk-lambda" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-elasticloadbalancing" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-config" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-sns" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-sts" % awsSdkVersion,
-      "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion,
+      "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "software.amazon.awssdk" % "elasticloadbalancingv2" % awsSdkVersion,
+      "software.amazon.awssdk" % "sts" % awsSdkVersion,
+      "software.amazon.awssdk" % "sns" % awsSdkVersion,
+
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.playframework" %% "play-json" % playJsonVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",

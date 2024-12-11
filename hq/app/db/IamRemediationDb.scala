@@ -1,7 +1,5 @@
 package db
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model._
 import db.IamRemediationDb.{deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
 import model._
 import org.joda.time.DateTime
@@ -11,8 +9,10 @@ import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model._
 
-class IamRemediationDb(client: AmazonDynamoDB) {
+class IamRemediationDb(client: DynamoDbClient) {
   /**
     * Searches for all notification activity for this IAM user.
     * The application can then filter it down to relevant notifications.
@@ -30,12 +30,12 @@ class IamRemediationDb(client: AmazonDynamoDB) {
   def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity, tableName: String)(implicit ec: ExecutionContext): Attempt[String] = {
     for {
       result <- put(writePutRequest(iamRemediationActivity, tableName))
-    } yield result.getSdkResponseMetadata.getRequestId
+    } yield result.responseMetadata.requestId
   }
 
   private def scan(request: ScanRequest)(implicit ec: ExecutionContext): Attempt[List[Map[String, AttributeValue]]] = {
     try {
-      Attempt.Right(client.scan(request).getItems.asScala.toList.map(_.asScala.toMap))
+      Attempt.Right(client.scan(request).items.asScala.toList.map(_.asScala.toMap))
     } catch {
       case NonFatal(e) =>
         Attempt.Left(
@@ -51,7 +51,7 @@ class IamRemediationDb(client: AmazonDynamoDB) {
 
   private def get(request: GetItemRequest)(implicit ec: ExecutionContext): Attempt[Map[String, AttributeValue]] = {
     try {
-      Attempt.Right(client.getItem(request).getItem.asScala.toMap)
+      Attempt.Right(client.getItem(request).item.asScala.toMap)
     } catch {
       case NonFatal(e) =>
         Attempt.Left(
@@ -65,7 +65,7 @@ class IamRemediationDb(client: AmazonDynamoDB) {
     }
   }
 
-  private def put(request: PutItemRequest)(implicit ec: ExecutionContext): Attempt[PutItemResult] = {
+  private def put(request: PutItemRequest)(implicit ec: ExecutionContext): Attempt[PutItemResponse] = {
     try {
       Attempt.Right(client.putItem(request))
     } catch {
@@ -83,17 +83,18 @@ class IamRemediationDb(client: AmazonDynamoDB) {
 }
 
 object IamRemediationDb {
-  private[db] def S(str: String) = new AttributeValue().withS(str)
-  private[db] def L(list: List[AttributeValue]) = new AttributeValue().withL(list.asJava)
-  private[db] def N(number: Long) = new AttributeValue().withN(number.toString)
-  private[db] def N(number: Double) = new AttributeValue().withN(number.toString)
-  private[db] def B(boolean: Boolean) = new AttributeValue().withBOOL(boolean)
-  private[db] def M(map: Map[String,  AttributeValue]) = new AttributeValue().withM(map.asJava)
+  private[db] def S(str: String) = AttributeValue.builder.s(str).build()
+  private[db] def L(list: List[AttributeValue]) = AttributeValue.builder.l(list.asJava).build()
+  private[db] def N(number: Long) = AttributeValue.builder.n(number.toString).build()
+  private[db] def N(number: Double) = AttributeValue.builder.n(number.toString).build()
+  private[db] def B(boolean: Boolean) = AttributeValue.builder.bool(boolean).build()
+  private[db] def M(map: Map[String,  AttributeValue]) = AttributeValue.builder.m(map.asJava).build()
 
   private[db] def lookupScanRequest(username: String, accountId: String, tableName: String): ScanRequest = {
-    new ScanRequest().withTableName(tableName)
-      .withFilterExpression("id = :key")
-      .withExpressionAttributeValues(Map(":key" -> S(s"${accountId}/${username}")).asJava)
+    ScanRequest.builder.tableName(tableName)
+      .filterExpression("id = :key")
+      .expressionAttributeValues(Map(":key" -> S(s"${accountId}/${username}")).asJava)
+      .build()
   }
 
   private[db] def writePutRequest(iamRemediationActivity: IamRemediationActivity, tableName: String): PutItemRequest = {
@@ -124,7 +125,7 @@ object IamRemediationDb {
       "problemCreationDate" -> N(problemCreationDate.getMillis)
     )
 
-    new PutItemRequest().withTableName(tableName).withItem(item.asJava)
+    PutItemRequest.builder.tableName(tableName).item(item.asJava).build()
   }
 
   /**
@@ -132,14 +133,14 @@ object IamRemediationDb {
     */
   private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue])(implicit ec: ExecutionContext): Attempt[IamRemediationActivity] = {
     for {
-      awsAccountId <- valueFromDbData(dbData, "awsAccountId", _.getS)
-      username <- valueFromDbData(dbData, "username", _.getS)
-      dateNotificationSent <- valueFromDbData(dbData, "dateNotificationSent", _.getN.toLong)
-      iamRemediationActivityTypeString <- valueFromDbData(dbData, "iamRemediationActivityType", _.getS)
+      awsAccountId <- valueFromDbData(dbData, "awsAccountId", _.s)
+      username <- valueFromDbData(dbData, "username", _.s)
+      dateNotificationSent <- valueFromDbData(dbData, "dateNotificationSent", _.n.toLong)
+      iamRemediationActivityTypeString <- valueFromDbData(dbData, "iamRemediationActivityType", _.s)
       iamRemediationActivity <- iamRemediationActivityFromString(iamRemediationActivityTypeString)
-      iamProblemString <- valueFromDbData(dbData, "iamProblem", _.getS)
+      iamProblemString <- valueFromDbData(dbData, "iamProblem", _.s)
       iamProblem <- iamProblemFromString(iamProblemString)
-      problemCreationDate <- valueFromDbData(dbData, "problemCreationDate", _.getN.toLong)
+      problemCreationDate <- valueFromDbData(dbData, "problemCreationDate", _.n.toLong)
     } yield {
       IamRemediationActivity(awsAccountId,
         username,

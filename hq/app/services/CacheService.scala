@@ -3,11 +3,6 @@ package services
 import aws.AwsClients
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
-import com.amazonaws.regions.Region
-import com.amazonaws.services.cloudformation.AmazonCloudFormationAsync
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.support.AWSSupportAsync
 import config.Config
 import model._
 import play.api._
@@ -20,14 +15,21 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
 import utils.Box
 
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.support.SupportAsyncClient
+
+
 class CacheService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    cfnClients: AwsClients[AmazonCloudFormationAsync],
-    taClients: AwsClients[AWSSupportAsync],
-    s3Clients: AwsClients[AmazonS3],
-    iamClients: AwsClients[AmazonIdentityManagementAsync],
+    cfnClients: AwsClients[CloudFormationAsyncClient],
+    taClients: AwsClients[SupportAsyncClient],
+    s3Clients: AwsClients[S3Client],
+    iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
 )(implicit ec: ExecutionContext)
     extends Logging {

@@ -4,8 +4,7 @@ import java.io.StringReader
 import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import com.github.tototoshi.csv._
 import org.joda.time.{DateTime, Hours, Seconds}
-import com.amazonaws.regions.{Region, RegionUtils, Regions}
-import com.amazonaws.services.identitymanagement.model.{GenerateCredentialReportResult, GetCredentialReportResult}
+
 import logic.DateUtils
 import net.logstash.logback.marker.Markers.appendEntries
 import play.api.{Logging, MarkerContext}
@@ -15,9 +14,12 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 import scala.jdk.CollectionConverters._
 
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.iam.model.{GenerateCredentialReportResponse, GetCredentialReportResponse}
+
 object CredentialsReport extends Logging {
 
-  def isComplete(report: GenerateCredentialReportResult): Boolean = report.getState == "COMPLETE"
+  def isComplete(report: GenerateCredentialReportResponse): Boolean = report.state == "COMPLETE"
 
   def credentialsReportReadyForRefresh(currentReport: Either[FailedAttempt, CredentialReportDisplay], currentTime: DateTime): Boolean = {
     currentReport match {
@@ -50,11 +52,9 @@ object CredentialsReport extends Logging {
     }
   }
 
-  def extractReport(result: GetCredentialReportResult)(implicit  ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
-    val content = result.getContent
-    val dest = new Array[Byte](content.capacity())
-    content.get(dest, 0, dest.length)
-    tryParsingReport(new String(dest)) map (IAMCredentialsReport(new DateTime(result.getGeneratedTime), _))
+  def extractReport(response: GetCredentialReportResponse)(implicit  ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
+    val report = response.content.asUtf8String()
+    tryParsingReport(report).map(IAMCredentialsReport(new DateTime(response.generatedTime), _))
   }
 
 
@@ -73,7 +73,7 @@ object CredentialsReport extends Logging {
 
   def parseRegionOpt(cell: String): Option[Region] = {
     if (cell == "N/A") None
-    else Some(RegionUtils.getRegion(cell))
+    else Some(Region.of(cell))
   }
 
   def parseStrOpt(cell: String): Option[String] = {

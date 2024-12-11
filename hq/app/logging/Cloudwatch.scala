@@ -1,7 +1,5 @@
 package logging
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
-import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
 import logic.CredentialsReportDisplay.{ReportSummary, reportStatusSummary}
 import model.{AwsAccount, CredentialReportDisplay}
 import play.api.Logging
@@ -10,10 +8,13 @@ import utils.attempt.FailedAttempt
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
+
 
 object Cloudwatch extends Logging {
 
-  val cloudwatchClient = AmazonCloudWatchClientBuilder.defaultClient
+  val cloudwatchClient = CloudWatchClient.builder.build()
 
   val defaultNamespace = "SecurityHQ"
 
@@ -64,9 +65,9 @@ object Cloudwatch extends Logging {
   }
 
   private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
-    val dimension = metricDimensions.map( d => (new Dimension).withName(d._1).withValue(d._2)).toList
-    val datum = new MetricDatum().withMetricName(metricName).withUnit(StandardUnit.Count).withValue(value.toDouble).withDimensions(dimension.asJava)
-    val request = new PutMetricDataRequest().withNamespace(namespace).withMetricData(datum)
+    val dimension = metricDimensions.map( d => Dimension.builder.name(d._1).value(d._2).build()).toList
+    val datum = MetricDatum.builder.metricName(metricName).unit(StandardUnit.COUNT).value(value.toDouble).dimensions(dimension.asJava).build()
+    val request = PutMetricDataRequest.builder.namespace(namespace).metricData(datum).build()
 
     Try(cloudwatchClient.putMetricData(request)) match {
       case Success(_) => logger.debug(s"putMetric success: $datum")

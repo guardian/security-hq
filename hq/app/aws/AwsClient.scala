@@ -1,7 +1,7 @@
 package aws
 
-import com.amazonaws.regions.Region
 import model.AwsAccount
+import software.amazon.awssdk.regions.Region
 
 case class AwsClient[A](
   client: A,

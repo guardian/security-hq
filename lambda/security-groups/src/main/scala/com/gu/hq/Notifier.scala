@@ -1,6 +1,5 @@
 package com.gu.hq
 
-import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models._
 import com.gu.hq.Events.{NotRelevant, Relevance, Relevant}
@@ -13,6 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
+import software.amazon.awssdk.services.sns.SnsAsyncClient
 
 object Notifier extends StrictLogging {
   private val subject = "Open Security Group Notification"
@@ -51,7 +51,7 @@ object Notifier extends StrictLogging {
   def send(
     notification: Notification,
     topicArn: String,
-    snsClient: AmazonSNSAsync): Unit = {
+    snsClient: SnsAsyncClient): Unit = {
 
     val result = Anghammarad.notify(notification, topicArn, snsClient)
 
