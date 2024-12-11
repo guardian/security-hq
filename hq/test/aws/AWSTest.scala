@@ -1,11 +1,11 @@
 package aws
 
-import com.amazonaws.regions.{RegionUtils, Regions}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.freespec.AnyFreeSpec
 import play.api.Configuration
 import utils.attempt.AttemptValues
 import org.scalatest.matchers.should.Matchers
+import software.amazon.awssdk.regions.Region
 
 class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
 
@@ -35,7 +35,7 @@ class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
     )
     val configuration = Configuration(config)
 
-    val regions = List(RegionUtils.getRegion("eu-west-1"), RegionUtils.getRegion("eu-west-2"), RegionUtils.getRegion("eu-west-3"), RegionUtils.getRegion("eu-central-1"))
+    val regions = List(Region.of("eu-west-1"), Region.of("eu-west-2"), Region.of("eu-west-3"), Region.of("eu-central-1"))
 
     //Two accounts, three regions.
     val allRegionsSize = regions.size * 2

@@ -1,8 +1,8 @@
 package model
 
-import com.amazonaws.regions.Region
 import com.gu.anghammarad.models.{App, Stack, Target, Stage => AnghammaradStage}
 import org.joda.time.DateTime
+import software.amazon.awssdk.regions.Region
 
 
 case class AwsAccount(

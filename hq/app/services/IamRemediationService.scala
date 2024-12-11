@@ -3,9 +3,6 @@ package services
 import aws.AwsClients
 import aws.iam.IAMClient
 import aws.s3.S3.getS3Object
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.sns.AmazonSNSAsync
 import com.gu.janus.JanusConfig
 import config.Config._
 import db.IamRemediationDb
@@ -22,6 +19,10 @@ import utils.attempt.Attempt
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.sns.SnsAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
+
 
 /**
   * A collection of jobs for automatically fixing IAM problems in our AWS accounts.
@@ -33,9 +34,9 @@ import scala.concurrent.{ExecutionContext, Future}
   * notifications have been sent.
   */
 class IamRemediationService(
-  cacheService: CacheService, snsClient: AmazonSNSAsync, dynamo: IamRemediationDb,
-  config: Configuration, iamClients: AwsClients[AmazonIdentityManagementAsync], lifecycle: ApplicationLifecycle, environment: Environment,
-  securityS3Client: AmazonS3,
+  cacheService: CacheService, snsClient: SnsAsyncClient, dynamo: IamRemediationDb,
+  config: Configuration, iamClients: AwsClients[IamAsyncClient], lifecycle: ApplicationLifecycle, environment: Environment,
+  securityS3Client: S3Client,
 )(implicit ec: ExecutionContext) extends Logging {
 
   /**

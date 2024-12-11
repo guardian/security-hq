@@ -1,10 +1,10 @@
 package db
 
 import org.scalatest.OptionValues
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import org.joda.time.DateTime
 import db.IamRemediationDb.{N, S, deserialiseIamRemediationActivity, lookupScanRequest, writePutRequest}
 import model.{FinalWarning, IamRemediationActivity, OutdatedCredential}
-import org.joda.time.DateTime
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import utils.attempt.AttemptValues
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,7 +51,7 @@ class IamRemediationDbTest extends AnyFreeSpec with Matchers with AttemptValues 
     "creates scan request that filters on record id, which uses aws account id and username" in {
       lookupScanRequest(testUser, accountId, tableName) should have(
         Symbol("filterExpression") ("id = :key"),
-        Symbol("expressionAttributeValues") (Map(":key" -> new AttributeValue().withS(s"$accountId/$testUser")).asJava)
+        Symbol("expressionAttributeValues") (Map(":key" -> AttributeValue.builder.s(s"$accountId/$testUser").build()).asJava)
       )
     }
   }
@@ -65,8 +65,8 @@ class IamRemediationDbTest extends AnyFreeSpec with Matchers with AttemptValues 
     }
 
     "the record id is made up of aws account id and username" in {
-      val id = writePutRequest(iamRemediationActivity, tableName).getItem.asScala.get("id").value
-      id.getS shouldEqual s"$accountId/$testUser"
+      val id = writePutRequest(iamRemediationActivity, tableName).item.asScala.get("id").value
+      id.s shouldEqual s"$accountId/$testUser"
     }
   }
 

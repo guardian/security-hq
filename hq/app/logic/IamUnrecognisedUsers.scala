@@ -2,8 +2,6 @@ package logic
 
 import aws.AwsClients
 import aws.iam.IAMClient.{deleteLoginProfile, disableAccessKey, listUserAccessKeys}
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementAsync
-import com.amazonaws.services.identitymanagement.model.{DeleteLoginProfileResult, UpdateAccessKeyResult}
 import com.gu.anghammarad.models.Notification
 import com.gu.janus.model.JanusData
 import logging.Cloudwatch
@@ -17,6 +15,9 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.concurrent.ExecutionContext
+
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileResponse, UpdateAccessKeyResponse}
 
 object IamUnrecognisedUsers extends Logging {
   val USERNAME_TAG_KEY = "GoogleUsername"
@@ -82,7 +83,7 @@ object IamUnrecognisedUsers extends Logging {
 
   def listAccountAccessKeys(
     accountUnrecognisedUsers: AccountUnrecognisedUsers,
-    iamClients: AwsClients[AmazonIdentityManagementAsync]
+    iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[AccountUnrecognisedAccessKeys] = {
     val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
     Attempt.flatTraverse(users)(listUserAccessKeys(account, _, iamClients)).map {
@@ -92,8 +93,8 @@ object IamUnrecognisedUsers extends Logging {
 
   def disableAccountAccessKeys(
     accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
-    iamClients: AwsClients[AmazonIdentityManagementAsync]
-  )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResult]] = {
+    iamClients: AwsClients[IamAsyncClient]
+  )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
     val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
     val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
     val disableKeysAttempt = Attempt.traverse(activeAccessKeys)(key =>
@@ -116,8 +117,8 @@ object IamUnrecognisedUsers extends Logging {
 
   def removeAccountPasswords(
     accountUnrecognisedUsers: AccountUnrecognisedUsers,
-    iamClients: AwsClients[AmazonIdentityManagementAsync]
-  )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResult]]] = {
+    iamClients: AwsClients[IamAsyncClient]
+  )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
     val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user => deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients))
     results.tap {
       case Left(failure) =>
