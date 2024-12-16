@@ -38,6 +38,18 @@ Resources:
             Resource: "*"
             Action:
             - s3:GetEncryptionConfiguration
+            # Analyse security groups
+            - trustedadvisor:Describe*
+            - trustedadvisor:Refresh*
+            - support:*
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DescribeNetworkInterfaceAttribute
+            - ec2:DescribeRegions
+            - ec2:DescribeSecurityGroups
+            - ec2:DescribeVpcs
+            - elasticfilesystem:DescribeFileSystems
+            - elasticfilesystem:DescribeMountTargets
+            - elasticfilesystem:DescribeMountTargetSecurityGroups
             # IAM credentials overview
             - iam:GenerateCredentialReport
             - iam:GetCredentialReport
