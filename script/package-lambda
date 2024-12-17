@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-sbt '; project lambdaSecurityGroups; clean; compile; test; assembly'
-cp lambda/security-groups/target/scala-*/securitygroups-lambda-*.jar .
-echo "Copied jar to root of project"
