@@ -31,9 +31,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "17.0.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "13.1.0",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "13.1.0",
+      "com.gu.play-googleauth" %%  "play-v30" % "17.1.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "13.1.1",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "13.1.1",
 
       "joda-time" % "joda-time" % "2.13.0",
       "org.typelevel" %% "cats-core" % "2.12.0",
@@ -53,7 +53,7 @@ lazy val hq = (project in file("hq"))
       "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-      "org.scalatest" %% "scalatest" % "3.2.14" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.18.1" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
