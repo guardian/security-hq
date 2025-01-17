@@ -7,7 +7,7 @@ import scala.concurrent.duration.DurationInt
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
-ThisBuild / scalaVersion := "2.13.15"
+ThisBuild / scalaVersion := "2.13.16"
 ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
 
 resolvers += DefaultMavenRepository
@@ -31,7 +31,7 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "18.0.0",
+      "com.gu.play-googleauth" %%  "play-v30" % "19.0.0",
       "com.gu.play-secret-rotation" %% "play-v30" % "13.1.2",
        "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "13.1.2",
 
