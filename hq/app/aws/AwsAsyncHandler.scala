@@ -48,7 +48,7 @@ object AwsAsyncHandler {
       } else if (e.getMessage.contains("Rate exceeded")) {
         Failure.rateLimitExceeded(serviceNameOpt, awsClient).attempt
       } else {
-        Failure.awsError(serviceNameOpt, awsClient).attempt
+        Failure.awsError(serviceNameOpt, awsClient, e).attempt
       }
     }
   }
