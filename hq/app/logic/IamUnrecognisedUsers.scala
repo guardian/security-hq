@@ -33,7 +33,12 @@ object IamUnrecognisedUsers extends Logging {
   def getCredsReportDisplayForAccount[A, B](allCreds: Map[A, Either[FailedAttempt, B]]): List[(A, B)] = {
     allCreds.toList.foldLeft[List[(A, B)]](Nil) {
       case (acc, (_, Left(failure))) =>
-        logger.error(s"unable to generate credential report display: ${failure.logMessage}")
+        failure.firstException match {
+          case Some(cause) =>
+            logger.error(s"unable to generate credential report display: ${failure.logMessage}", cause)
+          case None =>
+            logger.error(s"unable to generate credential report display: ${failure.logMessage}")
+        }
         acc
       case (acc, (account, Right(credReportDisplay))) =>
         (account, credReportDisplay) :: acc

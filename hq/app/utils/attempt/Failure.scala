@@ -38,7 +38,7 @@ case class Failure(
 object Failure {
   // Pre-defined "common" failures
 
-  def awsError(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+  def awsError(serviceNameOpt: Option[String], clientContext: AwsClient[_], err: Throwable): Failure = {
     val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"AWS unknown error, unknown service (check logs for stacktrace), $context") { serviceName =>
       s"AWS unknown error, service: $serviceName (check logs for stacktrace), $context"
@@ -46,7 +46,7 @@ object Failure {
     val friendlyMessage = serviceNameOpt.fold("Unknown error while making API calls to AWS.") { serviceName =>
       s"Unknown error while making an API call to AWS' $serviceName service"
     }
-    Failure(details, friendlyMessage, 500)
+    Failure(details, friendlyMessage, 500, throwable = Some(err))
   }
 
   def notYetLoaded(accountId: String, cacheContent: String): Failure = {
