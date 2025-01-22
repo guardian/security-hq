@@ -1,31 +1,22 @@
 package aws
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import config.Config
-import model.{AwsAccount, DEV, PROD, Stage}
+import model.AwsAccount
 import play.api.Configuration
-import utils.attempt.{Attempt, Failure}
-
-import software.amazon.awssdk.core.client.builder.SdkClientBuilder
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder
-import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
+import software.amazon.awssdk.auth.credentials.{AwsCredentialsProviderChain, ProfileCredentialsProvider}
+import software.amazon.awssdk.awscore.client.builder.{AwsAsyncClientBuilder, AwsClientBuilder}
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.ec2.Ec2AsyncClient
+import software.amazon.awssdk.services.efs.EfsAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.ec2.Ec2AsyncClient
-import software.amazon.awssdk.services.efs.EfsAsyncClient
 import software.amazon.awssdk.services.support.SupportAsyncClient
-
-
+import utils.attempt.{Attempt, Failure}
 
 import java.util.concurrent.Executors.newCachedThreadPool
 
@@ -38,15 +29,21 @@ object AWS {
     )
   }
 
-  private def stsClientForRoleAssumption(account: AwsAccount): StsClient = {
-    StsClient.builder.region(Config.region).credentialsProvider(ProfileCredentialsProvider.create(account.id)).build()
-  }
-
   private def credentialsProvider(account: AwsAccount): AwsCredentialsProviderChain = {
     AwsCredentialsProviderChain.of(
       StsAssumeRoleCredentialsProvider.builder()
-        .stsClient(stsClientForRoleAssumption(account))
-        .refreshRequest(AssumeRoleRequest.builder.roleArn(account.roleArn).roleSessionName("security-hq").build()).build(),
+        .stsClient(
+          StsClient.builder
+            .region(Config.region)
+            .build()
+        )
+        .refreshRequest(
+          AssumeRoleRequest.builder
+            .roleArn(account.roleArn)
+            .roleSessionName("security-hq")
+            .build()
+        )
+        .build(),
       ProfileCredentialsProvider.create(account.id)
     )
   }
