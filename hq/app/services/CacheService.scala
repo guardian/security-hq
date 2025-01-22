@@ -120,8 +120,7 @@ class CacheService(
         regions
       )
     } yield {
-      logger.info("Sending the refreshed data to the Credentials Box")
-
+      logCacheDataStatus("Credentials", updatedCredentialReports)
       credentialsBox.send(updatedCredentialReports.toMap)
     }
   }
@@ -135,7 +134,7 @@ class CacheService(
         s3Clients
       )
     } yield {
-      logger.info("Sending the refreshed data to the Public Buckets Box")
+      logCacheDataStatus("Public buckets", allPublicBuckets)
       publicBucketsBox.send(allPublicBuckets.toMap)
     }
   }
@@ -148,7 +147,7 @@ class CacheService(
         taClients
       )
     } yield {
-      logger.info("Sending the refreshed data to the Exposed Keys Box")
+      logCacheDataStatus("Exposed Keys", allExposedKeys)
       exposedKeysBox.send(allExposedKeys.toMap)
     }
   }
@@ -181,6 +180,38 @@ class CacheService(
       exposedKeysSubscription.unsubscribe()
       credentialsSubscription.unsubscribe()
       Future.successful(())
+    }
+  }
+
+  /**
+   * Prints an overview of this cache data.
+   *
+   * If everything succeeded then we say as much. If the cache data contains failures
+   * we log a warning that shows which accounts are affected and give one failure
+   * as the underlying cause, if available.
+   */
+  def logCacheDataStatus[A](cacheName: String, data: Seq[(AwsAccount, Either[FailedAttempt, A])]): Unit = {
+    val (successful, failed) = data.partition { case (_, result) => result.isRight }
+
+    if (failed.isEmpty) {
+      logger.info(s"$cacheName updated: All ${data.size} accounts successful")
+    } else {
+      val failedAccountsDetails = failed.flatMap {
+        case (account, Left(failedAttempt)) =>
+          Some(s"${account.name}: ${failedAttempt.logMessage}")
+        case _ => None
+      }.mkString(", ")
+      val logMessage = s"$cacheName updated: ${successful.size}/${data.size} accounts succeeded. Failed accounts: $failedAccountsDetails"
+      failed.flatMap {
+        case (_, Left(failedAttempt)) =>
+          failedAttempt.firstException
+        case _ => None
+      }.headOption match {
+        case None =>
+          logger.warn(logMessage)
+        case Some(exampleCausedBy) =>
+          logger.warn(s"$logMessage - see stacktrace for an example cause", exampleCausedBy)
+      }
     }
   }
 }
