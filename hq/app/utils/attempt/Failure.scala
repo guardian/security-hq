@@ -7,7 +7,8 @@ case class FailedAttempt(failures: List[Failure]) {
 
   def logMessage: String = failures.map { failure =>
     val context = failure.context.fold("")(c => s" ($c)")
-    s"${failure.message}$context"
+    val causedBy = firstException.fold("")(err => s" caused by: ${err.getMessage}")
+    s"${failure.message}$context$causedBy"
   }.mkString(", ")
 
   def firstException: Option[Throwable] = {
