@@ -31,12 +31,12 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "19.0.0",
+      "com.gu.play-googleauth" %%  "play-v30" % "19.0.1",
       "com.gu.play-secret-rotation" %% "play-v30" % "13.1.2",
        "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "13.1.2",
 
       "joda-time" % "joda-time" % "2.13.0",
-      "org.typelevel" %% "cats-core" % "2.12.0",
+      "org.typelevel" %% "cats-core" % "2.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
       "software.amazon.awssdk" % "cloudformation" % awsSdkVersion,
