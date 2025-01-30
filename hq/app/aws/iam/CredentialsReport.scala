@@ -53,7 +53,7 @@ object CredentialsReport extends Logging {
 
   def extractReport(response: GetCredentialReportResponse)(implicit  ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
     val report = response.content.asUtf8String()
-    tryParsingReport(report).map(IAMCredentialsReport(new DateTime(response.generatedTime), _))
+    tryParsingReport(report).map(IAMCredentialsReport(new DateTime(response.generatedTime.toEpochMilli), _))
   }
 
 
