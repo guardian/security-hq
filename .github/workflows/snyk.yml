@@ -4,11 +4,12 @@ on:
   push:
     branches:
       - main
+      - ts/kc/test-snyk-workflow
   workflow_dispatch:
 
 jobs:
   security:
-    uses: guardian/.github/.github/workflows/sbt-node-snyk.yml@main
+    uses: guardian/.github/.github/workflows/sbt-node-snyk.yml@ts/kc/deprecate-snyk-workflow
     with:
       DEBUG: true
       ORG: guardian-security
