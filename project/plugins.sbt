@@ -1,6 +1,6 @@
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.3.1")
 
-libraryDependencies += "org.vafer" % "jdeb" % "1.12" artifacts Artifact("jdeb", "jar", "jar")
+libraryDependencies += "org.vafer" % "jdeb" % "1.13" artifacts Artifact("jdeb", "jar", "jar")
 
 // The Play plugin
 addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.6")
