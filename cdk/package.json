@@ -15,13 +15,13 @@
     "synth": "cdk synth --path-metadata false --version-reporting false"
   },
   "devDependencies": {
-    "@guardian/cdk": "61.1.3",
+    "@guardian/cdk": "61.3.0",
     "@guardian/eslint-config-typescript": "^12.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "22.13.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
-    "aws-cdk": "2.172.0",
-    "aws-cdk-lib": "2.172.0",
+    "aws-cdk": "2.178.1",
+    "aws-cdk-lib": "2.178.1",
     "constructs": "10.4.2",
     "eslint": "^8.57.0",
     "eslint-import-resolver-typescript": "^3.7.0",
