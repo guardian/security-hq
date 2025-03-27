@@ -2,15 +2,15 @@ package schedule.unrecognised
 
 import com.gu.janus
 import com.gu.janus.model.{ACL, JanusData, SupportACL}
-import model._
-import org.joda.time.{DateTime, Seconds}
 import logic.IamUnrecognisedUsers._
-import logic.IamUnrecognisedUsers.{USERNAME_TAG_KEY, getCredsReportDisplayForAccount, getJanusUsernames, isTaggedForUnrecognisedUser, unrecognisedUsersForAllowedAccounts}
-import utils.attempt.{FailedAttempt, Failure}
-
-import scala.io.Source
+import model._
+import org.joda.time.DateTime
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
+import utils.attempt.{FailedAttempt, Failure}
+
+import java.time.Duration
+import scala.io.Source
 
 class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
   val humanUser1 = HumanUser("ade.bimbola", true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, List(Tag(USERNAME_TAG_KEY, "ade.bimbola")))
@@ -28,7 +28,7 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
         Set(janus.model.AwsAccount("Deploy Tools", "deployTools")),
         ACL(Map("firstName.secondName" -> Set.empty)),
         ACL(Map.empty),
-        SupportACL(Map.empty, Set.empty, Seconds.ZERO),
+        SupportACL(Map.empty, Set.empty, Duration.ZERO),
         None
       )
 
