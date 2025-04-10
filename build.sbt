@@ -64,7 +64,7 @@ lazy val hq = (project in file("hq"))
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "8.0" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "8.1" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" %% "janus-config-tools" % "4.0.0"
     ),
 
