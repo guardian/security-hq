@@ -32,8 +32,8 @@ lazy val hq = (project in file("hq"))
       ws,
       filters,
       "com.gu.play-googleauth" %%  "play-v30" % "21.0.1",
-      "com.gu.play-secret-rotation" %% "play-v30" % "14.1.0",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "14.1.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "14.2.0",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "14.2.0",
 
       "joda-time" % "joda-time" % "2.14.0",
       "org.typelevel" %% "cats-core" % "2.13.0",
@@ -64,7 +64,7 @@ lazy val hq = (project in file("hq"))
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "8.0" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "8.1" exclude("com.fasterxml.jackson.core", "jackson-databind"),
       "com.gu" %% "janus-config-tools" % "4.0.0"
     ),
 
