@@ -12,7 +12,7 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "2.30.38"
+val awsSdkVersion = "2.31.20"
 val playJsonVersion = "3.0.4"
 val jacksonVersion = "2.18.3"
 
