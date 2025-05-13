@@ -25,14 +25,14 @@ jobs:
       # Configuring caching is also recommended.
       # See https://github.com/actions/setup-java
       - name: Setup Java 11
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '11'
           distribution: 'corretto'
           cache: 'sbt'
 
       - name: Setup Node
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -50,7 +50,7 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@49993b02cf1f00252570069323117ec1b2d3064b # v4.1.8
+      - uses: guardian/actions-riff-raff@b5ab6c5f7a88b30c87d80ed8569c16d2d6f5a97a # v4.1.9
         with:
           projectName: security-hq
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
