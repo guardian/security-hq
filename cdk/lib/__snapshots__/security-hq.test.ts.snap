@@ -1394,6 +1394,9 @@ exports[`HQ stack matches the snapshot 1`] = `
             "HttpTokens": "required",
             "InstanceMetadataTags": "enabled",
           },
+          "Monitoring": {
+            "Enabled": false,
+          },
           "SecurityGroupIds": [
             {
               "Fn::GetAtt": [
@@ -1511,7 +1514,7 @@ trap exitTrap EXIT
                   "/security/PROD/security-hq/security-hq-TEST.deb /tmp/installer.deb
 
     dpkg -i /tmp/installer.deb
-# GuEc2AppExperimental UserData Start
+# GuEc2AppExperimental Instance Health Check Start
 
       TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
       INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/instance-id")
@@ -1542,7 +1545,7 @@ trap exitTrap EXIT
 
       echo "Instance running build TEST is healthy in target group."
       
-# GuEc2AppExperimental UserData End",
+# GuEc2AppExperimental Instance Health Check End",
                 ],
               ],
             },
