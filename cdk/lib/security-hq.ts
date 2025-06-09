@@ -151,6 +151,7 @@ export class SecurityHQ extends GuStack {
           }),
         ],
       },
+      instanceMetricGranularity: "5Minute"
     });
 
     new GuCname(this, "DnsRecord", {
