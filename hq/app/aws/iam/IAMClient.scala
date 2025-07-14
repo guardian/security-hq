@@ -125,6 +125,14 @@ object IAMClient extends Logging {
                   500
                 )
               }
+            case StatusType.EXPIRED =>
+              Attempt.Left {
+                Failure (
+                  s"Could not create credential metadata from status value, as it is expired (expected 'Active' or 'Inactive')",
+                  "Couldn't lookup AWS Access Key metadata",
+                  500
+                )
+              }
           }
         } yield CredentialMetadata(akm.userName, akm.accessKeyId, new DateTime(akm.createDate), credentialStatus)
       }
