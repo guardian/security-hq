@@ -103,7 +103,7 @@ class AppComponents(context: Context)
 
   private val securityCredentialsProvider: AwsCredentialsProviderChain = AwsCredentialsProviderChain.of(
     ProfileCredentialsProvider.create("security"),
-    DefaultCredentialsProvider.create()
+    DefaultCredentialsProvider.builder.build()
   )
 
   /* 
