@@ -50,7 +50,7 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@e76a3a87c4c360dfea5f4647f7c1b5406ae1b3b8 # v4.1.10
+      - uses: guardian/actions-riff-raff@e4d8461f57af32bf27d9a422854a800d459b8cf6 # v4.2.2
         with:
           projectName: security-hq
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
