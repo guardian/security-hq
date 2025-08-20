@@ -57,7 +57,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.18.1" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
-      "com.gu" %% "anghammarad-client" % "5.0.0",
+      "com.gu" %% "anghammarad-client" % "6.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.18",
 
 
