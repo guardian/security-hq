@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`HQ stack matches the snapshot 1`] = `
 {
@@ -178,7 +178,7 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
         "ResourceSignal": {
           "Count": 1,
-          "Timeout": "PT3M",
+          "Timeout": "PT5M",
         },
       },
       "DependsOn": [
