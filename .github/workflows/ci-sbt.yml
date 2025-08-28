@@ -62,3 +62,6 @@ jobs:
               - cdk/cdk.out/security-hq.template.json
             security-hq:
               - dist
+          # No point in links to a Code stage, as there isn't one
+          commentingEnabled: false
+          
