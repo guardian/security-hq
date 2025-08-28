@@ -9,5 +9,5 @@ new SecurityHQ(app, "security-hq", {
   stage: "PROD",
   cloudFormationStackName: "security-hq-PROD",
   env: { region: "eu-west-1" },
-  buildIdentifier: process.env.BUILD_NUMBER ?? "DEV"
+  buildIdentifier: process.env.BUILD_NUMBER ?? "DEV",
 });
