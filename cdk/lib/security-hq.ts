@@ -168,10 +168,7 @@ export class SecurityHQ extends GuStack {
      */
     const cfnAsg = ec2App.autoScalingGroup.node
       .defaultChild as CfnAutoScalingGroup;
-    cfnAsg.addOverride(
-      "UpdatePolicy.AutoScalingRollingUpdate.PauseTime",
-      Duration.minutes(5).toIsoString(),
-    );
+    cfnAsg.healthCheckGracePeriod = Duration.minutes(4).toSeconds();
 
     new GuCname(this, "DnsRecord", {
       app: SecurityHQ.app.app,

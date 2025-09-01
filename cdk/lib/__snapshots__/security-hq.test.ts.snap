@@ -178,7 +178,7 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
         "ResourceSignal": {
           "Count": 1,
-          "Timeout": "PT3M",
+          "Timeout": "PT5M",
         },
       },
       "DependsOn": [
@@ -186,7 +186,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       ],
       "Properties": {
         "DesiredCapacity": "1",
-        "HealthCheckGracePeriod": 120,
+        "HealthCheckGracePeriod": 240,
         "HealthCheckType": "ELB",
         "LaunchTemplate": {
           "LaunchTemplateId": {
