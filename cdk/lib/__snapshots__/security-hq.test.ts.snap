@@ -186,7 +186,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       ],
       "Properties": {
         "DesiredCapacity": "1",
-        "HealthCheckGracePeriod": 120,
+        "HealthCheckGracePeriod": 240,
         "HealthCheckType": "ELB",
         "LaunchTemplate": {
           "LaunchTemplateId": {
@@ -260,7 +260,7 @@ exports[`HQ stack matches the snapshot 1`] = `
           "MaxBatchSize": 2,
           "MinInstancesInService": 1,
           "MinSuccessfulInstancesPercent": 100,
-          "PauseTime": "PT3M",
+          "PauseTime": "PT5M",
           "SuspendProcesses": [
             "AlarmNotification",
           ],

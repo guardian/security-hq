@@ -161,17 +161,15 @@ export class SecurityHQ extends GuStack {
     });
 
     /*
-     * Increase the resource signal timeout for a new instance added to the ASG
-     * from the default value of 3 mins to 5 mins.
+     * Increase the health-check grace period for a new instance added to the ASG
+     * from the default value of 2 mins to 4 mins.
+     * This is in response to occasional failed deploys because of timeouts.
      *
      * To do this, we have to access the underlying ASG node.
      */
     const cfnAsg = ec2App.autoScalingGroup.node
       .defaultChild as CfnAutoScalingGroup;
-    cfnAsg.addOverride(
-      "CreationPolicy.ResourceSignal.Timeout",
-      Duration.minutes(5).toIsoString(),
-    );
+    cfnAsg.healthCheckGracePeriod = Duration.minutes(4).toSeconds();
 
     new GuCname(this, "DnsRecord", {
       app: SecurityHQ.app.app,
