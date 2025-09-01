@@ -178,7 +178,7 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
         "ResourceSignal": {
           "Count": 1,
-          "Timeout": "PT5M",
+          "Timeout": "PT3M",
         },
       },
       "DependsOn": [
@@ -260,7 +260,7 @@ exports[`HQ stack matches the snapshot 1`] = `
           "MaxBatchSize": 2,
           "MinInstancesInService": 1,
           "MinSuccessfulInstancesPercent": 100,
-          "PauseTime": "PT3M",
+          "PauseTime": "PT5M",
           "SuspendProcesses": [
             "AlarmNotification",
           ],

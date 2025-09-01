@@ -169,7 +169,7 @@ export class SecurityHQ extends GuStack {
     const cfnAsg = ec2App.autoScalingGroup.node
       .defaultChild as CfnAutoScalingGroup;
     cfnAsg.addOverride(
-      "CreationPolicy.ResourceSignal.Timeout",
+      "UpdatePolicy.AutoScalingRollingUpdate.PauseTime",
       Duration.minutes(5).toIsoString(),
     );
 
