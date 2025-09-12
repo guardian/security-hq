@@ -22,13 +22,19 @@ import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/poli
 import { GuEc2AppExperimental } from "@guardian/cdk/lib/experimental/patterns/ec2-app";
 import { Duration, RemovalPolicy, SecretValue } from "aws-cdk-lib";
 import type { App } from "aws-cdk-lib";
+import type { CfnAutoScalingGroup } from "aws-cdk-lib/aws-autoscaling";
 import {
   ComparisonOperator,
   Metric,
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
 import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
-import { InstanceClass, InstanceSize, InstanceType, UserData } from "aws-cdk-lib/aws-ec2";
+import {
+  InstanceClass,
+  InstanceSize,
+  InstanceType,
+  UserData,
+} from "aws-cdk-lib/aws-ec2";
 import {
   ListenerAction,
   UnauthenticatedAction,
@@ -90,7 +96,7 @@ export class SecurityHQ extends GuStack {
           "Name of the S3 bucket to fetch auditable data from (e.g. Janus data)",
         default: `/${this.stack}/${SecurityHQ.app.app}/audit-data-s3-bucket/name`,
         fromSSM: true,
-      }
+      },
     );
     const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
 
@@ -109,7 +115,7 @@ export class SecurityHQ extends GuStack {
     const ec2App = new GuEc2AppExperimental(this, {
       buildIdentifier,
       applicationLogging: {
-        enabled: true
+        enabled: true,
       },
       access: {
         scope: AccessScope.PUBLIC,
@@ -151,8 +157,19 @@ export class SecurityHQ extends GuStack {
           }),
         ],
       },
-      instanceMetricGranularity: "5Minute"
+      instanceMetricGranularity: "5Minute",
     });
+
+    /*
+     * Increase the health-check grace period for a new instance added to the ASG
+     * from the default value of 2 mins to 4 mins.
+     * This is in response to occasional failed deploys because of timeouts.
+     *
+     * To do this, we have to access the underlying ASG node.
+     */
+    const cfnAsg = ec2App.autoScalingGroup.node
+      .defaultChild as CfnAutoScalingGroup;
+    cfnAsg.healthCheckGracePeriod = Duration.minutes(4).toSeconds();
 
     new GuCname(this, "DnsRecord", {
       app: SecurityHQ.app.app,
@@ -168,7 +185,7 @@ export class SecurityHQ extends GuStack {
       {
         app: SecurityHQ.app.app,
         vpc: ec2App.vpc,
-      }
+      },
     );
 
     ec2App.loadBalancer.addSecurityGroup(outboundHttpsSecurityGroup);
@@ -198,7 +215,7 @@ export class SecurityHQ extends GuStack {
         userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
         clientId: clientId.valueAsString,
         clientSecret: SecretValue.secretsManager(
-          `/${this.stage}/deploy/security-hq/client-secret`
+          `/${this.stage}/deploy/security-hq/client-secret`,
         ),
         next: ListenerAction.forward([ec2App.targetGroup]),
       }),
@@ -211,7 +228,7 @@ export class SecurityHQ extends GuStack {
       description: "Send Security HQ cloudwatch alarms to this email address",
     });
     notificationTopic.addSubscription(
-      new EmailSubscription(emailDest.valueAsString)
+      new EmailSubscription(emailDest.valueAsString),
     );
 
     new GuAlarm(this, "RemovePasswordFailureAlarm", {

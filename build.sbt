@@ -12,9 +12,9 @@ ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xf
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "2.32.19"
+val awsSdkVersion = "2.32.26"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.19.2"
+val jacksonVersion = "2.20.0"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
