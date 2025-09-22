@@ -40,5 +40,5 @@ jobs:
           path: code
 
       - name: Run opengrep
-        run: opengrep scan -f rules code
+        run: .opengrep/cli/latest/opengrep scan -f rules code
       
