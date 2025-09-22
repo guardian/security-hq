@@ -32,8 +32,11 @@ jobs:
           sparse-checkout: scala
           path: rules
 
-      - name: Flatten rules
-        run: find rules -mindepth 2 -type f -exec mv '{}' rules \; -o -type d -depth -mindepth 1 -empty -delete
+      - name: Flatten rules and delete non-yaml files
+        run: |
+          find rules -mindepth 2 -type f -exec mv '{}' rules \; -o -type d -depth -mindepth 1 -empty -delete
+          find rules -type f ! -name '*.yaml' -delete
+          ls -l rules
 
       - name: tree
         run: tree
