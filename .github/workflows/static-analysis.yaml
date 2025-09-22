@@ -1,0 +1,40 @@
+# Find full documentation here https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+name: Static Analysis
+
+on:
+  pull_request:
+
+  # Manual invocation.
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+      - nt/opengrep
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+
+    # See https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+    permissions:
+      contents: read
+    steps:
+
+      - name: Install opengrep
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+
+      - name: Checkout rules
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          repository: opengrep/opengrep-rules
+          persist-credentials: false
+          sparse-checkout: scala
+          path: rules
+
+      - name: tree
+        run: tree
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      
