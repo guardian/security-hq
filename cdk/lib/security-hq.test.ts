@@ -8,6 +8,7 @@ describe("HQ stack", () => {
     const stack = new SecurityHQ(app, "security-hq", {
       stack: "security",
       stage: "PROD",
+      env: { region: "eu-west-1" },
       buildIdentifier: "TEST",
     });
     expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
