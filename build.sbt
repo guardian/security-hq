@@ -58,7 +58,7 @@ lazy val hq = (project in file("hq"))
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.18",
+      "ch.qos.logback" % "logback-classic" % "1.5.19",
 
 
       // logstash-logback-encoder brings in version 2.11.0
