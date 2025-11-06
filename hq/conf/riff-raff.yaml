@@ -19,7 +19,7 @@ deployments:
       amiParameter: AMISecurityhq
       amiEncrypted: true
       amiTags:
-        Recipe: arm64-jammy-java11-security
+        Recipe: arm64-jammy-java21-security
         BuiltBy: amigo
         AmigoStage: PROD
     dependencies:
