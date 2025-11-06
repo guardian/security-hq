@@ -91,7 +91,7 @@ lazy val hq = (project in file("hq"))
     Test / fork := false,
 
     Debian / serverLoading := Some(Systemd),
-    debianPackageDependencies := Seq("java-11-amazon-corretto-jdk:arm64"),
+
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "Security HQ app.",
     packageDescription := """Deb for Security HQ - the Guardian's service to centralise security information for our AWS accounts.""",
