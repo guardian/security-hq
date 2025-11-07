@@ -22,12 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      # Configuring caching is also recommended.
-      # See https://github.com/actions/setup-java
-      - name: Setup Java 11
+      - name: Set up Java
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          java-version: '11'
+          java-version: '21'
           distribution: 'corretto'
           cache: 'sbt'
 
@@ -64,4 +62,3 @@ jobs:
               - dist
           # No point in links to a Code stage, as there isn't one
           commentingEnabled: false
-          
