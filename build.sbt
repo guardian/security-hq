@@ -99,11 +99,9 @@ lazy val hq = (project in file("hq"))
       "-Dpidfile.path=/dev/null",
       "-Dconfig.file=/etc/gu/security-hq.conf",
       "-J-XX:+UseCompressedOops",
-      "-J-XX:+UseConcMarkSweepGC",
       "-J-XX:NativeMemoryTracking=detail",
       "-J-XX:MaxRAMPercentage=50",
       "-J-XX:InitialRAMPercentage=50",
-      "-XX:NewRatio=3",
       "-J-XX:MaxMetaspaceSize=300m",
       "-J-Xlog:gc*",
       s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
