@@ -91,7 +91,7 @@ lazy val hq = (project in file("hq"))
     Test / fork := false,
 
     Debian / serverLoading := Some(Systemd),
-    debianPackageDependencies := Seq("java-11-amazon-corretto-jdk:arm64"),
+
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "Security HQ app.",
     packageDescription := """Deb for Security HQ - the Guardian's service to centralise security information for our AWS accounts.""",
@@ -99,11 +99,9 @@ lazy val hq = (project in file("hq"))
       "-Dpidfile.path=/dev/null",
       "-Dconfig.file=/etc/gu/security-hq.conf",
       "-J-XX:+UseCompressedOops",
-      "-J-XX:+UseConcMarkSweepGC",
       "-J-XX:NativeMemoryTracking=detail",
       "-J-XX:MaxRAMPercentage=50",
       "-J-XX:InitialRAMPercentage=50",
-      "-XX:NewRatio=3",
       "-J-XX:MaxMetaspaceSize=300m",
       "-J-Xlog:gc*",
       s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
