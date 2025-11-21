@@ -41,7 +41,7 @@ object IAMClient extends Logging {
     val request = ListUserTagsRequest.builder.userName(credential.user).build()
     val result = asScala(client.client.listUserTags(request))
     result.map { tagsResult =>
-      val tagsList = tagsResult.tags.asScala.toList.map(t => Tag(t.key, t.value))
+      val tagsList = tagsResult.tags.asScala.toList.map(t => model.Tag(t.key, t.value))
       credential.copy(tags = tagsList)
     }
       // If the request to fetch tags fails, just return the original user
