@@ -1,15 +1,14 @@
 package aws.support
 
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
-import aws.{AwsClient, AwsClients}
+import aws.{AwsClient, AwsClients, AwsClientsList}
 import model.{AwsAccount, ExposedIAMKeyDetail, TrustedAdvisorDetailsResult}
-import utils.attempt.{Attempt, FailedAttempt, Failure}
-
-import scala.jdk.CollectionConverters._
-import scala.concurrent.{ExecutionContext, Future}
-
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import software.amazon.awssdk.services.support.model.TrustedAdvisorResourceDetail
+import utils.attempt.{Attempt, FailedAttempt, Failure}
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.*
 
 object TrustedAdvisorExposedIAMKeys {
   val AWS_EXPOSED_ACCESS_KEYS_IDENTIFIER = "12Fnkpl8Y5"
