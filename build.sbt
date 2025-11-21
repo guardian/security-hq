@@ -7,8 +7,12 @@ import scala.concurrent.duration.DurationInt
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
-ThisBuild / scalaVersion := "2.13.17"
-ThisBuild / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings")
+ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalacOptions ++= Seq(
+  "-feature",
+  "-no-indent", // don't support significant indentation
+  "-Xfatal-warnings"
+)
 
 resolvers += DefaultMavenRepository
 
@@ -50,13 +54,11 @@ lazy val hq = (project in file("hq"))
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.64.8",
-      "io.reactivex" %% "rxscala" % "0.27.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.21",
 
