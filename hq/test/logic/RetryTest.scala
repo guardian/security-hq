@@ -14,7 +14,7 @@ class RetryTest extends AnyWordSpec with Matchers with AttemptValues {
     val Complete = "COMPLETE"
     val Started = "STARTED"
     val maxAttempt = 10
-    val predicateF = { status: String => status == Complete }
+    val predicateF = { (status: String) => status == Complete }
     val testDelay = 10.millisecond
 
     "retry with inprogress result and check max attempt" in {
