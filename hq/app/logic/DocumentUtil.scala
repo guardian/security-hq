@@ -16,12 +16,10 @@ object DocumentUtil {
   private val renderer = HtmlRenderer.builder(options).build
 
   def convert(markdownfile: String): Option[Html] = {
-    getClass getResourceAsStream s"/$markdownfile.md" match {
-      case is: InputStream =>
+    Option(getClass.getResourceAsStream(s"/$markdownfile.md")).map {
+      is =>
         val sourceString = Source.fromInputStream(is).mkString
-        Some(renderInputAsHtml(sourceString))
-      case _ =>
-        None
+        renderInputAsHtml(sourceString)
     }
   }
 

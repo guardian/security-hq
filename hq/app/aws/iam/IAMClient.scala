@@ -1,24 +1,22 @@
 package aws.iam
 
-import aws.AwsAsyncHandler._
+import aws.AwsAsyncHandler.*
 import aws.cloudformation.CloudFormation
-import aws.{AwsAsyncHandler, AwsClient, AwsClients}
-
+import aws.{AwsAsyncHandler, AwsClient, AwsClients, AwsClientsList}
 import logic.{CredentialsReportDisplay, Retry}
-import model.{AwsAccount, CredentialActive, CredentialDisabled, CredentialMetadata, CredentialReportDisplay, HumanUser, IAMCredential, IAMCredentialsReport, IAMUser, Tag}
+import model.*
 import org.joda.time.DateTime
 import play.api.Logging
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.model.{Tag, *}
+import software.amazon.awssdk.services.s3.S3AsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.CollectionConverters._
-
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileRequest, DeleteLoginProfileResponse, GenerateCredentialReportRequest, GenerateCredentialReportResponse, GetCredentialReportRequest, ListAccessKeysRequest, ListAccessKeysResponse, ListUserTagsRequest, NoSuchEntityException, UpdateAccessKeyRequest, UpdateAccessKeyResponse, StatusType}
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.s3.S3AsyncClient
+import scala.jdk.CollectionConverters.*
 
 
 object IAMClient extends Logging {
@@ -43,7 +41,7 @@ object IAMClient extends Logging {
     val request = ListUserTagsRequest.builder.userName(credential.user).build()
     val result = asScala(client.client.listUserTags(request))
     result.map { tagsResult =>
-      val tagsList = tagsResult.tags.asScala.toList.map(t => Tag(t.key, t.value))
+      val tagsList = tagsResult.tags.asScala.toList.map(t => model.Tag(t.key, t.value))
       credential.copy(tags = tagsList)
     }
       // If the request to fetch tags fails, just return the original user

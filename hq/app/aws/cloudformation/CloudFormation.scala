@@ -1,16 +1,15 @@
 package aws.cloudformation
 
-import aws.{AwsClient, AwsClients}
 import aws.AwsAsyncHandler.{asScala, handleAWSErrs}
+import aws.{AwsClient, AwsClients, AwsClientsList}
 import model.{AwsAccount, AwsStack}
-import utils.attempt.{Attempt, FailedAttempt, Failure}
-
-import scala.jdk.CollectionConverters._
-import scala.concurrent.ExecutionContext
-
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.cloudformation.model.{Stack, DescribeStacksRequest}
+import software.amazon.awssdk.services.cloudformation.model.{DescribeStacksRequest, Stack}
+import utils.attempt.{Attempt, FailedAttempt, Failure}
+
+import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.*
 
 object CloudFormation {
 

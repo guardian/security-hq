@@ -1,9 +1,8 @@
 package model
 
-import com.gu.anghammarad.models.{App, Stack, Target, Stage => AnghammaradStage}
+import com.gu.anghammarad.models.{App, Stack, Target, Stage as AnghammaradStage}
 import org.joda.time.DateTime
 import software.amazon.awssdk.regions.Region
-
 
 case class AwsAccount(
   id: String,
@@ -144,7 +143,7 @@ case class AccessKey(
 )
 
 sealed trait ReportStatus {
-  def reasons(): Seq[ReportStatusReason] = Seq.empty
+  def reasons: Seq[ReportStatusReason] = Seq.empty
 }
 case class Red(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
 case class Amber(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
@@ -170,9 +169,9 @@ object Tag {
 
   def tagsToAnghammaradTargets(tags: List[Tag]): List[Target] = {
     List (
-      findAnghammaradTarget("stack", Stack, tags),
-      findAnghammaradTarget("stage", AnghammaradStage, tags),
-      findAnghammaradTarget("app", App, tags),
+      findAnghammaradTarget("stack", Stack.apply, tags),
+      findAnghammaradTarget("stage", AnghammaradStage.apply, tags),
+      findAnghammaradTarget("app", App.apply, tags),
     ).flatten
   }
 

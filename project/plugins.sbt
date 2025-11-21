@@ -17,6 +17,4 @@ addSbtPlugin("com.github.sbt" % "sbt-rjs" % "2.0.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.1.0")
 
-addSbtPlugin("com.github.sbt" % "sbt-mocha" % "2.1.0")
-
 addDependencyTreePlugin

@@ -1,13 +1,13 @@
 package services
 
 import logging.Cloudwatch
-import model._
-import play.api._
+import model.*
+import org.apache.pekko.actor.ActorSystem
+import play.api.*
 import play.api.inject.ApplicationLifecycle
-import rx.lang.scala.Observable
 import utils.attempt.FailedAttempt
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
 
 class MetricService(
@@ -15,7 +15,7 @@ class MetricService(
     lifecycle: ApplicationLifecycle,
     environment: Environment,
     cacheService: CacheService
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, actorSystem: ActorSystem)
     extends Logging {
 
   def collectFailures[T](
@@ -69,13 +69,17 @@ class MetricService(
       if (environment.mode == Mode.Prod) 15.minutes
       else Duration.Zero
 
-    val cloudwatchSubscription =
-      Observable.interval(initialDelay, 6.hours).subscribe { _ =>
+    val cloudwatchSubscription = {
+      actorSystem.scheduler.scheduleAtFixedRate(
+        initialDelay = initialDelay,
+        interval = 6.hours
+      ) { () =>
         postCachedContentsAsMetrics()
       }
+    }
 
     lifecycle.addStopHook { () =>
-      cloudwatchSubscription.unsubscribe()
+      cloudwatchSubscription.cancel()
       Future.successful(())
     }
   }
