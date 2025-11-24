@@ -3,23 +3,21 @@ package services
 import aws.AwsClients
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
+import cats.effect.unsafe.implicits.global
 import config.Config
 import model.*
-import org.apache.pekko.actor.ActorSystem
 import play.api.*
 import play.api.inject.ApplicationLifecycle
-import utils.attempt.{Attempt, FailedAttempt, Failure}
-
-import scala.concurrent.duration.*
-import scala.concurrent.{ExecutionContext, Future}
-import org.joda.time.DateTime
-import utils.Box
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.support.SupportAsyncClient
+import utils.attempt.{FailedAttempt, Failure}
+import utils.{Box, Scheduler}
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
 
 class CacheService(
     config: Configuration,
@@ -30,7 +28,7 @@ class CacheService(
     s3Clients: AwsClients[S3Client],
     iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
-)(implicit ec: ExecutionContext, actorSystem: ActorSystem)
+)(implicit ec: ExecutionContext)
     extends Logging {
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
@@ -156,38 +154,35 @@ class CacheService(
       if (environment.mode == Mode.Prod) 10.seconds
       else Duration.Zero
 
-    val publicBucketsSubscription = {
-      actorSystem.scheduler.scheduleAtFixedRate(
+    val publicBucketsSubscription =
+      Scheduler.scheduleAtFixedRate(
         initialDelay = initialDelay + 1000.millis,
         interval = 5.minutes
       ){ () =>
         refreshPublicBucketsBox()        
       }
-    }
 
-    val exposedKeysSubscription = {
-      actorSystem.scheduler.scheduleAtFixedRate(
+    val exposedKeysSubscription =
+      Scheduler.scheduleAtFixedRate(
         initialDelay = initialDelay + 2000.millis,
         interval = 5.minutes
       ){ () =>
         refreshExposedKeysBox()
       }
-    }
 
-    val credentialsSubscription = {
-      actorSystem.scheduler.scheduleAtFixedRate(
+    val credentialsSubscription =
+      Scheduler.scheduleAtFixedRate(
         initialDelay = initialDelay + 4000.millis,
         interval = 5.minutes
       ){ () =>
         refreshCredentialsBox()
       }
-    }
 
     lifecycle.addStopHook { () =>
-      publicBucketsSubscription.cancel()
-      exposedKeysSubscription.cancel()
-      credentialsSubscription.cancel()
-      Future.successful(())
+      // Call schedule-cancelling functions
+      publicBucketsSubscription()
+      exposedKeysSubscription()
+      credentialsSubscription()
     }
   }
 

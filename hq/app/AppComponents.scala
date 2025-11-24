@@ -1,44 +1,42 @@
 import aws.ec2.EC2
 import aws.{AWS, AwsClient}
 import config.Config
-import controllers.*
+import controllers._
 import db.IamRemediationDb
 import filters.HstsFilter
 import model.{AwsAccount, DEV, PROD}
-import org.apache.pekko.actor.ActorSystem
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.{AnyContent, BodyParser, ControllerComponents}
 import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
-import play.components.PekkoComponents
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.{CacheService, IamRemediationService, MetricService}
-import software.amazon.awssdk.auth.credentials.{
-  AwsCredentialsProviderChain,
-  DefaultCredentialsProvider,
-  ProfileCredentialsProvider
-}
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder
-import software.amazon.awssdk.http.SdkHttpConfigurationOption
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.endpoints.{DynamoDbEndpointParams, DynamoDbEndpointProvider}
-import software.amazon.awssdk.services.ec2.Ec2AsyncClient
-import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.sns.SnsAsyncClient
-import software.amazon.awssdk.services.ssm.SsmClient
-import software.amazon.awssdk.utils.AttributeMap
 import utils.attempt.Attempt
 
-import scala.concurrent.duration.*
-import scala.concurrent.{Await, ExecutionContext}
-import scala.jdk.CollectionConverters.*
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
+
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient
+import software.amazon.awssdk.http.SdkHttpConfigurationOption
+import software.amazon.awssdk.services.ec2.Ec2AsyncClient
+import software.amazon.awssdk.services.sns.SnsAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.endpoints.{DynamoDbEndpointProvider, DynamoDbEndpointParams}
+import software.amazon.awssdk.services.ssm.SsmClient
+import software.amazon.awssdk.utils.AttributeMap
+
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder
 
 class AppComponents(context: Context)
     extends BuiltInComponentsFromContext(context)
@@ -57,8 +55,6 @@ class AppComponents(context: Context)
     csrfFilter,
     new HstsFilter()
   )
-
-  implicit val actorSys: ActorSystem = actorSystem
 
   private val stack = configuration.get[String]("stack")
   private val stage = Config.getStage(configuration)

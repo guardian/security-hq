@@ -3,6 +3,7 @@ package services
 import aws.AwsClients
 import aws.iam.IAMClient
 import aws.s3.S3.getS3Object
+import cats.effect.unsafe.implicits.global
 import com.gu.janus.JanusConfig
 import config.Config.*
 import db.IamRemediationDb
@@ -10,18 +11,17 @@ import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
 import model.*
 import notifications.AnghammaradNotifications
-import org.apache.pekko.actor.{ActorSystem, Cancellable}
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Logging, Mode}
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
+import utils.Scheduler
 import utils.attempt.Attempt
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
-
 
 /**
   * A collection of jobs for automatically fixing IAM problems in our AWS accounts.
@@ -36,7 +36,7 @@ class IamRemediationService(
   cacheService: CacheService, snsClient: SnsAsyncClient, dynamo: IamRemediationDb,
   config: Configuration, iamClients: AwsClients[IamAsyncClient], lifecycle: ApplicationLifecycle, environment: Environment,
   securityS3Client: S3Client,
-)(implicit ec: ExecutionContext, actorSystem: ActorSystem) extends Logging {
+)(implicit ec: ExecutionContext) extends Logging {
 
   /**
     * If an AWS access key has not been rotated in a long time, then will automatically disable it.
@@ -186,7 +186,7 @@ class IamRemediationService(
   if (environment.mode != Mode.Test) {
     // Schedule the observable on weekdays only as we may make changes in accounts that affect live systems
     // if warnings are not heeded. Initial delay of 10 minutes, so that the cache service has time to populate
-    val disableCredentials: Cancellable = actorSystem.scheduler.scheduleAtFixedRate(
+    val iamRemediationServiceSubscription: () => Future[Unit] = Scheduler.scheduleAtFixedRate(
       initialDelay = 10.minutes,
       interval = 1.minute
     ) { () =>
@@ -198,12 +198,12 @@ class IamRemediationService(
       if (isWeekday && isTimeToRun) {
         disableOutdatedCredentials()
         disableUnrecognisedUsers()
-      }      
+      }
     }
 
     lifecycle.addStopHook { () =>
-      disableCredentials.cancel()
-      Future.successful(())
+      // Call schedule-cancelling function
+      iamRemediationServiceSubscription()
     }
   }
 }
