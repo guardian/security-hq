@@ -77,9 +77,6 @@ class MetricService(
         postCachedContentsAsMetrics()
       }
 
-    lifecycle.addStopHook { () =>
-      // Call schedule-cancelling function
-      cloudwatchSubscription()
-    }
+    lifecycle.addStopHook(cloudwatchSubscription)
   }
 }

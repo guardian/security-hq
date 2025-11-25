@@ -200,9 +200,6 @@ class IamRemediationService(
       }
     }
 
-    lifecycle.addStopHook { () =>
-      // Call schedule-cancelling function
-      iamRemediationServiceSubscription()
-    }
+    lifecycle.addStopHook(iamRemediationServiceSubscription)
   }
 }

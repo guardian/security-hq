@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.support.SupportAsyncClient
 import utils.attempt.{FailedAttempt, Failure}
 import utils.{Box, Scheduler}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.*
 
 class CacheService(
@@ -179,9 +179,13 @@ class CacheService(
 
     lifecycle.addStopHook { () =>
       // Call schedule-cancelling functions
-      publicBucketsSubscription()
-      exposedKeysSubscription()
-      credentialsSubscription()
+      Future.sequence(
+        List(
+          publicBucketsSubscription(),
+          exposedKeysSubscription(),
+          credentialsSubscription()
+        )
+      )
     }
   }
 
