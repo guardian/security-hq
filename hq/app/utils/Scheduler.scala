@@ -29,20 +29,16 @@ object Scheduler {
   def scheduleAtFixedRate(
       initialDelay: FiniteDuration,
       interval: FiniteDuration
-  )(job: () => Unit)(using runtime: IORuntime): () => Future[Unit] = {
-
-    val schedulerStream: IO[Unit] =
-      (Stream.sleep[IO](initialDelay) ++ Stream.awakeEvery[IO](interval))
-        .evalMap { _ =>
-          // Wrap job execution to handle exceptions and prevent stream termination
-          IO.blocking(job()).handleErrorWith { error =>
-            // Log error but don't fail the stream
-            IO.println(s"Scheduled job failed with error: ${error.getMessage}")
-          }
+  )(job: () => Unit)(using runtime: IORuntime): () => Future[Unit] =
+    (Stream.sleep[IO](initialDelay) ++ Stream.awakeEvery[IO](interval))
+      .evalMap { _ =>
+        // Wrap job execution to handle exceptions and prevent stream termination
+        IO.blocking(job()).handleErrorWith { error =>
+          // Log error but don't fail the stream
+          IO.println(s"Scheduled job failed with error: ${error.getMessage}")
         }
-        .compile
-        .drain
-
-    schedulerStream.unsafeRunCancelable()
-  }
+      }
+      .compile
+      .drain
+      .unsafeRunCancelable()
 }
