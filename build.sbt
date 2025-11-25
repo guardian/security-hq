@@ -8,6 +8,7 @@ import scala.concurrent.duration.DurationInt
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
 ThisBuild / scalaVersion := "3.3.7"
+// Omitting scalacOptions 'deprecation' and 'feature' here because they are included by the Play plugin
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-no-indent", // don't support significant indentation
