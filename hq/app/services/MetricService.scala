@@ -1,6 +1,5 @@
 package services
 
-import cats.effect.unsafe.implicits.global
 import logging.Cloudwatch
 import model.*
 import play.api.*

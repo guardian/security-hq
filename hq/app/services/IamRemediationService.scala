@@ -3,7 +3,6 @@ package services
 import aws.AwsClients
 import aws.iam.IAMClient
 import aws.s3.S3.getS3Object
-import cats.effect.unsafe.implicits.global
 import com.gu.janus.JanusConfig
 import config.Config.*
 import db.IamRemediationDb

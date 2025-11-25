@@ -3,7 +3,6 @@ package services
 import aws.AwsClients
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
-import cats.effect.unsafe.implicits.global
 import config.Config
 import model.*
 import play.api.*
