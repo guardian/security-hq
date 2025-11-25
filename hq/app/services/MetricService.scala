@@ -16,7 +16,7 @@ class MetricService(
     environment: Environment,
     cacheService: CacheService
 )(implicit ec: ExecutionContext)
-    extends Logging {
+    extends Scheduler with Logging {
 
   def collectFailures[T](
       list: List[Map[AwsAccount, Either[FailedAttempt, T]]]
@@ -70,7 +70,7 @@ class MetricService(
       else Duration.Zero
 
     val cloudwatchSubscription =
-      Scheduler.scheduleAtFixedRate(
+      scheduleAtFixedRate(
         initialDelay = initialDelay,
         interval = 6.hours
       ) { () =>

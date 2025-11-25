@@ -3,11 +3,13 @@ package utils
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import fs2.Stream
+import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.duration.*
 
-object Scheduler {
+trait Scheduler {
+  protected val logger: Logger
 
   /** Schedule a job to run at a fixed rate using FS2 streams.
     *
@@ -30,7 +32,7 @@ object Scheduler {
         // Wrap job execution to handle exceptions and prevent stream termination
         IO.blocking(job()).handleErrorWith { error =>
           // Log error but don't fail the stream
-          IO.println(s"Scheduled job failed with error: ${error.getMessage}")
+          IO(logger.error("Scheduled job failed", error))
         }
       }
       .compile

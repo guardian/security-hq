@@ -28,7 +28,7 @@ class CacheService(
     iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
 )(implicit ec: ExecutionContext)
-    extends Logging {
+    extends Scheduler with Logging {
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
     accounts
@@ -154,7 +154,7 @@ class CacheService(
       else Duration.Zero
 
     val publicBucketsSubscription =
-      Scheduler.scheduleAtFixedRate(
+      scheduleAtFixedRate(
         initialDelay = initialDelay + 1000.millis,
         interval = 5.minutes
       ){ () =>
@@ -162,7 +162,7 @@ class CacheService(
       }
 
     val exposedKeysSubscription =
-      Scheduler.scheduleAtFixedRate(
+      scheduleAtFixedRate(
         initialDelay = initialDelay + 2000.millis,
         interval = 5.minutes
       ){ () =>
@@ -170,7 +170,7 @@ class CacheService(
       }
 
     val credentialsSubscription =
-      Scheduler.scheduleAtFixedRate(
+      scheduleAtFixedRate(
         initialDelay = initialDelay + 4000.millis,
         interval = 5.minutes
       ){ () =>

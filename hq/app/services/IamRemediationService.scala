@@ -35,7 +35,7 @@ class IamRemediationService(
   cacheService: CacheService, snsClient: SnsAsyncClient, dynamo: IamRemediationDb,
   config: Configuration, iamClients: AwsClients[IamAsyncClient], lifecycle: ApplicationLifecycle, environment: Environment,
   securityS3Client: S3Client,
-)(implicit ec: ExecutionContext) extends Logging {
+)(implicit ec: ExecutionContext) extends Scheduler with Logging {
 
   /**
     * If an AWS access key has not been rotated in a long time, then will automatically disable it.
@@ -185,20 +185,21 @@ class IamRemediationService(
   if (environment.mode != Mode.Test) {
     // Schedule the observable on weekdays only as we may make changes in accounts that affect live systems
     // if warnings are not heeded. Initial delay of 10 minutes, so that the cache service has time to populate
-    val iamRemediationServiceSubscription: () => Future[Unit] = Scheduler.scheduleAtFixedRate(
-      initialDelay = 10.minutes,
-      interval = 1.minute
-    ) { () =>
-      val now = DateTime.now()
-      val isWeekday = now.getDayOfWeek != DateTimeConstants.SATURDAY && now.getDayOfWeek != DateTimeConstants.SUNDAY
-      val isTimeToRun = (now.getHourOfDay == 9 && now.getMinuteOfHour == 0) ||
-        (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
+    val iamRemediationServiceSubscription: () => Future[Unit] =
+      scheduleAtFixedRate(
+        initialDelay = 10.minutes,
+        interval = 1.minute
+      ) { () =>
+        val now = DateTime.now()
+        val isWeekday = now.getDayOfWeek != DateTimeConstants.SATURDAY && now.getDayOfWeek != DateTimeConstants.SUNDAY
+        val isTimeToRun = (now.getHourOfDay == 9 && now.getMinuteOfHour == 0) ||
+          (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
 
-      if (isWeekday && isTimeToRun) {
-        disableOutdatedCredentials()
-        disableUnrecognisedUsers()
+        if (isWeekday && isTimeToRun) {
+          disableOutdatedCredentials()
+          disableUnrecognisedUsers()
+        }
       }
-    }
 
     lifecycle.addStopHook(iamRemediationServiceSubscription)
   }
