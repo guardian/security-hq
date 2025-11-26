@@ -4,25 +4,23 @@ import aws.AwsClients
 import aws.iam.IAMClient
 import aws.s3.S3.getS3Object
 import com.gu.janus.JanusConfig
-import config.Config._
+import config.Config.*
 import db.IamRemediationDb
-import logic.IamOutdatedCredentials._
-import logic.IamUnrecognisedUsers.{getCredsReportDisplayForAccount, _}
-import model._
+import logic.IamOutdatedCredentials.*
+import logic.IamUnrecognisedUsers.*
+import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Logging, Mode}
-import rx.lang.scala.Observable
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.sns.SnsAsyncClient
+import utils.Scheduler
 import utils.attempt.Attempt
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
-
-import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.sns.SnsAsyncClient
-import software.amazon.awssdk.services.s3.S3Client
-
 
 /**
   * A collection of jobs for automatically fixing IAM problems in our AWS accounts.
@@ -37,7 +35,7 @@ class IamRemediationService(
   cacheService: CacheService, snsClient: SnsAsyncClient, dynamo: IamRemediationDb,
   config: Configuration, iamClients: AwsClients[IamAsyncClient], lifecycle: ApplicationLifecycle, environment: Environment,
   securityS3Client: S3Client,
-)(implicit ec: ExecutionContext) extends Logging {
+)(implicit ec: ExecutionContext) extends Scheduler with Logging {
 
   /**
     * If an AWS access key has not been rotated in a long time, then will automatically disable it.
@@ -187,24 +185,22 @@ class IamRemediationService(
   if (environment.mode != Mode.Test) {
     // Schedule the observable on weekdays only as we may make changes in accounts that affect live systems
     // if warnings are not heeded. Initial delay of 10 minutes, so that the cache service has time to populate
-    val disableCredentials: Observable[DateTime] = Observable.interval(10.minutes, 1.minute)
-      .map(_ => DateTime.now())
-      .filterNot { now =>
-        now.getDayOfWeek == DateTimeConstants.SATURDAY || now.getDayOfWeek == DateTimeConstants.SUNDAY
-      }
-      .filter { now =>
-        (now.getHourOfDay == 9 && now.getMinuteOfHour == 0) ||
+    val iamRemediationServiceSubscription: () => Future[Unit] =
+      scheduleAtFixedRate(
+        initialDelay = 10.minutes,
+        interval = 1.minute
+      ) { () =>
+        val now = DateTime.now()
+        val isWeekday = now.getDayOfWeek != DateTimeConstants.SATURDAY && now.getDayOfWeek != DateTimeConstants.SUNDAY
+        val isTimeToRun = (now.getHourOfDay == 9 && now.getMinuteOfHour == 0) ||
           (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
+
+        if (isWeekday && isTimeToRun) {
+          disableOutdatedCredentials()
+          disableUnrecognisedUsers()
+        }
       }
 
-    val iamRemediationServiceSubscription = disableCredentials.subscribe { _ =>
-      disableOutdatedCredentials()
-      disableUnrecognisedUsers()
-    }
-
-    lifecycle.addStopHook { () =>
-      iamRemediationServiceSubscription.unsubscribe()
-      Future.successful(())
-    }
+    lifecycle.addStopHook(iamRemediationServiceSubscription)
   }
 }

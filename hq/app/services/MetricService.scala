@@ -1,14 +1,14 @@
 package services
 
 import logging.Cloudwatch
-import model._
-import play.api._
+import model.*
+import play.api.*
 import play.api.inject.ApplicationLifecycle
-import rx.lang.scala.Observable
+import utils.Scheduler
 import utils.attempt.FailedAttempt
 
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
 
 class MetricService(
     config: Configuration,
@@ -16,7 +16,7 @@ class MetricService(
     environment: Environment,
     cacheService: CacheService
 )(implicit ec: ExecutionContext)
-    extends Logging {
+    extends Scheduler with Logging {
 
   def collectFailures[T](
       list: List[Map[AwsAccount, Either[FailedAttempt, T]]]
@@ -70,13 +70,13 @@ class MetricService(
       else Duration.Zero
 
     val cloudwatchSubscription =
-      Observable.interval(initialDelay, 6.hours).subscribe { _ =>
+      scheduleAtFixedRate(
+        initialDelay = initialDelay,
+        interval = 6.hours
+      ) { () =>
         postCachedContentsAsMetrics()
       }
 
-    lifecycle.addStopHook { () =>
-      cloudwatchSubscription.unsubscribe()
-      Future.successful(())
-    }
+    lifecycle.addStopHook(cloudwatchSubscription)
   }
 }

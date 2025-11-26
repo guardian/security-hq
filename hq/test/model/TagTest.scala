@@ -10,9 +10,9 @@ class TagTest extends AnyFreeSpec with Matchers {
 
 
   "findAnghammaradTarget should locate available target tag regardless of case" in {
-    Tag.findAnghammaradTarget("stack", Stack, tagsListWithStack) shouldEqual Some(Stack("pawnee"))
-    Tag.findAnghammaradTarget("STACK", Stack, tagsListWithStack) shouldEqual Some(Stack("pawnee"))
-    Tag.findAnghammaradTarget("blah", Stack, tagsListWithStack) shouldEqual None
+    Tag.findAnghammaradTarget("stack", Stack.apply, tagsListWithStack) shouldEqual Some(Stack("pawnee"))
+    Tag.findAnghammaradTarget("STACK", Stack.apply, tagsListWithStack) shouldEqual Some(Stack("pawnee"))
+    Tag.findAnghammaradTarget("blah", Stack.apply, tagsListWithStack) shouldEqual None
   }
 
   "tagsToAnghammaradTargets should convert tags to targets" in {

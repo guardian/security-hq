@@ -4,23 +4,19 @@ import aws.AwsClients
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
 import config.Config
-import model._
-import play.api._
+import model.*
+import play.api.*
 import play.api.inject.ApplicationLifecycle
-import rx.lang.scala.Observable
-import utils.attempt.{Attempt, FailedAttempt, Failure}
-
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-import org.joda.time.DateTime
-import utils.Box
-
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.support.SupportAsyncClient
+import utils.attempt.{FailedAttempt, Failure}
+import utils.{Box, Scheduler}
 
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.*
 
 class CacheService(
     config: Configuration,
@@ -32,7 +28,7 @@ class CacheService(
     iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
 )(implicit ec: ExecutionContext)
-    extends Logging {
+    extends Scheduler with Logging {
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
     accounts
@@ -158,28 +154,38 @@ class CacheService(
       else Duration.Zero
 
     val publicBucketsSubscription =
-      Observable.interval(initialDelay + 1000.millis, 5.minutes).subscribe {
-        _ =>
-          refreshPublicBucketsBox()
+      scheduleAtFixedRate(
+        initialDelay = initialDelay + 1000.millis,
+        interval = 5.minutes
+      ){ () =>
+        refreshPublicBucketsBox()        
       }
 
     val exposedKeysSubscription =
-      Observable.interval(initialDelay + 2000.millis, 5.minutes).subscribe {
-        _ =>
-          refreshExposedKeysBox()
+      scheduleAtFixedRate(
+        initialDelay = initialDelay + 2000.millis,
+        interval = 5.minutes
+      ){ () =>
+        refreshExposedKeysBox()
       }
 
     val credentialsSubscription =
-      Observable.interval(initialDelay + 4000.millis, 5.minutes).subscribe {
-        _ =>
-          refreshCredentialsBox()
+      scheduleAtFixedRate(
+        initialDelay = initialDelay + 4000.millis,
+        interval = 5.minutes
+      ){ () =>
+        refreshCredentialsBox()
       }
 
     lifecycle.addStopHook { () =>
-      publicBucketsSubscription.unsubscribe()
-      exposedKeysSubscription.unsubscribe()
-      credentialsSubscription.unsubscribe()
-      Future.successful(())
+      // Call schedule-cancelling functions
+      Future.sequence(
+        List(
+          publicBucketsSubscription(),
+          exposedKeysSubscription(),
+          credentialsSubscription()
+        )
+      )
     }
   }
 

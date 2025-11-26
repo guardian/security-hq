@@ -2,20 +2,18 @@ package aws.support
 
 import aws.s3.S3
 import aws.support.TrustedAdvisor.{getTrustedAdvisorCheckDetails, parseTrustedAdvisorCheckResult}
-import aws.{AwsClient, AwsClients}
-
-import model._
-import utils.attempt.{Attempt, FailedAttempt, Failure}
-
-import scala.jdk.CollectionConverters._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
-import scala.util.{Success, Try}
-
+import aws.{AwsClient, AwsClients, AwsClientsList}
+import model.*
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import software.amazon.awssdk.services.support.model.TrustedAdvisorResourceDetail
+import utils.attempt.{Attempt, FailedAttempt, Failure}
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.*
+import scala.util.control.NonFatal
+import scala.util.{Success, Try}
 
 object TrustedAdvisorS3 {
   private val S3_Bucket_Permissions = "Pfx0RwqBli"
