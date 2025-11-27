@@ -28,7 +28,7 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
         Set(janus.model.AwsAccount("Deploy Tools", "deployTools")),
         ACL(Map("firstName.secondName" -> Set.empty)),
         ACL(Map.empty),
-        SupportACL.create(Map.empty, Set.empty, Duration.ZERO),
+        SupportACL.create(Map.empty, Set.empty),
         None
       )
 
