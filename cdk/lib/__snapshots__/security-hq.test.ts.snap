@@ -274,6 +274,11 @@ exports[`HQ stack matches the snapshot 1`] = `
           "PauseTime": "PT5M",
           "SuspendProcesses": [
             "AlarmNotification",
+            "AZRebalance",
+            "HealthCheck",
+            "InstanceRefresh",
+            "ReplaceUnhealthy",
+            "ScheduledActions",
           ],
           "WaitOnResourceSignals": true,
         },
