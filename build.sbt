@@ -36,9 +36,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "29.1.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "15.2.6",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "15.2.6",
+      "com.gu.play-googleauth" %%  "play-v30" % "30.1.1",
+      "com.gu.play-secret-rotation" %% "play-v30" % "15.2.7",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "15.2.7",
 
       "joda-time" % "joda-time" % "2.14.0",
       "co.fs2" %% "fs2-core" % "3.12.2",
@@ -61,7 +61,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.21",
+      "ch.qos.logback" % "logback-classic" % "1.5.23",
 
 
       // logstash-logback-encoder brings in version 2.11.0
