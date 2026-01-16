@@ -61,7 +61,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.23",
+      "ch.qos.logback" % "logback-classic" % "1.5.24",
 
 
       // logstash-logback-encoder brings in version 2.11.0
