@@ -19,7 +19,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "2.40.17"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.20.2"
+val jacksonVersion = "2.21.0"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -61,7 +61,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.25",
+      "ch.qos.logback" % "logback-classic" % "1.5.26",
 
 
       // logstash-logback-encoder brings in version 2.11.0
