@@ -20,17 +20,17 @@ jobs:
       contents: read
       pull-requests: write # required by guardian/actions-riff-raff
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Java
-        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '21'
           distribution: 'corretto'
           cache: 'sbt'
 
       - name: Setup Node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -48,7 +48,7 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@d27cdac36b1f3932442f25f18775208f774a8405 # v4.2.3
+      - uses: guardian/actions-riff-raff@a2524d81258439cfd4a0086eaa4d9886db978cca # v4.2.4
         with:
           projectName: security-hq
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
