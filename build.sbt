@@ -19,7 +19,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "2.40.17"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.20.2"
+val jacksonVersion = "2.21.0"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -36,9 +36,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "32.0.1",
-      "com.gu.play-secret-rotation" %% "play-v30" % "16.0.2",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "16.0.2",
+      "com.gu.play-googleauth" %%  "play-v30" % "32.0.2",
+      "com.gu.play-secret-rotation" %% "play-v30" % "16.1.0",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "16.1.0",
 
       "joda-time" % "joda-time" % "2.14.0",
       "co.fs2" %% "fs2-core" % "3.12.2",
@@ -61,7 +61,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.25",
+      "ch.qos.logback" % "logback-classic" % "1.5.26",
 
 
       // logstash-logback-encoder brings in version 2.11.0
