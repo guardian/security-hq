@@ -63,7 +63,6 @@ lazy val hq = (project in file("hq"))
       "com.gu" %% "anghammarad-client" % "6.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.32",
 
-
       // logstash-logback-encoder brings in version 2.11.0
       // exclude transitive dependency to avoid a runtime exception:
       // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
