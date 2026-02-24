@@ -19,7 +19,7 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "2.41.24"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.21.0"
+val jacksonVersion = "2.21.1"
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
