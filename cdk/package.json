@@ -22,7 +22,7 @@
     "@eslint/js": "^9.39.2",
     "@guardian/eslint-config": "^13.0.3",
     "aws-cdk": "^2.1030.0",
-    "aws-cdk-lib": "^2.219.0",
+    "aws-cdk-lib": "^2.240.0",
     "constructs": "^10.4.2",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
