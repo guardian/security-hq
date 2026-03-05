@@ -34,7 +34,7 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
     "output janus username from JanusData type" in {
       val dummyJanusData = JanusData(
         Set(janus.model.AwsAccount("Deploy Tools", "deployTools")),
-        ACL(Map("firstName.secondName" -> ACLEntry(permissions = Set.empty, roles = Set.empty))),
+        ACL(Map("firstName.secondName" -> ACLEntry(permissions = Set.empty, policyGrants = Set.empty))),
         ACL(Map.empty),
         SupportACL.create(Map.empty, Set.empty),
         None
