@@ -17,7 +17,7 @@ ThisBuild / scalacOptions ++= Seq(
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "2.41.24"
+val awsSdkVersion = "2.41.34"
 val playJsonVersion = "3.0.4"
 val jacksonVersion = "2.21.1"
 
@@ -36,11 +36,11 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "34.0.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "17.0.1",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "17.0.1",
+      "com.gu.play-googleauth" %%  "play-v30" % "35.0.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "17.0.2",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "17.0.2",
 
-      "joda-time" % "joda-time" % "2.14.0",
+      "joda-time" % "joda-time" % "2.14.1",
       "co.fs2" %% "fs2-core" % "3.12.2",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
