@@ -19,7 +19,27 @@ resolvers += DefaultMavenRepository
 
 val awsSdkVersion = "2.41.34"
 val playJsonVersion = "3.0.4"
-val jacksonVersion = "2.21.1"
+
+/*
+ * To test whether any of these entries are redundant:
+ * 1. Comment it out
+ * 2. Run `sbt dependencyList`
+ * 3. If no earlier version appears in the dependency list, the entry can be removed.
+ */
+val safeTransitiveDependencies = {
+  val jacksonV2Version = "2.21.2"
+  val jacksonV3Version = "3.1.1"
+  Seq(
+    "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % jacksonV2Version,
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonV2Version,
+    "com.fasterxml.jackson.module" % "jackson-module-parameter-names" % jacksonV2Version,
+    "com.fasterxml.jackson.module" % "jackson-module-scala_3" % jacksonV2Version,
+    "tools.jackson.core" % "jackson-core" % jacksonV3Version,
+    "tools.jackson.core" % "jackson-databind" % jacksonV3Version
+  )
+}
 
 val mergeStrategySettings= assemblyMergeStrategy := {
   case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
@@ -36,9 +56,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "35.0.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "17.0.2",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "17.0.2",
+      "com.gu.play-googleauth" %%  "play-v30" % "35.0.1",
+      "com.gu.play-secret-rotation" %% "play-v30" % "17.0.3",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "17.0.3",
 
       "joda-time" % "joda-time" % "2.14.1",
       "co.fs2" %% "fs2-core" % "3.13.0",
@@ -55,22 +75,14 @@ lazy val hq = (project in file("hq"))
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.64.8",
-      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.32",
-
-      // logstash-logback-encoder brings in version 2.11.0
-      // exclude transitive dependency to avoid a runtime exception:
-      // `com.fasterxml.jackson.databind.JsonMappingException: Scala module 2.10.2 requires Jackson Databind version >= 2.10.0 and < 2.11.0`
-      "net.logstash.logback" % "logstash-logback-encoder" % "9.0" exclude("com.fasterxml.jackson.core", "jackson-databind"),
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "9.0.0"
-    ),
-
-
+    ) ++ safeTransitiveDependencies,
     Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
