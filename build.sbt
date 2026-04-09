@@ -81,7 +81,7 @@ lazy val hq = (project in file("hq"))
       "com.gu" %% "anghammarad-client" % "6.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.32",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
-      "com.gu" %% "janus-config-tools" % "9.0.0"
+      "com.gu" %% "janus-config-tools" % "10.0.0"
     ) ++ safeTransitiveDependencies,
     Assets / pipelineStages := Seq(digest),
     // exclude docs
