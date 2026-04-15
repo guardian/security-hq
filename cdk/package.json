@@ -15,23 +15,23 @@
     "synth": "cdk synth --path-metadata false --version-reporting false"
   },
   "devDependencies": {
-    "@guardian/cdk": "62.5.2",
+    "@guardian/cdk": "63.0.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "25.4.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@types/node": "25.6.0",
+    "@typescript-eslint/eslint-plugin": "8.58.2",
     "@eslint/js": "^9.39.2",
-    "@guardian/eslint-config": "^14.0.0",
+    "@guardian/eslint-config": "14.0.1",
     "aws-cdk": "^2.1030.0",
     "aws-cdk-lib": "^2.240.0",
     "constructs": "^10.4.2",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
-    "prettier": "^3.8.1",
+    "prettier": "3.8.2",
     "eslint": "^9.39.2",
     "jest": "^30.3.0",
     "source-map-support": "^0.5.21",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "29.4.9",
     "ts-node": "^10.9.2",
-    "typescript": "~5.9.3"
+    "typescript": "6.0.2"
   }
 }
