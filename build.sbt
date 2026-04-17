@@ -75,7 +75,7 @@ lazy val hq = (project in file("hq"))
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
       "com.vladsch.flexmark" % "flexmark" % "0.64.8",
-      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "6.0.0",
