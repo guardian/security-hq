@@ -78,7 +78,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
-      "com.gu" %% "anghammarad-client" % "6.0.0",
+      "com.gu" %% "anghammarad-client" % "7.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.32",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "10.0.0"
