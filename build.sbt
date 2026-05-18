@@ -60,7 +60,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-secret-rotation" %% "play-v30" % "18.0.0",
        "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.0",
 
-      "joda-time" % "joda-time" % "2.14.1",
+      "joda-time" % "joda-time" % "2.14.2",
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
