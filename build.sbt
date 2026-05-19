@@ -28,7 +28,7 @@ val playJsonVersion = "3.0.4"
  */
 val safeTransitiveDependencies = {
   val jacksonV2Version = "2.21.3"
-  val jacksonV3Version = "3.1.2"
+  val jacksonV3Version = "3.1.3"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
@@ -60,7 +60,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-secret-rotation" %% "play-v30" % "18.0.0",
        "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.0",
 
-      "joda-time" % "joda-time" % "2.14.1",
+      "joda-time" % "joda-time" % "2.14.2",
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
