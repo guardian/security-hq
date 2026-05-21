@@ -17,7 +17,7 @@ This might not be as up-to-date as one might wish and may be noticeable for S3 b
 
 ## Local development
 ### Requirements
-1. Java 11. See [.tool-versions](.tool-versions) for the exact version. [asdf](https://asdf-vm.com/) is the recommended Java version manager.
+1. Java 21. See [.tool-versions](.tool-versions) for the exact version. [mise](https://mise.en.dev/) is the recommended Java version manager.
 2. [Docker](https://docs.docker.com/desktop/install/mac-install/).
 3. [dev-nginx](https://github.com/guardian/dev-nginx).
 4. AWS credentials for the `security` profile.
