@@ -2,5 +2,4 @@ java corretto-21
 node 24
 sbt 1
 aqua:aws/aws-cli 2
-npm:aws-cdk 2
 github:guardian/devenv 20260520-131620
