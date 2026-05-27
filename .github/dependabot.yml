@@ -42,8 +42,9 @@ updates:
       prefix: "chore(deps): "
     labels:
       - "dependencies"
-    cooldown:
-      default-days: 7
+    # Possibly not yet supported for sbt
+    # cooldown:
+    #   default-days: 7
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
