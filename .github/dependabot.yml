@@ -8,6 +8,8 @@ updates:
       prefix: "chore(deps): "
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
     groups:
       all:
         patterns: ["*"]
@@ -26,6 +28,22 @@ updates:
       - dependency-name: "constructs"
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
     groups:
       all:
         patterns: ["*"]
+
+  - package-ecosystem: "sbt"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore(deps): "
+    labels:
+      - "dependencies"
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
