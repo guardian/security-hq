@@ -7,7 +7,7 @@ import scala.concurrent.duration.DurationInt
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.8.3"
 // Omitting scalacOptions 'deprecation' and 'feature' here because they are included by the Play plugin
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
@@ -57,8 +57,8 @@ lazy val hq = (project in file("hq"))
       ws,
       filters,
       "com.gu.play-googleauth" %%  "play-v30" % "39.0.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "18.0.0",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "18.0.1",
+       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.1",
 
       "joda-time" % "joda-time" % "2.14.2",
       "co.fs2" %% "fs2-core" % "3.13.0",
@@ -79,7 +79,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "7.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.32",
+      "ch.qos.logback" % "logback-classic" % "1.5.33",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "10.0.0"
     ) ++ safeTransitiveDependencies,
