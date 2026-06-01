@@ -20,8 +20,13 @@ by subsequent runs unless you delete it entirely.
 
 ### `devenv.yaml`
 
-The source-of-truth configuration for this project's dev container. Edit this file to add/remove devenv modules,
-or any other config settings. Then run:
+The source-of-truth configuration for this project's dev container.  
+Edit this file to add/remove devenv modules, or any other config settings.  
+You can also keep a global user-specific config file at `~/.config/devenv/devenv.yaml`.  
+For more details of the content of these files, how they are merged and their effect, see
+https://github.com/guardian/devenv/blob/main/docs/configuration.md.
+
+Then run:
 
 ```bash
 devenv generate
