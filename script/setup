@@ -22,7 +22,7 @@ checkAwsCredentials() {
 
 checkNodeVersion() {
   runningNodeVersion=$(node -v)
-  requiredNodeVersion=$(cat "$ROOT_DIR/.nvmrc")
+  requiredNodeVersion=$(mise ls node --current --json | jq -r '"v\(.[].version)"')
 
   if [ "$runningNodeVersion" != "$requiredNodeVersion" ]; then
     echo -e "${red}Using wrong version of Node. Required ${requiredNodeVersion}. Running ${runningNodeVersion}.${reset}"
@@ -39,7 +39,8 @@ downloadConfig() {
   aws s3 cp "s3://$BUCKET/security/DEV/security-hq/security-hq.local.conf" ~/.gu --profile security
 
   # customise the configuration for current user
-  sed -i '' "s/ADD_YOUR_NAME/$(whoami)/" ~/.gu/security-hq.local.conf
+  # shellcheck disable=SC2016
+  sed -i '' 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq.local.conf
 }
 
 setupNginx() {
