@@ -22,7 +22,7 @@ checkAwsCredentials() {
 
 checkNodeVersion() {
   runningNodeVersion=$(node -v)
-  requiredNodeVersion=$(cat "$ROOT_DIR/.nvmrc")
+  requiredNodeVersion=$(mise ls node --current --json | jq -r '"v\(.[].version)"')
 
   if [ "$runningNodeVersion" != "$requiredNodeVersion" ]; then
     echo -e "${red}Using wrong version of Node. Required ${requiredNodeVersion}. Running ${runningNodeVersion}.${reset}"
@@ -34,12 +34,13 @@ downloadConfig() {
   BUCKET=$(aws ssm get-parameter --name /account/services/artifact.bucket --profile security --region eu-west-1 | jq -r '.Parameter.Value')
   echo "Downloading configuration from S3 bucket $BUCKET"
 
-  mkdir -p ~/.gu
-  aws s3 cp "s3://$BUCKET/security/DEV/security-hq/security-hq-service-account-cert.json" ~/.gu --profile security
-  aws s3 cp "s3://$BUCKET/security/DEV/security-hq/security-hq.local.conf" ~/.gu --profile security
+  mkdir -p ~/.gu/security-hq
+  aws s3 cp "s3://$BUCKET/security/DEV/security-hq/security-hq-service-account-cert.json" ~/.gu/security-hq --profile security
+  aws s3 cp "s3://$BUCKET/security/DEV/security-hq/security-hq.local.conf" ~/.gu/security-hq --profile security
 
   # customise the configuration for current user
-  sed -i '' "s/ADD_YOUR_NAME/$(whoami)/" ~/.gu/security-hq.local.conf
+  # shellcheck disable=SC2016
+  sed -i '' 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq/security-hq.local.conf
 }
 
 setupNginx() {

@@ -153,7 +153,7 @@ object Config {
     Attempt.fromOption(
       config.getOptional[Seq[String]]("alert.accountIdsForIamRemediationService").map(_.toList),
       FailedAttempt(Failure("unable to get list of accounts to run the IAM Remediation Service on. Rectify this by adding account ids to config.",
-        "Add account Ids for Iam Remediation service to ~/.gu/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
+        "Add account Ids for Iam Remediation service to ~/.gu/security-hq/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
         500
       ))
     )
@@ -163,7 +163,7 @@ object Config {
     Attempt.fromOption(
       config.getOptional[Seq[String]]("alert.allowedAccountIds").map(_.toList),
       FailedAttempt(Failure("unable to get list of accounts allowed to make changes to AWS. Rectify this by adding allowed accounts to config.",
-        "I haven't been able to get a list of allowed AWS accounts, which should be in Security HQ's config. Check ~/.gu/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
+        "I haven't been able to get a list of allowed AWS accounts, which should be in Security HQ's config. Check ~/.gu/security-hq/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
         500
       ))
     )
@@ -173,7 +173,7 @@ object Config {
     Attempt.fromOption(
       config.getOptional[String]("alert.iamUnrecognisedUserS3Key"),
       FailedAttempt(Failure("unable to get janus data file key from config for the IAM unrecognised job",
-        "I haven't been able to get the Janus S3 file key from config. Please check ~/.gu/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
+        "I haven't been able to get the Janus S3 file key from config. Please check ~/.gu/security-hq/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
         500)
       )
     )
@@ -183,7 +183,7 @@ object Config {
     Attempt.fromOption(
       config.getOptional[String]("alert.iamUnrecognisedUserS3Bucket"),
       FailedAttempt(Failure("unable to get IAM unrecognised user bucket from config",
-        "I haven't been able to get the S3 bucket, which contains the janus data used for the unrecognised user job. Please check ~/.gu/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
+        "I haven't been able to get the S3 bucket, which contains the janus data used for the unrecognised user job. Please check ~/.gu/security-hq/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
         500)
       )
     )
@@ -193,7 +193,7 @@ object Config {
     Attempt.fromOption(
       config.getOptional[String]("alert.iamUnrecognisedUserS3BucketRegion"),
       FailedAttempt(Failure("unable to get IAM unrecognised user bucket region from config",
-        "I haven't been able to get the S3 bucket region for the unrecognised user job. Please check ~/.gu/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
+        "I haven't been able to get the S3 bucket region for the unrecognised user job. Please check ~/.gu/security-hq/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
         500)
       )
     )
