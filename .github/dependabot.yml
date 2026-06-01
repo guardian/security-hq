@@ -42,9 +42,8 @@ updates:
       prefix: "chore(deps): "
     labels:
       - "dependencies"
-    # Possibly not yet supported for sbt
-    # cooldown:
-    #   default-days: 7
+    cooldown:
+      default-days: 7
     ignore:
       # Keep Scala on the 3.3.x LTS line. Ignore major and minor bumps.
       - dependency-name: "org.scala-lang:scala3-library_3"
