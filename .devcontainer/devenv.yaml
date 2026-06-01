@@ -20,4 +20,4 @@ forwardPorts:
   - 8000 # Dynamo DB
  
 mounts:
-  - "source=${localEnv:HOME}/.gu,target=/home/vscode/.gu,type=bind,consistency=cached"
+  - "source=${localEnv:HOME}/.gu/security-hq,target=/home/vscode/.gu/security-hq,type=bind,consistency=cached"

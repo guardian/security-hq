@@ -40,7 +40,7 @@
       "target" : "/mnt/ivy-cache",
       "type" : "volume"
     },
-    "source=${localEnv:HOME}/.gu,target=/home/vscode/.gu,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.gu/security-hq,target=/home/vscode/.gu/security-hq,type=bind,consistency=cached"
   ],
   "containerEnv" : {
     "DEVENV_IVY_CACHE_MOUNT_DIR" : "/mnt/ivy-cache",
