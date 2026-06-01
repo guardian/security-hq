@@ -17,7 +17,6 @@ modules:
 
 forwardPorts:
   - 9090 # Play app
-  - 8000 # Dynamo DB
- 
+
 mounts:
   - "source=${localEnv:HOME}/.gu/security-hq,target=/home/vscode/.gu/security-hq,type=bind,consistency=cached"
