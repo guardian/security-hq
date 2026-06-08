@@ -4,7 +4,7 @@
 DEBUG_PARAMS=""
 COLOUR_PARAMS=""
 
-CONF_PARAMS="-Dconfig.file=$HOME/.gu/security-hq.local.conf"
+CONF_PARAMS="-Dconfig.file=$HOME/.gu/security-hq/security-hq.local.conf"
 for arg in "$@"
 do
     if [ "$arg" == "--debug" ]; then

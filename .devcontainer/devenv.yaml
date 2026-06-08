@@ -1,0 +1,22 @@
+# Devenv project configuration
+# Edit this file to configure your project's devcontainer
+# and then run `devenv generate` to create the devcontainer.json files
+
+name: "security-hq"
+
+# Modules: Built-in functionality
+# - mise: Install and configure mise for dev tools management (https://mise.jdx.dev/)
+# - scala: Add IDE plugins and jar caching for Scala development
+# - node: Add IDE plugins for Node.js development
+# - docker-in-docker: Enable running Docker containers within the devcontainer
+modules:
+  - mise
+  - scala
+  - node
+  - docker-in-docker
+
+forwardPorts:
+  - 9090 # Play app
+
+mounts:
+  - "source=${localEnv:HOME}/.gu/security-hq,target=/home/vscode/.gu/security-hq,type=bind,consistency=cached"

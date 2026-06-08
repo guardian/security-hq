@@ -17,7 +17,7 @@ This might not be as up-to-date as one might wish and may be noticeable for S3 b
 
 ## Local development
 ### Requirements
-1. Java 11. See [.tool-versions](.tool-versions) for the exact version. [asdf](https://asdf-vm.com/) is the recommended Java version manager.
+1. Java 21. See [.tool-versions](.tool-versions) for the exact version. [mise](https://mise.en.dev/) is the recommended Java version manager.
 2. [Docker](https://docs.docker.com/desktop/install/mac-install/).
 3. [dev-nginx](https://github.com/guardian/dev-nginx).
 4. AWS credentials for the `security` profile.
@@ -54,7 +54,7 @@ When running Security HQ locally, you can modify the list of AWS accounts to inc
 For example, you may want to add a specific account for debugging purposes. 
 You will need valid AWS credentials for any accounts you wish to include.
 
-To add a new AWS account, go to `~/.gu/security-hq.local.conf`,
+To add a new AWS account, go to `~/.gu/security-hq/security-hq.local.conf`,
 add a new object to the `AWS_ACCOUNTS` list, like this Deploy Tools account example:
 
 ```
