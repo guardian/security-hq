@@ -17,7 +17,7 @@ ThisBuild / scalacOptions ++= Seq(
 
 resolvers += DefaultMavenRepository
 
-val awsSdkVersion = "2.46.0"
+val awsSdkVersion = "2.46.2"
 val playJsonVersion = "3.0.4"
 
 /*
