@@ -28,7 +28,7 @@ val playJsonVersion = "3.0.4"
  */
 val safeTransitiveDependencies = {
   val jacksonV2Version = "2.21.4"
-  val jacksonV3Version = "3.1.3"
+  val jacksonV3Version = "3.1.4"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
