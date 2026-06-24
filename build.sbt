@@ -7,7 +7,7 @@ import scala.concurrent.duration.DurationInt
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.3.8"
 // Omitting scalacOptions 'deprecation' and 'feature' here because they are included by the Play plugin
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
