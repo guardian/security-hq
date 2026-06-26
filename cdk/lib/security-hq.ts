@@ -46,6 +46,9 @@ import {
   ParameterTier,
   StringParameter,
 } from "aws-cdk-lib/aws-ssm";
+import {Effect, PolicyStatement} from "aws-cdk-lib/aws-iam";
+import { GuDeveloperPolicyExperimental } from '@guardian/cdk/lib/experimental/constructs/iam/policies';
+import {AutoScalingGroup} from "aws-cdk-lib/aws-autoscaling";
 
 interface SecurityHQProps extends GuStackProps {
   /**
@@ -63,7 +66,7 @@ export class SecurityHQ extends GuStack {
   constructor(scope: App, id: string, props: SecurityHQProps) {
     super(scope, id, props);
 
-    const { buildIdentifier } = props;
+    const {buildIdentifier} = props;
 
     const table = new GuDynamoTable(this, "DynamoTable", {
       tableName: `security-hq-iam`,
@@ -78,7 +81,7 @@ export class SecurityHQ extends GuStack {
         name: "dateNotificationSent",
         type: AttributeType.NUMBER,
       },
-      devXBackups: { enabled: true },
+      devXBackups: {enabled: true},
     });
 
     this.overrideLogicalId(table, {
@@ -126,7 +129,7 @@ export class SecurityHQ extends GuStack {
       certificateProps: {
         domainName,
       },
-      monitoringConfiguration: { noMonitoring: true },
+      monitoringConfiguration: {noMonitoring: true},
       scaling: {
         minimumInstances: 1,
       },
@@ -209,7 +212,7 @@ export class SecurityHQ extends GuStack {
         authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
         issuer: "https://accounts.google.com",
         scope: "openid",
-        authenticationRequestExtraParams: { hd: "guardian.co.uk" },
+        authenticationRequestExtraParams: {hd: "guardian.co.uk"},
         onUnauthenticatedRequest: UnauthenticatedAction.AUTHENTICATE,
         tokenEndpoint: "https://oauth2.googleapis.com/token",
         userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
@@ -274,5 +277,51 @@ export class SecurityHQ extends GuStack {
       treatMissingData: TreatMissingData.NOT_BREACHING,
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
+
+    new GuDeveloperPolicyExperimental(this, 'AccessSecurityHQInstancesBySsm', {
+      grantId: 'security-hq-ssm',
+      friendlyName: 'Access instances by SSM',
+      withoutPolicyChecks: true,
+      statements: [
+        this.getSsmInfoPolicy(),
+        this.getSsmStartSessionPolicy(ec2App.autoScalingGroup.autoScalingGroupArn),
+      ],
+    });
   }
+
+  private getSsmInfoPolicy() {
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: [
+        'ec2:DescribeInstances',
+        'ec2:DescribeInstanceStatus',
+        'ec2:DescribeTags',
+        'ssm:StartSession',
+        'ssm:DescribeSessions',
+        'ssm:GetConnectionStatus',
+        'ssm:DescribeInstanceInformation',
+        'ssm:TerminateSession'
+      ],
+      resources: ['*']
+    });
+  }
+
+  private getSsmStartSessionPolicy(asgArn: string) {
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["ssm:StartSession"],
+      resources: [
+        "arn:aws:ec2:*:*:instance/*",
+        "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
+      ],
+      conditions: {
+        "ForAnyValue:StringEquals": {
+          "ssm:resourceTag/aws:autoscaling:groupName": [
+            `${asgArn}`,
+          ]
+        }
+      }
+    });
+  }
+
 }
