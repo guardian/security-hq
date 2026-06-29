@@ -3,13 +3,11 @@ package utils
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import fs2.Stream
-import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.duration.*
 
-trait Scheduler {
-  protected val logger: Logger
+trait Scheduler extends Logging {
 
   /** Schedule a job to run at a fixed rate using FS2 streams.
     *

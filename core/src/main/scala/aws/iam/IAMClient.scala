@@ -6,7 +6,7 @@ import aws.{AwsAsyncHandler, AwsClient, AwsClients, AwsClientsList}
 import logic.{CredentialsReportDisplay, Retry}
 import model.*
 import org.joda.time.DateTime
-import play.api.Logging
+import utils.Logging
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient

@@ -28,7 +28,7 @@ class CacheService(
     iamClients: AwsClients[IamAsyncClient],
     regions: List[Region]
 )(implicit ec: ExecutionContext)
-    extends Scheduler with Logging {
+    extends Scheduler {
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
     accounts

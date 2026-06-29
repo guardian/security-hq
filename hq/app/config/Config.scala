@@ -28,15 +28,14 @@ import software.amazon.awssdk.services.ssm.SsmClient
 
 
 object Config {
-  val iamHumanUserRotationCadence: Long = 90
-  val iamMachineUserRotationCadence: Long = 365
-  val outdatedCredentialOptOutUserTag = "SecurityHQ::OutdatedCredentialOptOut"
-  val daysBetweenWarningAndFinalNotification = 7
-  val daysBetweenFinalNotificationAndRemediation = 7
+  val iamHumanUserRotationCadence: Long = CoreConfig.iamHumanUserRotationCadence
+  val iamMachineUserRotationCadence: Long = CoreConfig.iamMachineUserRotationCadence
+  val outdatedCredentialOptOutUserTag = CoreConfig.outdatedCredentialOptOutUserTag
+  val daysBetweenWarningAndFinalNotification = CoreConfig.daysBetweenWarningAndFinalNotification
+  val daysBetweenFinalNotificationAndRemediation = CoreConfig.daysBetweenFinalNotificationAndRemediation
   val app = "security-hq"
 
-  // TODO fetch the region dynamically from the instance
-  val region: Region = Region.of("eu-west-1")
+  val region: Region = CoreConfig.region
   val documentationLinks: List[Documentation] = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
     Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),

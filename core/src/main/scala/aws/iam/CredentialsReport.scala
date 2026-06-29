@@ -6,7 +6,7 @@ import com.github.tototoshi.csv._
 import org.joda.time.{DateTime, Hours, Seconds}
 import logic.DateUtils
 import net.logstash.logback.marker.Markers.appendEntries
-import play.api.{Logging, MarkerContext}
+import utils.Logging
 import utils.attempt.{Attempt, FailedAttempt}
 
 import scala.concurrent.ExecutionContext
@@ -116,8 +116,8 @@ object CredentialsReport extends Logging {
         "Arn" -> iamCred.arn
       )
 
-      val markers = MarkerContext(appendEntries(mandatoryMarkers.asJava))
-      logger.info(s"${iamCred.user} user has non-Janus access to AWS: $iamCred")(markers)
+      val marker = appendEntries(mandatoryMarkers.asJava)
+      logger.info(marker, s"${iamCred.user} user has non-Janus access to AWS: $iamCred")
     })
 
     iamCredentialsReport

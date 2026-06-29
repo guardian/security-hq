@@ -8,7 +8,7 @@ import logging.Cloudwatch
 import logging.Cloudwatch.ReaperExecutionStatus
 import model._
 import notifications.AnghammaradNotifications.unrecognisedUserRemediation
-import play.api.Logging
+import utils.Logging
 import utils.attempt.{Attempt, FailedAttempt}
 
 import java.io.File

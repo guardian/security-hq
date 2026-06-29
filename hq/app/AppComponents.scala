@@ -96,10 +96,11 @@ class AppComponents(context: Context)
     )
   }
 
-  private val cfnClients = AWS.cfnClients(configuration, availableRegions)
-  private val taClients = AWS.taClients(configuration)
-  private val s3Clients = AWS.s3Clients(configuration, availableRegions)
-  private val iamClients = AWS.iamClients(configuration, availableRegions)
+  private val awsAccounts = Config.getAwsAccounts(configuration)
+  private val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
+  private val taClients = AWS.taClients(awsAccounts)
+  private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
+  private val iamClients = AWS.iamClients(awsAccounts, availableRegions)
 
   private val securityCredentialsProvider: AwsCredentialsProviderChain = AwsCredentialsProviderChain.of(
     ProfileCredentialsProvider.create("security"),

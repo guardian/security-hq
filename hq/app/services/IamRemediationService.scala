@@ -12,7 +12,7 @@ import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
-import play.api.{Configuration, Environment, Logging, Mode}
+import play.api.{Configuration, Environment, Mode}
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
@@ -35,7 +35,7 @@ class IamRemediationService(
   cacheService: CacheService, snsClient: SnsAsyncClient, dynamo: IamRemediationDb,
   config: Configuration, iamClients: AwsClients[IamAsyncClient], lifecycle: ApplicationLifecycle, environment: Environment,
   securityS3Client: S3Client,
-)(implicit ec: ExecutionContext) extends Scheduler with Logging {
+)(implicit ec: ExecutionContext) extends Scheduler {
 
   /**
     * If an AWS access key has not been rotated in a long time, then will automatically disable it.

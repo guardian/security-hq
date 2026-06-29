@@ -16,7 +16,7 @@ class MetricService(
     environment: Environment,
     cacheService: CacheService
 )(implicit ec: ExecutionContext)
-    extends Scheduler with Logging {
+    extends Scheduler {
 
   def collectFailures[T](
       list: List[Map[AwsAccount, Either[FailedAttempt, T]]]

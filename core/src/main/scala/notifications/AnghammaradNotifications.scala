@@ -2,11 +2,11 @@ package notifications
 
 import com.gu.anghammarad.Anghammarad
 import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAccount => Account}
-import config.Config.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
+import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import logic.DateUtils.printDay
 import model.{AwsAccount, HumanUser, IAMUser, Tag}
 import org.joda.time.DateTime
-import play.api.Logging
+import utils.Logging
 import utils.attempt.{Attempt, Failure}
 
 import software.amazon.awssdk.services.sns.SnsAsyncClient

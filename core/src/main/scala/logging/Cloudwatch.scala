@@ -2,7 +2,7 @@ package logging
 
 import logic.CredentialsReportDisplay.{ReportSummary, reportStatusSummary}
 import model.{AwsAccount, CredentialReportDisplay}
-import play.api.Logging
+import utils.Logging
 import utils.attempt.FailedAttempt
 
 import scala.jdk.CollectionConverters._

@@ -1,5 +1,5 @@
 import model.AwsAccount
-import play.api.Logging
+import utils.Logging
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 import software.amazon.awssdk.regions.Region
 

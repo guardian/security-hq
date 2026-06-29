@@ -1,6 +1,6 @@
 package logic
 
-import config.Config.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
+import config.CoreConfig.{iamHumanUserRotationCadence, iamMachineUserRotationCadence}
 import model.{AccessKey, AccessKeyEnabled}
 
 object VulnerableAccessKeys {

@@ -1,11 +1,11 @@
 package logic
 
-import config.Config
-import config.Config.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
+import config.CoreConfig
+import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import db.IamRemediationDb
 import model._
 import org.joda.time.{DateTime, Days}
-import play.api.Logging
+import utils.Logging
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
@@ -32,7 +32,7 @@ object IamOutdatedCredentials extends Logging {
     // Filter out any users tagged with opt-out tag, so we can enable the job on accounts
     // while attempting to rotate difficult keys. This should be used as a last resort only.
     (machineUsersWithOutdatedKeys ++ humanUsersWithOutdatedKeys).toList
-      .filterNot(_.tags.exists(_.key == Config.outdatedCredentialOptOutUserTag))
+      .filterNot(_.tags.exists(_.key == CoreConfig.outdatedCredentialOptOutUserTag))
   }
 
   private def hasOutdatedHumanKey(keys: List[AccessKey], now: DateTime): Boolean = keys.exists(isOutdatedHumanKey(_, now))
@@ -42,14 +42,14 @@ object IamOutdatedCredentials extends Logging {
   private def isOutdatedHumanKey(key: AccessKey, now: DateTime): Boolean = {
     key.lastRotated.exists { date =>
       // using minus 1 so that we return true if the last rotated date is exactly on the cadence date
-      date.isBefore(now.minusDays(Config.iamHumanUserRotationCadence.toInt - 1))
+      date.isBefore(now.minusDays(CoreConfig.iamHumanUserRotationCadence.toInt - 1))
     } && key.keyStatus == AccessKeyEnabled
   }
 
   private def isOutdatedMachineKey(key: AccessKey, now: DateTime): Boolean = {
     key.lastRotated.exists { date =>
       // using minus 1 so that we return true if the last rotated date is exactly on the cadence date
-      date.isBefore(now.minusDays(Config.iamMachineUserRotationCadence.toInt - 1))
+      date.isBefore(now.minusDays(CoreConfig.iamMachineUserRotationCadence.toInt - 1))
     } && key.keyStatus == AccessKeyEnabled
   }
 

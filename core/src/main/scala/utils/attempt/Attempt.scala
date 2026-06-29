@@ -2,7 +2,7 @@ package utils.attempt
 
 import java.util.{Timer, TimerTask}
 
-import play.api.Logging
+import utils.Logging
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
