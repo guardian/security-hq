@@ -297,7 +297,6 @@ export class SecurityHQ extends GuStack {
         "ec2:DescribeInstances",
         "ec2:DescribeInstanceStatus",
         "ec2:DescribeTags",
-        "ssm:StartSession",
         "ssm:DescribeSessions",
         "ssm:GetConnectionStatus",
         "ssm:DescribeInstanceInformation",
