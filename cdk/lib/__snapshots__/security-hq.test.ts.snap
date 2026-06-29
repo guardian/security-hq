@@ -41,6 +41,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuParameter",
       "GuAlarm",
       "GuAlarm",
+      "GuDeveloperPolicyExperimental",
     ],
     "gu:cdk:version": "TEST",
   },
@@ -114,6 +115,64 @@ exports[`HQ stack matches the snapshot 1`] = `
     },
   },
   "Resources": {
+    "AccessSecurityHQInstancesBySsm8753B668": {
+      "Properties": {
+        "Description": "Access instances by SSM",
+        "Path": "/developer-policy/guardian/security-hq/security/PROD/security-hq-ssm/",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeTags",
+                "ssm:DescribeSessions",
+                "ssm:GetConnectionStatus",
+                "ssm:DescribeInstanceInformation",
+                "ssm:TerminateSession",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "ssm:StartSession",
+              "Condition": {
+                "ForAnyValue:StringEquals": {
+                  "ssm:resourceTag/aws:autoscaling:groupName": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":autoscaling:eu-west-1:",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":autoScalingGroup:*:autoScalingGroupName/",
+                          {
+                            "Ref": "AutoScalingGroupSecurityhqASG8DD277A5",
+                          },
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              },
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:ec2:*:*:instance/*",
+                "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::ManagedPolicy",
+    },
     "AlbSsmParam485C1D52": {
       "Properties": {
         "DataType": "text",
