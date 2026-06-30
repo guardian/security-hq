@@ -24,10 +24,9 @@ object IamUnrecognisedUsers extends LazyLogging {
   def getJanusUsernames(janusData: JanusData): List[String] =
     janusData.access.userAccess.keys.toList
 
-  /**
-    * Removes the FailedAttempts from the Either and returns a list of tuples with only the Right values.
-    * This function uses generics to make it easier to test, but to avoid confusion it was written to take
-    * a Map of AWSAccount to Either and return a list of tuples of AWS Account to CredentialReportDisplay.
+  /** Removes the FailedAttempts from the Either and returns a list of tuples with only the Right values. This function
+    * uses generics to make it easier to test, but to avoid confusion it was written to take a Map of AWSAccount to
+    * Either and return a list of tuples of AWS Account to CredentialReportDisplay.
     */
   def getCredsReportDisplayForAccount[A, B](allCreds: Map[A, Either[FailedAttempt, B]]): List[(A, B)] = {
     allCreds.toList.foldLeft[List[(A, B)]](Nil) {
@@ -44,14 +43,13 @@ object IamUnrecognisedUsers extends LazyLogging {
     }
   }
 
-  /**
-    * Returns IAM permanent credentials for people who are not janus users.
-    * Filters for the accounts the Security HQ stage has been configured for - see "alert.allowedAccountIds" in configuration.
+  /** Returns IAM permanent credentials for people who are not janus users. Filters for the accounts the Security HQ
+    * stage has been configured for - see "alert.allowedAccountIds" in configuration.
     */
   def unrecognisedUsersForAllowedAccounts(
-    accountCredsReports: List[(AwsAccount, CredentialReportDisplay)],
-    janusUsernames: List[String],
-    allowedAccountIds: List[String]
+      accountCredsReports: List[(AwsAccount, CredentialReportDisplay)],
+      janusUsernames: List[String],
+      allowedAccountIds: List[String]
   ): List[AccountUnrecognisedUsers] = {
     for {
       (acc, crd) <- accountCredsReports
@@ -61,20 +59,26 @@ object IamUnrecognisedUsers extends LazyLogging {
     } yield accountUsers
   }
 
-  private def filterUnrecognisedIamUsers(iamHumanUsersWithTargetTag: Seq[HumanUser], janusUsernames: List[String]): List[HumanUser] =
+  private def filterUnrecognisedIamUsers(
+      iamHumanUsersWithTargetTag: Seq[HumanUser],
+      janusUsernames: List[String]
+  ): List[HumanUser] =
     iamHumanUsersWithTargetTag.filterNot { iamUser =>
       val maybeTag = iamUser.tags.find(tag => tag.key == USERNAME_TAG_KEY)
       maybeTag match {
-        case Some(tag) => janusUsernames.contains(tag.value) // filter out human users that have tags which match the janus usernames
+        case Some(tag) =>
+          janusUsernames.contains(tag.value) // filter out human users that have tags which match the janus usernames
         case None => true
       }
     }.toList
 
   def makeFile(s3Object: String): File = {
-    Files.write(
-      Files.createTempFile("janusData", ".txt"),
-      s3Object.getBytes(StandardCharsets.UTF_8)
-    ).toFile
+    Files
+      .write(
+        Files.createTempFile("janusData", ".txt"),
+        s3Object.getBytes(StandardCharsets.UTF_8)
+      )
+      .toFile
   }
 
   def isTaggedForUnrecognisedUser(tags: List[Tag]): Boolean = {
@@ -86,8 +90,8 @@ object IamUnrecognisedUsers extends LazyLogging {
   }
 
   def listAccountAccessKeys(
-    accountUnrecognisedUsers: AccountUnrecognisedUsers,
-    iamClients: AwsClients[IamAsyncClient]
+      accountUnrecognisedUsers: AccountUnrecognisedUsers,
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[AccountUnrecognisedAccessKeys] = {
     val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
     Attempt.flatTraverse(users)(listUserAccessKeys(account, _, iamClients)).map {
@@ -96,40 +100,47 @@ object IamUnrecognisedUsers extends LazyLogging {
   }
 
   def disableAccountAccessKeys(
-    accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
-    iamClients: AwsClients[IamAsyncClient]
+      accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
     val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
     val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
-    val disableKeysAttempt = Attempt.traverse(activeAccessKeys)(key =>
-      disableAccessKey(account, key.username, key.accessKeyId, iamClients)
-    )
+    val disableKeysAttempt =
+      Attempt.traverse(activeAccessKeys)(key => disableAccessKey(account, key.username, key.accessKeyId, iamClients))
 
-    disableKeysAttempt.tap(_.fold(
-      { failure =>
-        logger.error(s"Failed to disable access key: ${failure.logMessage}")
-        Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
-      },
-      { updateAccessKeyResults =>
-        logger.info(s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}.")
-        if(updateAccessKeyResults.nonEmpty) {
-          Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+    disableKeysAttempt.tap(
+      _.fold(
+        { failure =>
+          logger.error(s"Failed to disable access key: ${failure.logMessage}")
+          Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
+        },
+        { updateAccessKeyResults =>
+          logger.info(
+            s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}."
+          )
+          if (updateAccessKeyResults.nonEmpty) {
+            Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+          }
         }
-      }
-    ))
+      )
+    )
   }
 
   def removeAccountPasswords(
-    accountUnrecognisedUsers: AccountUnrecognisedUsers,
-    iamClients: AwsClients[IamAsyncClient]
+      accountUnrecognisedUsers: AccountUnrecognisedUsers,
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
-    val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user => deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients))
+    val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
+      deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
+    )
     results.tap {
       case Left(failure) =>
         logger.error(s"failed to delete at least one password: ${failure.logMessage}")
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
       case Right(success) =>
-        logger.info(s"passwords deleted for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}")
+        logger.info(
+          s"passwords deleted for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}"
+        )
         Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
     }
   }

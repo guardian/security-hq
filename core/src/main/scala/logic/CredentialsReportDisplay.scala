@@ -8,7 +8,6 @@ import utils.attempt.FailedAttempt
 
 import java.net.URLEncoder
 
-
 object CredentialsReportDisplay {
 
   case class ReportSummary(warnings: Int, errors: Int, other: Int)
@@ -49,7 +48,7 @@ object CredentialsReportDisplay {
   private[logic] def humanReportStatus(cred: IAMCredential): ReportStatus = {
     val keys = List(accessKey1Details(cred), accessKey2Details(cred))
 
-    //TODO: Scala 2.13 has Option builder `when` which is a nicer syntax than Some(...).filter
+    // TODO: Scala 2.13 has Option builder `when` which is a nicer syntax than Some(...).filter
     val redStatusReasons: Seq[ReportStatusReason] = Seq(
       Some(MissingMfa).filterNot(_ => cred.mfaActive),
       Some(OutdatedKey).filter(_ => VulnerableAccessKeys.hasOutdatedHumanKeyIncludingDisabled(keys))
@@ -112,7 +111,7 @@ object CredentialsReportDisplay {
     case Some(0) => "Today"
     case Some(1) => "Yesterday"
     case Some(d) => s"${d.toString} days ago"
-    case _ => ""
+    case _       => ""
   }
 
   def reportStatusSummary(report: CredentialReportDisplay): ReportSummary = {
@@ -126,14 +125,18 @@ object CredentialsReportDisplay {
     ReportSummary(warnings, errors, others)
   }
 
-  def exposedKeysSummary(allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]): Map[AwsAccount, Boolean] = {
+  def exposedKeysSummary(
+      allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]
+  ): Map[AwsAccount, Boolean] = {
     allReports.view.mapValues {
       case Right(keys) if keys.nonEmpty => true
-      case _ => false
+      case _                            => false
     }.toMap
   }
 
-  def sortAccountsByReportSummary[L](reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
+  def sortAccountsByReportSummary[L](
+      reports: List[(AwsAccount, Either[L, CredentialReportDisplay])]
+  ): List[(AwsAccount, Either[L, CredentialReportDisplay])] = {
     reports.sortBy {
       case (account, Right(report)) if reportStatusSummary(report).errors + reportStatusSummary(report).warnings != 0 =>
         (0, reportStatusSummary(report).errors * -1, reportStatusSummary(report).warnings * -1, account.name)
@@ -153,9 +156,9 @@ object CredentialsReportDisplay {
 
   implicit val reportStatusOrdering: Ordering[ReportStatus] = new Ordering[ReportStatus] {
     private def statusCode(status: ReportStatus): Int = status match {
-      case Red(_) => 0
+      case Red(_)   => 0
       case Amber(_) => 1
-      case _ => 99
+      case _        => 99
     }
 
     override def compare(x: ReportStatus, y: ReportStatus): Int = {

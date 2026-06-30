@@ -15,23 +15,25 @@ import scala.util.control.NonFatal
 
 object AnghammaradNotifications extends LazyLogging {
   def send(
-    notification: Notification,
-    topicArn: String,
-    snsClient: SnsAsyncClient,
+      notification: Notification,
+      topicArn: String,
+      snsClient: SnsAsyncClient
   )(implicit executionContext: ExecutionContext): Attempt[String] = {
-    Attempt.fromFuture(Anghammarad.notify(notification, topicArn, snsClient)) { case NonFatal(e) =>
-      Failure(
-        s"Failed to send Anghammarad notification ${e.getMessage}",
-        "Unable to send developer notification",
-        500,
-        throwable = Some(e)
-      ).attempt
-    }.tap {
-      case Left(failure) =>
-        logger.error(failure.logMessage, failure.firstException.orNull)
-      case Right(id) =>
-        logger.info(s"Sent notification to ${notification.target}: $id")
-    }
+    Attempt
+      .fromFuture(Anghammarad.notify(notification, topicArn, snsClient)) { case NonFatal(e) =>
+        Failure(
+          s"Failed to send Anghammarad notification ${e.getMessage}",
+          "Unable to send developer notification",
+          500,
+          throwable = Some(e)
+        ).attempt
+      }
+      .tap {
+        case Left(failure) =>
+          logger.error(failure.logMessage, failure.firstException.orNull)
+        case Right(id) =>
+          logger.info(s"Sent notification to ${notification.target}: $id")
+      }
   }
 
   val channel = Preferred(Email)
@@ -40,8 +42,15 @@ object AnghammaradNotifications extends LazyLogging {
   private def notificationTargets(awsAccount: AwsAccount, iamUser: IAMUser): List[Target] =
     Tag.tagsToAnghammaradTargets(iamUser.tags) :+ Account(awsAccount.accountNumber)
 
-  def outdatedCredentialWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime, now: DateTime): Notification = {
-    val deadline = printDay(now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation))
+  def outdatedCredentialWarning(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      now: DateTime
+  ): Notification = {
+    val deadline = printDay(
+      now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation)
+    )
     val message =
       s"""
          |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
@@ -51,10 +60,22 @@ object AnghammaradNotifications extends LazyLogging {
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
     val subject = s"Action required by $deadline: long-lived credential detected in ${awsAccount.name}"
-    Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
+    Notification(
+      subject,
+      message + genericOutdatedCredentialText,
+      Nil,
+      notificationTargets(awsAccount, iamUser),
+      channel,
+      sourceSystem
+    )
   }
 
-  def outdatedCredentialFinalWarning(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime, now: DateTime): Notification = {
+  def outdatedCredentialFinalWarning(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      now: DateTime
+  ): Notification = {
     val deadline = printDay(now.plusDays(daysBetweenFinalNotificationAndRemediation))
     val message =
       s"""
@@ -65,10 +86,21 @@ object AnghammaradNotifications extends LazyLogging {
          |Security HQ will automatically disable this user at the next opportunity.
          |""".stripMargin
     val subject = s"Action required by $deadline: long-lived credential in ${awsAccount.name} will be disabled soon"
-    Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
+    Notification(
+      subject,
+      message + genericOutdatedCredentialText,
+      Nil,
+      notificationTargets(awsAccount, iamUser),
+      channel,
+      sourceSystem
+    )
   }
 
-  def outdatedCredentialRemediation(awsAccount: AwsAccount, iamUser: IAMUser, problemCreationDate: DateTime): Notification = {
+  def outdatedCredentialRemediation(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime
+  ): Notification = {
     val message =
       s"""
          |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today,
@@ -76,7 +108,14 @@ object AnghammaradNotifications extends LazyLogging {
          |If you still require the disabled user, add new access keys(s) and rotate regularly. Otherwise, delete them.
          |""".stripMargin
     val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
-    Notification(subject, message + genericOutdatedCredentialText, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)
+    Notification(
+      subject,
+      message + genericOutdatedCredentialText,
+      Nil,
+      notificationTargets(awsAccount, iamUser),
+      channel,
+      sourceSystem
+    )
   }
 
   private val genericOutdatedCredentialText = {
