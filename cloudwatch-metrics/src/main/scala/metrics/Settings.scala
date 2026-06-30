@@ -2,7 +2,7 @@ package metrics
 
 import software.amazon.awssdk.regions.Region
 
-/** Runtime configuration for the cloudwatch-metrics Lambda, sourced from
+/** Runtime configuration for the cloudwatch-metrics lambda, sourced from
   * environment variables set by the CDK stack.
   *
   *   - `DRY_RUN` (default `true`): when true, metrics are logged but not

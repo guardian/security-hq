@@ -1,36 +1,33 @@
 package metrics
 
-import aws.{AWS, AwsClient}
 import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
+import aws.{AWS, AwsClient}
+import com.typesafe.scalalogging.LazyLogging
 import config.AccountLoader
 import logging.Cloudwatch
 import model.*
-import utils.Logging
-import utils.attempt.{Attempt, FailedAttempt, Failure}
-
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 
-/** Fetches Security HQ vulnerability data directly from Trusted Advisor and IAM
-  * (no cache) and publishes the same CloudWatch metrics as the in-app
-  * `MetricService`.
+/** Fetches Security HQ vulnerability data from Trusted Advisor and IAM
+  * and publishes CloudWatch metrics.
   *
-  * This deliberately mirrors
-  * `services.MetricService.postCachedContentsAsMetrics`: metrics are only
-  * published if every data set was fetched successfully, so that SUM
+  * Metrics are only
+  * published if every data set was fetched successfully so that Sum
   * aggregations over time remain meaningful. See
   * https://github.com/guardian/security-hq/pull/211 for the rationale.
   */
-object MetricsCollector extends Logging {
+object MetricsCollector extends LazyLogging {
 
-  private implicit val ec: ExecutionContext = ExecutionContext.global
+  private given ExecutionContext = ExecutionContext.global
 
   private val Timeout = 5.minutes
 
@@ -139,6 +136,7 @@ object MetricsCollector extends Logging {
     }
 
   private def loadAccounts(settings: Settings): List[AwsAccount] = {
+    // TODO: possible to get from a profile as well as lambda env
     val s3 = S3Client.builder.region(settings.region).build()
     try {
       val hocon = s3
