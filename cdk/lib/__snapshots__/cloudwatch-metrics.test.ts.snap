@@ -1,0 +1,321 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`CloudwatchMetrics stack matches the snapshot 1`] = `
+{
+  "Metadata": {
+    "gu:cdk:constructs": [
+      "GuDistributionBucketParameter",
+      "GuScheduledLambda",
+    ],
+    "gu:cdk:version": "TEST",
+  },
+  "Parameters": {
+    "DistributionBucketName": {
+      "Default": "/account/services/artifact.bucket",
+      "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "cloudwatchmetrics6D04BA99": {
+      "DependsOn": [
+        "cloudwatchmetricsServiceRoleDefaultPolicyF4F25300",
+        "cloudwatchmetricsServiceRoleC049C322",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "security/PROD/cloudwatch-metrics/cloudwatch-metrics.jar",
+        },
+        "Environment": {
+          "Variables": {
+            "APP": "cloudwatch-metrics",
+            "CONFIG_BUCKET": {
+              "Ref": "DistributionBucketName",
+            },
+            "CONFIG_KEY": "security/PROD/security-hq/security-hq.conf",
+            "DRY_RUN": "true",
+            "REGION": "eu-west-1",
+            "STACK": "security",
+            "STAGE": "PROD",
+          },
+        },
+        "Handler": "metrics.Handler::handleRequest",
+        "LoggingConfig": {
+          "LogFormat": "JSON",
+        },
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "cloudwatchmetricsServiceRoleC049C322",
+            "Arn",
+          ],
+        },
+        "Runtime": "java25",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "cloudwatch-metrics",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "cloudwatchmetricsServiceRoleC049C322": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "cloudwatch-metrics",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "cloudwatchmetricsServiceRoleDefaultPolicyF4F25300": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/security/PROD/cloudwatch-metrics/cloudwatch-metrics.jar",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/security/cloudwatch-metrics",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/security/cloudwatch-metrics/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/PROD/security-hq/security-hq.conf",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "ec2:DescribeRegions",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "cloudwatchmetricsServiceRoleDefaultPolicyF4F25300",
+        "Roles": [
+          {
+            "Ref": "cloudwatchmetricsServiceRoleC049C322",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "cloudwatchmetricscloudwatchmetricsrate6hours00439147C": {
+      "Properties": {
+        "Description": "Publish Security HQ vulnerability metrics to CloudWatch",
+        "ScheduleExpression": "rate(6 hours)",
+        "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "cloudwatch-metrics",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "cloudwatchmetrics6D04BA99",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "cloudwatchmetricscloudwatchmetricsrate6hours0AllowEventRulecloudwatchmetrics0912ED26F3D84DC3": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "cloudwatchmetrics6D04BA99",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "cloudwatchmetricscloudwatchmetricsrate6hours00439147C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+  },
+}
+`;
