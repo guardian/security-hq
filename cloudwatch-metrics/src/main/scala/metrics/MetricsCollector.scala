@@ -1,5 +1,6 @@
 package metrics
 
+import aws.{AWS, AwsClient}
 import aws.ec2.EC2
 import aws.iam.IAMClient
 import aws.support.{TrustedAdvisorExposedIAMKeys, TrustedAdvisorS3}
