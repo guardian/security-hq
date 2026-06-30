@@ -18,9 +18,6 @@ import java.io.StringReader
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
-import scala.jdk.CollectionConverters._
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.iam.model.{GenerateCredentialReportResponse, GetCredentialReportResponse, ReportStateType}
 
 object CredentialsReport extends LazyLogging {
 
