@@ -2,7 +2,7 @@ package config
 
 import software.amazon.awssdk.regions.Region
 
-/** Play-free configuration values shared by `core` and `hq`. */
+/** Configuration values shared by `core` and `hq`. */
 object CoreConfig {
   val iamHumanUserRotationCadence: Long = 90
   val iamMachineUserRotationCadence: Long = 365
