@@ -2,14 +2,13 @@ package utils
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import com.typesafe.scalalogging.LazyLogging
 import fs2.Stream
-import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.duration.*
 
-trait Scheduler {
-  protected val logger: Logger
+trait Scheduler extends LazyLogging {
 
   /** Schedule a job to run at a fixed rate using FS2 streams.
     *

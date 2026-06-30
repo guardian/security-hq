@@ -46,9 +46,41 @@ val mergeStrategySettings= assemblyMergeStrategy := {
   case _ => MergeStrategy.first
 }
 
+lazy val core = (project in file("core"))
+  .disablePlugins(sbtassembly.AssemblyPlugin)
+  .settings(
+    name := "security-hq-core",
+    libraryDependencies ++= Seq(
+      "co.fs2" %% "fs2-core" % "3.13.0",
+      "com.github.tototoshi" %% "scala-csv" % "2.0.0",
+      "joda-time" % "joda-time" % "2.14.2",
+      "com.gu" %% "anghammarad-client" % "7.0.0",
+      "com.gu" %% "janus-config-tools" % "10.0.0",
+      "software.amazon.awssdk" % "iam" % awsSdkVersion,
+      "software.amazon.awssdk" % "cloudformation" % awsSdkVersion,
+      "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
+      "software.amazon.awssdk" % "dynamodb" % awsSdkVersion,
+      "software.amazon.awssdk" % "ec2" % awsSdkVersion,
+      "software.amazon.awssdk" % "efs" % awsSdkVersion,
+      "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "software.amazon.awssdk" % "sns" % awsSdkVersion,
+      "software.amazon.awssdk" % "sts" % awsSdkVersion,
+      "software.amazon.awssdk" % "support" % awsSdkVersion,
+      "ch.qos.logback" % "logback-classic" % "1.5.34",
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
+      "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.19.0" % Test
+    ) ++ safeTransitiveDependencies,
+    Test / parallelExecution := false,
+    Test / fork := false
+  )
+
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, SbtWeb, JDebPackaging, SystemdPlugin)
   .disablePlugins(sbtassembly.AssemblyPlugin)
+  .dependsOn(core)
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -129,7 +161,7 @@ lazy val hq = (project in file("hq"))
 Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val root = (project in file(".")).
-  aggregate(hq).
+  aggregate(core, hq).
   settings(
     name := """security-hq"""
   )

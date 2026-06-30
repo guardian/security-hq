@@ -1,20 +1,17 @@
 package utils.attempt
 
+import com.typesafe.scalalogging.LazyLogging
+
 import java.util.{Timer, TimerTask}
-
-import play.api.Logging
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
-
-
 
 /**
   * Represents a value that will need to be calculated using an asynchronous
   * computation that may fail.
   */
-case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) extends Logging {
+case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) extends LazyLogging {
   def map[B](f: A => B)(implicit ec: ExecutionContext): Attempt[B] =
     flatMap(a => Attempt.Right(f(a)))
 
@@ -89,7 +86,7 @@ object Attempt {
 
   /** Using the provided traversal function, sequence the resulting attempts
     * to `Attempt[List[(A, B)]]` where the first element of each tuple is the
-    * value passed to the function f in order to to generate the second element
+    * value passed to the function f in order to generate the second element
     *
     * This implementation returns the first failure in the resulting list,
     * or the successful result.

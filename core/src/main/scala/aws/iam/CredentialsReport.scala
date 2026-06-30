@@ -1,21 +1,21 @@
 package aws.iam
 
-import java.io.StringReader
-import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
-import com.github.tototoshi.csv._
-import org.joda.time.{DateTime, Hours, Seconds}
+import com.github.tototoshi.csv.*
+import com.typesafe.scalalogging.LazyLogging
 import logic.DateUtils
+import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import net.logstash.logback.marker.Markers.appendEntries
-import play.api.{Logging, MarkerContext}
-import utils.attempt.{Attempt, FailedAttempt}
-
-import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success, Try}
-import scala.jdk.CollectionConverters._
+import org.joda.time.{DateTime, Hours, Seconds}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.model.{GenerateCredentialReportResponse, GetCredentialReportResponse, ReportStateType}
+import utils.attempt.{Attempt, FailedAttempt}
 
-object CredentialsReport extends Logging {
+import java.io.StringReader
+import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.*
+import scala.util.{Failure, Success, Try}
+
+object CredentialsReport extends LazyLogging {
 
   def isComplete(report: GenerateCredentialReportResponse): Boolean =
     report.state == ReportStateType.COMPLETE
@@ -116,8 +116,8 @@ object CredentialsReport extends Logging {
         "Arn" -> iamCred.arn
       )
 
-      val markers = MarkerContext(appendEntries(mandatoryMarkers.asJava))
-      logger.info(s"${iamCred.user} user has non-Janus access to AWS: $iamCred")(markers)
+      val marker = appendEntries(mandatoryMarkers.asJava)
+      logger.info(marker, s"${iamCred.user} user has non-Janus access to AWS: $iamCred")
     })
 
     iamCredentialsReport

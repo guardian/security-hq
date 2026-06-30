@@ -1,11 +1,11 @@
+import com.typesafe.scalalogging.LazyLogging
 import model.AwsAccount
-import play.api.Logging
-import utils.attempt.{Attempt, FailedAttempt, Failure}
 import software.amazon.awssdk.regions.Region
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.reflect.ClassTag
 
-package object aws extends Logging {
+package object aws extends LazyLogging {
   type AwsClients[A] = List[AwsClient[A]]
 
   implicit class AwsClientsList[A](clients: AwsClients[A])(implicit classTag: ClassTag[A]) {

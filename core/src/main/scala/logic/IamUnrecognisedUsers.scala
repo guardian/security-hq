@@ -4,22 +4,21 @@ import aws.AwsClients
 import aws.iam.IAMClient.{deleteLoginProfile, disableAccessKey, listUserAccessKeys}
 import com.gu.anghammarad.models.Notification
 import com.gu.janus.model.JanusData
+import com.typesafe.scalalogging.LazyLogging
 import logging.Cloudwatch
 import logging.Cloudwatch.ReaperExecutionStatus
-import model._
+import model.*
 import notifications.AnghammaradNotifications.unrecognisedUserRemediation
-import play.api.Logging
 import utils.attempt.{Attempt, FailedAttempt}
 
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.concurrent.ExecutionContext
-
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileResponse, UpdateAccessKeyResponse}
 
-object IamUnrecognisedUsers extends Logging {
+object IamUnrecognisedUsers extends LazyLogging {
   val USERNAME_TAG_KEY = "GoogleUsername"
 
   def getJanusUsernames(janusData: JanusData): List[String] =
