@@ -1,6 +1,4 @@
 package metrics
 
-/** Local entrypoint for running the metrics collection outside of Lambda. */
-object Main {
-  def main(args: Array[String]): Unit = MetricsCollector.run()
-}
+/** Local entrypoint for testing metrics collection outside lambda. */
+@main def runMetricsCollector(): Unit = MetricsCollector.run()

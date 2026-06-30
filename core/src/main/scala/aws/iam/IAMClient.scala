@@ -3,14 +3,14 @@ package aws.iam
 import aws.AwsAsyncHandler.*
 import aws.cloudformation.CloudFormation
 import aws.{AwsAsyncHandler, AwsClient, AwsClients, AwsClientsList}
+import com.typesafe.scalalogging.LazyLogging
 import logic.{CredentialsReportDisplay, Retry}
 import model.*
 import org.joda.time.DateTime
-import utils.Logging
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.iam.model.{Tag, *}
+import software.amazon.awssdk.services.iam.model.*
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -18,8 +18,7 @@ import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
 
-
-object IAMClient extends Logging {
+object IAMClient extends LazyLogging {
 
   val SOLE_REGION = Region.of("us-east-1")
 

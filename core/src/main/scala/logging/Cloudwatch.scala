@@ -1,22 +1,16 @@
 package logging
 
+import com.typesafe.scalalogging.LazyLogging
 import logic.CredentialsReportDisplay.{ReportSummary, reportStatusSummary}
 import model.{AwsAccount, CredentialReportDisplay}
-import utils.Logging
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
 import utils.attempt.FailedAttempt
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
-import software.amazon.awssdk.services.cloudwatch.model.{
-  Dimension,
-  MetricDatum,
-  PutMetricDataRequest,
-  StandardUnit
-}
-
-object Cloudwatch extends Logging {
+object Cloudwatch extends LazyLogging {
 
   val cloudwatchClient = CloudWatchClient.builder.build()
 

@@ -1,17 +1,16 @@
 package logic
 
+import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import db.IamRemediationDb
-import model._
+import model.*
 import org.joda.time.{DateTime, Days}
-import utils.Logging
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
 
-
-object IamOutdatedCredentials extends Logging {
+object IamOutdatedCredentials extends LazyLogging {
   /**
     * Look through all credentials reports to find users with expired credentials,
     * see below for more detail (`identifyUsersWithOutdatedCredentials`).
