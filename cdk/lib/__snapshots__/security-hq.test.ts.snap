@@ -126,9 +126,10 @@ exports[`HQ stack matches the snapshot 1`] = `
                 "ec2:DescribeInstances",
                 "ec2:DescribeInstanceStatus",
                 "ec2:DescribeTags",
-                "ssm:DescribeSessions",
-                "ssm:GetConnectionStatus",
                 "ssm:DescribeInstanceInformation",
+                "ssm:DescribeSessions",
+                "ssm:DescribeInstanceProperties",
+                "ssm:GetConnectionStatus",
                 "ssm:TerminateSession",
               ],
               "Effect": "Allow",
@@ -136,36 +137,24 @@ exports[`HQ stack matches the snapshot 1`] = `
             },
             {
               "Action": "ssm:StartSession",
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:ssm:*:*:document/AWS-StartInteractiveCommand",
+                "arn:aws:ssm:*:*:document/AWS-StartPortForwardingSessionToRemoteHost",
+                "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
+              ],
+            },
+            {
+              "Action": "ssm:StartSession",
               "Condition": {
-                "ForAnyValue:StringEquals": {
-                  "ssm:resourceTag/aws:autoscaling:groupName": [
-                    {
-                      "Fn::Join": [
-                        "",
-                        [
-                          "arn:",
-                          {
-                            "Ref": "AWS::Partition",
-                          },
-                          ":autoscaling:eu-west-1:",
-                          {
-                            "Ref": "AWS::AccountId",
-                          },
-                          ":autoScalingGroup:*:autoScalingGroupName/",
-                          {
-                            "Ref": "AutoScalingGroupSecurityhqASG8DD277A5",
-                          },
-                        ],
-                      ],
-                    },
-                  ],
+                "StringEquals": {
+                  "ssm:resourceTag/aws:autoscaling:groupName": {
+                    "Ref": "AutoScalingGroupSecurityhqASG8DD277A5",
+                  },
                 },
               },
               "Effect": "Allow",
-              "Resource": [
-                "arn:aws:ec2:*:*:instance/*",
-                "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
-              ],
+              "Resource": "arn:aws:ec2:*:*:instance/*",
             },
           ],
           "Version": "2012-10-17",

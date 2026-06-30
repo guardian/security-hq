@@ -283,8 +283,9 @@ export class SecurityHQ extends GuStack {
       withoutPolicyChecks: true,
       statements: [
         this.getSsmInfoPolicy(),
-        this.getSsmStartSessionPolicy(
-          ec2App.autoScalingGroup.autoScalingGroupArn,
+        this.getSsmStartSessionPolicyForDocument(),
+        this.getSsmStartSessionPolicyForInstance(
+          ec2App.autoScalingGroup.autoScalingGroupName
         ),
       ],
     });
@@ -297,28 +298,42 @@ export class SecurityHQ extends GuStack {
         "ec2:DescribeInstances",
         "ec2:DescribeInstanceStatus",
         "ec2:DescribeTags",
-        "ssm:DescribeSessions",
-        "ssm:GetConnectionStatus",
         "ssm:DescribeInstanceInformation",
+        "ssm:DescribeSessions",
+        "ssm:DescribeInstanceProperties",
+        "ssm:GetConnectionStatus",
         "ssm:TerminateSession",
       ],
       resources: ["*"],
     });
   }
 
-  private getSsmStartSessionPolicy(asgArn: string) {
+  private getSsmStartSessionPolicyForDocument() {
     return new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ["ssm:StartSession"],
       resources: [
-        "arn:aws:ec2:*:*:instance/*",
+        "arn:aws:ssm:*:*:document/AWS-StartInteractiveCommand",
+        "arn:aws:ssm:*:*:document/AWS-StartPortForwardingSessionToRemoteHost",
         "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
       ],
-      conditions: {
-        "ForAnyValue:StringEquals": {
-          "ssm:resourceTag/aws:autoscaling:groupName": [`${asgArn}`],
+    });
+  }
+
+  private getSsmStartSessionPolicyForInstance(asgName?: string) {
+    const conditions = asgName
+      ? {
+        StringEquals: {
+          "ssm:resourceTag/aws:autoscaling:groupName": asgName,
         },
-      },
+      }
+      : undefined;
+
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["ssm:StartSession"],
+      resources: ["arn:aws:ec2:*:*:instance/*"],
+      ...(conditions && { conditions }),
     });
   }
 }
