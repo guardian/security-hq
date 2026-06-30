@@ -1,20 +1,19 @@
 package notifications
 
 import com.gu.anghammarad.Anghammarad
-import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAccount => Account}
+import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAccount as Account}
+import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import logic.DateUtils.printDay
 import model.{AwsAccount, HumanUser, IAMUser, Tag}
 import org.joda.time.DateTime
-import utils.Logging
+import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, Failure}
 
-import software.amazon.awssdk.services.sns.SnsAsyncClient
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
-
-object AnghammaradNotifications extends Logging {
+object AnghammaradNotifications extends LazyLogging {
   def send(
     notification: Notification,
     topicArn: String,
