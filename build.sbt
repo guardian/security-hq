@@ -41,8 +41,9 @@ val safeTransitiveDependencies = {
   )
 }
 
-val mergeStrategySettings= assemblyMergeStrategy := {
-  case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
+val mergeStrategySettings = assemblyMergeStrategy := {
+  case PathList(ps @ _*) if ps.last == "module-info.class" =>
+    MergeStrategy.discard
   case _ => MergeStrategy.first
 }
 
@@ -53,6 +54,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
+      "com.typesafe" % "config" % "1.4.5",
       "joda-time" % "joda-time" % "2.14.2",
       "com.gu" %% "anghammarad-client" % "7.0.0",
       "com.gu" %% "janus-config-tools" % "10.0.0",
@@ -83,13 +85,15 @@ lazy val hq = (project in file("hq"))
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
-    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
+    fileDescriptorLimit := Some(
+      "16384"
+    ), // This increases the number of open files allowed when running in AWS
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "40.1.0",
+      "com.gu.play-googleauth" %% "play-v30" % "40.1.0",
       "com.gu.play-secret-rotation" %% "play-v30" % "18.0.1",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.1",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.1",
 
       "joda-time" % "joda-time" % "2.14.2",
       "co.fs2" %% "fs2-core" % "3.13.0",
@@ -152,17 +156,33 @@ lazy val hq = (project in file("hq"))
       s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
     ),
     mergeStrategySettings
-
   )
-
 
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
 
-lazy val root = (project in file(".")).
-  aggregate(core, hq).
-  settings(
-    name := """security-hq"""
+lazy val cloudwatchMetrics = (project in file("cloudwatch-metrics"))
+  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .settings(
+    name := "cloudwatch-metrics",
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
+      "co.fs2" %% "fs2-core" % "3.13.0",
+      "software.amazon.awssdk" % "ec2" % awsSdkVersion,
+      "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
+    ) ++ safeTransitiveDependencies,
+    assembly / assemblyJarName := "cloudwatch-metrics.jar",
+    assembly / mainClass := Some("metrics.Main"),
+    mergeStrategySettings,
+    Test / parallelExecution := false,
+    Test / fork := false
   )
 
+lazy val root = (project in file("."))
+  .aggregate(core, hq, cloudwatchMetrics)
+  .settings(
+    name := """security-hq"""
+  )
 addCommandAlias("dependency-tree", "dependencyTree")
