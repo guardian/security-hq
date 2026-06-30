@@ -1,41 +1,24 @@
 package config
 
-
-import com.gu.play.secretrotation.aws.parameterstore.SecretSupplier
-import com.gu.play.secretrotation.aws.parameterstore.AwsSdkV2
-
-
-import aws.AwsClient
-import com.google.auth.oauth2.{ServiceAccountCredentials}
+import com.google.auth.oauth2.ServiceAccountCredentials
 import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupChecker}
-
-
-import com.gu.play.secretrotation.{RotatingSecretComponents, SnapshotProvider, TransitionTiming}
-import model._
+import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV2, SecretSupplier}
+import com.gu.play.secretrotation.{SnapshotProvider, TransitionTiming}
+import model.*
 import play.api.Configuration
-import play.api.http.HttpConfiguration
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.ssm.SsmClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.FileInputStream
 import java.time.Duration.{ofHours, ofMinutes}
-import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.ssm.SsmClient
-
-
-
 object Config {
-  val iamHumanUserRotationCadence: Long = CoreConfig.iamHumanUserRotationCadence
-  val iamMachineUserRotationCadence: Long = CoreConfig.iamMachineUserRotationCadence
-  val outdatedCredentialOptOutUserTag = CoreConfig.outdatedCredentialOptOutUserTag
-  val daysBetweenWarningAndFinalNotification = CoreConfig.daysBetweenWarningAndFinalNotification
-  val daysBetweenFinalNotificationAndRemediation = CoreConfig.daysBetweenFinalNotificationAndRemediation
   val app = "security-hq"
 
-  val region: Region = CoreConfig.region
   val documentationLinks: List[Documentation] = List (
     Documentation("SSH", "Use SSM-Scala for SSH access.", "code", "ssh-access"),
     Documentation("Wazuh", "Guide to installing the Wazuh agent.", "scanner", "wazuh"),
