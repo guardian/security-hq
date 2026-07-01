@@ -8,6 +8,11 @@ import com.typesafe.scalalogging.LazyLogging
 import config.AccountLoader
 import logging.Cloudwatch
 import model.*
+import software.amazon.awssdk.auth.credentials.{
+  AwsCredentialsProviderChain,
+  DefaultCredentialsProvider,
+  ProfileCredentialsProvider
+}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
 import software.amazon.awssdk.services.s3.S3Client
@@ -17,13 +22,10 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 
-/** Fetches Security HQ vulnerability data from Trusted Advisor and IAM
-  * and publishes CloudWatch metrics.
+/** Fetches Security HQ vulnerability data from Trusted Advisor and IAM and publishes CloudWatch metrics.
   *
-  * Metrics are only
-  * published if every data set was fetched successfully so that Sum
-  * aggregations over time remain meaningful. See
-  * https://github.com/guardian/security-hq/pull/211 for the rationale.
+  * Metrics are only published if every data set was fetched successfully so that Sum aggregations over time remain
+  * meaningful. See https://github.com/guardian/security-hq/pull/211 for the rationale.
   */
 object MetricsCollector extends LazyLogging {
 
@@ -56,8 +58,7 @@ object MetricsCollector extends LazyLogging {
     val s3Clients = AWS.s3Clients(accounts, regions)
     val iamClients = AWS.iamClients(accounts, regions)
 
-    val startingCredentials
-        : Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
+    val startingCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
       accounts
         .map(a => a -> Left(Failure.notYetLoaded(a.id, "credentials").attempt))
         .toMap
@@ -87,7 +88,7 @@ object MetricsCollector extends LazyLogging {
     )
 
     Await.result(attempt.asFuture, Timeout) match {
-      case Right(_) => logger.info("cloudwatch-metrics collection complete")
+      case Right(_)      => logger.info("cloudwatch-metrics collection complete")
       case Left(failure) =>
         logger.error(
           s"cloudwatch-metrics collection failed: ${failure.logMessage}"
@@ -136,8 +137,11 @@ object MetricsCollector extends LazyLogging {
     }
 
   private def loadAccounts(settings: Settings): List[AwsAccount] = {
-    // TODO: possible to get from a profile as well as lambda env
-    val s3 = S3Client.builder.region(settings.region).build()
+    val credsProvider = AwsCredentialsProviderChain.of(
+      DefaultCredentialsProvider.builder.build(),
+      ProfileCredentialsProvider.create("security")
+    )
+    val s3 = S3Client.builder.credentialsProvider(credsProvider).region(settings.region).build()
     try {
       val hocon = s3
         .getObjectAsBytes(
