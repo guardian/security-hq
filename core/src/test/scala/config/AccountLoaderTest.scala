@@ -9,7 +9,7 @@ class AccountLoaderTest extends AnyFreeSpec with Matchers with OptionValues {
   "getAwsAccountsFromString" - {
     val hocon =
       """
-        |hq.accounts = [
+        |AWS_ACCOUNTS = [
         |  { id = "b-account", name = "B Account", roleArn = "arn:b", number = "222" }
         |  { id = "a-account", name = "A Account", roleArn = "arn:a", number = "111" }
         |]
@@ -36,7 +36,7 @@ class AccountLoaderTest extends AnyFreeSpec with Matchers with OptionValues {
     "skips accounts missing required fields" in {
       val partial =
         """
-          |hq.accounts = [
+          |AWS_ACCOUNTS = [
           |  { id = "ok", name = "Ok", roleArn = "arn", number = "1" }
           |  { id = "missing-number", name = "No Number", roleArn = "arn" }
           |]
