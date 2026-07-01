@@ -172,6 +172,8 @@ lazy val cloudwatchMetrics = (project in file("cloudwatch-metrics"))
       "co.fs2" %% "fs2-core" % "3.13.0",
       "software.amazon.awssdk" % "ec2" % awsSdkVersion,
       "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
+      "ch.qos.logback" % "logback-classic" % "1.5.37",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ) ++ safeTransitiveDependencies,
     assembly / assemblyJarName := "cloudwatch-metrics.jar",
