@@ -53,9 +53,35 @@ class MetricService(
     )
 
     if (failures.nonEmpty) {
-      logger.warn(
-        s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures"
-      )
+      // Limit the summary to the first few failures to avoid overly large log
+      // lines when a widespread cache issue affects many accounts at once.
+      val maxFailuresInSummary = 5
+      val summary = failures
+        .take(maxFailuresInSummary)
+        .map { case (account, failedAttempt) =>
+          s"${account.name}: ${failedAttempt.logMessage}"
+        }
+        .mkString(", ")
+
+      val omitted = failures.size - maxFailuresInSummary
+      val summaryWithCount =
+        if (omitted > 0) s"$summary (and $omitted more; ${failures.size} failures in total)"
+        else summary
+
+      val logMessage =
+        s"Skipping cloudwatch metrics update as some data is missing from the cache: $summaryWithCount"
+
+      // Surface an example underlying exception so its stack trace is logged.
+      // Use a lazy iterator with collectFirst so we stop at the first available
+      // exception rather than traversing and allocating for every failure.
+      failures.iterator
+        .flatMap { case (_, failedAttempt) => failedAttempt.firstException }
+        .nextOption() match {
+        case Some(exampleCause) =>
+          logger.warn(s"$logMessage - see stacktrace for an example cause", exampleCause)
+        case None =>
+          logger.warn(logMessage)
+      }
     } else {
       logger.info("Posting new metrics to cloudwatch")
       Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)

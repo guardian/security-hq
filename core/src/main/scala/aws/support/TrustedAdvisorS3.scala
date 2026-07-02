@@ -12,7 +12,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
-import scala.util.control.NonFatal
 import scala.util.{Success, Try}
 
 object TrustedAdvisorS3 {
@@ -54,6 +53,7 @@ object TrustedAdvisorS3 {
         attempt.map({
           case Encrypted      => Some(bucket.copy(isEncrypted = true))
           case NotEncrypted   => Some(bucket)
+          case EncryptionUnknown => Some(bucket)
           case BucketNotFound => None
         })
       case scala.util.Failure(_) =>

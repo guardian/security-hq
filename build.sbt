@@ -42,8 +42,9 @@ val safeTransitiveDependencies = {
 }
 
 val mergeStrategySettings = assemblyMergeStrategy := {
-  case PathList(ps @ _*) if ps.last == "module-info.class" => MergeStrategy.discard
-  case _                                                   => MergeStrategy.first
+  case PathList(ps @ _*) if ps.last == "module-info.class" =>
+    MergeStrategy.discard
+  case _ => MergeStrategy.first
 }
 
 lazy val core = (project in file("core"))
@@ -53,6 +54,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
+      "com.typesafe" % "config" % "1.4.5",
       "joda-time" % "joda-time" % "2.14.2",
       "com.gu" %% "anghammarad-client" % "7.0.0",
       "com.gu" %% "janus-config-tools" % "10.0.0",
@@ -84,7 +86,9 @@ lazy val hq = (project in file("hq"))
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
-    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
+    fileDescriptorLimit := Some(
+      "16384"
+    ), // This increases the number of open files allowed when running in AWS
     libraryDependencies ++= Seq(
       ws,
       filters,
@@ -155,6 +159,27 @@ lazy val hq = (project in file("hq"))
     mergeStrategySettings
   )
 
+lazy val vulnerabilityMetrics = (project in file("vulnerability-metrics"))
+  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .settings(
+    name := "vulnerability-metrics",
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
+      "co.fs2" %% "fs2-core" % "3.13.0",
+      "software.amazon.awssdk" % "ec2" % awsSdkVersion,
+      "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
+      "ch.qos.logback" % "logback-classic" % "1.5.37",
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
+    ) ++ safeTransitiveDependencies,
+    assembly / assemblyJarName := "vulnerability-metrics.jar",
+    assembly / mainClass := Some("metrics.Main"),
+    mergeStrategySettings,
+    Test / parallelExecution := false,
+    Test / fork := false
+  )
+
 lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .enablePlugins(JDebPackaging)
   .disablePlugins(sbtassembly.AssemblyPlugin)
@@ -181,7 +206,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
 Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val root = (project in file("."))
-  .aggregate(core, hq)
+  .aggregate(core, hq, vulnerabilityMetrics)
   .settings(
     name := """security-hq"""
   )

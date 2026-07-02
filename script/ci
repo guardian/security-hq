@@ -11,3 +11,9 @@ set -e
 
 mkdir -p dist
 mv hq/target/security-hq_*_all.deb "dist/security-hq-$BUILD_NUMBER.deb"
+
+# Build the vulnerability-metrics lambda assembly jar
+./sbt --no-conf '; project vulnerabilityMetrics; scalafmtCheckAll; scalafmtSbtCheck; test; assembly'
+
+mkdir -p vulnerability-metrics-dist
+cp vulnerability-metrics/target/scala-*/vulnerability-metrics.jar vulnerability-metrics-dist/vulnerability-metrics.jar

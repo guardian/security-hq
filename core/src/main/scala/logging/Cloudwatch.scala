@@ -29,22 +29,46 @@ object Cloudwatch extends LazyLogging {
     val failure = Value("Failure")
   }
 
-  def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Unit = {
+  def logMetricsForCredentialsReport(
+      data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
+      dryRun: Boolean = false
+  ): Unit = {
     data.toSeq.foreach {
       case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
         val reportSummary: ReportSummary = reportStatusSummary(details)
-        putAwsMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
-        putAwsMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings)
-        putAwsMetric(account, DataType.iamCredentialsTotal, reportSummary.errors + reportSummary.warnings)
+        putAwsMetric(
+          account,
+          DataType.iamCredentialsCritical,
+          reportSummary.errors,
+          dryRun
+        )
+        putAwsMetric(
+          account,
+          DataType.iamCredentialsWarning,
+          reportSummary.warnings,
+          dryRun
+        )
+        putAwsMetric(
+          account,
+          DataType.iamCredentialsTotal,
+          reportSummary.errors + reportSummary.warnings,
+          dryRun
+        )
       case (account: AwsAccount, Left(_)) =>
-        logger.error(s"Attempt to log cloudwatch metric failed. IAM data is missing for account ${account.name}.")
+        logger.error(
+          s"Attempt to log cloudwatch metric failed. IAM data is missing for account ${account.name}."
+        )
     }
   }
 
-  def logAsMetric[T](data: Map[AwsAccount, Either[FailedAttempt, List[T]]], dataType: DataType.Value): Unit = {
+  def logAsMetric[T](
+      data: Map[AwsAccount, Either[FailedAttempt, List[T]]],
+      dataType: DataType.Value,
+      dryRun: Boolean = false
+  ): Unit = {
     data.toSeq.foreach {
       case (account: AwsAccount, Right(details: List[T])) =>
-        putAwsMetric(account, dataType, details.length)
+        putAwsMetric(account, dataType, details.length, dryRun)
       case (account: AwsAccount, Left(_)) =>
         logger.error(
           s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}."
@@ -52,16 +76,25 @@ object Cloudwatch extends LazyLogging {
     }
   }
 
-  def putAwsMetric(account: AwsAccount, dataType: DataType.Value, value: Int): Unit = {
+  def putAwsMetric(
+      account: AwsAccount,
+      dataType: DataType.Value,
+      value: Int,
+      dryRun: Boolean = false
+  ): Unit = {
     putMetric(
       defaultNamespace,
       "Vulnerabilities",
       Seq(("Account", account.name), ("DataType", dataType.toString)),
-      value
+      value,
+      dryRun
     )
   }
 
-  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
+  def putIamRemovePasswordMetric(
+      reaperExecutionStatus: ReaperExecutionStatus.Value,
+      value: Int
+  ): Unit = {
     putMetric(
       defaultNamespace,
       "IamRemovePassword",
@@ -70,7 +103,9 @@ object Cloudwatch extends LazyLogging {
     )
   }
 
-  def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
+  def putIamDisableAccessKeyMetric(
+      reaperExecutionStatus: ReaperExecutionStatus.Value
+  ): Unit = {
     putMetric(
       defaultNamespace,
       "IamDisableAccessKey",
@@ -83,20 +118,30 @@ object Cloudwatch extends LazyLogging {
       namespace: String,
       metricName: String,
       metricDimensions: Seq[(String, String)],
-      value: Int
+      value: Int,
+      dryRun: Boolean = false
   ): Unit = {
-    val dimension = metricDimensions.map(d => Dimension.builder.name(d._1).value(d._2).build()).toList
+    val dimension = metricDimensions
+      .map(d => Dimension.builder.name(d._1).value(d._2).build())
+      .toList
     val datum = MetricDatum.builder
       .metricName(metricName)
       .unit(StandardUnit.COUNT)
       .value(value.toDouble)
       .dimensions(dimension.asJava)
       .build()
-    val request = PutMetricDataRequest.builder.namespace(namespace).metricData(datum).build()
+    val request = PutMetricDataRequest.builder
+      .namespace(namespace)
+      .metricData(datum)
+      .build()
 
-    Try(cloudwatchClient.putMetricData(request)) match {
-      case Success(_) => logger.debug(s"putMetric success: $datum")
-      case Failure(e) => logger.error(s"putMetric failure: $datum", e)
+    if (dryRun) {
+      logger.info(s"[DRY_RUN] would put metric to namespace $namespace: $datum")
+    } else {
+      Try(cloudwatchClient.putMetricData(request)) match {
+        case Success(_) => logger.debug(s"putMetric success: $datum")
+        case Failure(e) => logger.error(s"putMetric failure: $datum", e)
+      }
     }
   }
 }

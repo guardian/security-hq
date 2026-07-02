@@ -121,6 +121,11 @@ case object Encrypted extends BucketEncryptionResponse
 case object NotEncrypted extends BucketEncryptionResponse
 case object BucketNotFound extends BucketEncryptionResponse
 
+/** The bucket's encryption status could not be determined so it is neither confirmed as encrypted nor confirmed as
+  * unencrypted.
+  */
+case object EncryptionUnknown extends BucketEncryptionResponse
+
 sealed trait Stage
 case object DEV extends Stage
 case object PROD extends Stage
