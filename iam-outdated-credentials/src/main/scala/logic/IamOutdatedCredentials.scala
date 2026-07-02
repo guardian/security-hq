@@ -20,7 +20,8 @@ import scala.concurrent.ExecutionContext
 class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
     iamClients: AwsClients[IamAsyncClient],
-    dynamo: IamRemediationDb
+    dynamo: IamRemediationDb,
+    dryRun: Boolean = true
 ) extends LazyLogging {
 
   /** Performs the specified operation, which will be one of:
@@ -33,7 +34,8 @@ class IamOutdatedCredentials(
       remediationOperation: RemediationOperation,
       now: DateTime,
       notificationTopicArn: String,
-      tableName: String
+      tableName: String,
+      dryRun: Boolean
   )(implicit ec: ExecutionContext): Attempt[String] = {
     val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
     val iamUser = remediationOperation.vulnerableCandidate.iamUser
@@ -50,7 +52,7 @@ class IamOutdatedCredentials(
 
     (remediationOperation.iamRemediationActivityType, remediationOperation.iamProblem) match {
       // Outdated credentials
-      case (Warning, OutdatedCredential) =>
+      case (Warning, OutdatedCredential) if !dryRun =>
         val notification =
           AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
@@ -58,7 +60,11 @@ class IamOutdatedCredentials(
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield snsId
 
-      case (FinalWarning, OutdatedCredential) =>
+      case (Warning, OutdatedCredential) =>
+        logger.info(s"Dry run: Would send warning for ${awsAccount}, ${iamUser}")
+        Attempt.Right("dummy-warning")
+
+      case (FinalWarning, OutdatedCredential) if !dryRun =>
         val notification =
           AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
@@ -66,7 +72,11 @@ class IamOutdatedCredentials(
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield snsId
 
-      case (Remediation, OutdatedCredential) =>
+      case (FinalWarning, OutdatedCredential) =>
+        logger.info(s"Dry run: Would send final warning for ${awsAccount}, ${iamUser}")
+        Attempt.Right("dummy-finalWarning")
+
+      case (Remediation, OutdatedCredential) if !dryRun =>
         val notification =
           AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
         for {
@@ -84,6 +94,11 @@ class IamOutdatedCredentials(
           // save a record of the change
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield notificationId
+
+      case (Remediation, OutdatedCredential)=>
+        logger.info(s"Dry run: Would execute remediation for ${awsAccount}, ${iamUser}")
+        Attempt.Right("dummy-remediation")
+
     }
   }
 
@@ -134,7 +149,7 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
-        performRemediationOperation(_, now, notificationTopicArn, tableName)
+        performRemediationOperation(_, now, notificationTopicArn, tableName, dryRun)
       )
     } yield results
     result.tap {
