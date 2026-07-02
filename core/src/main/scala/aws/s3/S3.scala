@@ -21,16 +21,22 @@ object S3 {
       }
     } catch {
       case NonFatal(e) =>
-        Attempt.Left(FailedAttempt(Failure(
-          s"Unable to get S3 object for bucket $bucket and key $key",
-          "Failed to fetch an S3 object",
-          500,
-          throwable = Some(e)
-        )))
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"Unable to get S3 object for bucket $bucket and key $key",
+              "Failed to fetch an S3 object",
+              500,
+              throwable = Some(e)
+            )
+          )
+        )
     }
   }
 
-  def getBucketEncryption(client: S3Client, bucketName: String)(implicit ec: ExecutionContext): Attempt[BucketEncryptionResponse] = {
+  def getBucketEncryption(client: S3Client, bucketName: String)(implicit
+      ec: ExecutionContext
+  ): Attempt[BucketEncryptionResponse] = {
     val request = GetBucketEncryptionRequest.builder().bucket(bucketName).build()
     try {
       Attempt.Right {
@@ -46,13 +52,17 @@ object S3 {
       case e: S3Exception if e.getMessage.contains("NoSuchBucket") =>
         Attempt.Right(BucketNotFound)
       case NonFatal(e) =>
-        Attempt.Left(FailedAttempt(Failure(
-          s"unable to get S3 bucket encryption status for bucket $bucketName",
-          "Encryption status for this bucket was not found.",
-          500,
-          context = Some(e.getMessage),
-          throwable = Some(e)
-        )))
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"unable to get S3 bucket encryption status for bucket $bucketName",
+              "Encryption status for this bucket was not found.",
+              500,
+              context = Some(e.getMessage),
+              throwable = Some(e)
+            )
+          )
+        )
     }
   }
 }

@@ -8,7 +8,6 @@ class TagTest extends AnyFreeSpec with Matchers {
   val tagsListWithStack = List(Tag("stAck", "pawnee"), Tag("department", "parks and recreation"))
   val tagsListWithStackStageApp = List(Tag("stack", "pawnee"), Tag("stage", "enquiry"), Tag("app", "the-pit"))
 
-
   "findAnghammaradTarget should locate available target tag regardless of case" in {
     Tag.findAnghammaradTarget("stack", Stack.apply, tagsListWithStack) shouldEqual Some(Stack("pawnee"))
     Tag.findAnghammaradTarget("STACK", Stack.apply, tagsListWithStack) shouldEqual Some(Stack("pawnee"))
@@ -16,7 +15,11 @@ class TagTest extends AnyFreeSpec with Matchers {
   }
 
   "tagsToAnghammaradTargets should convert tags to targets" in {
-    Tag.tagsToAnghammaradTargets(tagsListWithStackStageApp) shouldEqual List(Stack("pawnee"), AnghammaradStage("enquiry"), App("the-pit"))
+    Tag.tagsToAnghammaradTargets(tagsListWithStackStageApp) shouldEqual List(
+      Stack("pawnee"),
+      AnghammaradStage("enquiry"),
+      App("the-pit")
+    )
     Tag.tagsToAnghammaradTargets(tagsListWithStack) shouldEqual List(Stack("pawnee"))
   }
 

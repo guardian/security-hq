@@ -6,7 +6,6 @@ import org.joda.time.DateTime
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
-
 class VulnerableAccessKeysTest extends AnyFreeSpec with Matchers {
   def accessKey(daysOld: Int, active: Boolean) = {
     AccessKey(

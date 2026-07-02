@@ -8,7 +8,6 @@ import play.api.mvc.{AnyContent, BodyParser, Call}
 
 import scala.concurrent.ExecutionContext
 
-
 trait SecurityHQAuthActions extends LoginSupport {
 
   implicit val config: Configuration

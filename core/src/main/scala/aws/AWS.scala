@@ -30,7 +30,8 @@ object AWS {
 
   private def credentialsProvider(account: AwsAccount): AwsCredentialsProviderChain = {
     AwsCredentialsProviderChain.of(
-      StsAssumeRoleCredentialsProvider.builder()
+      StsAssumeRoleCredentialsProvider
+        .builder()
         .stsClient(
           StsClient.builder
             .region(CoreConfig.region)
@@ -48,9 +49,9 @@ object AWS {
   }
 
   private[aws] def clients[A, B <: AwsClientBuilder[B, A]](
-    builder:  AwsClientBuilder[B, A],
-    accounts: List[AwsAccount],
-    regionList: Region*
+      builder: AwsClientBuilder[B, A],
+      accounts: List[AwsAccount],
+      regionList: Region*
   ): AwsClients[A] = {
     for {
       account <- accounts
@@ -62,26 +63,28 @@ object AWS {
     } yield AwsClient(client, account, region)
   }
 
-  private def withCustomThreadPool[A, B <: AwsAsyncClientBuilder[B, A]] = (asyncClientBuilder: AwsAsyncClientBuilder[B, A]) =>
-    asyncClientBuilder.asyncConfiguration(c => c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, newCachedThreadPool())
-  )
+  private def withCustomThreadPool[A, B <: AwsAsyncClientBuilder[B, A]] =
+    (asyncClientBuilder: AwsAsyncClientBuilder[B, A]) =>
+      asyncClientBuilder.asyncConfiguration(c =>
+        c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, newCachedThreadPool())
+      )
 
   def ec2Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[Ec2AsyncClient] =
-    clients(withCustomThreadPool(Ec2AsyncClient.builder), accounts, regions:_*)
+    clients(withCustomThreadPool(Ec2AsyncClient.builder), accounts, regions: _*)
 
   def cfnClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[CloudFormationAsyncClient] =
-    clients(withCustomThreadPool(CloudFormationAsyncClient.builder), accounts, regions:_*)
+    clients(withCustomThreadPool(CloudFormationAsyncClient.builder), accounts, regions: _*)
 
   // Only needs Regions.US_EAST_1
   def taClients(accounts: List[AwsAccount], region: Region = Region.of("us-east-1")): AwsClients[SupportAsyncClient] =
     clients(withCustomThreadPool(SupportAsyncClient.builder), accounts, region)
 
   def s3Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[S3Client] =
-    clients(S3Client.builder, accounts, regions:_*)
+    clients(S3Client.builder, accounts, regions: _*)
 
   def iamClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[IamAsyncClient] =
-    clients(withCustomThreadPool(IamAsyncClient.builder), accounts, regions:_*)
+    clients(withCustomThreadPool(IamAsyncClient.builder), accounts, regions: _*)
 
   def efsClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[EfsAsyncClient] =
-    clients(withCustomThreadPool(EfsAsyncClient.builder), accounts, regions:_*)
+    clients(withCustomThreadPool(EfsAsyncClient.builder), accounts, regions: _*)
 }

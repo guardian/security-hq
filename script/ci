@@ -7,7 +7,7 @@ set -e
     ./script/ci
 )
 
-./sbt --no-conf '; project hq; clean; compile; test; Debian / packageBin'
+./sbt --no-conf '; project hq; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; Debian / packageBin'
 
 mkdir -p dist
 mv hq/target/security-hq_*_all.deb "dist/security-hq-$BUILD_NUMBER.deb"

@@ -13,21 +13,24 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
 
 class IamRemediationDb(client: DynamoDbClient) {
-  /**
-    * Searches for all notification activity for this IAM user.
-    * The application can then filter it down to relevant notifications.
+
+  /** Searches for all notification activity for this IAM user. The application can then filter it down to relevant
+    * notifications.
     */
-  def lookupIamUserNotifications(IAMUser: IAMUser, awsAccount: AwsAccount, tableName: String)(implicit ec: ExecutionContext): Attempt[List[IamRemediationActivity]] = {
+  def lookupIamUserNotifications(IAMUser: IAMUser, awsAccount: AwsAccount, tableName: String)(implicit
+      ec: ExecutionContext
+  ): Attempt[List[IamRemediationActivity]] = {
     for {
       result <- scan(lookupScanRequest(IAMUser.username, awsAccount.id, tableName))
       activities <- Attempt.traverse(result)(deserialiseIamRemediationActivity)
     } yield activities
   }
 
-  /**
-    * Writes this record to the database, returning the successful DynamoDB request ID or a failure.
+  /** Writes this record to the database, returning the successful DynamoDB request ID or a failure.
     */
-  def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity, tableName: String)(implicit ec: ExecutionContext): Attempt[String] = {
+  def writeRemediationActivity(iamRemediationActivity: IamRemediationActivity, tableName: String)(implicit
+      ec: ExecutionContext
+  ): Attempt[String] = {
     for {
       result <- put(writePutRequest(iamRemediationActivity, tableName))
     } yield result.responseMetadata.requestId
@@ -71,7 +74,8 @@ class IamRemediationDb(client: DynamoDbClient) {
     } catch {
       case NonFatal(e) =>
         Attempt.Left(
-          Failure(s"unable to put item to dynamoDB table",
+          Failure(
+            s"unable to put item to dynamoDB table",
             s"I haven't been able to put the item into the dynamo table for the vulnerable user job",
             500,
             throwable = Some(e)
@@ -88,10 +92,11 @@ object IamRemediationDb {
   private[db] def N(number: Long) = AttributeValue.builder.n(number.toString).build()
   private[db] def N(number: Double) = AttributeValue.builder.n(number.toString).build()
   private[db] def B(boolean: Boolean) = AttributeValue.builder.bool(boolean).build()
-  private[db] def M(map: Map[String,  AttributeValue]) = AttributeValue.builder.m(map.asJava).build()
+  private[db] def M(map: Map[String, AttributeValue]) = AttributeValue.builder.m(map.asJava).build()
 
   private[db] def lookupScanRequest(username: String, accountId: String, tableName: String): ScanRequest = {
-    ScanRequest.builder.tableName(tableName)
+    ScanRequest.builder
+      .tableName(tableName)
       .filterExpression("id = :key")
       .expressionAttributeValues(Map(":key" -> S(s"${accountId}/${username}")).asJava)
       .build()
@@ -106,9 +111,9 @@ object IamRemediationDb {
     val problemCreationDate = iamRemediationActivity.problemCreationDate
 
     val iamRemediationActivityTypeString = iamRemediationActivityType match {
-      case Warning => "Warning"
+      case Warning      => "Warning"
       case FinalWarning => "FinalWarning"
-      case Remediation => "Remediation"
+      case Remediation  => "Remediation"
     }
 
     val iamProblemString = iamProblem match {
@@ -128,10 +133,11 @@ object IamRemediationDb {
     PutItemRequest.builder.tableName(tableName).item(item.asJava).build()
   }
 
-  /**
-    * Attempts to deserialise a database query result into our case class.
+  /** Attempts to deserialise a database query result into our case class.
     */
-  private[db] def deserialiseIamRemediationActivity(dbData: Map[String, AttributeValue])(implicit ec: ExecutionContext): Attempt[IamRemediationActivity] = {
+  private[db] def deserialiseIamRemediationActivity(
+      dbData: Map[String, AttributeValue]
+  )(implicit ec: ExecutionContext): Attempt[IamRemediationActivity] = {
     for {
       awsAccountId <- valueFromDbData(dbData, "awsAccountId", _.s)
       username <- valueFromDbData(dbData, "username", _.s)
@@ -142,12 +148,14 @@ object IamRemediationDb {
       iamProblem <- iamProblemFromString(iamProblemString)
       problemCreationDate <- valueFromDbData(dbData, "problemCreationDate", _.n.toLong)
     } yield {
-      IamRemediationActivity(awsAccountId,
+      IamRemediationActivity(
+        awsAccountId,
         username,
         new DateTime(dateNotificationSent),
         iamRemediationActivity,
         iamProblem,
-        new DateTime(problemCreationDate))
+        new DateTime(problemCreationDate)
+      )
     }
   }
 
@@ -158,26 +166,33 @@ object IamRemediationDb {
         s"The item retrieved from the database with id ${dbData.get("id")} has an invalid attribute with key $key",
         s"Failed to deserialise database item into an IamRemediationActivity object",
         500,
-        None).attempt
+        None
+      ).attempt
     )
 
   def iamRemediationActivityFromString(str: String): Attempt[IamRemediationActivityType] = {
     str match {
-      case "Warning" => Attempt.Right(Warning)
+      case "Warning"      => Attempt.Right(Warning)
       case "FinalWarning" => Attempt.Right(FinalWarning)
-      case "Remediation" => Attempt.Right(Remediation)
-      case _ => Attempt.Left {
-        Failure(s"Could not turn $str to a IamRemediationActivityType", "Did not understand database record", 500).attempt
-      }
+      case "Remediation"  => Attempt.Right(Remediation)
+      case _              =>
+        Attempt.Left {
+          Failure(
+            s"Could not turn $str to a IamRemediationActivityType",
+            "Did not understand database record",
+            500
+          ).attempt
+        }
     }
   }
 
   def iamProblemFromString(str: String): Attempt[IamProblem] = {
     str match {
       case "OutdatedCredential" => Attempt.Right(OutdatedCredential)
-      case _ => Attempt.Left {
-        Failure(s"Could not turn $str to an IamProblem", "Did not understand database record", 500).attempt
-      }
+      case _                    =>
+        Attempt.Left {
+          Failure(s"Could not turn $str to an IamProblem", "Did not understand database record", 500).attempt
+        }
     }
   }
 }
