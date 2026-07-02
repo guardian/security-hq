@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
-
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-ROOT_DIR="${DIR}/.."
+set -euo pipefail
 
 red='\x1B[0;31m'
 reset='\x1B[0m' # No Color
@@ -40,11 +37,13 @@ downloadConfig() {
 
   # customise the configuration for current user
   # shellcheck disable=SC2016
-  sed -i '' 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq/security-hq.local.conf
-}
-
-setupNginx() {
-  dev-nginx setup-app "$ROOT_DIR/nginx/nginx-mapping.yml"
+  if sed --version >/dev/null 2>&1; then
+    # GNU sed (Linux)
+    sed -i 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq/security-hq.local.conf
+  else
+    # BSD sed (macOS)
+    sed -i '' 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq/security-hq.local.conf
+  fi
 }
 
 startDynamoDb() {
@@ -77,7 +76,6 @@ main() {
   checkAwsCredentials
   checkNodeVersion
   downloadConfig
-  setupNginx
   startDynamoDb
   initDynamoDb
 }

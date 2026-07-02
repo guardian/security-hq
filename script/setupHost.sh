@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# This will become redundant when the Play app has been decommissioned.
+
+set -euo pipefail
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+ROOT_DIR="${DIR}/.."
+MAPPING_FILE="$ROOT_DIR/nginx/nginx-mapping.yml"
+
+if ! command -v dev-nginx >/dev/null 2>&1; then
+  echo "dev-nginx is not installed. Install it before running this script." >&2
+  exit 1
+fi
+
+if [[ ! -f "$MAPPING_FILE" ]]; then
+  echo "Missing nginx mapping file: $MAPPING_FILE" >&2
+  exit 1
+fi
+
+dev-nginx setup-app "$MAPPING_FILE"
