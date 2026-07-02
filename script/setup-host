@@ -6,6 +6,12 @@ set -euo pipefail
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ROOT_DIR="${DIR}/.."
 MAPPING_FILE="$ROOT_DIR/nginx/nginx-mapping.yml"
+DEVENV_CONFIG="$ROOT_DIR/.devcontainer/devenv.yaml"
+
+if ! command -v devenv >/dev/null 2>&1; then
+  echo "devenv is not installed. Install it before running this script." >&2
+  exit 1
+fi
 
 if ! command -v dev-nginx >/dev/null 2>&1; then
   echo "dev-nginx is not installed. Install it before running this script." >&2
@@ -18,3 +24,12 @@ if [[ ! -f "$MAPPING_FILE" ]]; then
 fi
 
 dev-nginx setup-app "$MAPPING_FILE"
+
+# See https://github.com/guardian/devenv
+if [[ -f "$DEVENV_CONFIG" ]]; then
+  devenv generate
+else
+  echo "No devenv config found at $DEVENV_CONFIG." >&2
+  echo "Run 'devenv init' and then modify $DEVENV_CONFIG appropriately." >&2
+  exit 1
+fi
