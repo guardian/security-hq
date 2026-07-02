@@ -44,6 +44,9 @@ downloadConfig() {
     # BSD sed (macOS)
     sed -i '' 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq/security-hq.local.conf
   fi
+
+setupNginx() {
+  dev-nginx setup-app "$ROOT_DIR/nginx/nginx-mapping.yml"
 }
 
 startDynamoDb() {

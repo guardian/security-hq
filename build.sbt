@@ -80,7 +80,7 @@ lazy val core = (project in file("core"))
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, SbtWeb, JDebPackaging, SystemdPlugin)
   .disablePlugins(sbtassembly.AssemblyPlugin)
-  .dependsOn(core)
+  .dependsOn(core, iamOutdatedCredentials)
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -141,6 +141,77 @@ lazy val hq = (project in file("hq"))
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "Security HQ app.",
     packageDescription := """Deb for Security HQ - the Guardian's service to centralise security information for our AWS accounts.""",
+    Universal / javaOptions ++= Seq(
+      "-Dpidfile.path=/dev/null",
+      "-Dconfig.file=/etc/gu/security-hq.conf",
+      "-J-XX:+UseCompressedOops",
+      "-J-XX:NativeMemoryTracking=detail",
+      "-J-XX:MaxRAMPercentage=50",
+      "-J-XX:InitialRAMPercentage=50",
+      "-J-XX:MaxMetaspaceSize=300m",
+      "-J-Xlog:gc*",
+      s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
+    ),
+    mergeStrategySettings
+  )
+
+lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
+  .enablePlugins(JDebPackaging)
+  .disablePlugins(sbtassembly.AssemblyPlugin)
+  .dependsOn(core)
+  .settings(
+    name := """iam-outdated-credentials""",
+    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
+    libraryDependencies ++= Seq(
+      ws,
+      filters,
+      "joda-time" % "joda-time" % "2.14.2",
+      "co.fs2" %% "fs2-core" % "3.13.0",
+      "com.github.tototoshi" %% "scala-csv" % "2.0.0",
+      "software.amazon.awssdk" % "iam" % awsSdkVersion,
+      "software.amazon.awssdk" % "cloudformation" % awsSdkVersion,
+      "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
+      "software.amazon.awssdk" % "dynamodb" % awsSdkVersion,
+      "software.amazon.awssdk" % "ec2" % awsSdkVersion,
+      "software.amazon.awssdk" % "efs" % awsSdkVersion,
+      "software.amazon.awssdk" % "s3" % awsSdkVersion,
+      "software.amazon.awssdk" % "sns" % awsSdkVersion,
+      "software.amazon.awssdk" % "ssm" % awsSdkVersion,
+      "software.amazon.awssdk" % "sts" % awsSdkVersion,
+      "software.amazon.awssdk" % "support" % awsSdkVersion,
+      "com.vladsch.flexmark" % "flexmark" % "0.64.8",
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
+      "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
+      "com.gu" %% "anghammarad-client" % "7.0.0",
+      "ch.qos.logback" % "logback-classic" % "1.5.34",
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
+      "com.gu" %% "janus-config-tools" % "10.0.0"
+    ) ++ safeTransitiveDependencies,
+    Assets / pipelineStages := Seq(digest),
+    // exclude docs
+    Compile / doc / sources := Seq.empty,
+    Universal / packageName := "iam-outdated-credentials",
+    // include beanstalk config files in the zip produced by `dist`
+    Universal / mappings ++=
+      (baseDirectory.value / "beanstalk" * "*" get)
+        .map(f => f -> s"beanstalk/${f.getName}"),
+    // include upstart config files in the zip produced by `dist`
+    Universal / mappings ++=
+      (baseDirectory.value / "upstart" * "*" get)
+        .map(f => f -> s"upstart/${f.getName}"),
+    // include systemd config files in the zip produced by `dist`
+    Universal / mappings ++=
+      (baseDirectory.value / "systemd" * "*" get)
+        .map(f => f -> s"systemd/${f.getName}"),
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
+    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
+    Test / parallelExecution := false,
+    Test / fork := false,
+
+    maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
+    packageSummary := "IAM Outdated Credentials lambda.",
+    packageDescription := """Deb for IAM Outdated Credentials lambda - the Guardian's service to check for outdated credentials in AWS accounts.""",
     Universal / javaOptions ++= Seq(
       "-Dpidfile.path=/dev/null",
       "-Dconfig.file=/etc/gu/security-hq.conf",
