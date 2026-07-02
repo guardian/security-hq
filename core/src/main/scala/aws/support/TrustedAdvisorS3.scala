@@ -12,7 +12,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
-import scala.util.control.NonFatal
 import scala.util.{Success, Try}
 
 object TrustedAdvisorS3 {
@@ -51,11 +50,7 @@ object TrustedAdvisorS3 {
 
     tryFindEncryptionStatus match {
       case Success(attempt) =>
-        attempt.map({
-          case Encrypted      => Some(bucket.copy(isEncrypted = true))
-          case NotEncrypted   => Some(bucket)
-          case BucketNotFound => None
-        })
+        attempt.map(bucketForEncryptionStatus(bucket, _))
       case scala.util.Failure(_) =>
         Attempt.Left(
           FailedAttempt(
@@ -68,6 +63,22 @@ object TrustedAdvisorS3 {
         )
     }
   }
+
+  /**
+   * Map a bucket's encryption status onto its presence in the report.
+   *
+   * `EncryptionUnknown` keeps the bucket in the report (with its default
+   * encryption status) rather than dropping it, so that a single bucket whose
+   * status could not be determined (for example, an access-denied error) does
+   * not silently disappear from the report. `BucketNotFound` drops the bucket.
+   */
+  private[support] def bucketForEncryptionStatus(bucket: BucketDetail, status: BucketEncryptionResponse): Option[BucketDetail] =
+    status match {
+      case Encrypted => Some(bucket.copy(isEncrypted = true))
+      case NotEncrypted => Some(bucket)
+      case EncryptionUnknown => Some(bucket)
+      case BucketNotFound => None
+    }
 
   private def publicBucketsForAccount(
       account: AwsAccount,
