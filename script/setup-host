@@ -29,7 +29,5 @@ dev-nginx setup-app "$MAPPING_FILE"
 if [[ -f "$DEVENV_CONFIG" ]]; then
   devenv generate
 else
-  echo "No devenv config found at $DEVENV_CONFIG." >&2
-  echo "Run 'devenv init' and then modify $DEVENV_CONFIG appropriately." >&2
-  exit 1
+  devenv init
 fi
