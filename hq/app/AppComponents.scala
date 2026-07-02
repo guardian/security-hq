@@ -69,9 +69,7 @@ class AppComponents(context: Context)
     try {
       val availableRegionsAttempt: Attempt[List[Region]] = for {
         ec2RegionList <- EC2.getAvailableRegions(ec2Client)
-        regionList = ec2RegionList.map(ec2Region =>
-          Region.of(ec2Region.regionName)
-        )
+        regionList = ec2RegionList.map(ec2Region => Region.of(ec2Region.regionName))
       } yield regionList
       Await
         .result(availableRegionsAttempt.asFuture, 30 seconds)
@@ -105,13 +103,16 @@ class AppComponents(context: Context)
     DefaultCredentialsProvider.builder.build()
   )
 
-  /* 
+  /*
       The casting from SdkHttpConfigurationOption[Integer] to AttributeMap.Key[Any] is required because Scala compiler comlains
 
       Integer <: Any, but Java-defined class Key is invariant in type T.
       You may wish to investigate a wildcard type such as `_ <: Any`. (SLS 3.2.10)
-  */  
-  private val MAX_10_CONNECTIONS: AttributeMap = AttributeMap.builder().put(SdkHttpConfigurationOption.MAX_CONNECTIONS.asInstanceOf[AttributeMap.Key[Any]], 10).build()
+   */
+  private val MAX_10_CONNECTIONS: AttributeMap = AttributeMap
+    .builder()
+    .put(SdkHttpConfigurationOption.MAX_CONNECTIONS.asInstanceOf[AttributeMap.Key[Any]], 10)
+    .build()
 
   private val securitySnsClient = SnsAsyncClient.builder
     .credentialsProvider(securityCredentialsProvider)
@@ -127,19 +128,22 @@ class AppComponents(context: Context)
 
   private val securityDynamoDbClient = stage match {
     case PROD =>
-      DynamoDbClient.builder()
+      DynamoDbClient
+        .builder()
         .credentialsProvider(securityCredentialsProvider)
         .region(CoreConfig.region)
         .build()
     case DEV =>
-      DynamoDbClient.builder()
+      DynamoDbClient
+        .builder()
         .credentialsProvider(securityCredentialsProvider)
         .region(CoreConfig.region)
-        .endpointOverride(new java.net.URI("http://localhost:8000")) //An alternative could be to configure a specific builder DynamoDbEndpointParams.builder().endpoint("http://localhost:8000").region(Config.region)
+        .endpointOverride(
+          new java.net.URI("http://localhost:8000")
+        ) // An alternative could be to configure a specific builder DynamoDbEndpointParams.builder().endpoint("http://localhost:8000").region(Config.region)
         .build()
   }
-  private val securityS3Client = S3Client
-    .builder
+  private val securityS3Client = S3Client.builder
     .credentialsProvider(securityCredentialsProvider)
     .region(CoreConfig.region)
     .build()

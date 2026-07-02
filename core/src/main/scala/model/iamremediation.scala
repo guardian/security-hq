@@ -2,52 +2,46 @@ package model
 
 import org.joda.time.DateTime
 
-
-/**
-  * Description of an IAM user with the remediation activity SHQ has previously performed for that user.
+/** Description of an IAM user with the remediation activity SHQ has previously performed for that user.
   */
 case class IamUserRemediationHistory(
-  awsAccount: AwsAccount,
-  iamUser: IAMUser,
-  activityHistory: List[IamRemediationActivity],
+    awsAccount: AwsAccount,
+    iamUser: IAMUser,
+    activityHistory: List[IamRemediationActivity]
 )
 
-/**
-  * An IAM remediation operation that was performed in the past.
+/** An IAM remediation operation that was performed in the past.
   *
   * This case class is used as a database record.
   *
-  * These DB records are to keep track of whether users have been notified about IAM problems
-  * ahead of SHQ's automatic interventions.
+  * These DB records are to keep track of whether users have been notified about IAM problems ahead of SHQ's automatic
+  * interventions.
   */
 case class IamRemediationActivity(
-  // in the DB, primary key is a composite, equal to s"$awsAccountId/$username"
-  awsAccountId: String,
-  username: String,
-  dateNotificationSent: DateTime, // range key in the DB
-  iamRemediationActivityType: IamRemediationActivityType,
-  iamProblem: IamProblem,
-  problemCreationDate: DateTime,  // the age of the password / credential, allows us to check if previous notifications still apply
+    // in the DB, primary key is a composite, equal to s"$awsAccountId/$username"
+    awsAccountId: String,
+    username: String,
+    dateNotificationSent: DateTime, // range key in the DB
+    iamRemediationActivityType: IamRemediationActivityType,
+    iamProblem: IamProblem,
+    problemCreationDate: DateTime // the age of the password / credential, allows us to check if previous notifications still apply
 )
 
-/**
-  * Represents a potential remediation operation
+/** Represents a potential remediation operation
   */
 case class RemediationOperation(
-  vulnerableCandidate: IamUserRemediationHistory,
-  iamRemediationActivityType: IamRemediationActivityType,
-  iamProblem: IamProblem,
-  problemCreationDate: DateTime,
+    vulnerableCandidate: IamUserRemediationHistory,
+    iamRemediationActivityType: IamRemediationActivityType,
+    iamProblem: IamProblem,
+    problemCreationDate: DateTime
 )
 
-/**
-  * This case class has descriptive fieldnames to document the intent, which is
-  * to prevent operations being performed on AWS accounts that are not allowed by
-  * the application's configuration.
+/** This case class has descriptive fieldnames to document the intent, which is to prevent operations being performed on
+  * AWS accounts that are not allowed by the application's configuration.
   */
 case class PartitionedRemediationOperations(
-  allowedOperations: List[RemediationOperation],
-  operationsOnAccountsThatAreNotAllowed: List[RemediationOperation]
+    allowedOperations: List[RemediationOperation],
+    operationsOnAccountsThatAreNotAllowed: List[RemediationOperation]
 )
 
 sealed trait IamProblem
@@ -58,15 +52,14 @@ case object Warning extends IamRemediationActivityType
 case object FinalWarning extends IamRemediationActivityType
 case object Remediation extends IamRemediationActivityType
 
-/**
-  * To disable credentials we need the accessKeyId, which is not available in the credentials report.
-  * CredentialMetadata represents the information we get back from the list-access-keys AWS API call.
+/** To disable credentials we need the accessKeyId, which is not available in the credentials report. CredentialMetadata
+  * represents the information we get back from the list-access-keys AWS API call.
   */
 case class CredentialMetadata(
-  username: String,
-  accessKeyId: String,
-  creationDate: DateTime,
-  status: CredentialStatus
+    username: String,
+    accessKeyId: String,
+    creationDate: DateTime,
+    status: CredentialStatus
 )
 
 sealed trait CredentialStatus
@@ -74,19 +67,19 @@ case object CredentialActive extends CredentialStatus
 case object CredentialDisabled extends CredentialStatus
 
 case class AccountUnrecognisedUsers(
-  account: AwsAccount,
-  unrecognisedUsers: List[HumanUser]
+    account: AwsAccount,
+    unrecognisedUsers: List[HumanUser]
 )
 
 case class AccountUnrecognisedAccessKeys(
-  account: AwsAccount,
-  vulnerableAccessKey: List[CredentialMetadata]
+    account: AwsAccount,
+    vulnerableAccessKey: List[CredentialMetadata]
 )
 
 case class UnrecognisedJobConfigProperties(
-  allowedAccounts: List[String],
-  janusDataFileKey: String,
-  janusUserBucket: String,
-  securityAccount: AwsAccount,
-  anghammaradSnsTopicArn: String
+    allowedAccounts: List[String],
+    janusDataFileKey: String,
+    janusUserBucket: String,
+    securityAccount: AwsAccount,
+    anghammaradSnsTopicArn: String
 )

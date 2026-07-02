@@ -6,10 +6,16 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 object Retry {
 
-  /**
-    * execute the body until the predicate is satisfied or maxAttempt is reached, with the delay between each body execution.
+  /** execute the body until the predicate is satisfied or maxAttempt is reached, with the delay between each body
+    * execution.
     */
-  def until[A](body: => Attempt[A], predicate: A => Boolean, failureMessage: String, delay: FiniteDuration, maxAttempt: Int = 10)(implicit ec: ExecutionContext): Attempt[A] = {
+  def until[A](
+      body: => Attempt[A],
+      predicate: A => Boolean,
+      failureMessage: String,
+      delay: FiniteDuration,
+      maxAttempt: Int = 10
+  )(implicit ec: ExecutionContext): Attempt[A] = {
 
     def loop(numberOfTries: Int): Attempt[A] = {
       if (numberOfTries >= maxAttempt) {
@@ -25,6 +31,4 @@ object Retry {
     loop(0)
   }
 
-
 }
-

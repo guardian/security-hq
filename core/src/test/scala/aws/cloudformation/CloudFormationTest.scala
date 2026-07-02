@@ -6,7 +6,6 @@ import org.scalatest.matchers.should.Matchers
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.model.{Stack, DescribeStacksRequest}
 
-
 class CloudFormationTest extends AnyFreeSpec with Matchers {
 
   "parseStacks" - {

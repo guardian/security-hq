@@ -8,9 +8,14 @@ import play.api.{Configuration, Environment, Mode}
 
 import scala.concurrent.ExecutionContext
 
-class AuthController(environment: Environment, val config: Configuration, val authConfig: GoogleAuthConfig)
-                    (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
-  extends BaseController with SecurityHQAuthActions {
+class AuthController(environment: Environment, val config: Configuration, val authConfig: GoogleAuthConfig)(implicit
+    val ec: ExecutionContext,
+    val wsClient: WSClient,
+    val bodyParser: BodyParser[AnyContent],
+    val controllerComponents: ControllerComponents,
+    val assetsFinder: AssetsFinder
+) extends BaseController
+    with SecurityHQAuthActions {
 
   implicit val mode: Mode = environment.mode
 

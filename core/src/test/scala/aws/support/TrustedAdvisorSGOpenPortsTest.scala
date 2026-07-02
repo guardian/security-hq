@@ -11,8 +11,7 @@ import software.amazon.awssdk.services.support.model.TrustedAdvisorResourceDetai
 import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
-class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with AttemptValues with ScalaCheckPropertyChecks  {
+class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with AttemptValues with ScalaCheckPropertyChecks {
   "parsing details" - {
     "works on example data" in {
       val metadata = List("eu-west-1", "launch-wizard-1", "sg-12345a (vpc-789abc)", "tcp", "Yellow", "22")
@@ -25,16 +24,16 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
         .build()
 
       TrustedAdvisorSGOpenPorts.parseSGOpenPortsDetail(detail).value() should have(
-        Symbol("region") ("eu-west-1"),
-        Symbol("name") ("launch-wizard-1"),
-        Symbol("id") ("sg-12345a"),
-        Symbol("vpcId") ("vpc-789abc"),
-        Symbol("protocol") ("tcp"),
-        Symbol("port") ("22"),
-        Symbol("alertLevel") ("Yellow"),
-        Symbol("isSuppressed") (false),
-        Symbol("stackId") (None),
-        Symbol("stackName") (None),
+        Symbol("region")("eu-west-1"),
+        Symbol("name")("launch-wizard-1"),
+        Symbol("id")("sg-12345a"),
+        Symbol("vpcId")("vpc-789abc"),
+        Symbol("protocol")("tcp"),
+        Symbol("port")("22"),
+        Symbol("alertLevel")("Yellow"),
+        Symbol("isSuppressed")(false),
+        Symbol("stackId")(None),
+        Symbol("stackName")(None)
       )
     }
 
@@ -86,17 +85,29 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
         name <- Gen.alphaStr
         id <- Gen.alphaStr
         vpcId <- Gen.alphaStr
-        port <- Gen.oneOf(TrustedAdvisor.portPriorityMap.flatMap(_._2) )
-        item = SGOpenPortsDetail(status, "eu-west-1", name.take(4), id.take(4), vpcId.take(4), "tcp", port.toString, "Yellow", false )
+        port <- Gen.oneOf(TrustedAdvisor.portPriorityMap.flatMap(_._2))
+        item = SGOpenPortsDetail(
+          status,
+          "eu-west-1",
+          name.take(4),
+          id.take(4),
+          vpcId.take(4),
+          "tcp",
+          port.toString,
+          "Yellow",
+          false
+        )
 
       } yield item
 
       forAll(Gen.listOf(sgs)) { detail =>
         val sortedResult = TrustedAdvisor.sortSecurityFlags(detail)
-        val expected = sortedResult.sortWith {
-          case  (s1, s2) =>  TrustedAdvisor.findPortPriorityIndex(s1.port).getOrElse(999) < TrustedAdvisor.findPortPriorityIndex(s2.port).getOrElse(999)
+        val expected = sortedResult.sortWith { case (s1, s2) =>
+          TrustedAdvisor.findPortPriorityIndex(s1.port).getOrElse(999) < TrustedAdvisor
+            .findPortPriorityIndex(s2.port)
+            .getOrElse(999)
         }
-        sortedResult should be (expected)
+        sortedResult should be(expected)
       }
     }
 
@@ -120,21 +131,32 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
       TrustedAdvisor.findPortPriorityIndex(null) shouldBe None
     }
 
-
     "security flags by alert level " in {
-      val  alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
+      val alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
       val sgsOpenPorts = for {
         status <- Gen.oneOf("Ok", "Warning", "Error")
         alertLevel <- Gen.oneOf("Yellow", "Red", "Green")
         name <- Gen.alphaStr
         id <- Gen.alphaStr
         vpcId <- Gen.alphaStr
-        port <- Gen.oneOf( 0 to 65000)
-      } yield SGOpenPortsDetail(status, "eu-west-1", name.take(4), id.take(4), vpcId.take(4), "tcp", port.toString, alertLevel, false )
+        port <- Gen.oneOf(0 to 65000)
+      } yield SGOpenPortsDetail(
+        status,
+        "eu-west-1",
+        name.take(4),
+        id.take(4),
+        vpcId.take(4),
+        "tcp",
+        port.toString,
+        alertLevel,
+        false
+      )
 
       forAll(Gen.listOf(sgsOpenPorts)) { sgs =>
         val sortedResult = TrustedAdvisor.sortSecurityFlags(sgs)
-        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  alertLevelMapping.getOrElse(s1.alertLevel, 2) < alertLevelMapping.getOrElse(s2.alertLevel, 2)  })
+        sortedResult should be(sortedResult.sortWith { case (s1, s2) =>
+          alertLevelMapping.getOrElse(s1.alertLevel, 2) < alertLevelMapping.getOrElse(s2.alertLevel, 2)
+        })
       }
     }
 
@@ -143,11 +165,14 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
         alertLevel <- Gen.oneOf("Yellow", "Red", "Green")
         ec2SgId <- Gen.alphaStr
         rdsSgId <- Gen.alphaStr
-      } yield RDSSGsDetail("eu-west-1", rdsSgId.take(4), ec2SgId.take(4), alertLevel, false )
+      } yield RDSSGsDetail("eu-west-1", rdsSgId.take(4), ec2SgId.take(4), alertLevel, false)
 
       forAll(Gen.listOf(rdsSgs)) { sgs =>
         val sortedResult = TrustedAdvisor.sortSecurityFlags(sgs)
-        sortedResult should be (sortedResult.sortWith{ case  (s1, s2) =>  TrustedAdvisor.alertLevelMapping.getOrElse(s1.alertLevel, 2) < TrustedAdvisor.alertLevelMapping.getOrElse(s2.alertLevel, 2)  })
+        sortedResult should be(sortedResult.sortWith { case (s1, s2) =>
+          TrustedAdvisor.alertLevelMapping.getOrElse(s1.alertLevel, 2) < TrustedAdvisor.alertLevelMapping
+            .getOrElse(s2.alertLevel, 2)
+        })
       }
     }
   }
