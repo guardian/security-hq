@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# This will become redundant when the Play app has been decommissioned.
+# The nginx setup will become redundant when the Play app has been decommissioned.
 
 set -euo pipefail
 
@@ -26,8 +26,4 @@ fi
 dev-nginx setup-app "$MAPPING_FILE"
 
 # See https://github.com/guardian/devenv
-if [[ -f "$DEVENV_CONFIG" ]]; then
-  devenv generate
-else
-  devenv init
-fi
+devenv generate
