@@ -116,7 +116,7 @@ class IamRemediationService(
     rawCredsReports = cacheService.getAllCredentials
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-  } yield new IamOutdatedCredentials(snsClient, iamClients, dynamo).disableOutdatedCredentials(
+  } yield new IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun = false).disableOutdatedCredentials(
     notificationTopicArn,
     tableName,
     serviceAccountIds,
