@@ -6,7 +6,6 @@ set -euo pipefail
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ROOT_DIR="${DIR}/.."
 MAPPING_FILE="$ROOT_DIR/nginx/nginx-mapping.yml"
-DEVENV_CONFIG="$ROOT_DIR/.devcontainer/devenv.yaml"
 
 if ! command -v devenv >/dev/null 2>&1; then
   echo "devenv is not installed. Install it before running this script." >&2
