@@ -8,7 +8,6 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 import software.amazon.awssdk.services.support.model.TrustedAdvisorResourceDetail
 
-
 class TrustedAdvisorExposedIAMKeysTest extends AnyFreeSpec with Matchers with AttemptValues {
   "parseRDSSGDetail" - {
     val metadata = List("key-id", "username", "fraud-type", "case-id", "last-updated", "location", "deadline", "usage")
@@ -22,14 +21,14 @@ class TrustedAdvisorExposedIAMKeysTest extends AnyFreeSpec with Matchers with At
 
     "works on example data" in {
       TrustedAdvisorExposedIAMKeys.parseExposedIamKeyDetail(detail).value() should have(
-        Symbol("keyId") ("key-id"),
-        Symbol("username") ("username"),
-        Symbol("fraudType") ("fraud-type"),
-        Symbol("caseId") ("case-id"),
-        Symbol("updated") ("last-updated"),
-        Symbol("location") ("location"),
-        Symbol("deadline") ("deadline"),
-        Symbol("usage") ("usage")
+        Symbol("keyId")("key-id"),
+        Symbol("username")("username"),
+        Symbol("fraudType")("fraud-type"),
+        Symbol("caseId")("case-id"),
+        Symbol("updated")("last-updated"),
+        Symbol("location")("location"),
+        Symbol("deadline")("deadline"),
+        Symbol("usage")("usage")
       )
     }
 

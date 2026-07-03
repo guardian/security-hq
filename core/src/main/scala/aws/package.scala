@@ -19,11 +19,16 @@ package object aws extends LazyLogging {
         logger.warn(errorString)
       }
 
-      Attempt.fromOption(maybeClient, FailedAttempt(Failure(
-        errorString,
-        s"Cannot find AWS client",
-        500
-      )))
+      Attempt.fromOption(
+        maybeClient,
+        FailedAttempt(
+          Failure(
+            errorString,
+            s"Cannot find AWS client",
+            500
+          )
+        )
+      )
     }
 
     // this method assumes that there is only one region per account and if this isn't true it will fail
@@ -33,22 +38,31 @@ package object aws extends LazyLogging {
       }
       clientsForAccount match {
         case singleClient :: Nil => Attempt.Right(singleClient)
-        case Nil =>
+        case Nil                 =>
           val errorString = s"No ${classTag.runtimeClass.getSimpleName} client exists for ${account.id}"
           logger.warn(errorString)
-          Attempt.Left(FailedAttempt(Failure(
-          errorString,
-          s"Cannot find AWS client",
-          500
-        )))
+          Attempt.Left(
+            FailedAttempt(
+              Failure(
+                errorString,
+                s"Cannot find AWS client",
+                500
+              )
+            )
+          )
         case multipleClients =>
-          val errorString = s"More than one ${classTag.runtimeClass.getSimpleName} client exists for ${account.id} - perhaps you need to use get(account, region)??"
+          val errorString =
+            s"More than one ${classTag.runtimeClass.getSimpleName} client exists for ${account.id} - perhaps you need to use get(account, region)??"
           logger.warn(errorString)
-          Attempt.Left(FailedAttempt(Failure(
-          errorString,
-          s"Multiple AWS clients found when only one was expected",
-          500
-        )))
+          Attempt.Left(
+            FailedAttempt(
+              Failure(
+                errorString,
+                s"Multiple AWS clients found when only one was expected",
+                500
+              )
+            )
+          )
       }
     }
   }

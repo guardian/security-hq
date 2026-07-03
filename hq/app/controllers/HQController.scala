@@ -10,10 +10,14 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-
-class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)
-                  (implicit val ec: ExecutionContext, val wsClient: WSClient, val bodyParser: BodyParser[AnyContent], val controllerComponents: ControllerComponents, val assetsFinder: AssetsFinder)
-  extends BaseController with SecurityHQAuthActions {
+class HQController(val config: Configuration, val authConfig: GoogleAuthConfig)(implicit
+    val ec: ExecutionContext,
+    val wsClient: WSClient,
+    val bodyParser: BodyParser[AnyContent],
+    val controllerComponents: ControllerComponents,
+    val assetsFinder: AssetsFinder
+) extends BaseController
+    with SecurityHQAuthActions {
 
   private val accounts = Config.getAwsAccounts(config)
 

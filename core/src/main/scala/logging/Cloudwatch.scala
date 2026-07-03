@@ -29,7 +29,7 @@ object Cloudwatch extends LazyLogging {
     val failure = Value("Failure")
   }
 
-  def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] ) : Unit = {
+  def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Unit = {
     data.toSeq.foreach {
       case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
         val reportSummary: ReportSummary = reportStatusSummary(details)
@@ -41,30 +41,57 @@ object Cloudwatch extends LazyLogging {
     }
   }
 
-  def logAsMetric[T](data: Map[AwsAccount, Either[FailedAttempt, List[T]]], dataType: DataType.Value ) : Unit = {
+  def logAsMetric[T](data: Map[AwsAccount, Either[FailedAttempt, List[T]]], dataType: DataType.Value): Unit = {
     data.toSeq.foreach {
       case (account: AwsAccount, Right(details: List[T])) =>
         putAwsMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>
-        logger.error(s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}.")
+        logger.error(
+          s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}."
+        )
     }
   }
 
-  def putAwsMetric(account: AwsAccount, dataType: DataType.Value , value: Int): Unit = {
-    putMetric(defaultNamespace, "Vulnerabilities", Seq(("Account", account.name),("DataType", dataType.toString)), value)
+  def putAwsMetric(account: AwsAccount, dataType: DataType.Value, value: Int): Unit = {
+    putMetric(
+      defaultNamespace,
+      "Vulnerabilities",
+      Seq(("Account", account.name), ("DataType", dataType.toString)),
+      value
+    )
   }
 
   def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
-    putMetric(defaultNamespace, "IamRemovePassword", Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)), value)
+    putMetric(
+      defaultNamespace,
+      "IamRemovePassword",
+      Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
+      value
+    )
   }
 
   def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
-    putMetric(defaultNamespace, "IamDisableAccessKey", Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)), 1)
+    putMetric(
+      defaultNamespace,
+      "IamDisableAccessKey",
+      Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
+      1
+    )
   }
 
-  private def putMetric(namespace: String, metricName: String, metricDimensions: Seq[(String, String)] , value: Int): Unit = {
-    val dimension = metricDimensions.map( d => Dimension.builder.name(d._1).value(d._2).build()).toList
-    val datum = MetricDatum.builder.metricName(metricName).unit(StandardUnit.COUNT).value(value.toDouble).dimensions(dimension.asJava).build()
+  private def putMetric(
+      namespace: String,
+      metricName: String,
+      metricDimensions: Seq[(String, String)],
+      value: Int
+  ): Unit = {
+    val dimension = metricDimensions.map(d => Dimension.builder.name(d._1).value(d._2).build()).toList
+    val datum = MetricDatum.builder
+      .metricName(metricName)
+      .unit(StandardUnit.COUNT)
+      .value(value.toDouble)
+      .dimensions(dimension.asJava)
+      .build()
     val request = PutMetricDataRequest.builder.namespace(namespace).metricData(datum).build()
 
     Try(cloudwatchClient.putMetricData(request)) match {

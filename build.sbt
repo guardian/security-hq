@@ -41,9 +41,9 @@ val safeTransitiveDependencies = {
   )
 }
 
-val mergeStrategySettings= assemblyMergeStrategy := {
-  case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
-  case _ => MergeStrategy.first
+val mergeStrategySettings = assemblyMergeStrategy := {
+  case PathList(ps @ _*) if ps.last == "module-info.class" => MergeStrategy.discard
+  case _                                                   => MergeStrategy.first
 }
 
 lazy val core = (project in file("core"))
@@ -80,7 +80,7 @@ lazy val core = (project in file("core"))
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, SbtWeb, JDebPackaging, SystemdPlugin)
   .disablePlugins(sbtassembly.AssemblyPlugin)
-  .dependsOn(core)
+  .dependsOn(core, iamOutdatedCredentials)
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -88,9 +88,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %%  "play-v30" % "40.1.0",
+      "com.gu.play-googleauth" %% "play-v30" % "40.1.0",
       "com.gu.play-secret-rotation" %% "play-v30" % "18.0.1",
-       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.1",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "18.0.1",
 
       "joda-time" % "joda-time" % "2.14.2",
       "co.fs2" %% "fs2-core" % "3.13.0",
@@ -153,16 +153,36 @@ lazy val hq = (project in file("hq"))
       s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
     ),
     mergeStrategySettings
-
   )
 
+lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
+  .enablePlugins(JDebPackaging)
+  .disablePlugins(sbtassembly.AssemblyPlugin)
+  .dependsOn(core)
+  .settings(
+    name := """iam-outdated-credentials""",
+    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
+    Assets / pipelineStages := Seq(digest),
+    // exclude docs
+    Compile / doc / sources := Seq.empty,
+    Universal / packageName := "iam-outdated-credentials",
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
+    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
+    Test / parallelExecution := false,
+    Test / fork := false,
+
+    maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
+    packageSummary := "IAM Outdated Credentials lambda.",
+    packageDescription := """Deb for IAM Outdated Credentials lambda - the Guardian's service to check for outdated credentials in AWS accounts.""",
+    mergeStrategySettings
+  )
 
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
 
-lazy val root = (project in file(".")).
-  aggregate(core, hq).
-  settings(
+lazy val root = (project in file("."))
+  .aggregate(core, hq)
+  .settings(
     name := """security-hq"""
   )
 
