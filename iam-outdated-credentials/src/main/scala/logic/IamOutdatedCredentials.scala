@@ -2,6 +2,7 @@ package logic
 
 import aws.AwsClients
 import aws.iam.IAMClient
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
@@ -12,10 +13,15 @@ import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.DateTime
 import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
+import java.io.InputStream
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.util.Using
 
 class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
@@ -61,7 +67,7 @@ class IamOutdatedCredentials(
         } yield snsId
 
       case (Warning, OutdatedCredential) =>
-        logger.info(s"Dry run: Would send warning for ${awsAccount}, ${iamUser}")
+        logger.info(s"Dry run: Would send warning for $awsAccount, $iamUser")
         Attempt.Right("dummy-warning")
 
       case (FinalWarning, OutdatedCredential) if !dryRun =>
@@ -73,7 +79,7 @@ class IamOutdatedCredentials(
         } yield snsId
 
       case (FinalWarning, OutdatedCredential) =>
-        logger.info(s"Dry run: Would send final warning for ${awsAccount}, ${iamUser}")
+        logger.info(s"Dry run: Would send final warning for $awsAccount, $iamUser")
         Attempt.Right("dummy-finalWarning")
 
       case (Remediation, OutdatedCredential) if !dryRun =>
@@ -95,10 +101,9 @@ class IamOutdatedCredentials(
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield notificationId
 
-      case (Remediation, OutdatedCredential)=>
-        logger.info(s"Dry run: Would execute remediation for ${awsAccount}, ${iamUser}")
+      case (Remediation, OutdatedCredential) =>
+        logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
         Attempt.Right("dummy-remediation")
-
     }
   }
 
@@ -419,4 +424,33 @@ object IamOutdatedCredentials extends LazyLogging {
     val accountId = remediationOperation.vulnerableCandidate.awsAccount.id
     s"$problem $activity for user $username from account $accountId"
   }
+
+  def loadConfigFromS3(bucket: String, key: String, s3: S3Client): Config = {
+    val request = GetObjectRequest
+      .builder()
+      .bucket(bucket)
+      .key(key)
+      .build()
+
+    val inputStream: InputStream = s3.getObject(request)
+
+    val configString =
+      Using.resource(inputStream) { is =>
+        scala.io.Source.fromInputStream(is).mkString
+      }
+
+    ConfigFactory.parseString(configString).resolve()
+  }
+
+  def parseAccounts(config: Config): List[AwsAccount] = {
+    config.getConfigList("hq.accounts").asScala.toList.map { accountConfig =>
+      AwsAccount(
+        id = accountConfig.getString("id"),
+        name = accountConfig.getString("name"),
+        roleArn = accountConfig.getString("roleArn"),
+        accountNumber = accountConfig.getString("accountNumber")
+      )
+    }
+  }
+
 }

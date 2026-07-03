@@ -11,7 +11,6 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.iam.model.*
-import software.amazon.awssdk.services.s3.S3AsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.duration.*
@@ -86,21 +85,31 @@ object IAMClient extends LazyLogging {
     val now = DateTime.now()
 
     if (CredentialsReport.credentialsReportReadyForRefresh(currentData, now))
-      for {
-        client <- iamClients.get(account, SOLE_REGION)
-        _ <- Retry.until(
-          generateCredentialsReport(client),
-          CredentialsReport.isComplete,
-          "Failed to generate credentials report",
-          delay
-        )
-        report <- getCredentialsReport(client)
-        stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
-        reportWithTags <- enrichReportWithTags(report, client)
-        reportWithStacks = CredentialsReport.enrichReportWithStackDetails(reportWithTags, stacks)
-      } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithStacks)
+      getUpdatedCredentialsReport(account, cfnClients, iamClients, regions, delay)
     else
       Attempt.fromEither(currentData)
+  }
+
+  def getUpdatedCredentialsReport(
+      account: AwsAccount,
+      cfnClients: AwsClients[CloudFormationAsyncClient],
+      iamClients: AwsClients[IamAsyncClient],
+      regions: List[Region],
+      delay: FiniteDuration
+  )(implicit executionContext: ExecutionContext): Attempt[CredentialReportDisplay] = {
+    for {
+      client <- iamClients.get(account, SOLE_REGION)
+      _ <- Retry.until(
+        generateCredentialsReport(client),
+        CredentialsReport.isComplete,
+        "Failed to generate credentials report",
+        delay
+      )
+      report <- getCredentialsReport(client)
+      stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
+      reportWithTags <- enrichReportWithTags(report, client)
+      reportWithStacks = CredentialsReport.enrichReportWithStackDetails(reportWithTags, stacks)
+    } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithStacks)
   }
 
   def getAllCredentialReports(
