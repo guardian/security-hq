@@ -159,7 +159,7 @@ lazy val hq = (project in file("hq"))
 lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .enablePlugins(JDebPackaging)
   .disablePlugins(sbtassembly.AssemblyPlugin)
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := """iam-outdated-credentials""",
     fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
@@ -173,7 +173,8 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
     Test / fork := false,
 
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion
+      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
     ),
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "IAM Outdated Credentials lambda.",

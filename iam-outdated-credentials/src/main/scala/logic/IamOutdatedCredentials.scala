@@ -248,7 +248,7 @@ object IamOutdatedCredentials extends LazyLogging {
     * the same user could appear in the output list twice, because both of their keys may require an operation. By
     * comparing the current date with the date of the most recent activity, we know which operation to perform next.
     */
-  private def calculateOutstandingAccessKeyOperations(
+  private[logic] def calculateOutstandingAccessKeyOperations(
       remediationHistories: List[IamUserRemediationHistory],
       now: DateTime
   ): List[RemediationOperation] = {
@@ -365,7 +365,7 @@ object IamOutdatedCredentials extends LazyLogging {
     * AWS accounts to run the IamRemediationService on, because not all accounts are in a ready state for this service
     * yet.
     */
-  private def partitionOperationsByAllowedAccounts(
+  private[logic] def partitionOperationsByAllowedAccounts(
       operations: List[RemediationOperation],
       allowedAwsAccountIds: List[String],
       serviceAccountIds: List[String]
@@ -383,7 +383,7 @@ object IamOutdatedCredentials extends LazyLogging {
     *
     * This might fail, because it may be that no matching key exists.
     */
-  private def lookupCredentialId(
+  private[logic] def lookupCredentialId(
       badKeyCreationDate: DateTime,
       userCredentials: List[CredentialMetadata]
   ): Attempt[CredentialMetadata] = {
@@ -417,7 +417,7 @@ object IamOutdatedCredentials extends LazyLogging {
     }
   }
 
-  private def formatRemediationOperation(remediationOperation: RemediationOperation): String = {
+  private[logic] def formatRemediationOperation(remediationOperation: RemediationOperation): String = {
     val problem = remediationOperation.iamProblem
     val activity = remediationOperation.iamRemediationActivityType
     val username = remediationOperation.vulnerableCandidate.iamUser.username

@@ -7,11 +7,12 @@ import model._
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
 import org.scalatest.OptionValues
-import utils.attempt.{AttemptValues, FailedAttempt, Failure}
+import utils.attempt.{FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
+import utils.attempt.AttemptValues 
 
 class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
