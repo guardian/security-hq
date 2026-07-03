@@ -140,11 +140,10 @@ object MetricsCollector extends LazyLogging {
     }
 
   private def loadAccounts(settings: Settings): List[AwsAccount] = {
-    val credsProvider = AwsCredentialsProviderChain.of(
-      DefaultCredentialsProvider.builder.build(),
-      ProfileCredentialsProvider.create("security")
-    )
-    val s3 = S3Client.builder.credentialsProvider(credsProvider).region(settings.region).build()
+    val s3 = S3Client.builder
+      .credentialsProvider(credsProvider)
+      .region(settings.region)
+      .build()
     try {
       val hocon = s3
         .getObjectAsBytes(
@@ -161,7 +160,10 @@ object MetricsCollector extends LazyLogging {
   private def discoverRegions(settings: Settings): List[Region] = {
     val fallback = List(settings.region, Region.US_EAST_1)
     val ec2Client = AwsClient(
-      Ec2AsyncClient.builder.region(settings.region).build(),
+      Ec2AsyncClient.builder
+        .credentialsProvider(credsProvider)
+        .region(settings.region)
+        .build(),
       AwsAccount("self", "self", "self", "self"),
       settings.region
     )
@@ -180,4 +182,9 @@ object MetricsCollector extends LazyLogging {
       }
     } finally ec2Client.client.close()
   }
+
+  private val credsProvider = AwsCredentialsProviderChain.of(
+    DefaultCredentialsProvider.builder.build(),
+    ProfileCredentialsProvider.create("security")
+  )
 }
