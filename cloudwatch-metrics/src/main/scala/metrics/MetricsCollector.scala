@@ -39,7 +39,9 @@ object MetricsCollector extends LazyLogging {
       s"Starting cloudwatch-metrics collection (dryRun=${settings.dryRun}, region=${settings.region.id})"
     )
 
-    val accounts = loadAccounts(settings)
+    // TODO reinstate
+//    val accounts = loadAccounts(settings)
+    val accounts = loadAccounts(settings).filter(a => a.id == "security")
     if (accounts.isEmpty) {
       logger.error(
         "No AWS accounts loaded from config; aborting metrics collection"
@@ -112,6 +114,7 @@ object MetricsCollector extends LazyLogging {
       List(exposedKeys, publicBuckets, credentials)
     )
     if (failures.nonEmpty) {
+      // TODO public buckets security us-west-2
       logger.warn(
         s"Skipping cloudwatch metrics update as some data is missing: $failures"
       )
@@ -168,7 +171,12 @@ object MetricsCollector extends LazyLogging {
         .map(_.map(r => Region.of(r.regionName)))
       Await.result(regionsAttempt.asFuture, 30.seconds) match {
         case Right(regions) if regions.nonEmpty => regions
-        case _                                  => fallback
+        case Right(_)                           =>
+          logger.warn("DescribeRegions returned no regions; falling back")
+          fallback
+        case Left(failure) =>
+          logger.warn(s"Failed to discover regions, falling back: ${failure.logMessage}")
+          fallback
       }
     } finally ec2Client.client.close()
   }

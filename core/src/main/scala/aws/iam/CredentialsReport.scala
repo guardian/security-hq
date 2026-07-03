@@ -71,7 +71,6 @@ object CredentialsReport extends LazyLogging {
     tryParsingReport(report).map(IAMCredentialsReport(new DateTime(response.generatedTime.toEpochMilli), _))
   }
 
-
   def parseBoolean(cell: String): Option[Boolean] = {
     if (cell == "true") Some(true)
     else if (cell == "false") Some(false)
@@ -124,12 +123,14 @@ object CredentialsReport extends LazyLogging {
       )
     }
 
-    iamCredentialsReport.filter(x => x.passwordEnabled.contains(true)).foreach(iamCred => {
-      val mandatoryMarkers = Map(
-        "User" -> iamCred.user,
-        "PasswordEnabled" -> iamCred.passwordEnabled.getOrElse(false),
-        "Arn" -> iamCred.arn
-      )
+    iamCredentialsReport
+      .filter(x => x.passwordEnabled.contains(true))
+      .foreach(iamCred => {
+        val mandatoryMarkers = Map(
+          "User" -> iamCred.user,
+          "PasswordEnabled" -> iamCred.passwordEnabled.getOrElse(false),
+          "Arn" -> iamCred.arn
+        )
 
         val marker = appendEntries(mandatoryMarkers.asJava)
         logger.info(marker, s"${iamCred.user} user has non-Janus access to AWS: $iamCred")
