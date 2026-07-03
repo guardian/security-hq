@@ -1,7 +1,7 @@
 import "source-map-support/register";
 import { App } from "aws-cdk-lib";
-import { VulnerabilityMetrics } from "../lib/vulnerability-metrics";
 import { SecurityHQ } from "../lib/security-hq";
+import { VulnerabilityMetrics } from "../lib/vulnerability-metrics";
 
 const app = new App();
 
