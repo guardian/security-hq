@@ -17,9 +17,18 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import utils.attempt.{Attempt, Failure}
 
-import java.util.concurrent.Executors.newCachedThreadPool
+import java.util.concurrent.{Executors, ThreadFactory}
 
 object AWS {
+
+  /** A thread factory that produces daemon threads, so that leftover pool threads never prevent the JVM from
+    * exiting, even if a client using this pool is not explicitly closed.
+    */
+  private val daemonThreadFactory: ThreadFactory = { runnable =>
+    val thread = Executors.defaultThreadFactory().newThread(runnable)
+    thread.setDaemon(true)
+    thread
+  }
 
   def lookupAccount(accountId: String, accounts: List[AwsAccount]): Attempt[AwsAccount] = {
     Attempt.fromOption(
@@ -66,7 +75,10 @@ object AWS {
   private def withCustomThreadPool[A, B <: AwsAsyncClientBuilder[B, A]] =
     (asyncClientBuilder: AwsAsyncClientBuilder[B, A]) =>
       asyncClientBuilder.asyncConfiguration(c =>
-        c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, newCachedThreadPool())
+        c.advancedOption(
+          SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+          Executors.newCachedThreadPool(daemonThreadFactory)
+        )
       )
 
   def ec2Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[Ec2AsyncClient] =
