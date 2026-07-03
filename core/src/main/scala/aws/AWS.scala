@@ -17,12 +17,13 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import utils.attempt.{Attempt, Failure}
 
-import java.util.concurrent.{Executors, ThreadFactory}
+import java.util.concurrent.Executors.newCachedThreadPool
+import java.util.concurrent.ThreadFactory
 
 object AWS {
 
-  /** A thread factory that produces daemon threads, so that leftover pool threads never prevent the JVM from
-    * exiting, even if a client using this pool is not explicitly closed.
+  /** A thread factory that produces daemon threads so that leftover pool threads never prevent the JVM from exiting,
+    * even if a client using this pool is not explicitly closed.
     */
   private val daemonThreadFactory: ThreadFactory = { runnable =>
     val thread = Executors.defaultThreadFactory().newThread(runnable)
@@ -77,7 +78,7 @@ object AWS {
       asyncClientBuilder.asyncConfiguration(c =>
         c.advancedOption(
           SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
-          Executors.newCachedThreadPool(daemonThreadFactory)
+          newCachedThreadPool(daemonThreadFactory)
         )
       )
 
