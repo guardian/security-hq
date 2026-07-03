@@ -1,6 +1,6 @@
 import "source-map-support/register";
 import { App } from "aws-cdk-lib";
-import { CloudwatchMetrics } from "../lib/cloudwatch-metrics";
+import { VulnerabilityMetrics } from "../lib/vulnerability-metrics";
 import { SecurityHQ } from "../lib/security-hq";
 
 const app = new App();
@@ -13,9 +13,9 @@ new SecurityHQ(app, "security-hq", {
   buildIdentifier: process.env["BUILD_NUMBER"] ?? "DEV",
 });
 
-new CloudwatchMetrics(app, "cloudwatch-metrics", {
+new VulnerabilityMetrics(app, "vulnerability-metrics", {
   stack: "security",
   stage: "PROD",
-  cloudFormationStackName: "cloudwatch-metrics-PROD",
+  cloudFormationStackName: "vulnerability-metrics-PROD",
   env: { region: "eu-west-1" },
 });
