@@ -159,9 +159,6 @@ lazy val hq = (project in file("hq"))
     mergeStrategySettings
   )
 
-// exclude this key from the linting (unused keys) as it is incorrectly flagged
-Global / excludeLintKeys += Universal / topLevelDirectory
-
 lazy val vulnerabilityMetrics = (project in file("vulnerability-metrics"))
   .dependsOn(core)
   .enablePlugins(AssemblyPlugin)
@@ -205,9 +202,13 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
     mergeStrategySettings
   )
 
+// exclude this key from the linting (unused keys) as it is incorrectly flagged
+Global / excludeLintKeys += Universal / topLevelDirectory
+
 lazy val root = (project in file("."))
-  .aggregate(core, hq, vulnerabilityMetrics, iamOutdatedCredentials)
+  .aggregate(core, hq, vulnerabilityMetrics)
   .settings(
     name := """security-hq"""
   )
+
 addCommandAlias("dependency-tree", "dependencyTree")

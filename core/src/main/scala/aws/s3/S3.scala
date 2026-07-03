@@ -12,11 +12,6 @@ import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.model.{GetBucketEncryptionRequest, GetObjectRequest}
 
 object S3 {
-  // Safely extract the AWS error code from an S3Exception. Both awsErrorDetails
-  // and errorCode may be null, so this returns None rather than throwing.
-  private def errorCodeOf(e: S3Exception): Option[String] =
-    Option(e.awsErrorDetails).flatMap(details => Option(details.errorCode))
-
   def getS3Object(s3Client: S3Client, bucket: String, key: String): Attempt[BufferedSource] = {
     val request = GetObjectRequest.builder().bucket(bucket).key(key).build()
     try {
@@ -50,22 +45,16 @@ object S3 {
         ).fold[BucketEncryptionResponse](NotEncrypted)(_ => Encrypted)
       }
     } catch {
-      // Match on the stable AWS error code rather than the exception message,
-      // which is more robust across SDK versions.
-      //
-      // Both `awsErrorDetails` and `errorCode` can be null depending on how the
-      // S3Exception was constructed or deserialised, so guard the access via Option
-      // to avoid a NullPointerException. Malformed exceptions with no error code fall
-      // through to the NonFatal handling below.
-      case e: S3Exception if errorCodeOf(e).contains("ServerSideEncryptionConfigurationNotFoundError") =>
-        // If there is no bucket encryption, AWS returns this error, so assume the bucket is not encrypted.
+      // If there is no bucket encryption, AWS returns an error...
+      // Assume bucket is not encrypted if we receive the specific error
+      case e: S3Exception if e.getMessage.contains("ServerSideEncryptionConfigurationNotFoundError") =>
         Attempt.Right(NotEncrypted)
-      case e: S3Exception if errorCodeOf(e).contains("NoSuchBucket") =>
+      case e: S3Exception if e.getMessage.contains("NoSuchBucket") =>
         Attempt.Right(BucketNotFound)
-      case e: S3Exception if errorCodeOf(e).contains("AccessDenied") =>
+      case e: S3Exception if e.getMessage.contains("AccessDenied") =>
         // A restrictive bucket policy can explicitly deny GetEncryptionConfiguration.
         // Treat the encryption status as unknown so a single bucket does not fail the
-        // whole account's report (and, in turn, block metrics for all accounts).
+        // whole account's report (and block metrics for all accounts).
         Attempt.Right(EncryptionUnknown)
       case NonFatal(e) =>
         Attempt.Left(
