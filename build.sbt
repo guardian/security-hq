@@ -44,7 +44,7 @@ val safeTransitiveDependencies = {
 val mergeStrategySettings = assemblyMergeStrategy := {
   case PathList(ps @ _*) if ps.last == "module-info.class" =>
     MergeStrategy.discard
-  case _                                                   => MergeStrategy.first
+  case _ => MergeStrategy.first
 }
 
 lazy val core = (project in file("core"))

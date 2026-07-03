@@ -19,11 +19,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class S3Test extends AnyFreeSpec with Matchers with AttemptValues {
 
-  /**
-   * A minimal S3Client that only implements getBucketEncryption. All other
-   * operations inherit the SDK default behaviour (throwing), which is fine as
-   * the code under test only calls this one method.
-   */
+  /** A minimal S3Client that only implements getBucketEncryption. All other operations inherit the SDK default
+    * behaviour (throwing), which is fine as the code under test only calls this one method.
+    */
   private def stubClient(onGetEncryption: GetBucketEncryptionRequest => GetBucketEncryptionResponse): S3Client =
     new S3Client {
       override def serviceName(): String = "s3-stub"

@@ -6,18 +6,10 @@ import model.AwsAccount
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-/** Play-free loader for the list of AWS accounts.
-  *
-  * Parses the same `AWS_ACCOUNTS` block used by the Security HQ Play app (see
-  * `config.Config.getAwsAccounts`) directly from a Typesafe `Config`, so it can
-  * be reused outside of a Play application (e.g. from the cloudwatch-metrics
-  * Lambda).
-  */
+/** Loader for the list of AWS accounts. */
 object AccountLoader {
 
-  /** Parse the `AWS_ACCOUNTS` list from the supplied Typesafe config, sorted by
-    * account name.
-    */
+  /** Parses `AWS_ACCOUNTS` block * from a Typesafe `Config`. */
   def getAwsAccounts(config: Config): List[AwsAccount] = {
     val accounts = for {
       accountConfig <- config.getConfigList("AWS_ACCOUNTS").asScala.toList
@@ -26,9 +18,7 @@ object AccountLoader {
     accounts.sortBy(_.name)
   }
 
-  /** Parse the `hq.accounts` list from raw HOCON text (e.g. the contents of
-    * `security-hq.conf` fetched from S3).
-    */
+  /** Parse the `AWS_ACCOUNTS` list from raw HOCON text (e.g. the contents of `security-hq.conf` fetched from S3). */
   def getAwsAccountsFromString(hocon: String): List[AwsAccount] =
     getAwsAccounts(ConfigFactory.parseString(hocon))
 

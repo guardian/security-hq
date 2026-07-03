@@ -26,12 +26,16 @@ object S3 {
       }
     } catch {
       case NonFatal(e) =>
-        Attempt.Left(FailedAttempt(Failure(
-          s"Unable to get S3 object for bucket $bucket and key $key",
-          "Failed to fetch an S3 object",
-          500,
-          throwable = Some(e)
-        )))
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"Unable to get S3 object for bucket $bucket and key $key",
+              "Failed to fetch an S3 object",
+              500,
+              throwable = Some(e)
+            )
+          )
+        )
     }
   }
 
@@ -64,13 +68,17 @@ object S3 {
         // whole account's report (and, in turn, block metrics for all accounts).
         Attempt.Right(EncryptionUnknown)
       case NonFatal(e) =>
-        Attempt.Left(FailedAttempt(Failure(
-          s"unable to get S3 bucket encryption status for bucket $bucketName",
-          "Encryption status for this bucket was not found.",
-              "Encryption status for this bucket could not be retrieved due to an unexpected error.",500,
-          context = Some(e.getMessage),
-          throwable = Some(e)
-        )))
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"unable to get S3 bucket encryption status for bucket $bucketName",
+              "Encryption status for this bucket could not be retrieved due to an unexpected error.",
+              500,
+              context = Some(e.getMessage),
+              throwable = Some(e)
+            )
+          )
+        )
     }
   }
 }

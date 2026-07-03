@@ -17,7 +17,6 @@ case class AwsStack(
     region: String
 )
 
-
 case class IAMCredentialsReport(
     generatedAt: DateTime,
     entries: List[IAMCredential]
@@ -122,22 +121,18 @@ case object Encrypted extends BucketEncryptionResponse
 case object NotEncrypted extends BucketEncryptionResponse
 case object BucketNotFound extends BucketEncryptionResponse
 
-/**
- * The bucket's encryption status could not be determined, so it is neither
- * confirmed as encrypted nor confirmed as unencrypted.
- *
- * This is currently produced when the `GetBucketEncryption` call is denied
- * (for example, an `AccessDenied` error from a restrictive bucket policy).
- * It is intended to cover any case where the status is genuinely unknown
- * rather than known-bad, so it is also a reasonable fit for transient or
- * ambiguous AWS conditions (for example, throttling or other retryable
- * errors) if future callers choose to map them here.
- *
- * Downstream handling: treat this as "unknown, not a confirmed failure".
- * Callers should keep the bucket in reports rather than dropping it or
- * failing the whole account, and must not assume the bucket is unencrypted.
- * See `TrustedAdvisorS3.addEncryptionStatus` for the current behaviour.
- */
+/** The bucket's encryption status could not be determined, so it is neither confirmed as encrypted nor confirmed as
+  * unencrypted.
+  *
+  * This is currently produced when the `GetBucketEncryption` call is denied (for example, an `AccessDenied` error from
+  * a restrictive bucket policy). It is intended to cover any case where the status is genuinely unknown rather than
+  * known-bad, so it is also a reasonable fit for transient or ambiguous AWS conditions (for example, throttling or
+  * other retryable errors) if future callers choose to map them here.
+  *
+  * Downstream handling: treat this as "unknown, not a confirmed failure". Callers should keep the bucket in reports
+  * rather than dropping it or failing the whole account, and must not assume the bucket is unencrypted. See
+  * `TrustedAdvisorS3.addEncryptionStatus` for the current behaviour.
+  */
 case object EncryptionUnknown extends BucketEncryptionResponse
 
 sealed trait Stage
@@ -167,7 +162,6 @@ case class Red(override val reasons: Seq[ReportStatusReason] = Seq.empty) extend
 case class Amber(override val reasons: Seq[ReportStatusReason] = Seq.empty) extends ReportStatus
 case object Green extends ReportStatus
 case object Blue extends ReportStatus
-
 
 sealed trait ReportStatusReason
 object MissingMfa extends ReportStatusReason
@@ -202,7 +196,6 @@ object Tag {
     }
   }
 }
-
 
 sealed trait IAMUser {
   def username: String

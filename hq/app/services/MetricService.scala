@@ -56,9 +56,12 @@ class MetricService(
       // Limit the summary to the first few failures to avoid overly large log
       // lines when a widespread cache issue affects many accounts at once.
       val maxFailuresInSummary = 5
-      val summary = failures.take(maxFailuresInSummary).map { case (account, failedAttempt) =>
-        s"${account.name}: ${failedAttempt.logMessage}"
-      }.mkString(", ")
+      val summary = failures
+        .take(maxFailuresInSummary)
+        .map { case (account, failedAttempt) =>
+          s"${account.name}: ${failedAttempt.logMessage}"
+        }
+        .mkString(", ")
 
       val omitted = failures.size - maxFailuresInSummary
       val summaryWithCount =

@@ -10,14 +10,16 @@ import software.amazon.awssdk.services.support.model.{
 
 class TrustedAdvisorTest extends AnyFreeSpec with Matchers with OptionValues {
   "parseTrustedAdvisorChecksResult" - {
-    val response = DescribeTrustedAdvisorChecksResponse.builder.checks(
-      TrustedAdvisorCheckDescription.builder
-        .id("id")
-        .name("name")
-        .description("description")
-        .category("category")
-        .build()
-    ).build()
+    val response = DescribeTrustedAdvisorChecksResponse.builder
+      .checks(
+        TrustedAdvisorCheckDescription.builder
+          .id("id")
+          .name("name")
+          .description("description")
+          .category("category")
+          .build()
+      )
+      .build()
 
     "should parse a single result" in {
       TrustedAdvisor.parseTrustedAdvisorChecksResponse(response).length shouldEqual 1
