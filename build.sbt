@@ -162,11 +162,11 @@ lazy val hq = (project in file("hq"))
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
 
-lazy val cloudwatchMetrics = (project in file("cloudwatch-metrics"))
+lazy val vulnerabilityMetrics = (project in file("vulnerability-metrics"))
   .dependsOn(core)
   .enablePlugins(AssemblyPlugin)
   .settings(
-    name := "cloudwatch-metrics",
+    name := "vulnerability-metrics",
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
       "co.fs2" %% "fs2-core" % "3.13.0",
@@ -176,7 +176,7 @@ lazy val cloudwatchMetrics = (project in file("cloudwatch-metrics"))
       "ch.qos.logback" % "logback-classic" % "1.5.37",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ) ++ safeTransitiveDependencies,
-    assembly / assemblyJarName := "cloudwatch-metrics.jar",
+    assembly / assemblyJarName := "vulnerability-metrics.jar",
     assembly / mainClass := Some("metrics.Main"),
     mergeStrategySettings,
     Test / parallelExecution := false,
@@ -206,7 +206,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   )
 
 lazy val root = (project in file("."))
-  .aggregate(core, hq, cloudwatchMetrics)
+  .aggregate(core, hq, vulnerabilityMetrics, iamOutdatedCredentials)
   .settings(
     name := """security-hq"""
   )

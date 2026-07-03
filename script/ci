@@ -12,8 +12,8 @@ set -e
 mkdir -p dist
 mv hq/target/security-hq_*_all.deb "dist/security-hq-$BUILD_NUMBER.deb"
 
-# Build the cloudwatch-metrics Lambda assembly jar
-./sbt --no-conf '; project cloudwatchMetrics; test; assembly'
+# Build the vulnerability-metrics lambda assembly jar
+./sbt --no-conf '; project vulnerabilityMetrics; scalafmtCheckAll; scalafmtSbtCheck; test; assembly'
 
-mkdir -p cloudwatch-metrics-dist
-cp cloudwatch-metrics/target/scala-*/cloudwatch-metrics.jar cloudwatch-metrics-dist/cloudwatch-metrics.jar
+mkdir -p vulnerability-metrics-dist
+cp vulnerability-metrics/target/scala-*/vulnerability-metrics.jar vulnerability-metrics-dist/vulnerability-metrics.jar
