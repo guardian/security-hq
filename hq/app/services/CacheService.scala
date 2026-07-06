@@ -32,24 +32,18 @@ class CacheService(
   private val accounts = Config.getAwsAccounts(config)
   private def startingCache(cacheContent: String) = {
     accounts
-      .map(acc =>
-        (acc, Left(Failure.notYetLoaded(acc.id, cacheContent).attempt))
-      )
+      .map(acc => (acc, Left(Failure.notYetLoaded(acc.id, cacheContent).attempt)))
       .toMap
   }
-  private val publicBucketsBox
-      : Box[Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]]] = Box(
+  private val publicBucketsBox: Box[Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]]] = Box(
     startingCache("public buckets")
   )
-  private val credentialsBox
-      : Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] =
+  private val credentialsBox: Box[Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]] =
     Box(startingCache("credentials"))
-  private val exposedKeysBox
-      : Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] =
+  private val exposedKeysBox: Box[Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]] =
     Box(startingCache("exposed keys"))
 
-  def getAllPublicBuckets
-      : Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] =
+  def getAllPublicBuckets: Map[AwsAccount, Either[FailedAttempt, List[BucketDetail]]] =
     publicBucketsBox.get()
 
   def getPublicBucketsForAccount(
@@ -67,8 +61,7 @@ class CacheService(
       )
   }
 
-  def getAllCredentials
-      : Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
+  def getAllCredentials: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
     credentialsBox.get()
 
   def getCredentialsForAccount(
@@ -86,8 +79,7 @@ class CacheService(
       )
   }
 
-  def getAllExposedKeys
-      : Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]] =
+  def getAllExposedKeys: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]] =
     exposedKeysBox.get()
 
   def getExposedKeysForAccount(
@@ -157,15 +149,15 @@ class CacheService(
       scheduleAtFixedRate(
         initialDelay = initialDelay + 1000.millis,
         interval = 5.minutes
-      ){ () =>
-        refreshPublicBucketsBox()        
+      ) { () =>
+        refreshPublicBucketsBox()
       }
 
     val exposedKeysSubscription =
       scheduleAtFixedRate(
         initialDelay = initialDelay + 2000.millis,
         interval = 5.minutes
-      ){ () =>
+      ) { () =>
         refreshExposedKeysBox()
       }
 
@@ -173,7 +165,7 @@ class CacheService(
       scheduleAtFixedRate(
         initialDelay = initialDelay + 4000.millis,
         interval = 5.minutes
-      ){ () =>
+      ) { () =>
         refreshCredentialsBox()
       }
 
@@ -189,25 +181,26 @@ class CacheService(
     }
   }
 
-  /**
-   * Prints an overview of this cache data.
-   *
-   * If everything succeeded then we say as much. If the cache data contains failures
-   * we log a warning that shows which accounts are affected and give one failure
-   * as the underlying cause, if available.
-   */
+  /** Prints an overview of this cache data.
+    *
+    * If everything succeeded then we say as much. If the cache data contains failures we log a warning that shows which
+    * accounts are affected and give one failure as the underlying cause, if available.
+    */
   def logCacheDataStatus[A](cacheName: String, data: Seq[(AwsAccount, Either[FailedAttempt, A])]): Unit = {
     val (successful, failed) = data.partition { case (_, result) => result.isRight }
 
     if (failed.isEmpty) {
       logger.info(s"$cacheName updated: All ${data.size} accounts successful")
     } else {
-      val failedAccountsDetails = failed.flatMap {
-        case (account, Left(failedAttempt)) =>
-          Some(s"${account.name}: ${failedAttempt.logMessage}")
-        case _ => None
-      }.mkString(", ")
-      val logMessage = s"$cacheName updated: ${successful.size}/${data.size} accounts succeeded. Failed accounts: $failedAccountsDetails"
+      val failedAccountsDetails = failed
+        .flatMap {
+          case (account, Left(failedAttempt)) =>
+            Some(s"${account.name}: ${failedAttempt.logMessage}")
+          case _ => None
+        }
+        .mkString(", ")
+      val logMessage =
+        s"$cacheName updated: ${successful.size}/${data.size} accounts succeeded. Failed accounts: $failedAccountsDetails"
       failed.flatMap {
         case (_, Left(failedAttempt)) =>
           failedAttempt.firstException

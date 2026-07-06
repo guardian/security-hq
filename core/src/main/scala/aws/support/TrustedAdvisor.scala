@@ -14,7 +14,6 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import software.amazon.awssdk.services.support.model._
 
-
 object TrustedAdvisor {
   val portPriorityMap =
     Seq(
@@ -43,12 +42,17 @@ object TrustedAdvisor {
 
   // SHOW ALL TRUSTED ADVISOR CHECKS
 
-  def getTrustedAdvisorChecks(client: AwsClient[SupportAsyncClient])(implicit ec: ExecutionContext): Attempt[List[TrustedAdvisorCheck]] = {
+  def getTrustedAdvisorChecks(
+      client: AwsClient[SupportAsyncClient]
+  )(implicit ec: ExecutionContext): Attempt[List[TrustedAdvisorCheck]] = {
     val request = DescribeTrustedAdvisorChecksRequest.builder.language("en").build()
-    handleAWSErrs(client)(asScala(client.client.describeTrustedAdvisorChecks(request))).map(parseTrustedAdvisorChecksResponse)
+    handleAWSErrs(client)(asScala(client.client.describeTrustedAdvisorChecks(request)))
+      .map(parseTrustedAdvisorChecksResponse)
   }
 
-  def refreshTrustedAdvisorChecks(client: AwsClient[SupportAsyncClient], checkId: String)(implicit ec: ExecutionContext): Attempt[RefreshTrustedAdvisorCheckResponse] = {
+  def refreshTrustedAdvisorChecks(client: AwsClient[SupportAsyncClient], checkId: String)(implicit
+      ec: ExecutionContext
+  ): Attempt[RefreshTrustedAdvisorCheckResponse] = {
     val request = RefreshTrustedAdvisorCheckRequest.builder.checkId(checkId).build()
     handleAWSErrs(client)(asScala(client.client.refreshTrustedAdvisorCheck(request)))
   }
@@ -66,7 +70,9 @@ object TrustedAdvisor {
 
   // GENERIC FUNCTIONALITY FOR DETAILED CHECK RESULTS
 
-  def getTrustedAdvisorCheckDetails(client: AwsClient[SupportAsyncClient], checkId: String)(implicit ec: ExecutionContext): Attempt[DescribeTrustedAdvisorCheckResultResponse] = {
+  def getTrustedAdvisorCheckDetails(client: AwsClient[SupportAsyncClient], checkId: String)(implicit
+      ec: ExecutionContext
+  ): Attempt[DescribeTrustedAdvisorCheckResultResponse] = {
     val request = DescribeTrustedAdvisorCheckResultRequest.builder
       .language("en")
       .checkId(checkId)
@@ -75,15 +81,16 @@ object TrustedAdvisor {
   }
 
   private[support] def findPortPriorityIndex(port: String) = {
-    Option(port).flatMap { case p if p.trim.nonEmpty =>
-      val allPorts = p.trim.split("-").map(_.toInt).toList match {
-        case head :: tail :: Nil => (head to tail).toSet
-        case head :: Nil => Set(head)
-        case _ => Set.empty[Int]
-      }
-      indexedPortMap.collectFirst {
-        case ((_, seq), idx) if allPorts.diff(seq) != allPorts  => idx
-      }
+    Option(port).flatMap {
+      case p if p.trim.nonEmpty =>
+        val allPorts = p.trim.split("-").map(_.toInt).toList match {
+          case head :: tail :: Nil => (head to tail).toSet
+          case head :: Nil         => Set(head)
+          case _                   => Set.empty[Int]
+        }
+        indexedPortMap.collectFirst {
+          case ((_, seq), idx) if allPorts.diff(seq) != allPorts => idx
+        }
     }
   }
 
@@ -101,7 +108,10 @@ object TrustedAdvisor {
     }
   }
 
-  def parseTrustedAdvisorCheckResult[A <: TrustedAdvisorCheckDetails](parseDetails: TrustedAdvisorResourceDetail => Attempt[A], ec: ExecutionContext)(response: DescribeTrustedAdvisorCheckResultResponse): Attempt[TrustedAdvisorDetailsResult[A]] = {
+  def parseTrustedAdvisorCheckResult[A <: TrustedAdvisorCheckDetails](
+      parseDetails: TrustedAdvisorResourceDetail => Attempt[A],
+      ec: ExecutionContext
+  )(response: DescribeTrustedAdvisorCheckResultResponse): Attempt[TrustedAdvisorDetailsResult[A]] = {
     implicit val executionContext: ExecutionContext = ec
     val result = response.result
     for {

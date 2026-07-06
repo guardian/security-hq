@@ -13,7 +13,9 @@ import scala.jdk.CollectionConverters.*
 object TrustedAdvisorExposedIAMKeys {
   val AWS_EXPOSED_ACCESS_KEYS_IDENTIFIER = "12Fnkpl8Y5"
 
-  def getAllExposedKeys(accounts: List[AwsAccount], taClients: AwsClients[SupportAsyncClient])(implicit ec: ExecutionContext): Attempt[List[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])]] = {
+  def getAllExposedKeys(accounts: List[AwsAccount], taClients: AwsClients[SupportAsyncClient])(implicit
+      ec: ExecutionContext
+  ): Attempt[List[(AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
         exposedKeysForAccount(account, taClients).asFuture.map(account -> _)
@@ -21,12 +23,16 @@ object TrustedAdvisorExposedIAMKeys {
     }
   }
 
-  private def getExposedIAMKeys(client: AwsClient[SupportAsyncClient])(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[ExposedIAMKeyDetail]] = {
+  private def getExposedIAMKeys(
+      client: AwsClient[SupportAsyncClient]
+  )(implicit ec: ExecutionContext): Attempt[TrustedAdvisorDetailsResult[ExposedIAMKeyDetail]] = {
     getTrustedAdvisorCheckDetails(client, AWS_EXPOSED_ACCESS_KEYS_IDENTIFIER)
       .flatMap(parseTrustedAdvisorCheckResult(parseExposedIamKeyDetail, ec))
   }
 
-  private def exposedKeysForAccount(account: AwsAccount, taClients: AwsClients[SupportAsyncClient])(implicit ec: ExecutionContext): Attempt[List[ExposedIAMKeyDetail]] = {
+  private def exposedKeysForAccount(account: AwsAccount, taClients: AwsClients[SupportAsyncClient])(implicit
+      ec: ExecutionContext
+  ): Attempt[List[ExposedIAMKeyDetail]] = {
     for {
       supportClient <- taClients.get(account)
       exposedIamKeysResult <- TrustedAdvisorExposedIAMKeys.getExposedIAMKeys(supportClient)
@@ -42,7 +48,11 @@ object TrustedAdvisorExposedIAMKeys {
         }
       case metadata =>
         Attempt.Left {
-          Failure(s"Could not parse IAM credentials report from TrustedAdvisorResourceDetail with metadata $metadata", "Could not parse exposed IAM keys", 500).attempt
+          Failure(
+            s"Could not parse IAM credentials report from TrustedAdvisorResourceDetail with metadata $metadata",
+            "Could not parse exposed IAM keys",
+            500
+          ).attempt
         }
     }
   }

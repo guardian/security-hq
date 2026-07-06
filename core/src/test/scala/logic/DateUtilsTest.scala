@@ -15,7 +15,7 @@ class DateUtilsTest extends AnyFreeSpec with Matchers {
 
     "print date in yyyy-MM-dd HH:mm:ss format" in {
       val date = new DateTime(2000, 1, 2, 3, 4, 5)
-     DateUtils.printTime(date) shouldBe "03:04"
+      DateUtils.printTime(date) shouldBe "03:04"
     }
   }
 }

@@ -8,17 +8,18 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import org.scalatest.matchers.should.Matchers
 
-
 trait AttemptValues extends Matchers {
   implicit class RichAttempt[A](attempt: Attempt[A]) {
     private def stackTrace(failure: Failure) = {
-      failure.throwable.map { t =>
-        val baos = new ByteArrayOutputStream()
-        val pw = new PrintWriter(baos)
-        t.printStackTrace(pw)
-        pw.close()
-        baos.toString
-      }.getOrElse("")
+      failure.throwable
+        .map { t =>
+          val baos = new ByteArrayOutputStream()
+          val pw = new PrintWriter(baos)
+          t.printStackTrace(pw)
+          pw.close()
+          baos.toString
+        }
+        .getOrElse("")
     }
 
     def value()(implicit ec: ExecutionContext): A = {
@@ -37,16 +38,20 @@ trait AttemptValues extends Matchers {
     }
 
     def isFailedAttempt()(implicit ec: ExecutionContext): Boolean = {
-      Await.result(attempt.asFuture, 5.seconds).fold (
-        _ => true,
-        _ => false
-      )
+      Await
+        .result(attempt.asFuture, 5.seconds)
+        .fold(
+          _ => true,
+          _ => false
+        )
     }
     def getFailedAttempt()(implicit ec: ExecutionContext): FailedAttempt = {
-      Await.result(attempt.asFuture, 5.seconds).fold (
-        fa => fa,
-        _ => throw new TestFailedException("Could not extract failure from successful Attempt", 10)
-      )
+      Await
+        .result(attempt.asFuture, 5.seconds)
+        .fold(
+          fa => fa,
+          _ => throw new TestFailedException("Could not extract failure from successful Attempt", 10)
+        )
     }
   }
 }

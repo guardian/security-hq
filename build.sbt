@@ -41,9 +41,9 @@ val safeTransitiveDependencies = {
   )
 }
 
-val mergeStrategySettings= assemblyMergeStrategy := {
-  case PathList(ps@_*) if ps.last == "module-info.class" => MergeStrategy.discard
-  case _ => MergeStrategy.first
+val mergeStrategySettings = assemblyMergeStrategy := {
+  case PathList(ps @ _*) if ps.last == "module-info.class" => MergeStrategy.discard
+  case _                                                   => MergeStrategy.first
 }
 
 lazy val core = (project in file("core"))
@@ -66,7 +66,7 @@ lazy val core = (project in file("core"))
       "software.amazon.awssdk" % "sns" % awsSdkVersion,
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
-      "ch.qos.logback" % "logback-classic" % "1.5.34",
+      "ch.qos.logback" % "logback-classic" % "1.5.35",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
@@ -80,7 +80,7 @@ lazy val core = (project in file("core"))
 lazy val hq = (project in file("hq"))
   .enablePlugins(PlayScala, SbtWeb, JDebPackaging, SystemdPlugin)
   .disablePlugins(sbtassembly.AssemblyPlugin)
-  .dependsOn(core)
+  .dependsOn(core, iamOutdatedCredentials)
   .settings(
     name := """security-hq""",
     playDefaultPort := 9090,
@@ -111,7 +111,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "7.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.34",
+      "ch.qos.logback" % "logback-classic" % "1.5.35",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "10.0.0"
     ) ++ safeTransitiveDependencies,
@@ -153,16 +153,36 @@ lazy val hq = (project in file("hq"))
       s"-J-Xlog:gc:/var/log/${packageName.value}/gc.log"
     ),
     mergeStrategySettings
-
   )
 
+lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
+  .enablePlugins(JDebPackaging)
+  .disablePlugins(sbtassembly.AssemblyPlugin)
+  .dependsOn(core)
+  .settings(
+    name := """iam-outdated-credentials""",
+    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
+    Assets / pipelineStages := Seq(digest),
+    // exclude docs
+    Compile / doc / sources := Seq.empty,
+    Universal / packageName := "iam-outdated-credentials",
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
+    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
+    Test / parallelExecution := false,
+    Test / fork := false,
+
+    maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
+    packageSummary := "IAM Outdated Credentials lambda.",
+    packageDescription := """Deb for IAM Outdated Credentials lambda - the Guardian's service to check for outdated credentials in AWS accounts.""",
+    mergeStrategySettings
+  )
 
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
 
-lazy val root = (project in file(".")).
-  aggregate(core, hq).
-  settings(
+lazy val root = (project in file("."))
+  .aggregate(core, hq)
+  .settings(
     name := """security-hq"""
   )
 

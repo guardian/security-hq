@@ -8,7 +8,6 @@ import scala.concurrent.duration._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
-
 class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -81,16 +80,14 @@ class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
     }
   }
 
-  /**
-    * Utilities for checking the failure state of attempts
+  /** Utilities for checking the failure state of attempts
     */
   def checkError(errors: FailedAttempt, expected: String): Unit = {
     errors.failures.head.message shouldEqual expected
   }
   def expectedFailure[A](message: String): Attempt[A] = Left[A](Failure(message, "this will fail", 500))
 
-  /**
-    * Utility for dealing with futures in tests
+  /** Utility for dealing with futures in tests
     */
   implicit class RichAttempt[A](attempt: Attempt[A]) {
     def awaitEither = Await.result(attempt.asFuture, 5.seconds)

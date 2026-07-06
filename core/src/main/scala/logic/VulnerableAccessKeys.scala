@@ -4,14 +4,13 @@ import config.CoreConfig.{iamHumanUserRotationCadence, iamMachineUserRotationCad
 import model.{AccessKey, AccessKeyEnabled}
 
 object VulnerableAccessKeys {
-  /**
-    * Flags active outdated keys for human users. Disabled keys are ignored.
+
+  /** Flags active outdated keys for human users. Disabled keys are ignored.
     */
   def hasOutdatedHumanKey(keys: List[AccessKey]): Boolean =
     hasOutdatedKey(keys, iamHumanUserRotationCadence, flagInactiveKeys = false)
 
-  /**
-    * Flags active outdated keys for machine users. Disabled keys are ignored.
+  /** Flags active outdated keys for machine users. Disabled keys are ignored.
     */
   def hasOutdatedMachineKey(keys: List[AccessKey]): Boolean =
     hasOutdatedKey(keys, iamMachineUserRotationCadence, flagInactiveKeys = false)
@@ -21,14 +20,12 @@ object VulnerableAccessKeys {
    * temporary, because eventually the logic for dashboard and scheduled job (IamJob) should be the same
    */
 
-  /**
-    * Flags outdated human keys. The dashboard flags keys even when they are disabled.
+  /** Flags outdated human keys. The dashboard flags keys even when they are disabled.
     */
   def hasOutdatedHumanKeyIncludingDisabled(keys: List[AccessKey]): Boolean =
     hasOutdatedKey(keys, iamHumanUserRotationCadence, flagInactiveKeys = true)
 
-  /**
-    * Flags outdated machine keys. The dashboard flags keys even when they are disabled.
+  /** Flags outdated machine keys. The dashboard flags keys even when they are disabled.
     */
   def hasOutdatedMachineKeyIncludingDisabled(keys: List[AccessKey]): Boolean =
     hasOutdatedKey(keys, iamMachineUserRotationCadence, flagInactiveKeys = true)
