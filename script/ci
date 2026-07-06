@@ -7,7 +7,11 @@ set -e
     ./script/ci
 )
 
-./sbt --no-conf '; project hq; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; Debian / packageBin'
-
 mkdir -p dist
+
+./sbt --no-conf '; project hq; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; Debian / packageBin'
 mv hq/target/security-hq_*_all.deb "dist/security-hq-$BUILD_NUMBER.deb"
+
+./sbt --no-conf '; project iamOutdatedCredentials; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
+mv iam-outdated-credentials/target/scala-*/iam-outdated-credentials-assembly-*.jar "dist/iam-outdated-credentials-$BUILD_NUMBER.jar"
+

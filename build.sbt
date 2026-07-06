@@ -157,8 +157,7 @@ lazy val hq = (project in file("hq"))
   )
 
 lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
-  .enablePlugins(JDebPackaging)
-  .disablePlugins(sbtassembly.AssemblyPlugin)
+  .enablePlugins(AssemblyPlugin)
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := """iam-outdated-credentials""",
@@ -171,6 +170,8 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
     Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
     Test / parallelExecution := false,
     Test / fork := false,
+
+    assembly / mainClass := Some("logic.IamOutdatedCredentialsMain"),
 
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
