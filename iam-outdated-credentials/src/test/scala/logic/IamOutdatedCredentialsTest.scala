@@ -2,17 +2,16 @@ package logic
 
 import config.CoreConfig
 import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
-import logic.IamOutdatedCredentials._
-import model._
+import logic.IamOutdatedCredentials.*
+import model.*
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
 import org.scalatest.OptionValues
-import utils.attempt.{FailedAttempt, Failure}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
-import utils.attempt.AttemptValues 
+import utils.attempt.AttemptValues
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
