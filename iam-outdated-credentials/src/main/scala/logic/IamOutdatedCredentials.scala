@@ -1,17 +1,24 @@
 package logic
 
-import aws.AwsClients
 import aws.iam.IAMClient
+import aws.{AWS, AwsClients}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
-import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
+import config.CoreConfig.{
+  calculateAvailableRegions,
+  daysBetweenFinalNotificationAndRemediation,
+  daysBetweenWarningAndFinalNotification,
+  getSecurityDynamoDbClient
+}
 import db.IamRemediationDb
 import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
 import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.DateTime
+import settings.Settings
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
@@ -19,7 +26,8 @@ import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.InputStream
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
@@ -172,6 +180,53 @@ class IamOutdatedCredentials(
 
 }
 object IamOutdatedCredentials extends LazyLogging {
+
+  def job(settings: Settings)(implicit executionContext: ExecutionContext): Future[Either[FailedAttempt, Unit]] = {
+    val snsClient = SnsAsyncClient.builder().build()
+
+    val s3Client = S3Client.builder.build()
+    val awsAccountsConfig = IamOutdatedCredentials.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
+    val awsAccounts = IamOutdatedCredentials.parseAccounts(awsAccountsConfig)
+
+    // the aim of this is to get all the regions that are available to this account
+    val availableRegions: List[Region] = calculateAvailableRegions(settings.stack, settings.stage)
+
+    val iamClients = AWS.iamClients(awsAccounts, availableRegions)
+
+    val dynamo = new IamRemediationDb(getSecurityDynamoDbClient(settings.stage))
+
+    val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
+    val delay = 3.seconds
+    val credentialReportFutures: Seq[Future[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = awsAccounts
+      .map(account =>
+        IAMClient
+          .getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions, delay)
+          .asFuture
+          .map(result => account -> result)
+      )
+
+    val timeout = 3.minutes
+    val eventualList: Future[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] =
+      Future.sequence(credentialReportFutures)
+
+    val listOfCredentialReports: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
+      Await.result(eventualList, timeout).toMap
+
+    new IamOutdatedCredentials(
+      snsClient = snsClient,
+      iamClients = iamClients,
+      dynamo = dynamo,
+      dryRun = settings.dryRun
+    )
+      .disableOutdatedCredentials(
+        notificationTopicArn = settings.anghammaradSnsArn,
+        tableName = settings.iamDynamoTableName,
+        serviceAccountIds = settings.accountIdsForIamRemediationService,
+        rawCredsReports = listOfCredentialReports,
+        allowedAwsAccountIds = settings.allowedAccountIds
+      )
+      .asFuture
+  }
 
   /** Look through all credentials reports to find users with expired credentials, see below for more detail
     * (`identifyUsersWithOutdatedCredentials`).
@@ -425,7 +480,7 @@ object IamOutdatedCredentials extends LazyLogging {
     s"$problem $activity for user $username from account $accountId"
   }
 
-  def loadConfigFromS3(bucket: String, key: String, s3: S3Client): Config = {
+  private def loadConfigFromS3(bucket: String, key: String, s3: S3Client): Config = {
     val request = GetObjectRequest
       .builder()
       .bucket(bucket)
@@ -442,7 +497,7 @@ object IamOutdatedCredentials extends LazyLogging {
     ConfigFactory.parseString(configString).resolve()
   }
 
-  def parseAccounts(config: Config): List[AwsAccount] = {
+  private def parseAccounts(config: Config): List[AwsAccount] = {
     config.getConfigList("hq.accounts").asScala.toList.map { accountConfig =>
       AwsAccount(
         id = accountConfig.getString("id"),

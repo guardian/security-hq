@@ -1,11 +1,9 @@
 package settings
 
 import model.{DEV, PROD, Stage}
-import software.amazon.awssdk.regions.Region
 
 /** Runtime configuration for the iam-outdated-credentials lambda, sourced from environment variables set by the CDK
   * stack.
-  *
   */
 case class Settings(
     stack: String,
@@ -22,6 +20,52 @@ case class Settings(
 )
 
 object Settings {
+  def fromArgs(args: Array[String]): Settings = {
+    args.toList match {
+      case stack
+          :: stageString
+          :: dryRunString
+          :: anghammaradSnsArn
+          :: iamDynamoTableName
+          :: iamUnrecognisedUserS3Bucket
+          :: iamUnrecognisedUserS3Key
+          :: allowedAccountIds
+          :: accountIdsForIamRemediationService
+          :: configBucket
+          :: configKey
+          :: Nil =>
+
+        val stage = if (stageString.equalsIgnoreCase("prod")) PROD else DEV
+        val dryRun = dryRunString.equalsIgnoreCase("true")
+        Settings(
+          stack = stack,
+          stage = stage,
+          dryRun = dryRun,
+          anghammaradSnsArn = anghammaradSnsArn,
+          iamDynamoTableName = iamDynamoTableName,
+          iamUnrecognisedUserS3Bucket = iamUnrecognisedUserS3Bucket,
+          iamUnrecognisedUserS3Key = iamUnrecognisedUserS3Key,
+          allowedAccountIds = allowedAccountIds.split(",").toList,
+          accountIdsForIamRemediationService = accountIdsForIamRemediationService.split(",").toList,
+          configBucket = configBucket,
+          configKey = configKey
+        )
+      case _ =>
+        println(
+          "Usage: sbt 'project iam-outdated-credentials; runMain logic/IamOutdatedCredentialsMain " +
+            "   <stack>" +
+            "   <stage>" +
+            "   <dryRunFlag>" +
+            "   <anghammaradSnsArn>" +
+            "   <tableName>" +
+            "   <accountId>" +
+            "   <accountName>" +
+            "   <roleArn>" +
+            "   <accountNumber>'"
+        )
+        throw new RuntimeException("Invalid arguments")
+    }
+  }
   def fromEnvironment(): Settings = {
     def required(key: String): String =
       sys.env.getOrElse(
