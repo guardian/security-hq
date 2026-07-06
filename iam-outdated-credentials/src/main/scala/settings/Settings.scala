@@ -51,19 +51,7 @@ object Settings {
           configKey = configKey
         )
       case _ =>
-        println(
-          "Usage: sbt 'project iam-outdated-credentials; runMain logic/IamOutdatedCredentialsMain " +
-            "   <stack>" +
-            "   <stage>" +
-            "   <dryRunFlag>" +
-            "   <anghammaradSnsArn>" +
-            "   <tableName>" +
-            "   <accountId>" +
-            "   <accountName>" +
-            "   <roleArn>" +
-            "   <accountNumber>'"
-        )
-        throw new RuntimeException("Invalid arguments")
+        throw new IllegalArgumentException()
     }
   }
   def fromEnvironment(): Settings = {

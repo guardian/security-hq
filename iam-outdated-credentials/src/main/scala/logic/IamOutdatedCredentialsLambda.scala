@@ -17,9 +17,9 @@ class IamOutdatedCredentialsLambda extends RequestHandler[Map[String, String], S
 
     val settings = Settings.fromEnvironment()
 
-    val result = IamOutdatedCredentials.job(settings)
+    val result = IamOutdatedCredentials.disableOutdatedCredentials(settings)
 
-    Await.result(result, 10.minutes) match {
+    Await.result(result.underlying, 10.minutes) match {
       case Right(_) =>
         "Success"
 

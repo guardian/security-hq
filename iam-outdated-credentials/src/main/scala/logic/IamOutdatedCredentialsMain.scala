@@ -1,6 +1,7 @@
 package logic
 
 import settings.Settings
+import utils.attempt.Attempt
 
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
@@ -9,12 +10,12 @@ object IamOutdatedCredentialsMain {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = try {
     val settings = Settings.fromArgs(args)
 
-    val result = IamOutdatedCredentials.job(settings)
+    val result: Attempt[Unit] = IamOutdatedCredentials.disableOutdatedCredentials(settings)
 
-    Await.result(result, 10.minutes) match {
+    Await.result(result.underlying, 10.minutes) match {
       case Right(_) =>
         println("Completed successfully")
 
@@ -22,6 +23,23 @@ object IamOutdatedCredentialsMain {
         Console.err.println(s"Job failed: $err")
         sys.exit(1)
     }
+  } catch {
+    case _: IllegalArgumentException =>
+      println(
+        """
+        |Usage: sbt 'iamOutdatedCredentials / run
+        |  <stack>
+        |  <stage>
+        |  <dryRunFlag>
+        |  <anghammaradSnsArn>
+        |  <tableName>
+        |  <accountId>
+        |  <accountName>
+        |  <roleArn>
+        |  <accountNumber>
+        |'""".stripMargin
+      )
+      sys.exit(1)
   }
 
 }
