@@ -27,7 +27,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.InputStream
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 
@@ -193,11 +192,9 @@ object IamOutdatedCredentials extends LazyLogging {
     val dynamo = new IamRemediationDb(getSecurityDynamoDbClient(settings.stage))
     val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
 
-    val delay = 3.seconds
-
     for {
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
-        IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions, delay)
+        IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions)
       }
 
       listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap

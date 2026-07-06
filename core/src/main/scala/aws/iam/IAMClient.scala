@@ -81,11 +81,10 @@ object IAMClient extends LazyLogging {
       iamClients: AwsClients[IamAsyncClient],
       regions: List[Region]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
-    val delay = 3.seconds
     val now = DateTime.now()
 
     if (CredentialsReport.credentialsReportReadyForRefresh(currentData, now))
-      getUpdatedCredentialsReport(account, cfnClients, iamClients, regions, delay)
+      getUpdatedCredentialsReport(account, cfnClients, iamClients, regions)
     else
       Attempt.fromEither(currentData)
   }
@@ -95,7 +94,7 @@ object IAMClient extends LazyLogging {
       cfnClients: AwsClients[CloudFormationAsyncClient],
       iamClients: AwsClients[IamAsyncClient],
       regions: List[Region],
-      delay: FiniteDuration
+      delay: FiniteDuration = 3.seconds
   )(implicit executionContext: ExecutionContext): Attempt[CredentialReportDisplay] = {
     for {
       client <- iamClients.get(account, SOLE_REGION)

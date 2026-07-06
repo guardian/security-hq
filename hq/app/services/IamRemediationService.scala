@@ -101,7 +101,7 @@ class IamRemediationService(
           (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
 
         if (isWeekday && isTimeToRun) {
-          disableOutdatedCredentials
+          disableOutdatedCredentials()
           disableUnrecognisedUsers()
         }
       }
@@ -109,18 +109,19 @@ class IamRemediationService(
     lifecycle.addStopHook(iamRemediationServiceSubscription)
   }
 
-  private def disableOutdatedCredentials = for {
+  private def disableOutdatedCredentials(): Attempt[Unit] = for {
     notificationTopicArn <- getAnghammaradSNSTopicArn(config)
     tableName <- getIamDynamoTableName(config)
     serviceAccountIds <- Config.getAccountsForIamRemediationService(config)
     rawCredsReports = cacheService.getAllCredentials
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-  } yield new IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun = false).disableOutdatedCredentials(
-    notificationTopicArn,
-    tableName,
-    serviceAccountIds,
-    rawCredsReports,
-    allowedAwsAccountIds
-  )
+    _ = IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun = false).disableOutdatedCredentials(
+      notificationTopicArn,
+      tableName,
+      serviceAccountIds,
+      rawCredsReports,
+      allowedAwsAccountIds
+    )
+  } yield ()
 }
