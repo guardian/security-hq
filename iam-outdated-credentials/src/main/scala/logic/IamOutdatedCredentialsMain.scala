@@ -31,15 +31,10 @@ object IamOutdatedCredentialsMain {
         |  <stack>
         |  <stage>
         |  <dryRunFlag>
-        |  <anghammaradSnsArn>
-        |  <tableName>
-        |  <accountId>
-        |  <accountName>
-        |  <roleArn>
-        |  <accountNumber>
+        |  <configBucket>
+        |  <configKey>
         |'""".stripMargin
       )
       sys.exit(1)
   }
-
 }
