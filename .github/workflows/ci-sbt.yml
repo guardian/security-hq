@@ -60,6 +60,8 @@ jobs:
             cdk.out:
               - cdk/cdk.out/security-hq.template.json
             security-hq:
-              - dist
+              - dist/security-hq-${{ env.BUILD_NUMBER }}.deb
+            iam-outdated-credentials:
+              - dist/iam-outdated-credentials-${{ env.BUILD_NUMBER }}.jar
           # No point in links to a Code stage, as there isn't one
           commentingEnabled: false
