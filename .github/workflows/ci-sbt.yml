@@ -54,7 +54,8 @@ jobs:
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           buildNumber: ${{ env.BUILD_NUMBER }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          configPath: hq/conf/riff-raff.yaml
+          configPath: cdk/cdk.out/riff-raff.yaml
+
           contentDirectories: |
             security-hq-cfn:
               - cdk/cdk.out/security-hq.template.json
