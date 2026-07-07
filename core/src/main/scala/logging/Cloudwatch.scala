@@ -14,6 +14,15 @@ object Cloudwatch extends LazyLogging {
 
   val cloudwatchClient = CloudWatchClient.builder.build()
 
+  // `cloudwatchClient` is shared for the lifetime of the JVM (across requests in the web application, and across
+  // invocations within the same warm Lambda execution environment), so it is released via a shutdown hook rather
+  // than being closed after any single use.
+  Runtime.getRuntime.addShutdownHook(new Thread(() => {
+    Try(cloudwatchClient.close()).failed.foreach { e =>
+      logger.warn(s"Failed to close CloudWatch client: ${e.getMessage}")
+    }
+  }))
+
   val defaultNamespace = "SecurityHQ"
 
   object DataType extends Enumeration {
