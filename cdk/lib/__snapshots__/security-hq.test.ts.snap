@@ -42,6 +42,8 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuAlarm",
       "GuAlarm",
       "GuDeveloperPolicyExperimental",
+      "GuScheduledLambda",
+      "GuLambdaErrorPercentageAlarm",
     ],
     "gu:cdk:version": "TEST",
   },
@@ -237,6 +239,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -421,6 +426,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -557,6 +565,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -615,6 +626,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -669,6 +683,9 @@ exports[`HQ stack matches the snapshot 1`] = `
         "Roles": [
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
           },
         ],
       },
@@ -810,6 +827,9 @@ exports[`HQ stack matches the snapshot 1`] = `
         "Roles": [
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
+          },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
           },
         ],
       },
@@ -1220,6 +1240,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "InstanceRoleSecurityhq7C08CA33",
           },
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -1363,6 +1386,397 @@ exports[`HQ stack matches the snapshot 1`] = `
         },
       },
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+    },
+    "iamoutdatedcredentials652F7EC1": {
+      "DependsOn": [
+        "iamoutdatedcredentialsServiceRoleDefaultPolicy9E9522D7",
+        "iamoutdatedcredentialsServiceRoleEE7EC16A",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "security/PROD/iam-outdated-credentials/iam-outdated-credentials/iam-outdated-credentials-TEST.jar",
+        },
+        "Environment": {
+          "Variables": {
+            "APP": "iam-outdated-credentials",
+            "CONFIG_BUCKET": "security-dist",
+            "CONFIG_KEY": "security/PROD/security-hq/security-hq.conf",
+            "DRY_RUN": "true",
+            "STACK": "security",
+            "STAGE": "PROD",
+          },
+        },
+        "Handler": "logic.IamOutdatedCredentialsLambda::handleRequest",
+        "LoggingConfig": {
+          "LogFormat": "JSON",
+        },
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "iamoutdatedcredentialsServiceRoleEE7EC16A",
+            "Arn",
+          ],
+        },
+        "Runtime": "java21",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "iam-outdated-credentials",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 600,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "iamoutdatedcredentialsErrorPercentageAlarmForLambda8221647B": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Ref": "AnghammaradSnsArn",
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "iamoutdatedcredentials652F7EC1",
+              },
+              " exceeded 0% error rate",
+            ],
+          ],
+        },
+        "AlarmName": {
+          "Fn::Join": [
+            "",
+            [
+              "High error percentage from ",
+              {
+                "Ref": "iamoutdatedcredentials652F7EC1",
+              },
+              " lambda in PROD",
+            ],
+          ],
+        },
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "100*m1/m2",
+            "Id": "expr_1",
+            "Label": {
+              "Fn::Join": [
+                "",
+                [
+                  "Error % of ",
+                  {
+                    "Ref": "iamoutdatedcredentials652F7EC1",
+                  },
+                ],
+              ],
+            },
+            "ReturnData": true,
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "iamoutdatedcredentials652F7EC1",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 60,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "iamoutdatedcredentials652F7EC1",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 60,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "iamoutdatedcredentialsServiceRoleDefaultPolicy9E9522D7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/security/PROD/iam-outdated-credentials/iam-outdated-credentials/iam-outdated-credentials-TEST.jar",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/security/iam-outdated-credentials",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/security/iam-outdated-credentials/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "iamoutdatedcredentialsServiceRoleDefaultPolicy9E9522D7",
+        "Roles": [
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "iamoutdatedcredentialsServiceRoleEE7EC16A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "iam-outdated-credentials",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "iamoutdatedcredentialsiamoutdatedcredentialscron06073C3F344": {
+      "Properties": {
+        "Description": "Run iam-outdated-credentials daily at 6am",
+        "ScheduleExpression": "cron(0 6 * * ? *)",
+        "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "iam-outdated-credentials",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "iamoutdatedcredentials652F7EC1",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "iamoutdatedcredentialsiamoutdatedcredentialscron060AllowEventRulesecurityhqiamoutdatedcredentials0C07F7DEEDF609C5": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "iamoutdatedcredentials652F7EC1",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "iamoutdatedcredentialsiamoutdatedcredentialscron06073C3F344",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "idpaccessSecurityhq802D3912": {
       "Properties": {
