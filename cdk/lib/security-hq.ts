@@ -124,6 +124,7 @@ export class SecurityHQ extends GuStack {
       },
       app: "security-hq",
       applicationPort: 9000,
+      imageRecipe: 'arm64-jammy-java21-security',
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
       certificateProps: {
         domainName,

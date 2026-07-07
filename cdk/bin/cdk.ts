@@ -1,8 +1,8 @@
 import "source-map-support/register";
-import { App } from "aws-cdk-lib";
+import { GuRoot } from '@guardian/cdk/lib/constructs/root';
 import { SecurityHQ } from "../lib/security-hq";
 
-const app = new App();
+const app = new GuRoot();
 
 new SecurityHQ(app, "security-hq", {
   stack: "security",
