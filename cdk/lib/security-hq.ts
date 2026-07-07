@@ -1,6 +1,8 @@
+import { GuScheduledLambda } from "@guardian/cdk";
 import { AccessScope } from "@guardian/cdk/lib/constants";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import type { GuStackProps } from "@guardian/cdk/lib/constructs/core";
+import { GuAnghammaradTopicParameter } from "@guardian/cdk/lib/constructs/core";
 import {
   GuDistributionBucketParameter,
   GuParameter,
@@ -40,7 +42,9 @@ import {
   ListenerAction,
   UnauthenticatedAction,
 } from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { Schedule } from "aws-cdk-lib/aws-events";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { Topic } from "aws-cdk-lib/aws-sns";
 import { EmailSubscription } from "aws-cdk-lib/aws-sns-subscriptions";
 import {
@@ -114,6 +118,30 @@ export class SecurityHQ extends GuStack {
 
     dpkg -i /tmp/installer.deb`);
 
+    const additionalPolicies = [
+      GuAnghammaradSenderPolicy.getInstance(this),
+      new GuPutCloudwatchMetricsPolicy(this),
+      new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
+        bucketName: auditDataS3BucketName.valueAsString,
+        paths: [auditDataS3BucketPath],
+      }),
+      new GuDynamoDBReadPolicy(this, "DynamoRead", {
+        tableName: table.tableName,
+      }),
+      new GuDynamoDBWritePolicy(this, "DynamoWrite", {
+        tableName: table.tableName,
+      }),
+      // Allow security HQ to assume roles in watched accounts.
+      new GuAllowPolicy(this, "AssumeRole", {
+        resources: ["*"],
+        actions: ["sts:AssumeRole"],
+      }),
+      // Get the list of regions.
+      new GuAllowPolicy(this, "DescribeRegions", {
+        resources: ["*"],
+        actions: ["ec2:DescribeRegions"],
+      }),
+    ];
     const ec2App = new GuEc2AppExperimental(this, {
       buildIdentifier,
       applicationLogging: {
@@ -135,30 +163,7 @@ export class SecurityHQ extends GuStack {
       },
       userData,
       roleConfiguration: {
-        additionalPolicies: [
-          GuAnghammaradSenderPolicy.getInstance(this),
-          new GuPutCloudwatchMetricsPolicy(this),
-          new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
-            bucketName: auditDataS3BucketName.valueAsString,
-            paths: [auditDataS3BucketPath],
-          }),
-          new GuDynamoDBReadPolicy(this, "DynamoRead", {
-            tableName: table.tableName,
-          }),
-          new GuDynamoDBWritePolicy(this, "DynamoWrite", {
-            tableName: table.tableName,
-          }),
-          // Allow security HQ to assume roles in watched accounts.
-          new GuAllowPolicy(this, "AssumeRole", {
-            resources: ["*"],
-            actions: ["sts:AssumeRole"],
-          }),
-          // Get the list of regions.
-          new GuAllowPolicy(this, "DescribeRegions", {
-            resources: ["*"],
-            actions: ["ec2:DescribeRegions"],
-          }),
-        ],
+        additionalPolicies: additionalPolicies,
       },
       instanceMetricGranularity: "5Minute",
     });
@@ -288,6 +293,36 @@ export class SecurityHQ extends GuStack {
           ec2App.autoScalingGroup.autoScalingGroupArn,
         ),
       ],
+    });
+
+    const iamOutdatedCredentialsLambda = new GuScheduledLambda(this, "iam-outdated-credentials", {
+      monitoringConfiguration: {
+        // Tolerates 0 failures (triggers an alarm if any execution fails)
+        toleratedErrorPercentage: 0,
+        snsTopicName: GuAnghammaradTopicParameter.getInstance(this).valueAsString,
+      },
+      rules: [
+        {
+          schedule: Schedule.cron({ hour: "6", minute: "0" }),
+          description: "Run iam-outdated-credentials daily at 6am",
+        },
+      ],
+      app: "iam-outdated-credentials",
+      runtime: Runtime.JAVA_21,
+      handler: 'logic.IamOutdatedCredentialsLambda::handleRequest',
+      timeout: Duration.minutes(10),
+      environment: {
+        "STACK": this.stack,
+        "STAGE": this.stage,
+        "DRY_RUN": "true",
+        "CONFIG_BUCKET": "security-dist",
+        "CONFIG_KEY": `security/${this.stage}/security-hq/security-hq.conf`
+      },
+      fileName: `iam-outdated-credentials/iam-outdated-credentials-${buildIdentifier}.jar`
+
+    })
+    additionalPolicies.forEach((policy) => {
+      iamOutdatedCredentialsLambda.role!.attachInlinePolicy(policy);
     });
   }
 
