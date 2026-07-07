@@ -12,10 +12,11 @@ import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.model.{GetBucketEncryptionRequest, GetObjectRequest}
 
 object S3 {
+
   /** Extracts the AWS error code from an [[S3Exception]], if present.
     *
-    * `awsErrorDetails` may be null when the exception carries no service-provided error details, so this is
-    * guarded explicitly to avoid a `NullPointerException` when matching on the error code.
+    * `awsErrorDetails` may be null when the exception carries no service-provided error details, so this is guarded
+    * explicitly to avoid a `NullPointerException` when matching on the error code.
     */
   private def errorCode(e: S3Exception): Option[String] =
     Option(e.awsErrorDetails()).flatMap(details => Option(details.errorCode()))

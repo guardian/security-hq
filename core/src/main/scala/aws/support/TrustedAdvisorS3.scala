@@ -66,9 +66,9 @@ object TrustedAdvisorS3 {
 
   /** Pure mapping from an S3 bucket's encryption status to the bucket to keep in the report, if any.
     *
-    * `EncryptionUnknown` keeps the bucket in the report (with its default encryption status) rather than dropping
-    * it, so that a single bucket whose status could not be determined (for example, an access-denied error) does
-    * not silently disappear from the report. `BucketNotFound` drops the bucket.
+    * `EncryptionUnknown` keeps the bucket in the report (with its default encryption status) rather than dropping it,
+    * so that a single bucket whose status could not be determined (for example, an access-denied error) does not
+    * silently disappear from the report. `BucketNotFound` drops the bucket.
     */
   private[support] def bucketForEncryptionStatus(
       bucket: BucketDetail,

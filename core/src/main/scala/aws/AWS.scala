@@ -69,16 +69,16 @@ object AWS {
   }
 
   /** As [[clients]], but for async clients: each client is additionally given its own dedicated executor to back its
-    * async completions (rather than one executor shared across every account/region), so that the executor can be
-    * shut down deterministically alongside the client that owns it. See [[ClientExecutor]] for why a dedicated
-    * executor per client, rather than one shared pool, matters for prompt shutdown.
+    * async completions (rather than one executor shared across every account/region), so that the executor can be shut
+    * down deterministically alongside the client that owns it. See [[ClientExecutor]] for why a dedicated executor per
+    * client, rather than one shared pool, matters for prompt shutdown.
     *
-    * The full builder chain (including `.asyncConfiguration(...)`, `.credentialsProvider(...)` and `.region(...)`)
-    * is left entirely to the caller, rather than factored out generically in here: `AwsAsyncClientBuilder` and
-    * `AwsClientBuilder` are separate SDK interfaces that concrete builders (for example `Ec2AsyncClientBuilder`)
-    * happen to implement together, but chaining their methods through an abstract type parameter bounded by either
-    * interface alone does not see the other's members. Building the whole client from a concrete builder type avoids
-    * that problem.
+    * The full builder chain (including `.asyncConfiguration(...)`, `.credentialsProvider(...)` and `.region(...)`) is
+    * left entirely to the caller, rather than factored out generically in here: `AwsAsyncClientBuilder` and
+    * `AwsClientBuilder` are separate SDK interfaces that concrete builders (for example `Ec2AsyncClientBuilder`) happen
+    * to implement together, but chaining their methods through an abstract type parameter bounded by either interface
+    * alone does not see the other's members. Building the whole client from a concrete builder type avoids that
+    * problem.
     */
   private[aws] def asyncClients[A](
       newClient: (AwsCredentialsProviderChain, Region, ExecutorService) => A,
@@ -94,7 +94,10 @@ object AWS {
     } yield AwsClient(client, account, region, Some(creds), Some(ClientExecutor(executor)))
   }
 
-  private def withExecutor[A, B <: AwsAsyncClientBuilder[B, A]](builder: AwsAsyncClientBuilder[B, A], executor: ExecutorService) =
+  private def withExecutor[A, B <: AwsAsyncClientBuilder[B, A]](
+      builder: AwsAsyncClientBuilder[B, A],
+      executor: ExecutorService
+  ) =
     builder.asyncConfiguration(c => c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executor))
 
   def ec2Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[Ec2AsyncClient] =
