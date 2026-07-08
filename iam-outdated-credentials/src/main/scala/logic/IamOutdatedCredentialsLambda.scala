@@ -23,8 +23,11 @@ class IamOutdatedCredentialsLambda extends RequestHandler[Map[String, String], S
       case Right(_) =>
         "Success"
 
-      case Left(err) =>
-        throw new RuntimeException(err.toString)
+      case Left(failedAttempt) =>
+        throw new RuntimeException(
+          s"IamOutdatedCredentials Lambda execution failed: ${failedAttempt.logMessage}",
+          failedAttempt.firstException.orNull
+        )
     }
   }
 }
