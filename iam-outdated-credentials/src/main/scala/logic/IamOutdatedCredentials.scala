@@ -18,6 +18,7 @@ import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.DateTime
 import settings.Settings
+import software.amazon.awssdk.core.sync.ResponseTransformer
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
@@ -25,10 +26,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import java.io.InputStream
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.ListHasAsScala
-import scala.util.Using
 
 class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
@@ -189,7 +188,8 @@ object IamOutdatedCredentials extends LazyLogging {
     val awsAccounts = IamOutdatedCredentials.parseAccounts(awsAccountsConfig)
     val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
     val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
-    val allowedAccountIds: List[String] = awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
+    val allowedAccountIds: List[String] =
+      awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
     val accountIdsForIamRemediationService =
       awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
 
@@ -472,19 +472,8 @@ object IamOutdatedCredentials extends LazyLogging {
   }
 
   private def loadConfigFromS3(bucket: String, key: String, s3: S3Client): Config = {
-    val request = GetObjectRequest
-      .builder()
-      .bucket(bucket)
-      .key(key)
-      .build()
-
-    val inputStream: InputStream = s3.getObject(request)
-
-    val configString =
-      Using.resource(inputStream) { is =>
-        scala.io.Source.fromInputStream(is).mkString
-      }
-
+    val request = GetObjectRequest.builder().bucket(bucket).key(key).build()
+    val configString: String = s3.getObject(request, ResponseTransformer.toBytes()).asUtf8String()
     ConfigFactory.parseString(configString).resolve()
   }
 
