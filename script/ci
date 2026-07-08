@@ -15,3 +15,8 @@ mv hq/target/security-hq_*_all.deb "dist/security-hq-$BUILD_NUMBER.deb"
 ./sbt --no-conf '; project iamOutdatedCredentials; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
 mv iam-outdated-credentials/target/scala-*/iam-outdated-credentials-assembly-*.jar "dist/iam-outdated-credentials-$BUILD_NUMBER.jar"
 
+# Build the iam-unrecognised-users lambda assembly jar
+./sbt --no-conf '; project iamUnrecognisedUsers; scalafmtCheckAll; scalafmtSbtCheck; test; assembly'
+
+mkdir -p iam-unrecognised-users-dist
+cp iam-unrecognised-users/target/scala-*/iam-unrecognised-users.jar iam-unrecognised-users-dist/iam-unrecognised-users.jar
