@@ -19,8 +19,11 @@ object IamOutdatedCredentialsMain {
       case Right(_) =>
         println("Completed successfully")
 
-      case Left(err) =>
-        Console.err.println(s"Job failed: $err")
+      case Left(failedAttempt) =>
+        Console.err.println(
+          s"IamOutdatedCredentials Main execution failed: ${failedAttempt.logMessage}"
+        )
+        failedAttempt.firstException.foreach(Console.err.println)
         sys.exit(1)
     }
   } catch {
