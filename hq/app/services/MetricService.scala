@@ -2,6 +2,7 @@ package services
 
 import logging.Cloudwatch
 import model.*
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.*
 import play.api.inject.ApplicationLifecycle
 import utils.Scheduler
@@ -91,16 +92,17 @@ class MetricService(
   }
 
   if (environment.mode != Mode.Test) {
-    val initialDelay =
-      if (environment.mode == Mode.Prod) 15.minutes
-      else Duration.Zero
-
+    // Poll every minute and only run the job at the scheduled times, mirroring the approach used in
+    // IamRemediationService. This gives us a deterministic 6-hourly schedule: 08:35, 14:35, 20:35, 02:35.
     val cloudwatchSubscription =
       scheduleAtFixedRate(
-        initialDelay = initialDelay,
-        interval = 6.hours
+        initialDelay = 1.minute,
+        interval = 1.minute
       ) { () =>
-        postCachedContentsAsMetrics()
+        val now = DateTime.now(DateTimeZone.UTC)
+        val isTimeToRun = now.getMinuteOfHour == 35 && now.getHourOfDay % 6 == 8 % 6
+
+        if (isTimeToRun) postCachedContentsAsMetrics()
       }
 
     lifecycle.addStopHook(cloudwatchSubscription)
