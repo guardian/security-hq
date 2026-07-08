@@ -51,10 +51,12 @@ object TrustedAdvisorS3 {
     tryFindEncryptionStatus match {
       case Success(attempt) =>
         attempt.map({
-          case Encrypted      => Some(bucket.copy(isEncrypted = true))
-          case NotEncrypted   => Some(bucket)
-          case EncryptionUnknown => Some(bucket)
-          case BucketNotFound => None
+          case Encrypted         => Some(bucket.copy(encryptionStatus = Some(true)))
+          case NotEncrypted      => Some(bucket.copy(encryptionStatus = Some(false)))
+          // Encryption status could not be confirmed; leave `encryptionStatus` as `None` rather than
+          // reporting the bucket as unencrypted.
+          case EncryptionUnknown => Some(bucket.copy(encryptionStatus = None))
+          case BucketNotFound    => None
         })
       case scala.util.Failure(_) =>
         Attempt.Left(

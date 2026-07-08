@@ -113,7 +113,9 @@ case class BucketDetail(
     policyAllowsAccess: Boolean,
     isSuppressed: Boolean,
     reportStatus: Option[ReportStatus] = None,
-    isEncrypted: Boolean = false
+    // `None` means the encryption status could not be determined (see `EncryptionUnknown`) and must not be
+    // conflated with `Some(false)`, which is a confirmed "not encrypted" result.
+    encryptionStatus: Option[Boolean] = None
 ) extends TrustedAdvisorCheckDetails
 
 sealed trait BucketEncryptionResponse
