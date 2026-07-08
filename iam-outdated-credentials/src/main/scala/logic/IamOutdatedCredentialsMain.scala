@@ -29,14 +29,7 @@ object IamOutdatedCredentialsMain {
   } catch {
     case _: IllegalArgumentException =>
       println(
-        """
-        |Usage: sbt 'iamOutdatedCredentials / run
-        |  <stack>
-        |  <stage>
-        |  <dryRunFlag>
-        |  <configBucket>
-        |  <configKey>
-        |'""".stripMargin
+        "Usage: sbt 'iamOutdatedCredentials/run <stack> <stage> <dryRunFlag> <configBucket> <configKey>'"
       )
       sys.exit(1)
   }
