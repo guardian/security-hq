@@ -17,7 +17,6 @@ case class AwsStack(
     region: String
 )
 
-
 case class IAMCredentialsReport(
     generatedAt: DateTime,
     entries: List[IAMCredential]
@@ -157,7 +156,6 @@ case class Amber(override val reasons: Seq[ReportStatusReason] = Seq.empty) exte
 case object Green extends ReportStatus
 case object Blue extends ReportStatus
 
-
 sealed trait ReportStatusReason
 object MissingMfa extends ReportStatusReason
 object OutdatedKey extends ReportStatusReason
@@ -191,7 +189,6 @@ object Tag {
     }
   }
 }
-
 
 sealed trait IAMUser {
   def username: String

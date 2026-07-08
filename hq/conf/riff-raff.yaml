@@ -24,19 +24,3 @@ deployments:
         AmigoStage: PROD
     dependencies:
       - security-hq
-  vulnerability-metrics:
-    type: aws-lambda
-    parameters:
-      bucketSsmLookup: true
-      fileName: vulnerability-metrics.jar
-      prefixStack: false
-      lookupByTags: true
-  vulnerability-metrics-cfn:
-    type: cloud-formation
-    app: vulnerability-metrics
-    parameters:
-      prependStackToCloudFormationStackName: false
-      cloudFormationStackName: vulnerability-metrics
-      templatePath: vulnerability-metrics.template.json
-    dependencies:
-      - vulnerability-metrics

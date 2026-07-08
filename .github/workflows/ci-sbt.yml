@@ -60,9 +60,5 @@ jobs:
               - cdk/cdk.out/security-hq.template.json
             security-hq:
               - dist
-            cloudwatch-metrics-cfn:
-              - cdk/cdk.out/cloudwatch-metrics.template.json
-            cloudwatch-metrics:
-              - cloudwatch-metrics-dist/cloudwatch-metrics.jar
           # No point in links to a Code stage, as there isn't one
           commentingEnabled: false
