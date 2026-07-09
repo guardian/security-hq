@@ -9,7 +9,7 @@ An IAM 'human' user is considered _unrecognised_ if it is tagged with a `GoogleU
 On each invocation the job:
 
 1. Loads the watched AWS accounts, allowed account IDs, and Anghammarad SNS topic ARN from `security-hq.conf` in S3.
-2. Fetches and parses the Janus configuration from S3 to build the canonical list of "recognised" usernames.
+2. Fetches and parses the Janus configuration from S3 to build the canonical list of 'recognised' usernames.
 3. For every watched account, generates a fresh IAM credential report directly from IAM (there is no cache).
 4. Identifies _unrecognised_ users — human IAM users tagged with a `GoogleUsername` that is not present in Janus — restricted to the allowed accounts.
 5. For each unrecognised user, lists their access keys, then deactivates any active access keys and removes their login profile (password).
@@ -33,7 +33,8 @@ step).
 
 ## Configuration
 
-Configuration is provided via environment variables set by the CDK stack (`cdk/lib/iam-unrecognised-users.ts`):
+Configuration is provided via environment variables. Deployment is not yet wired up; once it is, these will be set by
+the Security HQ CDK stack (`cdk/lib/security-hq.ts`):
 
 | Variable                          | Default       | Description                                                                   |
 |-----------------------------------|---------------|-------------------------------------------------------------------------------|
@@ -54,7 +55,7 @@ A local entrypoint is provided at [`Main.runUnrecognisedUsers`](src/main/scala/u
 run from sbt:
 
 ```sh
-sbt "iamUnrecognisedUsers/runMain unrecognised.runUnrecognisedUsers"
+sbt 'iamUnrecognisedUsers/runMain unrecognised.runUnrecognisedUsers'
 ```
 
 ### Required environment
@@ -73,7 +74,7 @@ Use `janus` to assume the role before running so that a `security` profile is av
 
 - Only the `security` account is polled (`restrictToAccountId` is hardcoded), so per-account coverage cannot be
   verified locally.
-- No changes are ever made (`DRY_RUN` is hardcoded), only logged, so the "would deactivate"/"would send" output should be
+- No changes are ever made (`DRY_RUN` is hardcoded), only logged, so the 'would deactivate'/'would send' output should be
   checked in the IDE console rather than in AWS.
 
 ## Troubleshooting
