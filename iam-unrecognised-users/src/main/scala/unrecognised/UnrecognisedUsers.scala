@@ -56,6 +56,14 @@ object UnrecognisedUsers extends LazyLogging {
     // enrichment, which this job does not rely on.
     val regions = List(settings.region, Region.of("us-east-1")).distinct
 
+    // Run a remediation action only outside dry-run; otherwise yield the placeholder result without side effects.
+    def unlessDryRun[A](dryRunResult: => A)(action: => Attempt[A]): Attempt[A] =
+      if (settings.dryRun) Attempt.Right(dryRunResult) else action
+
+    // A fresh lambda has no cached report, so seed every account as "not yet loaded" to force a fresh fetch.
+    def noCachedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
+      Left(Failure.notYetLoaded(account.id, "credentials").attempt)
+
     for {
       // load the app's config (accounts, allowed accounts, notification topic) from S3
       configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
@@ -66,10 +74,7 @@ object UnrecognisedUsers extends LazyLogging {
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
       iamClients = AWS.iamClients(awsAccounts, regions)
       cfnClients = AWS.cfnClients(awsAccounts, regions)
-      startingData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
-        awsAccounts.map { account =>
-          account -> (Left(Failure.notYetLoaded(account.id, "credentials").attempt): Either[FailedAttempt, CredentialReportDisplay])
-        }.toMap
+      startingData = awsAccounts.map(account => account -> noCachedReport(account)).toMap
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
       janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
@@ -80,22 +85,17 @@ object UnrecognisedUsers extends LazyLogging {
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
       accessKeys <- Attempt.traverse(unrecognisedUsers)(listAccountAccessKeys(_, iamClients))
-      // disable each access key and remove each login profile for unrecognised users (unless this is a dry run)
-      _ <-
-        if (settings.dryRun) {
-          logger.info(s"Dry run: would disable ${accessKeys.flatMap(_.vulnerableAccessKey).length} access key(s).")
-          Attempt.Right(())
-        } else Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients)).map(_ => ())
-      _ <-
-        if (settings.dryRun) Attempt.Right(())
-        else Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients)).map(_ => ())
+      // disable access keys and remove login profiles for unrecognised users (skipped in dry run)
+      _ <- unlessDryRun {
+        logger.info(s"Dry run: would disable ${accessKeys.flatMap(_.vulnerableAccessKey).length} access key(s).")
+      }(Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients)).map(_ => ()))
+      _ <- unlessDryRun(())(Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients)).map(_ => ()))
       // construct and send a notification for each unrecognised user
       notifications = unrecognisedUserNotifications(unrecognisedUsers)
-      notificationIds <-
-        if (settings.dryRun) {
-          logger.info(s"Dry run: would send ${notifications.length} notification(s).")
-          Attempt.Right(List.empty[String])
-        } else Attempt.traverse(notifications)(AnghammaradNotifications.send(_, anghammaradSnsArn, snsClient))
+      notificationIds <- unlessDryRun {
+        logger.info(s"Dry run: would send ${notifications.length} notification(s).")
+        List.empty[String]
+      }(Attempt.traverse(notifications)(AnghammaradNotifications.send(_, anghammaradSnsArn, snsClient)))
     } yield notificationIds
   }
 }
