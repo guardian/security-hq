@@ -5,8 +5,8 @@ import software.amazon.awssdk.regions.Region
 /** Runtime configuration for the iam-unrecognised-users lambda, sourced from environment variables set by the CDK
   * stack.
   *
-  *   - `DRY_RUN` (default `true`): when true, unrecognised users are logged but access keys/passwords are not deactivated
-  *     and no notifications are sent.
+  *   - `DRY_RUN` (default `true`): when true, unrecognised users are logged but access keys/passwords are not
+  *     deactivated and no notifications are sent.
   *   - `CONFIG_BUCKET`: S3 bucket holding `security-hq.conf`.
   *   - `CONFIG_KEY`: S3 key for `security-hq.conf`.
   *   - `IAM_UNRECOGNISED_USER_S3_BUCKET`: S3 bucket holding the Janus data file (the audit-data bucket).
