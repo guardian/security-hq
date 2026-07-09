@@ -57,7 +57,7 @@ jobs:
           configPath: cdk/cdk.out/riff-raff.yaml
 
           contentDirectories: |
-            security-hq-cfn:
+            cdk.out:
               - cdk/cdk.out/security-hq.template.json
             security-hq:
               - dist
