@@ -31,8 +31,6 @@ object UnrecognisedUsers extends LazyLogging {
   // Keys within `security-hq.conf` (loaded from S3); `AWS_ACCOUNTS` is parsed by the shared `AccountLoader`.
   private val ALLOWED_ACCOUNT_IDS = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_ARN = "ANGHAMMARAD_SNS_TOPIC_ARN"
-  private val JANUS_S3_BUCKET = "IAM_UNRECOGNISED_USER_S3_BUCKET"
-  private val JANUS_S3_KEY = "IAM_UNRECOGNISED_USER_S3_KEY"
 
   def run(env: Map[String, String] = sys.env, restrictToAccountId: Option[String] = None): Unit = {
     implicit val ec: ExecutionContext = ExecutionContext.global
@@ -52,22 +50,20 @@ object UnrecognisedUsers extends LazyLogging {
       settings: Settings,
       restrictToAccountId: Option[String] = None
   )(implicit ec: ExecutionContext): Attempt[List[String]] = {
-    val s3Client = S3Client.builder.build()
-    val snsClient = SnsAsyncClient.builder.build()
+    val s3Client = S3Client.builder.region(settings.region).build()
+    val snsClient = SnsAsyncClient.builder.region(settings.region).build()
     // IAM is global; us-east-1 is required for credential reports. Additional regions only affect CloudFormation stack
     // enrichment, which this job does not rely on.
     val regions = List(settings.region, Region.of("us-east-1")).distinct
 
     for {
-      // load the app's config (accounts, allowed accounts, notification topic, Janus data location) from S3
+      // load the app's config (accounts, allowed accounts, notification topic) from S3
       configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
       conf = ConfigFactory.parseString(configSource.mkString)
       allAccounts = AccountLoader.getAwsAccounts(conf)
       awsAccounts = restrictToAccountId.fold(allAccounts)(id => allAccounts.filter(_.id == id))
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
-      janusBucket = conf.getString(JANUS_S3_BUCKET)
-      janusKey = conf.getString(JANUS_S3_KEY)
       iamClients = AWS.iamClients(awsAccounts, regions)
       cfnClients = AWS.cfnClients(awsAccounts, regions)
       startingData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]] =
@@ -75,7 +71,7 @@ object UnrecognisedUsers extends LazyLogging {
           account -> (Left(Failure.notYetLoaded(account.id, "credentials").attempt): Either[FailedAttempt, CredentialReportDisplay])
         }.toMap
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
-      janusSource <- getS3Object(s3Client, janusBucket, janusKey)
+      janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
       janusUsernames = getJanusUsernames(janusData)
       // generate a fresh IAM credential report for every configured account
