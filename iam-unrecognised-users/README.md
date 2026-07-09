@@ -1,10 +1,10 @@
 # IAM Unrecognised Users lambda
 
-A scheduled AWS Lambda that disables IAM users who are no longer recognised by Janus.
+A scheduled AWS Lambda that deactivates IAM users who are no longer recognised by Janus.
 
 ## What it does
 
-An IAM 'human' user is considered _unrecognised_ if it is tagged with a `GoogleUsername` whose value is not present in the Guardian's Janus configuration. For each unrecognised user the lambda disables any active access keys, removes the login profile (password), and sends a notification to the relevant team via Anghammarad.
+An IAM 'human' user is considered _unrecognised_ if it is tagged with a `GoogleUsername` whose value is not present in the Guardian's Janus configuration. For each unrecognised user the lambda deactivates any active access keys, removes the login profile (password), and sends a notification to the relevant team via Anghammarad.
 
 On each invocation the job:
 
@@ -12,22 +12,24 @@ On each invocation the job:
 2. Fetches and parses the Janus configuration from S3 to build the canonical list of "recognised" usernames.
 3. For every watched account, generates a fresh IAM credential report directly from IAM (there is no cache).
 4. Identifies _unrecognised_ users — human IAM users tagged with a `GoogleUsername` that is not present in Janus — restricted to the allowed accounts.
-5. For each unrecognised user, lists their access keys, then disables any active access keys and removes their login profile (password).
+5. For each unrecognised user, lists their access keys, then deactivates any active access keys and removes their login profile (password).
 6. Sends an Anghammarad notification for each unrecognised user, and publishes reaper metrics to CloudWatch.
-7. When `DRY_RUN` is enabled (the default), steps 5 and 6 only log what _would_ happen — no access keys are disabled, no passwords removed, and no notifications sent.
+7. When `DRY_RUN` is enabled (the default), steps 5 and 6 only log what _would_ happen — no access keys are deactivated, no passwords removed, and no notifications sent.
 
 ## Output
 
 For each unrecognised user, a real (non-dry-run) execution:
 
-- disables any **active IAM access keys** (`UpdateAccessKey`);
+- deactivates any **active IAM access keys** (`UpdateAccessKey`);
 - deletes the **login profile / console password** (`DeleteLoginProfile`); and
 - sends an **Anghammarad notification** to the relevant team via the configured SNS topic.
 
-It also publishes reaper metrics to the `SecurityHQ` CloudWatch namespace — disable-access-key and remove-password
-execution counts (success/failure) — via
-[`Cloudwatch.putIamDisableAccessKeyMetric`](../core/src/main/scala/logging/Cloudwatch.scala) and
-`Cloudwatch.putIamRemovePasswordMetric`.
+It also publishes reaper execution-status metrics (success/failure counts) to the `SecurityHQ` CloudWatch namespace,
+defined in [`Cloudwatch`](../core/src/main/scala/logging/Cloudwatch.scala).
+
+<!-- alex ignore disable-disabled -->
+The two metric names are `IamDisableAccessKey` (for the access-key step) and `IamRemovePassword` (for the password
+step).
 
 ## Configuration
 
@@ -35,7 +37,7 @@ Configuration is provided via environment variables set by the CDK stack (`cdk/l
 
 | Variable                          | Default       | Description                                                                   |
 |-----------------------------------|---------------|-------------------------------------------------------------------------------|
-| `DRY_RUN`                         | `true`        | When true, log unrecognised users without disabling or notifying.             |
+| `DRY_RUN`                         | `true`        | When true, log unrecognised users without deactivating or notifying.          |
 | `CONFIG_BUCKET`                   | _(required)_  | Name of the Security account distribution bucket holding `security-hq.conf`.  |
 | `CONFIG_KEY`                      | _(required)_  | Path of `security-hq.conf` within that bucket.                                |
 | `IAM_UNRECOGNISED_USER_S3_BUCKET` | _(required)_  | S3 bucket holding the Janus data file (the audit-data bucket).                |
@@ -71,7 +73,7 @@ Use `janus` to assume the role before running so that a `security` profile is av
 
 - Only the `security` account is polled (`restrictToAccountId` is hardcoded), so per-account coverage cannot be
   verified locally.
-- No changes are ever made (`DRY_RUN` is hardcoded), only logged, so the "would disable"/"would send" output should be
+- No changes are ever made (`DRY_RUN` is hardcoded), only logged, so the "would deactivate"/"would send" output should be
   checked in the IDE console rather than in AWS.
 
 ## Troubleshooting

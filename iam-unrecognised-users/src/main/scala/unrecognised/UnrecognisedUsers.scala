@@ -20,7 +20,7 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.jdk.CollectionConverters.*
 
 /** Identifies IAM users tagged with a Google username that is no longer present in Janus (the canonical source of
-  * "recognised" users) and disables their access keys and passwords, notifying the relevant teams via Anghammarad.
+  * "recognised" users) and deactivates their access keys and passwords, notifying the relevant teams via Anghammarad.
   *
   * This is the standalone-lambda equivalent of the job that previously ran on a scheduler inside the Play app
   * (`IamRemediationService.disableUnrecognisedUsers`). Rather than reading an in-memory cache, the lambda fetches the
@@ -85,9 +85,9 @@ object UnrecognisedUsers extends LazyLogging {
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
       accessKeys <- Attempt.traverse(unrecognisedUsers)(listAccountAccessKeys(_, iamClients))
-      // disable access keys and remove login profiles for unrecognised users (skipped in dry run)
+      // deactivate access keys and remove login profiles for unrecognised users (skipped in dry run)
       _ <- unlessDryRun {
-        logger.info(s"Dry run: would disable ${accessKeys.flatMap(_.vulnerableAccessKey).length} access key(s).")
+        logger.info(s"Dry run: would deactivate ${accessKeys.flatMap(_.vulnerableAccessKey).length} access key(s).")
       }(Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients)).map(_ => ()))
       _ <- unlessDryRun(())(Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients)).map(_ => ()))
       // construct and send a notification for each unrecognised user

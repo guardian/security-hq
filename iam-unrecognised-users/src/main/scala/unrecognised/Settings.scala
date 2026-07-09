@@ -2,9 +2,10 @@ package unrecognised
 
 import software.amazon.awssdk.regions.Region
 
-/** Runtime configuration for the iam-unrecognised-users lambda, sourced from environment variables set by the CDK stack.
+/** Runtime configuration for the iam-unrecognised-users lambda, sourced from environment variables set by the CDK
+  * stack.
   *
-  *   - `DRY_RUN` (default `true`): when true, unrecognised users are logged but access keys/passwords are not disabled
+  *   - `DRY_RUN` (default `true`): when true, unrecognised users are logged but access keys/passwords are not deactivated
   *     and no notifications are sent.
   *   - `CONFIG_BUCKET`: S3 bucket holding `security-hq.conf`.
   *   - `CONFIG_KEY`: S3 key for `security-hq.conf`.
