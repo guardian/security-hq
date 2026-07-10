@@ -303,8 +303,12 @@ export class SecurityHQ extends GuStack {
       },
       rules: [
         {
-          schedule: Schedule.cron({ hour: "6", minute: "0" }),
-          description: "Run iam-outdated-credentials daily at 6am",
+          schedule: Schedule.cron({
+            minute: '0',
+            hour: '9,14',
+            weekDay: 'MON-FRI'
+          }),
+          description: "Run iam-outdated-credentials lambda, Monday-Friday at 9AM and 2PM",
         },
       ],
       app: "iam-outdated-credentials",

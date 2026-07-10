@@ -1718,10 +1718,10 @@ exports[`HQ stack matches the snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "iamoutdatedcredentialsiamoutdatedcredentialscron06073C3F344": {
+    "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI07494ADB7": {
       "Properties": {
-        "Description": "Run iam-outdated-credentials daily at 6am",
-        "ScheduleExpression": "cron(0 6 * * ? *)",
+        "Description": "Run iam-outdated-credentials lambda, Monday-Friday at 9AM and 2PM",
+        "ScheduleExpression": "cron(0 9,14 ? * MON-FRI *)",
         "State": "ENABLED",
         "Tags": [
           {
@@ -1759,7 +1759,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       },
       "Type": "AWS::Events::Rule",
     },
-    "iamoutdatedcredentialsiamoutdatedcredentialscron060AllowEventRulesecurityhqiamoutdatedcredentials0C07F7DEEDF609C5": {
+    "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI0AllowEventRulesecurityhqiamoutdatedcredentials0C07F7DE459CE6E8": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
@@ -1771,7 +1771,7 @@ exports[`HQ stack matches the snapshot 1`] = `
         "Principal": "events.amazonaws.com",
         "SourceArn": {
           "Fn::GetAtt": [
-            "iamoutdatedcredentialsiamoutdatedcredentialscron06073C3F344",
+            "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI07494ADB7",
             "Arn",
           ],
         },
