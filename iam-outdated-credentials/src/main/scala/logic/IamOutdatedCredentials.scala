@@ -2,7 +2,6 @@ package logic
 
 import aws.iam.IAMClient
 import aws.{AWS, AwsClients}
-import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import config.CoreConfig.{
@@ -18,11 +17,9 @@ import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.DateTime
 import settings.Settings
-import software.amazon.awssdk.core.sync.ResponseTransformer
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -182,22 +179,21 @@ object IamOutdatedCredentials extends LazyLogging {
   def disableOutdatedCredentials(settings: Settings)(implicit executionContext: ExecutionContext): Attempt[Unit] = {
     val snsClient = SnsAsyncClient.builder().build()
     val s3Client = S3Client.builder.build()
-    val availableRegions: List[Region] = calculateAvailableRegions(settings.stack, settings.stage)
 
-    val awsAccountsConfig = IamOutdatedCredentials.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
-    val awsAccounts = IamOutdatedCredentials.parseAccounts(awsAccountsConfig)
+    val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
+    val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
     val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
     val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
     val allowedAccountIds: List[String] =
       awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
     val accountIdsForIamRemediationService =
       awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
-
-    val iamClients = AWS.iamClients(awsAccounts, availableRegions)
     val dynamo = new IamRemediationDb(getSecurityDynamoDbClient(settings.stage))
-    val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
 
     for {
+      availableRegions: List[Region] <- calculateAvailableRegions(settings.stack, settings.stage)
+      iamClients = AWS.iamClients(awsAccounts, availableRegions)
+      cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
         IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions)
       }
@@ -471,28 +467,9 @@ object IamOutdatedCredentials extends LazyLogging {
     s"$problem $activity for user $username from account $accountId"
   }
 
-  private def loadConfigFromS3(bucket: String, key: String, s3: S3Client): Config = {
-    val request = GetObjectRequest.builder().bucket(bucket).key(key).build()
-    val configString: String = s3.getObject(request, ResponseTransformer.toBytes()).asUtf8String()
-    ConfigFactory.parseString(configString).resolve()
-  }
-
-  private def parseAccounts(config: Config): List[AwsAccount] = {
-    config.getConfigList(AWS_ACCOUNTS_CONFIG_ITEM).asScala.toList.map { accountConfig =>
-      AwsAccount(
-        id = accountConfig.getString("id"),
-        name = accountConfig.getString("name"),
-        roleArn = accountConfig.getString("roleArn"),
-        accountNumber = accountConfig.getString("number")
-      )
-    }
-
-  }
-
   private val REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM = "ACCOUNT_IDS_FOR_IAM_REMEDIATION_SERVICE"
   private val ALLOWED_ACCOUNT_IDS_CONFIG_ITEM = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM = "ANGHAMMARAD_SNS_TOPIC_ARN"
-  private val AWS_ACCOUNTS_CONFIG_ITEM = "AWS_ACCOUNTS"
   private val IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM = "IAM_DYNAMO_TABLE_NAME"
 
 }
