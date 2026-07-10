@@ -1,10 +1,11 @@
-import aws.AWS
+import aws.ec2.EC2
+import aws.{AWS, AwsClient}
 import config.CoreConfig.{calculateAvailableRegions, getSecurityDynamoDbClient, securityCredentialsProvider}
 import config.{Config, CoreConfig}
 import controllers.*
 import db.IamRemediationDb
 import filters.HstsFilter
-import model.Stage
+import model.{AwsAccount, Stage}
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -17,11 +18,14 @@ import services.{CacheService, IamRemediationService, MetricService}
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder
 import software.amazon.awssdk.http.SdkHttpConfigurationOption
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.ec2.Ec2AsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.utils.AttributeMap
-
+import utils.attempt.Attempt
+import scala.concurrent.duration.*
+import scala.concurrent.Await
 import scala.jdk.CollectionConverters.*
 import scala.language.postfixOps
 
@@ -47,7 +51,28 @@ class AppComponents(context: Context)
   private val stage = Config.getStage(configuration)
 
   // the aim of this is to get all the regions that are available to this account
-  val availableRegions: List[Region] = calculateAvailableRegions(stack, stage)
+  // TODO: Delete this and only use calculateAvailableRegions which does not await.
+  private val availableRegions: List[Region] = {
+    val ec2Client = AwsClient(
+      Ec2AsyncClient.builder
+        .region(CoreConfig.region)
+        .build(),
+      AwsAccount(stack, stack, stack, stack),
+      CoreConfig.region
+    )
+    try {
+      val availableRegionsAttempt: Attempt[List[Region]] = for {
+        ec2RegionList <- EC2.getAvailableRegions(ec2Client)
+        regionList = ec2RegionList.map(ec2Region => Region.of(ec2Region.regionName))
+      } yield regionList
+      Await
+        .result(availableRegionsAttempt.asFuture, 30 seconds)
+        // This is not correct - the lambda rewrite will not do this.
+        .getOrElse(List(CoreConfig.region, Region.of("us-east-1")))
+    } finally {
+      ec2Client.client.close()
+    }
+  }
 
   logger.info(
     s"Polling in the following regions: ${availableRegions.map(_.id).mkString(", ")}"
