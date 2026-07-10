@@ -4,12 +4,6 @@ import aws.iam.IAMClient
 import aws.{AWS, AwsClients}
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
-import config.CoreConfig.{
-  calculateAvailableRegions,
-  daysBetweenFinalNotificationAndRemediation,
-  daysBetweenWarningAndFinalNotification,
-  getSecurityDynamoDbClient
-}
 import db.IamRemediationDb
 import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
@@ -188,10 +182,10 @@ object IamOutdatedCredentials extends LazyLogging {
       awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
     val accountIdsForIamRemediationService =
       awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
-    val dynamo = new IamRemediationDb(getSecurityDynamoDbClient(settings.stage))
+    val dynamo = new IamRemediationDb(CoreConfig.getSecurityDynamoDbClient(settings.stage))
 
     for {
-      availableRegions: List[Region] <- calculateAvailableRegions(settings.stack, settings.stage)
+      availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
       iamClients = AWS.iamClients(awsAccounts, availableRegions)
       cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
@@ -356,10 +350,10 @@ object IamOutdatedCredentials extends LazyLogging {
         )
       case Some(mostRecentActivity) =>
         val finalWarningStartOfDay = mostRecentActivity.dateNotificationSent
-          .plusDays(daysBetweenWarningAndFinalNotification)
+          .plusDays(CoreConfig.daysBetweenWarningAndFinalNotification)
           .withTimeAtStartOfDay()
         val remediationStartOfDay = mostRecentActivity.dateNotificationSent
-          .plusDays(daysBetweenFinalNotificationAndRemediation)
+          .plusDays(CoreConfig.daysBetweenFinalNotificationAndRemediation)
           .withTimeAtStartOfDay()
         mostRecentActivity.iamRemediationActivityType match {
           case Warning if now.isAfter(finalWarningStartOfDay) =>
