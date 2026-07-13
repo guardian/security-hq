@@ -34,12 +34,16 @@ object UnrecognisedUsers extends LazyLogging {
   private val ALLOWED_ACCOUNT_IDS = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_ARN = "ANGHAMMARAD_SNS_TOPIC_ARN"
 
-  def run(env: Map[String, String] = sys.env, restrictToAccountId: Option[String] = None): Unit = {
+  def run(
+      env: Map[String, String] = sys.env,
+      restrictToAccountId: Option[String] = None,
+      timeout: FiniteDuration = 5.minutes
+  ): Unit = {
     implicit val ec: ExecutionContext = ExecutionContext.global
     val settings = Settings.fromEnvironment(env)
     logger.info(s"Starting iam-unrecognised-users job (dryRun=${settings.dryRun}, region=${settings.region.id})")
     val result = disableUnrecognisedUsers(settings, restrictToAccountId)
-    Await.result(result.asFuture, 5.minutes) match {
+    Await.result(result.asFuture, timeout) match {
       case Left(failure) =>
         logger.error(s"Failed to run unrecognised user job: ${failure.logMessage}")
         throw new RuntimeException(failure.logMessage)
