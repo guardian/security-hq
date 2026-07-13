@@ -15,8 +15,8 @@ java -cp ~/Downloads/iam-outdated-credentials-xxxx.jar logic.IamOutdatedCredenti
 
 # Parameters for local run
 
- * Stack (can be anything
- * Stage (should be DEV) 
+ * Stack (can be anything)
+ * Stage (should be DEV)
  * Dry run flag
  * S3 bucket
  * S3 conf file key
