@@ -11,7 +11,6 @@ import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.DateTime
 import settings.Settings
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
@@ -19,6 +18,7 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.util.Try
 
 class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
@@ -171,49 +171,92 @@ class IamOutdatedCredentials(
 object IamOutdatedCredentials extends LazyLogging {
 
   def disableOutdatedCredentials(settings: Settings)(implicit executionContext: ExecutionContext): Attempt[Unit] = {
-    val snsClient = SnsAsyncClient.builder().build()
-    val s3Client = S3Client.builder().build()
-    val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
-    val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
-    val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
-    val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
-    val allowedAccountIds: List[String] =
-      awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
-    val accountIdsForIamRemediationService =
-      awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
-    val dynamoDbClient = CoreConfig.getSecurityDynamoDbClient(settings.stage)
-    val dynamo = new IamRemediationDb(dynamoDbClient)
+    withResource(SnsAsyncClient.builder().build()) { snsClient =>
+      withResource(S3Client.builder().build()) { s3Client =>
+        val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
+        val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
+        val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
+        val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
+        val allowedAccountIds: List[String] =
+          awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
+        val accountIdsForIamRemediationService =
+          awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
 
-    for {
-      availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
-      iamClients = AWS.iamClients(awsAccounts, availableRegions)
-      cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
-      reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
-        IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions)
+        withResource(CoreConfig.getSecurityDynamoDbClient(settings.stage)) { dynamoDbClient =>
+          val dynamo = new IamRemediationDb(dynamoDbClient)
+
+          CoreConfig
+            .calculateAvailableRegions(settings.stack, settings.stage)
+            .flatMap { availableRegions =>
+              val iamClients = AWS.iamClients(awsAccounts, availableRegions)
+              val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
+
+              withCleanup((iamClients, cfnClients)) { clients =>
+                clients._1.foreach(client => closeQuietly(client._1.close()))
+                clients._2.foreach(client => closeQuietly(client._1.close()))
+              } { clients =>
+                for {
+                  reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
+                    IAMClient.getUpdatedCredentialsReport(account, clients._2, clients._1, availableRegions)
+                  }
+                  listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap
+                  iamOutdatedCredentials = new IamOutdatedCredentials(
+                    snsClient = snsClient,
+                    iamClients = clients._1,
+                    dynamo = dynamo,
+                    dryRun = settings.dryRun
+                  )
+                  runResult <- iamOutdatedCredentials.disableOutdatedCredentials(
+                    notificationTopicArn = anghammaradSnsArn,
+                    tableName = iamDynamoTableName,
+                    serviceAccountIds = accountIdsForIamRemediationService,
+                    rawCredsReports = listOfCredentialReports,
+                    allowedAwsAccountIds = allowedAccountIds
+                  )
+                } yield runResult
+              }
+            }
+        }
       }
+    }
+  }
 
-      listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap
-      iamOutdatedCredentials = new IamOutdatedCredentials(
-        snsClient = snsClient,
-        iamClients = iamClients,
-        dynamo = dynamo,
-        dryRun = settings.dryRun
+  private def withResource[R <: AutoCloseable, A](acquire: => R)(use: R => Attempt[A])(implicit
+      ec: ExecutionContext
+  ): Attempt[A] = {
+    withCleanup(acquire)(resource => closeQuietly(resource.close()))(use)
+  }
+
+  private def withCleanup[R, A](acquire: => R)(cleanup: R => Unit)(use: R => Attempt[A])(implicit
+      ec: ExecutionContext
+  ): Attempt[A] = {
+    Attempt
+      .fromEither(
+        Try(acquire).toEither.left.map { err =>
+          FailedAttempt(
+            Failure(
+              message = s"Resource acquisition failed: ${err.getMessage}",
+              friendlyMessage = "Error while acquiring runtime resource",
+              statusCode = 500,
+              throwable = Some(err)
+            )
+          )
+        }
       )
-    } yield iamOutdatedCredentials
-      .disableOutdatedCredentials(
-        notificationTopicArn = anghammaradSnsArn,
-        tableName = iamDynamoTableName,
-        serviceAccountIds = accountIdsForIamRemediationService,
-        rawCredsReports = listOfCredentialReports,
-        allowedAwsAccountIds = allowedAccountIds
-      )
-      .tap(_ => {
-        iamClients.foreach(_._1.close())
-        cfnClients.foreach(_._1.close())
-        snsClient.close()
-        s3Client.close()
-        dynamoDbClient.close()
-      })
+      .flatMap { resource =>
+        guarantee(use(resource))(cleanup(resource))
+      }
+  }
+
+  private def guarantee[A](attempt: => Attempt[A])(cleanup: => Unit)(implicit ec: ExecutionContext): Attempt[A] = {
+    attempt.tap(_ => closeQuietly(cleanup))
+  }
+
+  private def closeQuietly(close: => Unit): Unit = {
+    try close
+    catch {
+      case err: Throwable => logger.warn("Ignoring client close failure", err)
+    }
   }
 
   /** Look through all credentials reports to find users with expired credentials, see below for more detail
