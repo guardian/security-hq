@@ -19,16 +19,18 @@ import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 import scala.jdk.CollectionConverters.*
 
-/** Identifies IAM users tagged with a Google username that is no longer present in Janus (the canonical source of
-  * "recognised" users) and deactivates their access keys and passwords, notifying the relevant teams via Anghammarad.
+/** Removes AWS access for colleagues who have departed.
   *
-  * This is the standalone-lambda equivalent of the job that previously ran on a scheduler inside the Play app
-  * (`IamRemediationService.disableUnrecognisedUsers`). Rather than reading an in-memory cache, the lambda fetches the
-  * IAM credential reports directly for every configured account.
+  * This is targeted at "recovery access", where teams keep one or two IAM users that can be used to gain access to AWS
+  * when Janus is down. These recovery users have a password (and MFA) but no long-lived credentials, and should also be
+  * tagged with the Google username of the individual so we can identify them.
+  *
+  * We load the Guardian's Janus configuration and decide who is 'recognised' by comparing it with those Google identity
+  * tags. If an IAM user is tagged with an identity that is no longer in Janus, we assume they have left and deactivate
+  * the user — removing their access keys and login profile, and notifying the relevant team via Anghammarad.
   */
 object UnrecognisedUsers extends LazyLogging {
 
-  // Keys within `security-hq.conf` (loaded from S3); `AWS_ACCOUNTS` is parsed by the shared `AccountLoader`.
   private val ALLOWED_ACCOUNT_IDS = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_ARN = "ANGHAMMARAD_SNS_TOPIC_ARN"
 
@@ -60,12 +62,13 @@ object UnrecognisedUsers extends LazyLogging {
     def unlessDryRun[A](dryRunResult: => A)(action: => Attempt[A]): Attempt[A] =
       if (settings.dryRun) Attempt.Right(dryRunResult) else action
 
-    // A fresh lambda has no cached report, so seed every account as "not yet loaded" to force a fresh fetch.
-    def noCachedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
+    // `getAllCredentialReports` refreshes an existing per-account report map. There is no previous report to build
+    // on, so seed every account as "not yet loaded" to force a fresh report to be fetched for each.
+    def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
       Left(Failure.notYetLoaded(account.id, "credentials").attempt)
 
     for {
-      // load the app's config (accounts, allowed accounts, notification topic) from S3
+      // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
       configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
       conf = ConfigFactory.parseString(configSource.mkString)
       allAccounts = AccountLoader.getAwsAccounts(conf)
@@ -74,7 +77,7 @@ object UnrecognisedUsers extends LazyLogging {
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
       iamClients = AWS.iamClients(awsAccounts, regions)
       cfnClients = AWS.cfnClients(awsAccounts, regions)
-      startingData = awsAccounts.map(account => account -> noCachedReport(account)).toMap
+      startingData = awsAccounts.map(account => account -> unloadedReport(account)).toMap
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
       janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
