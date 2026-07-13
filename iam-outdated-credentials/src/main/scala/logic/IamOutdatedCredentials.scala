@@ -172,8 +172,7 @@ object IamOutdatedCredentials extends LazyLogging {
 
   def disableOutdatedCredentials(settings: Settings)(implicit executionContext: ExecutionContext): Attempt[Unit] = {
     val snsClient = SnsAsyncClient.builder().build()
-    val s3Client = S3Client.builder.build()
-
+    val s3Client = S3Client.builder().build()
     val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
     val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
     val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
