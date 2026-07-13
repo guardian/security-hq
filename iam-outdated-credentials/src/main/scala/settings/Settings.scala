@@ -33,7 +33,7 @@ object Settings {
           configKey = configKey
         )
       case _ =>
-        throw new IllegalArgumentException()
+        throw new IllegalArgumentException("Expected args: <stack> <stage> <dryRunFlag> <configBucket> <configKey>")
     }
   }
   def fromEnvironment(): Settings = {
