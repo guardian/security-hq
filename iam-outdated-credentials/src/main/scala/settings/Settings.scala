@@ -23,8 +23,14 @@ object Settings {
           :: configKey
           :: Nil =>
 
-        val stage = if (stageString.equalsIgnoreCase("prod")) PROD else DEV
-        val dryRun = dryRunString.equalsIgnoreCase("true")
+        val stage = stageString.toLowerCase match {
+          case "prod" => PROD
+          case "dev"  => DEV
+          case other   => throw new IllegalArgumentException(s"Invalid stage '$other' (expected DEV or PROD)")
+        }
+        val dryRun = dryRunString.toBooleanOption.getOrElse(
+          throw new IllegalArgumentException(s"Invalid dryRun flag '$dryRunString' (expected true/false)")
+        )
         Settings(
           stack = stack,
           stage = stage,
