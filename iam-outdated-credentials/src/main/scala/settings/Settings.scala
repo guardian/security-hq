@@ -51,10 +51,21 @@ object Settings {
         )
       )
 
+    val stage = required(STAGE).toLowerCase match {
+      case "prod" => PROD
+      case "dev" => DEV
+      case other => throw new IllegalArgumentException(s"Invalid stage '$other' (expected DEV or PROD)")
+    }
+
+    val dryRunString = sys.env.getOrElse(DRY_RUN, "true")
+    val dryRun = dryRunString.toBooleanOption.getOrElse(
+      throw new IllegalArgumentException(s"Invalid dryRun flag '$dryRunString' (expected true/false)")
+    )
+
     Settings(
-      dryRun = sys.env.getOrElse(DRY_RUN, "true").toBoolean,
       stack = required(STACK),
-      stage = if (required(STAGE).equalsIgnoreCase("prod")) PROD else DEV,
+      stage = stage,
+      dryRun = dryRun,
       configBucket = required(CONFIG_BUCKET),
       configKey = required(CONFIG_KEY)
     )
