@@ -26,7 +26,7 @@ object Settings {
         val stage = stageString.toLowerCase match {
           case "prod" => PROD
           case "dev"  => DEV
-          case other   => throw new IllegalArgumentException(s"Invalid stage '$other' (expected DEV or PROD)")
+          case other  => throw new IllegalArgumentException(s"Invalid stage '$other' (expected DEV or PROD)")
         }
         val dryRun = dryRunString.toBooleanOption.getOrElse(
           throw new IllegalArgumentException(s"Invalid dryRun flag '$dryRunString' (expected true/false)")

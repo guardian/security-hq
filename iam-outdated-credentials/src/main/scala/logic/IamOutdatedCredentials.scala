@@ -181,7 +181,8 @@ object IamOutdatedCredentials extends LazyLogging {
       awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
     val accountIdsForIamRemediationService =
       awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
-    val dynamo = new IamRemediationDb(CoreConfig.getSecurityDynamoDbClient(settings.stage))
+    val dynamoDbClient = CoreConfig.getSecurityDynamoDbClient(settings.stage)
+    val dynamo = new IamRemediationDb(dynamoDbClient)
 
     for {
       availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
@@ -192,20 +193,27 @@ object IamOutdatedCredentials extends LazyLogging {
       }
 
       listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap
-
-      disableResult <- new IamOutdatedCredentials(
+      iamOutdatedCredentials = new IamOutdatedCredentials(
         snsClient = snsClient,
         iamClients = iamClients,
         dynamo = dynamo,
         dryRun = settings.dryRun
-      ).disableOutdatedCredentials(
+      )
+    } yield iamOutdatedCredentials
+      .disableOutdatedCredentials(
         notificationTopicArn = anghammaradSnsArn,
         tableName = iamDynamoTableName,
         serviceAccountIds = accountIdsForIamRemediationService,
         rawCredsReports = listOfCredentialReports,
         allowedAwsAccountIds = allowedAccountIds
       )
-    } yield disableResult
+      .tap(_ => {
+        iamClients.foreach(_._1.close())
+        cfnClients.foreach(_._1.close())
+        snsClient.close()
+        s3Client.close()
+        dynamoDbClient.close()
+      })
   }
 
   /** Look through all credentials reports to find users with expired credentials, see below for more detail
