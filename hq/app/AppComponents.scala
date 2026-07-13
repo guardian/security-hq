@@ -1,6 +1,6 @@
 import aws.ec2.EC2
 import aws.{AWS, AwsClient}
-import config.CoreConfig.{calculateAvailableRegions, getSecurityDynamoDbClient, securityCredentialsProvider}
+import config.CoreConfig.{getSecurityDynamoDbClient, securityCredentialsProvider}
 import config.{Config, CoreConfig}
 import controllers.*
 import db.IamRemediationDb

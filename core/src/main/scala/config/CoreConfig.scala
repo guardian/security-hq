@@ -20,7 +20,6 @@ import utils.attempt.Attempt
 import java.net.URI
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.ListHasAsScala
-import scala.language.postfixOps
 
 /** Configuration values shared by `core` and `hq`. */
 object CoreConfig {

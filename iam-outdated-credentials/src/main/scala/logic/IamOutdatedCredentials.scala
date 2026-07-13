@@ -4,12 +4,6 @@ import aws.iam.IAMClient
 import aws.{AWS, AwsClients}
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
-import config.CoreConfig.{
-  calculateAvailableRegions,
-  daysBetweenFinalNotificationAndRemediation,
-  daysBetweenWarningAndFinalNotification,
-  getSecurityDynamoDbClient
-}
 import db.IamRemediationDb
 import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
@@ -176,6 +170,12 @@ class IamOutdatedCredentials(
 }
 object IamOutdatedCredentials extends LazyLogging {
 
+  // TODO this code does not close the SnsAsyncClient or S3Client, or any of the IAM/CFN clients.
+  // In practice, the lambda will exit after this job is complete, so the resources will be cleaned up by the OS,
+  // but it would be better to close them explicitly.  This is not trivial to do, because the clients are created
+  // sequentially, and the SnsAsyncClient is used in the middle of the process.  We could use a Resource pattern
+  // to manage this better.
+
   def disableOutdatedCredentials(settings: Settings)(implicit executionContext: ExecutionContext): Attempt[Unit] = {
     val snsClient = SnsAsyncClient.builder().build()
     val s3Client = S3Client.builder.build()
@@ -188,10 +188,10 @@ object IamOutdatedCredentials extends LazyLogging {
       awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
     val accountIdsForIamRemediationService =
       awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
-    val dynamo = new IamRemediationDb(getSecurityDynamoDbClient(settings.stage))
+    val dynamo = new IamRemediationDb(CoreConfig.getSecurityDynamoDbClient(settings.stage))
 
     for {
-      availableRegions: List[Region] <- calculateAvailableRegions(settings.stack, settings.stage)
+      availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
       iamClients = AWS.iamClients(awsAccounts, availableRegions)
       cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
@@ -356,10 +356,10 @@ object IamOutdatedCredentials extends LazyLogging {
         )
       case Some(mostRecentActivity) =>
         val finalWarningStartOfDay = mostRecentActivity.dateNotificationSent
-          .plusDays(daysBetweenWarningAndFinalNotification)
+          .plusDays(CoreConfig.daysBetweenWarningAndFinalNotification)
           .withTimeAtStartOfDay()
         val remediationStartOfDay = mostRecentActivity.dateNotificationSent
-          .plusDays(daysBetweenFinalNotificationAndRemediation)
+          .plusDays(CoreConfig.daysBetweenFinalNotificationAndRemediation)
           .withTimeAtStartOfDay()
         mostRecentActivity.iamRemediationActivityType match {
           case Warning if now.isAfter(finalWarningStartOfDay) =>
