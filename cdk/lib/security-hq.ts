@@ -118,7 +118,7 @@ export class SecurityHQ extends GuStack {
 
     dpkg -i /tmp/installer.deb`);
 
-    const additionalPolicies = [
+    const appAdditionalPolicies = [
       GuAnghammaradSenderPolicy.getInstance(this),
       new GuPutCloudwatchMetricsPolicy(this),
       new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
@@ -142,6 +142,7 @@ export class SecurityHQ extends GuStack {
         actions: ["ec2:DescribeRegions"],
       }),
     ];
+
     const ec2App = new GuEc2AppExperimental(this, {
       buildIdentifier,
       applicationLogging: {
@@ -163,7 +164,7 @@ export class SecurityHQ extends GuStack {
       },
       userData,
       roleConfiguration: {
-        additionalPolicies: additionalPolicies,
+        additionalPolicies: appAdditionalPolicies,
       },
       instanceMetricGranularity: "5Minute",
     });
@@ -295,6 +296,32 @@ export class SecurityHQ extends GuStack {
       ],
     });
 
+    const iamOutdatedCredentialsLambdaAdditionalPolicies = [
+      GuAnghammaradSenderPolicy.getInstance(this),
+      new GuPutCloudwatchMetricsPolicy(this),
+      new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
+        bucketName: auditDataS3BucketName.valueAsString,
+        paths: [auditDataS3BucketPath],
+      }),
+      new GuDynamoDBReadPolicy(this, "DynamoRead", {
+        tableName: table.tableName,
+      }),
+      new GuDynamoDBWritePolicy(this, "DynamoWrite", {
+        tableName: table.tableName,
+      }),
+      // Allow lambdas to assume roles in watched accounts.
+      new GuAllowPolicy(this, "AssumeRole", {
+        resources: ["*"],
+        actions: ["sts:AssumeRole"],
+      }),
+      // Get the list of regions.
+      new GuAllowPolicy(this, "DescribeRegions", {
+        resources: ["*"],
+        actions: ["ec2:DescribeRegions"],
+      }),
+    ];
+
+
     const iamOutdatedCredentialsLambda = new GuScheduledLambda(this, "iam-outdated-credentials", {
       monitoringConfiguration: {
         // Tolerates 0 failures (triggers an alarm if any execution fails)
@@ -325,7 +352,7 @@ export class SecurityHQ extends GuStack {
       fileName: `iam-outdated-credentials/iam-outdated-credentials-${buildIdentifier}.jar`
 
     })
-    additionalPolicies.forEach((policy) => {
+    iamOutdatedCredentialsLambdaAdditionalPolicies.forEach((policy) => {
       iamOutdatedCredentialsLambda.role!.attachInlinePolicy(policy);
     });
   }
