@@ -101,9 +101,10 @@ object IamUnrecognisedUsers extends LazyLogging {
 
   def disableAccountAccessKeys(
       accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
-      iamClients: AwsClients[IamAsyncClient]
+      iamClients: AwsClients[IamAsyncClient],
+      dryRun: Boolean=false
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
-    val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
+    if (!dryRun) { val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
     val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
     val disableKeysAttempt =
       Attempt.traverse(activeAccessKeys)(key => disableAccessKey(account, key.username, key.accessKeyId, iamClients))
@@ -123,12 +124,19 @@ object IamUnrecognisedUsers extends LazyLogging {
           }
         }
       )
-    )
+    )} else {
+      logger.info(
+        s"Attempt to disable access keys was skipped due to dry run."
+      )
+      logger.info(s"Skipping ${accountUnrecognisedKeys.vulnerableAccessKey.length} keys in ${accountUnrecognisedKeys.account} account.")
+      Attempt.Right(Nil)
+    }
   }
 
   def removeAccountPasswords(
       accountUnrecognisedUsers: AccountUnrecognisedUsers,
-      iamClients: AwsClients[IamAsyncClient]
+      iamClients: AwsClients[IamAsyncClient],
+      dryRun: Boolean=false
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
     val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
       deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
@@ -145,11 +153,16 @@ object IamUnrecognisedUsers extends LazyLogging {
     }
   }
 
-  def unrecognisedUserNotifications(accountUsers: List[AccountUnrecognisedUsers]): List[Notification] = {
-    accountUsers.flatMap { case AccountUnrecognisedUsers(account, users) =>
-      users.map { user =>
-        unrecognisedUserRemediation(account, user)
+  def unrecognisedUserNotifications(accountUsers: List[AccountUnrecognisedUsers], dryRun: Boolean=false): List[Notification] = {
+    if (!dryRun) {
+      accountUsers.flatMap { case AccountUnrecognisedUsers(account, users) =>
+        users.map { user =>
+          unrecognisedUserRemediation(account, user)
+        }
       }
+    } else {
+      logger.info(s"Dry run: would send ${accountUsers.length} notification(s).")
+      Nil
     }
   }
 }

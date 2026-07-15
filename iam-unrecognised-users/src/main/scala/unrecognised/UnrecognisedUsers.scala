@@ -62,10 +62,6 @@ object UnrecognisedUsers extends LazyLogging {
     // enrichment, which this job does not rely on.
     val regions = List(settings.region, Region.of("us-east-1")).distinct
 
-    // Run a remediation action only outside dry-run; otherwise yield the placeholder result without side effects.
-    def unlessDryRun[A](dryRunResult: => A)(action: => Attempt[A]): Attempt[A] =
-      if (settings.dryRun) Attempt.Right(dryRunResult) else action
-
     // `getAllCredentialReports` refreshes an existing per-account report map. There is no previous report to build
     // on, so seed every account as "not yet loaded" to force a fresh report to be fetched for each.
     def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
@@ -93,16 +89,12 @@ object UnrecognisedUsers extends LazyLogging {
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
       accessKeys <- Attempt.traverse(unrecognisedUsers)(listAccountAccessKeys(_, iamClients))
       // deactivate access keys and remove login profiles for unrecognised users (skipped in dry run)
-      _ <- unlessDryRun {
-        logger.info(s"Dry run: would deactivate ${accessKeys.flatMap(_.vulnerableAccessKey).length} access key(s).")
-      }(Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients)).map(_ => ()))
-      _ <- unlessDryRun(())(Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients)).map(_ => ()))
+      _ <- Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients, settings.dryRun)).map(_ => ())
+      _ <- Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients, settings.dryRun)).map(_ => ())
       // construct and send a notification for each unrecognised user
-      notifications = unrecognisedUserNotifications(unrecognisedUsers)
-      notificationIds <- unlessDryRun {
-        logger.info(s"Dry run: would send ${notifications.length} notification(s).")
-        List.empty[String]
-      }(Attempt.traverse(notifications)(AnghammaradNotifications.send(_, anghammaradSnsArn, snsClient)))
+      notifications = unrecognisedUserNotifications(unrecognisedUsers, settings.dryRun)
+      // if in dry run, notifications list is empty
+      notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, anghammaradSnsArn, snsClient))
     } yield notificationIds
   }
 }
