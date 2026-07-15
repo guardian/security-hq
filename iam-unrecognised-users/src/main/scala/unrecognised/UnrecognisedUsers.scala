@@ -6,7 +6,7 @@ import aws.s3.S3.getS3Object
 import com.gu.janus.JanusConfig
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
-import config.AccountLoader
+import config.CoreConfig
 import logic.IamUnrecognisedUsers.*
 import model.{AwsAccount, CredentialReportDisplay}
 import notifications.AnghammaradNotifications
@@ -71,7 +71,7 @@ object UnrecognisedUsers extends LazyLogging {
       // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
       configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
       conf = ConfigFactory.parseString(configSource.mkString)
-      allAccounts = AccountLoader.getAwsAccounts(conf)
+      allAccounts = CoreConfig.parseAccounts(conf)
       awsAccounts = restrictToAccountId.fold(allAccounts)(id => allAccounts.filter(_.id == id))
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
