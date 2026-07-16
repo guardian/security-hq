@@ -1,5 +1,5 @@
 import "source-map-support/register";
-import { GuRoot } from '@guardian/cdk/lib/constructs/root';
+import { GuRoot } from "@guardian/cdk/lib/constructs/root";
 import { SecurityHQ } from "../lib/security-hq";
 
 const app = new GuRoot();

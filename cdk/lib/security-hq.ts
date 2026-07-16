@@ -126,9 +126,13 @@ export class SecurityHQ extends GuStack {
     const guDynamoDBReadPolicy = new GuDynamoDBReadPolicy(this, "DynamoRead", {
       tableName: table.tableName,
     });
-    const guDynamoDBWritePolicy = new GuDynamoDBWritePolicy(this, "DynamoWrite", {
-      tableName: table.tableName,
-    });
+    const guDynamoDBWritePolicy = new GuDynamoDBWritePolicy(
+      this,
+      "DynamoWrite",
+      {
+        tableName: table.tableName,
+      },
+    );
     // Allow security HQ to assume roles in watched accounts.
     const guAssumeRolePolicy = new GuAllowPolicy(this, "AssumeRole", {
       resources: ["*"],
@@ -159,7 +163,7 @@ export class SecurityHQ extends GuStack {
       },
       app: "security-hq",
       applicationPort: 9000,
-      imageRecipe: 'arm64-jammy-java21-security',
+      imageRecipe: "arm64-jammy-java21-security",
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
       certificateProps: {
         domainName,
@@ -302,6 +306,19 @@ export class SecurityHQ extends GuStack {
       ],
     });
 
+    new GuDeveloperPolicyExperimental(this, "RunSecurityHqLocallyPolicy", {
+      grantId: "security-hq-dev",
+      friendlyName: "Run Security HQ lambdas locally",
+      withoutPolicyChecks: true,
+      statements: [
+        this.getCallerIdentityPolicy(),
+        this.getArtifactBucketParameterPolicy(),
+        this.getLocalDevConfigS3Policy(distBucket.valueAsString),
+        this.loadAccountConfigPolicy(distBucket.valueAsString),
+        this.discoverRegionsPolicy(),
+      ],
+    });
+
     const iamOutdatedCredentialsLambdaAdditionalPolicies = [
       GuAnghammaradSenderPolicy.getInstance(this),
       guPutCloudwatchMetricsPolicy,
@@ -312,37 +329,41 @@ export class SecurityHQ extends GuStack {
       guDescribeRegionsPolicy,
     ];
 
-
-    const iamOutdatedCredentialsLambda = new GuScheduledLambda(this, "iam-outdated-credentials", {
-      monitoringConfiguration: {
-        // Tolerates 0 failures (triggers an alarm if any execution fails)
-        toleratedErrorPercentage: 0,
-        snsTopicName: GuAnghammaradTopicParameter.getInstance(this).valueAsString,
-      },
-      rules: [
-        {
-          schedule: Schedule.cron({
-            minute: '0',
-            hour: '9,14',
-            weekDay: 'MON-FRI'
-          }),
-          description: "Run iam-outdated-credentials lambda, Monday-Friday at 9AM and 2PM",
+    const iamOutdatedCredentialsLambda = new GuScheduledLambda(
+      this,
+      "iam-outdated-credentials",
+      {
+        monitoringConfiguration: {
+          // Tolerates 0 failures (triggers an alarm if any execution fails)
+          toleratedErrorPercentage: 0,
+          snsTopicName:
+            GuAnghammaradTopicParameter.getInstance(this).valueAsString,
         },
-      ],
-      app: "iam-outdated-credentials",
-      runtime: Runtime.JAVA_21,
-      handler: 'logic.IamOutdatedCredentialsLambda::handleRequest',
-      timeout: Duration.minutes(10),
-      environment: {
-        "STACK": this.stack,
-        "STAGE": this.stage,
-        "DRY_RUN": "true",
-        "CONFIG_BUCKET": "security-dist",
-        "CONFIG_KEY": `security/${this.stage}/security-hq/security-hq.conf`
+        rules: [
+          {
+            schedule: Schedule.cron({
+              minute: "0",
+              hour: "9,14",
+              weekDay: "MON-FRI",
+            }),
+            description:
+              "Run iam-outdated-credentials lambda, Monday-Friday at 9AM and 2PM",
+          },
+        ],
+        app: "iam-outdated-credentials",
+        runtime: Runtime.JAVA_21,
+        handler: "logic.IamOutdatedCredentialsLambda::handleRequest",
+        timeout: Duration.minutes(10),
+        environment: {
+          STACK: this.stack,
+          STAGE: this.stage,
+          DRY_RUN: "true",
+          CONFIG_BUCKET: "security-dist",
+          CONFIG_KEY: `security/${this.stage}/security-hq/security-hq.conf`,
+        },
+        fileName: `iam-outdated-credentials-${buildIdentifier}.jar`,
       },
-      fileName: `iam-outdated-credentials-${buildIdentifier}.jar`
-
-    })
+    );
     iamOutdatedCredentialsLambdaAdditionalPolicies.forEach((policy) => {
       iamOutdatedCredentialsLambda.role!.attachInlinePolicy(policy);
     });
@@ -377,6 +398,57 @@ export class SecurityHQ extends GuStack {
           "ssm:resourceTag/aws:autoscaling:groupName": [`${asgArn}`],
         },
       },
+    });
+  }
+
+  private getCallerIdentityPolicy() {
+    // Used by setup to check that valid, non-expired credentials are configured
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["sts:GetCallerIdentity"],
+      resources: ["*"],
+    });
+  }
+
+  private getArtifactBucketParameterPolicy() {
+    // Used by setup to look up distribution bucket name
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["ssm:GetParameter"],
+      resources: [
+        `arn:aws:ssm:${this.region}:${this.account}:parameter/account/services/artifact.bucket`,
+      ],
+    });
+  }
+
+  private getLocalDevConfigS3Policy(bucketName: string) {
+    // Used by setup to download local dev configuration and service account cert
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::${bucketName}/security/DEV/security-hq/*`],
+    });
+  }
+
+  private loadAccountConfigPolicy(bucketName: string) {
+    // Used by lambdas to load the security-hq.conf file
+    return new PolicyStatement({
+      sid: "LoadAccountConfig",
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [
+        `arn:aws:s3:::${bucketName}/security/${this.stage}/security-hq/security-hq.conf`,
+      ],
+    });
+  }
+
+  private discoverRegionsPolicy() {
+    // Used by lambdas to get a list of regions
+    return new PolicyStatement({
+      sid: "DiscoverRegions",
+      effect: Effect.ALLOW,
+      actions: ["ec2:DescribeRegions"],
+      resources: ["*"],
     });
   }
 }

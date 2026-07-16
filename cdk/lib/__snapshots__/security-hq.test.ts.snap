@@ -42,6 +42,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuAlarm",
       "GuAlarm",
       "GuDeveloperPolicyExperimental",
+      "GuDeveloperPolicyExperimental",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
     ],
@@ -1211,6 +1212,78 @@ exports[`HQ stack matches the snapshot 1`] = `
         "TreatMissingData": "notBreaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RunSecurityHqLocallyPolicyF7855C97": {
+      "Properties": {
+        "Description": "Run Security HQ lambdas locally",
+        "Path": "/developer-policy/guardian/security-hq/security/PROD/security-hq-dev/",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:GetCallerIdentity",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/account/services/artifact.bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/DEV/security-hq/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/PROD/security-hq/security-hq.conf",
+                  ],
+                ],
+              },
+              "Sid": "LoadAccountConfig",
+            },
+            {
+              "Action": "ec2:DescribeRegions",
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "DiscoverRegions",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::ManagedPolicy",
     },
     "S3AuditRead9DF4AE59": {
       "Properties": {
