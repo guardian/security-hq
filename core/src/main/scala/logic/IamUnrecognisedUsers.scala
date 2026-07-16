@@ -102,33 +102,37 @@ object IamUnrecognisedUsers extends LazyLogging {
   def disableAccountAccessKeys(
       accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
       iamClients: AwsClients[IamAsyncClient],
-      dryRun: Boolean=false
+      dryRun: Boolean = false
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
-    if (!dryRun) { val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
-    val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
-    val disableKeysAttempt =
-      Attempt.traverse(activeAccessKeys)(key => disableAccessKey(account, key.username, key.accessKeyId, iamClients))
+    if (!dryRun) {
+      val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
+      val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
+      val disableKeysAttempt =
+        Attempt.traverse(activeAccessKeys)(key => disableAccessKey(account, key.username, key.accessKeyId, iamClients))
 
-    disableKeysAttempt.tap(
-      _.fold(
-        { failure =>
-          logger.error(s"Failed to disable access key: ${failure.logMessage}")
-          Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
-        },
-        { updateAccessKeyResults =>
-          logger.info(
-            s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}."
-          )
-          if (updateAccessKeyResults.nonEmpty) {
-            Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+      disableKeysAttempt.tap(
+        _.fold(
+          { failure =>
+            logger.error(s"Failed to disable access key: ${failure.logMessage}")
+            Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
+          },
+          { updateAccessKeyResults =>
+            logger.info(
+              s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}."
+            )
+            if (updateAccessKeyResults.nonEmpty) {
+              Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+            }
           }
-        }
+        )
       )
-    )} else {
+    } else {
       logger.info(
         s"Attempt to disable access keys was skipped due to dry run."
       )
-      logger.info(s"Skipping ${accountUnrecognisedKeys.vulnerableAccessKey.length} keys in ${accountUnrecognisedKeys.account} account.")
+      logger.info(
+        s"Skipping ${accountUnrecognisedKeys.vulnerableAccessKey.length} keys in ${accountUnrecognisedKeys.account} account."
+      )
       Attempt.Right(Nil)
     }
   }
@@ -136,7 +140,7 @@ object IamUnrecognisedUsers extends LazyLogging {
   def removeAccountPasswords(
       accountUnrecognisedUsers: AccountUnrecognisedUsers,
       iamClients: AwsClients[IamAsyncClient],
-      dryRun: Boolean=false
+      dryRun: Boolean = false
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
     val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
       deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
@@ -153,7 +157,10 @@ object IamUnrecognisedUsers extends LazyLogging {
     }
   }
 
-  def unrecognisedUserNotifications(accountUsers: List[AccountUnrecognisedUsers], dryRun: Boolean=false): List[Notification] = {
+  def unrecognisedUserNotifications(
+      accountUsers: List[AccountUnrecognisedUsers],
+      dryRun: Boolean = false
+  ): List[Notification] = {
     if (!dryRun) {
       accountUsers.flatMap { case AccountUnrecognisedUsers(account, users) =>
         users.map { user =>
