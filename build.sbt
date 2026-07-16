@@ -192,7 +192,6 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
       "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ),
-    assembly / assemblyJarName := "iam-unrecognised-users.jar",
     assembly / mainClass := Some("unrecognised.Main"),
     mergeStrategySettings
   )
