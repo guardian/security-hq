@@ -1397,7 +1397,7 @@ exports[`HQ stack matches the snapshot 1`] = `
           "S3Bucket": {
             "Ref": "DistributionBucketName",
           },
-          "S3Key": "security/PROD/iam-outdated-credentials/iam-outdated-credentials/iam-outdated-credentials-TEST.jar",
+          "S3Key": "security/PROD/iam-outdated-credentials/iam-outdated-credentials-TEST.jar",
         },
         "Environment": {
           "Variables": {
@@ -1612,7 +1612,7 @@ exports[`HQ stack matches the snapshot 1`] = `
                       {
                         "Ref": "DistributionBucketName",
                       },
-                      "/security/PROD/iam-outdated-credentials/iam-outdated-credentials/iam-outdated-credentials-TEST.jar",
+                      "/security/PROD/iam-outdated-credentials/iam-outdated-credentials-TEST.jar",
                     ],
                   ],
                 },
