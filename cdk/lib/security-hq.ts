@@ -368,50 +368,55 @@ export class SecurityHQ extends GuStack {
       iamOutdatedCredentialsLambda.role!.attachInlinePolicy(policy);
     });
 
-  const iamUnrecognisedUsersLambdaAdditionalPolicies = [
-    GuAnghammaradSenderPolicy.getInstance(this),
-    guPutCloudwatchMetricsPolicy,
-    guGetS3ObjectsPolicy,
-    guAssumeRolePolicy,
-    guDescribeRegionsPolicy,
-  ];
+    const iamUnrecognisedUsersLambdaAdditionalPolicies = [
+      GuAnghammaradSenderPolicy.getInstance(this),
+      guPutCloudwatchMetricsPolicy,
+      guGetS3ObjectsPolicy,
+      guAssumeRolePolicy,
+      guDescribeRegionsPolicy,
+    ];
 
-  const iamUnrecognisedUsersLambda = new GuScheduledLambda(this, "iam-unrecognised-users", {
-    monitoringConfiguration: {
-      // Tolerates 0 failures (triggers an alarm if any execution fails)
-      toleratedErrorPercentage: 0,
-      snsTopicName: GuAnghammaradTopicParameter.getInstance(this).valueAsString,
-    },
-    rules: [
+    const iamUnrecognisedUsersLambda = new GuScheduledLambda(
+      this,
+      "iam-unrecognised-users",
       {
-        schedule: Schedule.cron({
-          minute: '0',
-          hour: '9,14',
-          weekDay: 'MON-FRI'
-        }),
-        description: "Run iam-unrecognised-users lambda, Monday-Friday at 9AM and 2PM",
+        monitoringConfiguration: {
+          // Tolerates 0 failures (triggers an alarm if any execution fails)
+          toleratedErrorPercentage: 0,
+          snsTopicName:
+            GuAnghammaradTopicParameter.getInstance(this).valueAsString,
+        },
+        rules: [
+          {
+            schedule: Schedule.cron({
+              minute: "0",
+              hour: "9,14",
+              weekDay: "MON-FRI",
+            }),
+            description:
+              "Run iam-unrecognised-users lambda, Monday-Friday at 9AM and 2PM",
+          },
+        ],
+        app: "iam-unrecognised-users",
+        runtime: Runtime.JAVA_21,
+        handler: "unrecognised.Handler::handleRequest",
+        timeout: Duration.minutes(10),
+        environment: {
+          STACK: this.stack,
+          STAGE: this.stage,
+          DRY_RUN: "true",
+          CONFIG_BUCKET: "security-dist",
+          CONFIG_KEY: `security/${this.stage}/security-hq/security-hq.conf`,
+          IAM_UNRECOGNISED_USER_S3_BUCKET: "gu-security-hq-audit",
+          IAM_UNRECOGNISED_USER_S3_KEY: `security/${this.stage}/janus-data-export/janusData.conf`,
+        },
+        fileName: `iam-unrecognised-users-${buildIdentifier}.jar`,
       },
-    ],
-    app: "iam-unrecognised-users",
-    runtime: Runtime.JAVA_21,
-    handler: 'unrecognised.Handler::handleRequest',
-    timeout: Duration.minutes(10),
-    environment: {
-      "STACK": this.stack,
-      "STAGE": this.stage,
-      "DRY_RUN": "true",
-      "CONFIG_BUCKET": "security-dist",
-      "CONFIG_KEY": `security/${this.stage}/security-hq/security-hq.conf`,
-      "IAM_UNRECOGNISED_USER_S3_BUCKET": "gu-security-hq-audit",
-      "IAM_UNRECOGNISED_USER_S3_KEY": `security/${this.stage}/janus-data-export/janusData.conf`
-    },
-    fileName: `iam-unrecognised-users-${buildIdentifier}.jar`
-
-  })
-  iamUnrecognisedUsersLambdaAdditionalPolicies.forEach((policy) => {
-    iamUnrecognisedUsersLambda.role!.attachInlinePolicy(policy);
-  });
-}
+    );
+    iamUnrecognisedUsersLambdaAdditionalPolicies.forEach((policy) => {
+      iamUnrecognisedUsersLambda.role!.attachInlinePolicy(policy);
+    });
+  }
 
   private getSsmInfoPolicy() {
     return new PolicyStatement({
