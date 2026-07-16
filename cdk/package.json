@@ -9,6 +9,7 @@
     "tsc": "tsc",
     "test": "jest",
     "format": "prettier --write \"{lib,bin}/**/*.ts\"",
+    "format:check": "prettier --check \"{lib,bin}/**/*.ts\"",
     "cdk": "cdk",
     "lint": "eslint --no-error-on-unmatched-pattern",
     "diff": "cdk diff --path-metadata false --version-reporting false",
