@@ -63,5 +63,7 @@ jobs:
               - dist/security-hq-${{ env.BUILD_NUMBER }}.deb
             iam-outdated-credentials:
               - dist/iam-outdated-credentials-${{ env.BUILD_NUMBER }}.jar
+            iam-unrecognised-users:
+              - dist/iam-unrecognised-users-${{ env.BUILD_NUMBER }}.jar
           # No point in links to a Code stage, as there isn't one
           commentingEnabled: false

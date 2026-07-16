@@ -183,11 +183,24 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
     mergeStrategySettings
   )
 
+lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
+  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .settings(
+    name := "iam-unrecognised-users",
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
+    ),
+    assembly / mainClass := Some("unrecognised.Main"),
+    mergeStrategySettings
+  )
+
 // exclude this key from the linting (unused keys) as it is incorrectly flagged
 Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val root = (project in file("."))
-  .aggregate(core, hq)
+  .aggregate(core, hq, iamUnrecognisedUsers)
   .settings(
     name := """security-hq"""
   )
