@@ -340,7 +340,7 @@ export class SecurityHQ extends GuStack {
         "CONFIG_BUCKET": "security-dist",
         "CONFIG_KEY": `security/${this.stage}/security-hq/security-hq.conf`
       },
-      fileName: `iam-outdated-credentials/iam-outdated-credentials-${buildIdentifier}.jar`
+      fileName: `iam-outdated-credentials-${buildIdentifier}.jar`
 
     })
     iamOutdatedCredentialsLambdaAdditionalPolicies.forEach((policy) => {
