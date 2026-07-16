@@ -142,18 +142,28 @@ object IamUnrecognisedUsers extends LazyLogging {
       iamClients: AwsClients[IamAsyncClient],
       dryRun: Boolean = false
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
-    val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
-      deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
-    )
-    results.tap {
-      case Left(failure) =>
-        logger.error(s"failed to delete at least one password: ${failure.logMessage}")
-        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
-      case Right(success) =>
-        logger.info(
-          s"passwords deleted for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}"
-        )
-        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
+    if (!dryRun) {
+      val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
+        deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
+      )
+      results.tap {
+        case Left(failure) =>
+          logger.error(s"failed to delete at least one password: ${failure.logMessage}")
+          Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
+        case Right(success) =>
+          logger.info(
+            s"passwords deleted for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}"
+          )
+          Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
+      }
+    } else {
+      logger.info(
+        s"Attempt to remove account passwords was skipped due to dry run."
+      )
+      logger.info(
+        s"Skipping password deletion for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}"
+      )
+      Attempt.Right(Nil)
     }
   }
 
