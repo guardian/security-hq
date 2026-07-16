@@ -1,27 +1,24 @@
 package logic
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
+import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import settings.Settings
 
+import java.io.{InputStream, OutputStream}
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 
-class IamOutdatedCredentialsLambda extends RequestHandler[Map[String, String], String] {
+class IamOutdatedCredentialsLambda extends RequestStreamHandler {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  override def handleRequest(
-      event: Map[String, String],
-      context: Context
-  ): String = {
+  override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
 
     val settings = Settings.fromEnvironment()
 
     val result = IamOutdatedCredentials.disableOutdatedCredentials(settings)
 
     Await.result(result.underlying, 10.minutes) match {
-      case Right(_) =>
-        "Success"
+      case Right(_) => ()
 
       case Left(failedAttempt) =>
         throw new RuntimeException(
@@ -30,4 +27,5 @@ class IamOutdatedCredentialsLambda extends RequestHandler[Map[String, String], S
         )
     }
   }
+
 }
