@@ -45,6 +45,8 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuDeveloperPolicyExperimental",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
+      "GuScheduledLambda",
+      "GuLambdaErrorPercentageAlarm",
     ],
     "gu:cdk:version": "TEST",
   },
@@ -243,6 +245,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
           },
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -429,6 +434,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           },
           {
             "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
           },
         ],
       },
@@ -688,6 +696,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
           },
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
@@ -831,6 +842,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           },
           {
             "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
           },
         ],
       },
@@ -1315,6 +1329,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           },
           {
             "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
+          },
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
           },
         ],
       },
@@ -1845,6 +1862,399 @@ exports[`HQ stack matches the snapshot 1`] = `
         "SourceArn": {
           "Fn::GetAtt": [
             "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI07494ADB7",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "iamunrecognisedusersD1D8EA98": {
+      "DependsOn": [
+        "iamunrecognisedusersServiceRoleDefaultPolicy623DA7DB",
+        "iamunrecognisedusersServiceRole58E0D3DD",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "security/PROD/iam-unrecognised-users/iam-unrecognised-users-TEST.jar",
+        },
+        "Environment": {
+          "Variables": {
+            "APP": "iam-unrecognised-users",
+            "CONFIG_BUCKET": "security-dist",
+            "CONFIG_KEY": "security/PROD/security-hq/security-hq.conf",
+            "DRY_RUN": "true",
+            "IAM_UNRECOGNISED_USER_S3_BUCKET": "gu-security-hq-audit",
+            "IAM_UNRECOGNISED_USER_S3_KEY": "security/PROD/janus-data-export/janusData.conf",
+            "STACK": "security",
+            "STAGE": "PROD",
+          },
+        },
+        "Handler": "unrecognised.Handler::handleRequest",
+        "LoggingConfig": {
+          "LogFormat": "JSON",
+        },
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "iamunrecognisedusersServiceRole58E0D3DD",
+            "Arn",
+          ],
+        },
+        "Runtime": "java21",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "iam-unrecognised-users",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Timeout": 600,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "iamunrecognisedusersErrorPercentageAlarmForLambda2E0E48EC": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Ref": "AnghammaradSnsArn",
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "iamunrecognisedusersD1D8EA98",
+              },
+              " exceeded 0% error rate",
+            ],
+          ],
+        },
+        "AlarmName": {
+          "Fn::Join": [
+            "",
+            [
+              "High error percentage from ",
+              {
+                "Ref": "iamunrecognisedusersD1D8EA98",
+              },
+              " lambda in PROD",
+            ],
+          ],
+        },
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "100*m1/m2",
+            "Id": "expr_1",
+            "Label": {
+              "Fn::Join": [
+                "",
+                [
+                  "Error % of ",
+                  {
+                    "Ref": "iamunrecognisedusersD1D8EA98",
+                  },
+                ],
+              ],
+            },
+            "ReturnData": true,
+          },
+          {
+            "Id": "m1",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "iamunrecognisedusersD1D8EA98",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 60,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "m2",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "iamunrecognisedusersD1D8EA98",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 60,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "iamunrecognisedusersServiceRole58E0D3DD": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "iam-unrecognised-users",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "iamunrecognisedusersServiceRoleDefaultPolicy623DA7DB": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/security/PROD/iam-unrecognised-users/iam-unrecognised-users-TEST.jar",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/security/iam-unrecognised-users",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:eu-west-1:",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/PROD/security/iam-unrecognised-users/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "iamunrecognisedusersServiceRoleDefaultPolicy623DA7DB",
+        "Roles": [
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "iamunrecognisedusersiamunrecogniseduserscron0914MONFRI09BC970ED": {
+      "Properties": {
+        "Description": "Run iam-unrecognised-users lambda, Monday-Friday at 9AM and 2PM",
+        "ScheduleExpression": "cron(0 9,14 ? * MON-FRI *)",
+        "State": "ENABLED",
+        "Tags": [
+          {
+            "Key": "App",
+            "Value": "iam-unrecognised-users",
+          },
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "iamunrecognisedusersD1D8EA98",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "iamunrecognisedusersiamunrecogniseduserscron0914MONFRI0AllowEventRulesecurityhqiamunrecognisedusers441E46D880A4E2D1": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "iamunrecognisedusersD1D8EA98",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "iamunrecognisedusersiamunrecogniseduserscron0914MONFRI09BC970ED",
             "Arn",
           ],
         },
