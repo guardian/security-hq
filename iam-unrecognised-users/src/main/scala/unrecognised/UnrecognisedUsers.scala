@@ -57,7 +57,7 @@ object UnrecognisedUsers extends LazyLogging {
       restrictToAccountId: Option[String] = None
   )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val s3Client = S3Client.builder.region(settings.region).build()
-    val snsClient = SnsAsyncClient.builder.region(settings.region).build()
+    lazy val snsClient = SnsAsyncClient.builder.region(settings.region).build()
     // IAM is global; us-east-1 is required for credential reports. Additional regions only affect CloudFormation stack
     // enrichment, which this job does not rely on.
     val regions = List(settings.region, Region.of("us-east-1")).distinct
