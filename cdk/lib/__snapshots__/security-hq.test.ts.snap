@@ -9,7 +9,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuStringParameter",
       "GuPutCloudwatchMetricsPolicy",
       "GuGetS3ObjectsPolicy",
-      "GuGetS3ObjectsPolicy",
+      "GuPolicy",
       "GuDynamoDBReadPolicy",
       "GuDynamoDBWritePolicy",
       "GuAllowPolicy",
@@ -1274,18 +1274,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "DistributionBucketName",
-                    },
-                    "/security/PROD/security-hq/security-hq.conf",
-                  ],
-                ],
-              },
+              "Resource": "security/PROD/security-hq/security-hq.conf",
               "Sid": "LoadAccountConfig",
             },
             {
@@ -1345,18 +1334,8 @@ exports[`HQ stack matches the snapshot 1`] = `
             {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "DistributionBucketName",
-                    },
-                    "/security/PROD/undefined/security-hq.conf",
-                  ],
-                ],
-              },
+              "Resource": "security/PROD/security-hq/security-hq.conf",
+              "Sid": "LoadAccountConfig",
             },
           ],
           "Version": "2012-10-17",
