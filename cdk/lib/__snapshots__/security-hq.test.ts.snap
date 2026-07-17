@@ -9,6 +9,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuStringParameter",
       "GuPutCloudwatchMetricsPolicy",
       "GuGetS3ObjectsPolicy",
+      "GuGetS3ObjectsPolicy",
       "GuDynamoDBReadPolicy",
       "GuDynamoDBWritePolicy",
       "GuAllowPolicy",
@@ -1332,6 +1333,38 @@ exports[`HQ stack matches the snapshot 1`] = `
           },
           {
             "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "S3ConfigRead61D038C2": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/PROD/undefined/security-hq.conf",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "S3ConfigRead61D038C2",
+        "Roles": [
+          {
+            "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
           },
         ],
       },

@@ -119,9 +119,14 @@ export class SecurityHQ extends GuStack {
     dpkg -i /tmp/installer.deb`);
 
     const guPutCloudwatchMetricsPolicy = new GuPutCloudwatchMetricsPolicy(this);
-    const guGetS3ObjectsPolicy = new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
+    const guGetS3AuditObjectsPolicy = new GuGetS3ObjectsPolicy(this, "S3AuditRead", {
       bucketName: auditDataS3BucketName.valueAsString,
       paths: [auditDataS3BucketPath],
+    });
+    const configS3BucketPath = `${this.stack}/${this.stage}/${this.app}/security-hq.conf`;
+    const guGetS3ConfigObjectsPolicy = new GuGetS3ObjectsPolicy(this, "S3ConfigRead", {
+      bucketName: distBucket.valueAsString,
+      paths: [configS3BucketPath],
     });
     const guDynamoDBReadPolicy = new GuDynamoDBReadPolicy(this, "DynamoRead", {
       tableName: table.tableName,
@@ -146,7 +151,7 @@ export class SecurityHQ extends GuStack {
     const appAdditionalPolicies = [
       GuAnghammaradSenderPolicy.getInstance(this),
       guPutCloudwatchMetricsPolicy,
-      guGetS3ObjectsPolicy,
+      guGetS3AuditObjectsPolicy,
       guDynamoDBReadPolicy,
       guDynamoDBWritePolicy,
       guAssumeRolePolicy,
@@ -322,7 +327,8 @@ export class SecurityHQ extends GuStack {
     const iamOutdatedCredentialsLambdaAdditionalPolicies = [
       GuAnghammaradSenderPolicy.getInstance(this),
       guPutCloudwatchMetricsPolicy,
-      guGetS3ObjectsPolicy,
+      guGetS3AuditObjectsPolicy,
+      guGetS3ConfigObjectsPolicy,
       guDynamoDBReadPolicy,
       guDynamoDBWritePolicy,
       guAssumeRolePolicy,
@@ -371,7 +377,7 @@ export class SecurityHQ extends GuStack {
     const iamUnrecognisedUsersLambdaAdditionalPolicies = [
       GuAnghammaradSenderPolicy.getInstance(this),
       guPutCloudwatchMetricsPolicy,
-      guGetS3ObjectsPolicy,
+      guGetS3AuditObjectsPolicy,
       guAssumeRolePolicy,
       guDescribeRegionsPolicy,
     ];
