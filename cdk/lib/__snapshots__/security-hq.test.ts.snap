@@ -1274,7 +1274,18 @@ exports[`HQ stack matches the snapshot 1`] = `
             {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": "security/PROD/security-hq/security-hq.conf",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/PROD/security-hq/security-hq.conf",
+                  ],
+                ],
+              },
               "Sid": "LoadAccountConfig",
             },
             {
@@ -1334,7 +1345,18 @@ exports[`HQ stack matches the snapshot 1`] = `
             {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": "security/PROD/security-hq/security-hq.conf",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/security/PROD/security-hq/security-hq.conf",
+                  ],
+                ],
+              },
               "Sid": "LoadAccountConfig",
             },
           ],
