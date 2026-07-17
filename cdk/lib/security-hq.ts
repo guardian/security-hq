@@ -2,8 +2,8 @@ import { GuScheduledLambda } from "@guardian/cdk";
 import { AccessScope } from "@guardian/cdk/lib/constants";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import type { GuStackProps } from "@guardian/cdk/lib/constructs/core";
-import { GuAnghammaradTopicParameter } from "@guardian/cdk/lib/constructs/core";
 import {
+  GuAnghammaradTopicParameter,
   GuDistributionBucketParameter,
   GuParameter,
   GuStack,
@@ -18,6 +18,7 @@ import {
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
   GuGetS3ObjectsPolicy,
+  GuPolicy,
   GuPutCloudwatchMetricsPolicy,
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
@@ -127,15 +128,15 @@ export class SecurityHQ extends GuStack {
         paths: [auditDataS3BucketPath],
       },
     );
-    const configS3BucketPath = `${this.stack}/${this.stage}/${this.app}/security-hq.conf`;
-    const guGetS3ConfigObjectsPolicy = new GuGetS3ObjectsPolicy(
-      this,
-      "S3ConfigRead",
-      {
-        bucketName: distBucket.valueAsString,
-        paths: [configS3BucketPath],
-      },
-    );
+    const configS3BucketPath = `${this.stack}/${this.stage}/${SecurityHQ.app.app}/security-hq.conf`;
+    const guGetS3ConfigObjectsPolicy = new GuPolicy(this, "S3ConfigRead", {
+      statements: [
+        this.loadAccountConfigPolicy(
+          distBucket.valueAsString,
+          configS3BucketPath,
+        ),
+      ],
+    });
     const guDynamoDBReadPolicy = new GuDynamoDBReadPolicy(this, "DynamoRead", {
       tableName: table.tableName,
     });
@@ -327,7 +328,10 @@ export class SecurityHQ extends GuStack {
         this.getCallerIdentityPolicy(),
         this.getArtifactBucketParameterPolicy(),
         this.getLocalDevConfigS3Policy(distBucket.valueAsString),
-        this.loadAccountConfigPolicy(distBucket.valueAsString),
+        this.loadAccountConfigPolicy(
+          distBucket.valueAsString,
+          configS3BucketPath,
+        ),
         this.discoverRegionsPolicy(),
       ],
     });
@@ -493,15 +497,13 @@ export class SecurityHQ extends GuStack {
     });
   }
 
-  private loadAccountConfigPolicy(bucketName: string) {
+  private loadAccountConfigPolicy(bucketName: string, path: string) {
     // Used by lambdas to load the security-hq.conf file
     return new PolicyStatement({
       sid: "LoadAccountConfig",
       effect: Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [
-        `arn:aws:s3:::${bucketName}/security/${this.stage}/security-hq/security-hq.conf`,
-      ],
+      resources: [path],
     });
   }
 
