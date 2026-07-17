@@ -101,8 +101,9 @@ class IamRemediationService(
           (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
 
         if (isWeekday && isTimeToRun) {
-          disableOutdatedCredentials()
-          disableUnrecognisedUsers()
+//          disableOutdatedCredentials()
+//          disableUnrecognisedUsers()
+          logger.warn("NOT running IamRemediationService jobs to disable outdated credentials and unrecognised users.")
         }
       }
 
