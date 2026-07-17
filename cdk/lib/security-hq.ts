@@ -503,7 +503,7 @@ export class SecurityHQ extends GuStack {
       sid: "LoadAccountConfig",
       effect: Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [path],
+      resources: [`arn:aws:s3:::${bucketName}/${path}`],
     });
   }
 
