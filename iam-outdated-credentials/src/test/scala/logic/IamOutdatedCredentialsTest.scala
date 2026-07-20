@@ -403,7 +403,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           machineWithOneOldEnabledAccessKey.username
         )
         val history = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(activity))
-        identifyMostRecentActivity(history, key).map(_.iamRemediationActivityType) shouldEqual Some(Warning)
+        identifyMostRecentActivity(history, key, date).map(_.iamRemediationActivityType) shouldEqual Some(Warning)
       }
       "if the key's most recent activity is Final, return Final" in {
         val key = humanAccessKeyOldAndEnabled1
@@ -414,18 +414,18 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           humanWithOneOldEnabledAccessKey.username
         )
         val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(activity))
-        identifyMostRecentActivity(history, key).map(_.iamRemediationActivityType) shouldEqual Some(FinalWarning)
+        identifyMostRecentActivity(history, key, date).map(_.iamRemediationActivityType) shouldEqual Some(FinalWarning)
       }
       "if the key's most recent activity is Remediation, return Remediation" in {
         val key = humanAccessKeyOldAndEnabled1
         val activity = remediationActivity(1, Remediation, key, humanWithOneOldEnabledAccessKey.username)
         val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(activity))
-        identifyMostRecentActivity(history, key).map(_.iamRemediationActivityType) shouldEqual Some(Remediation)
+        identifyMostRecentActivity(history, key, date).map(_.iamRemediationActivityType) shouldEqual Some(Remediation)
       }
       "given a key does not have any activity, return None" in {
         val activity = Nil
         val machineNoActivity = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey2, activity)
-        identifyMostRecentActivity(machineNoActivity, machineAccessKeyOldAndEnabledOnTimeThreshold) shouldBe empty
+        identifyMostRecentActivity(machineNoActivity, machineAccessKeyOldAndEnabledOnTimeThreshold, date) shouldBe empty
       }
       "if the key's most recent activity is Warning, return the correct output" in {
         val key = machineAccessKeyOldAndEnabled
@@ -436,7 +436,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           machineWithOneOldEnabledAccessKey.username
         )
         val history = IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, List(activity))
-        val result = identifyMostRecentActivity(history, key)
+        val result = identifyMostRecentActivity(history, key, date)
         inside(result.value) {
           case IamRemediationActivity(
                 awsAccountId,
@@ -461,9 +461,57 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           humanWithOneOldEnabledAccessKey.username
         )
         val history = IamUserRemediationHistory(account, humanWithOneOldEnabledAccessKey, List(activity))
-        identifyMostRecentActivity(history, key).map(_.dateNotificationSent) shouldEqual Some(
+        identifyMostRecentActivity(history, key, date).map(_.dateNotificationSent) shouldEqual Some(
           date.minusDays(daysBetweenFinalNotificationAndRemediation)
         )
+      }
+
+      "given a key that was marked as final warning months ago, but the task has not run since" in {
+        val username = "ancientMachine"
+        // Key was created two years ago.  It is ancient.
+        val twoYearsAgo = date.minusMonths(24)
+        // Key was issued a final warning a year ago.
+        val aYearAgo = date.minusMonths(12)
+        // Key was issued a warning a year ago.
+        val aYearAndABit = aYearAgo.minusDays(daysBetweenWarningAndFinalNotification)
+        val machineUser = MachineUser(
+          username,
+          AccessKey(AccessKeyEnabled, Some(twoYearsAgo)),
+          AccessKey(AccessKeyEnabled, Some(aYearAgo)),
+          Green,
+          None,
+          None,
+          Nil
+        )
+        val remediationOperation = calculateOutstandingAccessKeyOperations(
+          List(
+            IamUserRemediationHistory(
+              account,
+              machineUser,
+              List(
+                IamRemediationActivity(
+                  account.id,
+                  username,
+                  aYearAndABit,
+                  Warning,
+                  OutdatedCredential,
+                  twoYearsAgo
+                ),
+                IamRemediationActivity(
+                  account.id,
+                  username,
+                  aYearAgo,
+                  FinalWarning,
+                  OutdatedCredential,
+                  twoYearsAgo
+                )
+              )
+            )
+          ),
+          date
+        ).head
+        remediationOperation.iamProblem shouldBe OutdatedCredential
+        remediationOperation.iamRemediationActivityType shouldBe Warning
       }
     }
 
