@@ -297,7 +297,7 @@ object IamOutdatedCredentials extends LazyLogging {
     for {
       userRemediationHistory <- remediationHistories
       vulnerableKey <- identifyVulnerableKeys(userRemediationHistory, now)
-      keyPreviousAlert = identifyMostRecentActivity(userRemediationHistory, vulnerableKey)
+      keyPreviousAlert = identifyMostRecentActivity(userRemediationHistory, vulnerableKey, now)
       keyNextActivity <- identifyRemediationOperation(keyPreviousAlert, now, userRemediationHistory, vulnerableKey)
     } yield keyNextActivity
   }
@@ -313,22 +313,20 @@ object IamOutdatedCredentials extends LazyLogging {
 
   private[logic] def identifyMostRecentActivity(
       remediationHistory: IamUserRemediationHistory,
-      vulnerableKey: AccessKey
+      vulnerableKey: AccessKey,
+      now: DateTime
   ): Option[IamRemediationActivity] = {
     // TODO lastRotatedDate should not be an Option, because every IAM access key has a last rotated date. Change SHQ's model.
     vulnerableKey.lastRotated match {
       case Some(lastRotatedDate) =>
-        // filter activity list to find matching db records for given access key
-        val keyPreviousActivities =
-          remediationHistory.activityHistory.filter(_.problemCreationDate.isEqual(lastRotatedDate))
-        keyPreviousActivities match {
-          case Nil =>
-            // there is no recent activity for the given access key, so return None.
-            None
-          case remediationActivities =>
-            // get the most recent remediation activity
-            Some(remediationActivities.maxBy(_.dateNotificationSent.getMillis))
-        }
+        // filter activity list to find...
+        remediationHistory.activityHistory
+          // ...matching db records for the given access key
+          .filter(_.problemCreationDate.isEqual(lastRotatedDate))
+          // ...where the last action was in the last week and a day
+          .filter(_.dateNotificationSent.isAfter(now.minusDays(8)))
+          // ...returning the most recent one, if any.
+          .maxByOption(_.dateNotificationSent.getMillis)
       case None =>
         val name = remediationHistory.iamUser.username
         val account = remediationHistory.awsAccount.name
