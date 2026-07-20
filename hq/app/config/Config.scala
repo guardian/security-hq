@@ -5,7 +5,7 @@ import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupCheck
 import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV2, SecretSupplier}
 import com.gu.play.secretrotation.{SnapshotProvider, TransitionTiming}
 import model.*
-import play.api.Configuration
+import play.api.{Configuration, Logging}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ssm.SsmClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-object Config {
+object Config extends Logging {
   val app = "security-hq"
 
   val documentationLinks: List[Documentation] = List(
@@ -135,19 +135,23 @@ object Config {
     )
   }
 
-  def getUnrecognisedUserDryRun(config: Configuration): Attempt[Boolean] = {
+  def getUnrecognisedUserDryRun(config: Configuration)(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
     Attempt.Right(
       // Default to true; only an explicit "false" disables dry-run.
       // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
       !config.getOptional[String]("unrecognisedUser.dryRun").getOrElse("true").equalsIgnoreCase("false")
+    ).tap(b =>
+      logger.info(s"unrecognisedUser.dryRun is set to ${b}")
     )
   }
 
-  def getOutdatedCredentialsDryRun(config: Configuration): Attempt[Boolean] = {
+  def getOutdatedCredentialsDryRun(config: Configuration)(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
     Attempt.Right(
       // Default to true; only an explicit "false" disables dry-run.
       // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
       !config.getOptional[String]("outdatedCredentials.dryRun").getOrElse("true").equalsIgnoreCase("false")
+    ).tap(b =>
+      logger.info(s"outdatedCredentials.dryRun is set to ${b}")
     )
   }
 
