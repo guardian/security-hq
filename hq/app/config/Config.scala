@@ -136,19 +136,22 @@ object Config extends Logging {
 
   // Default to true; only an explicit "false" disables dry-run.
   // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
-  private[config] def getDryRun(config: Configuration, key: String) = !config.getOptional[String](key).exists(_.equalsIgnoreCase("false"))
+  private[config] def getDryRun(config: Configuration, key: String) =
+    !config.getOptional[String](key).exists(_.equalsIgnoreCase("false"))
 
   def getUnrecognisedUserDryRun(
       config: Configuration
   )(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
-    Attempt.Right(getDryRun(config, "unrecognisedUser.dryRun"))
+    Attempt
+      .Right(getDryRun(config, "unrecognisedUser.dryRun"))
       .tap(b => logger.info(s"unrecognisedUser.dryRun is set to $b"))
   }
 
   def getOutdatedCredentialsDryRun(
       config: Configuration
   )(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
-    Attempt.Right(getDryRun(config, "outdatedCredentials.dryRun"))
+    Attempt
+      .Right(getDryRun(config, "outdatedCredentials.dryRun"))
       .tap(b => logger.info(s"outdatedCredentials.dryRun is set to $b"))
   }
 

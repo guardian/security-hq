@@ -1,9 +1,6 @@
 package config
 
 import org.scalatest.EitherValues
-
-import scala.concurrent.Await
-import scala.concurrent.duration.*
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 import play.api.Configuration
@@ -19,7 +16,6 @@ class ConfigTest extends AnyFreeSpec with Matchers with EitherValues {
       "rubbishValue" -> "rubbish"
     )
   )
-
 
   "Check we read the dryRun flag correctly from the config" - {
 
