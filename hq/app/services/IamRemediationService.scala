@@ -71,11 +71,11 @@ class IamRemediationService(
         listAccountAccessKeys(_, iamClients)
       )
       // disable each access key for unrecognised users
-      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(disableAccountAccessKeys(_, iamClients))
+      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(disableAccountAccessKeys(_, iamClients, config.dryRun))
       // remove passwords (i.e. login profiles) for each unrecognised user
-      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(removeAccountPasswords(_, iamClients))
+      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(removeAccountPasswords(_, iamClients, config.dryRun))
       // construct and send a notification for each unrecognised user
-      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers)
+      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers, config.dryRun)
       notificationIds <- Attempt.traverse(notifications)(
         AnghammaradNotifications.send(_, config.anghammaradSnsTopicArn, snsClient)
       )
@@ -101,9 +101,8 @@ class IamRemediationService(
           (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
 
         if (isWeekday && isTimeToRun) {
-//          disableOutdatedCredentials()
-//          disableUnrecognisedUsers()
-          logger.warn("NOT running IamRemediationService jobs to disable outdated credentials and unrecognised users.")
+          disableOutdatedCredentials()
+          disableUnrecognisedUsers()
         }
       }
 
@@ -111,13 +110,14 @@ class IamRemediationService(
   }
 
   private def disableOutdatedCredentials(): Attempt[Unit] = for {
+    dryRun <- Config.getOutdatedCredentialsDryRun(config)
     notificationTopicArn <- getAnghammaradSNSTopicArn(config)
     tableName <- getIamDynamoTableName(config)
     serviceAccountIds <- Config.getAccountsForIamRemediationService(config)
     rawCredsReports = cacheService.getAllCredentials
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-    result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun = false).disableOutdatedCredentials(
+    result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun).disableOutdatedCredentials(
       notificationTopicArn,
       tableName,
       serviceAccountIds,
