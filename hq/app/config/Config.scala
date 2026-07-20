@@ -149,7 +149,7 @@ object Config extends Logging {
     Attempt.Right(
       // Default to true; only an explicit "false" disables dry-run.
       // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
-      !config.getOptional[String]("outdatedCredentials.dryRun").getOrElse("true").equalsIgnoreCase("false")
+      config.getOptional[String]("outdatedCredentials.dryRun").exists(_.equalsIgnoreCase("false"))
     ).tap(b =>
       logger.info(s"outdatedCredentials.dryRun is set to ${b}")
     )
