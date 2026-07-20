@@ -122,7 +122,8 @@ object Config {
       bucket <- getIamUnrecognisedUserBucket(config)
       securityAccount <- getSecurityAccount(config)
       anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn)
+      dryRun <- getUnrecognisedUserDryRun(config)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn, dryRun)
   }
 
   def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
@@ -131,6 +132,22 @@ object Config {
       FailedAttempt(
         Failure("unable to get Anghammarad topic ARN", "unable to get Anghammarad topic ARN for IAM jobs", 500)
       )
+    )
+  }
+
+  def getUnrecognisedUserDryRun(config: Configuration): Attempt[Boolean] = {
+    Attempt.Right(
+      // Default to true; only an explicit "false" disables dry-run.
+      // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
+      !config.getOptional[String]("unrecognisedUser.dryRun").getOrElse("true").equalsIgnoreCase("false")
+    )
+  }
+
+  def getOutdatedCredentialsDryRun(config: Configuration): Attempt[Boolean] = {
+    Attempt.Right(
+      // Default to true; only an explicit "false" disables dry-run.
+      // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
+      !config.getOptional[String]("outdatedCredentials.dryRun").getOrElse("true").equalsIgnoreCase("false")
     )
   }
 

@@ -102,7 +102,7 @@ object IamUnrecognisedUsers extends LazyLogging {
   def disableAccountAccessKeys(
       accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
       iamClients: AwsClients[IamAsyncClient],
-      dryRun: Boolean = false
+      dryRun: Boolean
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
     if (!dryRun) {
       val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
@@ -140,7 +140,7 @@ object IamUnrecognisedUsers extends LazyLogging {
   def removeAccountPasswords(
       accountUnrecognisedUsers: AccountUnrecognisedUsers,
       iamClients: AwsClients[IamAsyncClient],
-      dryRun: Boolean = false
+      dryRun: Boolean
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
     if (!dryRun) {
       val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
@@ -169,7 +169,7 @@ object IamUnrecognisedUsers extends LazyLogging {
 
   def unrecognisedUserNotifications(
       accountUsers: List[AccountUnrecognisedUsers],
-      dryRun: Boolean = false
+      dryRun: Boolean
   ): List[Notification] = {
     if (!dryRun) {
       accountUsers.flatMap { case AccountUnrecognisedUsers(account, users) =>
