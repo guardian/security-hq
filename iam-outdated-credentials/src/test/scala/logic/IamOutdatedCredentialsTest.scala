@@ -465,46 +465,99 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           date.minusDays(daysBetweenFinalNotificationAndRemediation)
         )
       }
+    }
 
-      "given a key that was marked as final warning months ago, but the task has not run since" in {
-        val username = "ancientMachine"
-        // Key was created two years ago.  It is ancient.
-        val twoYearsAgo = date.minusMonths(24)
+    "identifyOutstandingAccessKeyOperations must handle gaps gracefully" - {
+      val username = "ancientMachine"
+      // Key was created two years ago.  It is ancient.
+      val twoYearsAgo = date.minusMonths(24)
+      val aYearAgo = date.minusMonths(12)
+      val machineUser = MachineUser(
+        username,
+        AccessKey(AccessKeyEnabled, Some(twoYearsAgo)),
+        AccessKey(AccessKeyEnabled, Some(aYearAgo)),
+        Green,
+        None,
+        None,
+        Nil
+      )
+      val aYearAndABit = aYearAgo.minusDays(daysBetweenWarningAndFinalNotification)
+      def warning(warningDate: DateTime) = IamRemediationActivity(
+        account.id,
+        username,
+        warningDate,
+        Warning,
+        OutdatedCredential,
+        twoYearsAgo
+      )
+      def finalWarning(finalWarningDate: DateTime) = IamRemediationActivity(
+        account.id,
+        username,
+        finalWarningDate,
+        FinalWarning,
+        OutdatedCredential,
+        twoYearsAgo
+      )
+
+      "given a key that was given a final warning months ago, but the task has not run since, go back to warning" in {
         // Key was issued a final warning a year ago.
-        val aYearAgo = date.minusMonths(12)
         // Key was issued a warning a year ago.
-        val aYearAndABit = aYearAgo.minusDays(daysBetweenWarningAndFinalNotification)
-        val machineUser = MachineUser(
-          username,
-          AccessKey(AccessKeyEnabled, Some(twoYearsAgo)),
-          AccessKey(AccessKeyEnabled, Some(aYearAgo)),
-          Green,
-          None,
-          None,
-          Nil
-        )
         val remediationOperation = calculateOutstandingAccessKeyOperations(
           List(
             IamUserRemediationHistory(
               account,
               machineUser,
               List(
-                IamRemediationActivity(
-                  account.id,
-                  username,
-                  aYearAndABit,
-                  Warning,
-                  OutdatedCredential,
-                  twoYearsAgo
-                ),
-                IamRemediationActivity(
-                  account.id,
-                  username,
-                  aYearAgo,
-                  FinalWarning,
-                  OutdatedCredential,
-                  twoYearsAgo
-                )
+                warning(aYearAndABit),
+                finalWarning(aYearAgo)
+              )
+            )
+          ),
+          date
+        ).head
+        remediationOperation.iamProblem shouldBe OutdatedCredential
+        remediationOperation.iamRemediationActivityType shouldBe Warning
+      }
+
+      "given a key that was given a final warning 13 days ago, but the task has not run since, carry on" in {
+        // Key was issued a final warning a year ago.
+        val aYearAgo = date.minusMonths(12)
+        // Key was issued a warning 14 days ago
+        val aYearAndFifteenDaysAgo = date.minusDays(15)
+        // Key was issued a final warning 13 days ago
+        val aYearAndThirteenDaysAgo = date.minusDays(13)
+        val remediationOperation = calculateOutstandingAccessKeyOperations(
+          List(
+            IamUserRemediationHistory(
+              account,
+              machineUser,
+              List(
+                warning(aYearAndFifteenDaysAgo),
+                finalWarning(aYearAndThirteenDaysAgo)
+              )
+            )
+          ),
+          date
+        ).head
+        remediationOperation.iamProblem shouldBe OutdatedCredential
+        remediationOperation.iamRemediationActivityType shouldBe Remediation
+      }
+
+      "given a key that was given a final warning 14 days ago, but the task has not run since, go back to warning" in {
+        // Key was issued a final warning a year ago.
+        val aYearAgo = date.minusMonths(12)
+        // Key was issued a warning 14 days ago
+        val aYearAndFifteenDaysAgo = date.minusDays(15)
+        // Key was issued a final warning 13 days ago
+        val aYearAndfourteenDaysAgo = date.minusDays(14)
+        val remediationOperation = calculateOutstandingAccessKeyOperations(
+          List(
+            IamUserRemediationHistory(
+              account,
+              machineUser,
+              List(
+                warning(aYearAndFifteenDaysAgo),
+                finalWarning(aYearAndfourteenDaysAgo)
               )
             )
           ),
