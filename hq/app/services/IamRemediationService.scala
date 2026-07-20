@@ -53,9 +53,9 @@ class IamRemediationService(
     */
   private def disableUnrecognisedUsers()(implicit ec: ExecutionContext): Attempt[Unit] = {
     val result = for {
-      config <- getIamUnrecognisedUserConfig(config)
+      unrecognisedUsersConfig <- getIamUnrecognisedUserConfig(config)
       // fetch and parse our stored Janus config to use the canonical source of "recognised" usernames
-      s3Object <- getS3Object(securityS3Client, config.janusUserBucket, config.janusDataFileKey)
+      s3Object <- getS3Object(securityS3Client, unrecognisedUsersConfig.janusUserBucket, unrecognisedUsersConfig.janusDataFileKey)
       janusData = JanusConfig.load(makeFile(s3Object.mkString))
       janusUsernames = getJanusUsernames(janusData)
       // look up the credentials report from the cache service as our source of current IAM users
@@ -64,20 +64,20 @@ class IamRemediationService(
       allowedAccountsUnrecognisedUsers = unrecognisedUsersForAllowedAccounts(
         accountCredsReports,
         janusUsernames,
-        config.allowedAccounts
+        unrecognisedUsersConfig.allowedAccounts
       )
       // list the access keys associated to each user (this is required because the credentials report does not include access key ID)
       unrecognisedUserAccessKeys <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(
         listAccountAccessKeys(_, iamClients)
       )
       // disable each access key for unrecognised users
-      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(disableAccountAccessKeys(_, iamClients, config.dryRun))
+      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(disableAccountAccessKeys(_, iamClients, unrecognisedUsersConfig.dryRun))
       // remove passwords (i.e. login profiles) for each unrecognised user
-      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(removeAccountPasswords(_, iamClients, config.dryRun))
+      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(removeAccountPasswords(_, iamClients, unrecognisedUsersConfig.dryRun))
       // construct and send a notification for each unrecognised user
-      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers, config.dryRun)
+      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers, unrecognisedUsersConfig.dryRun)
       notificationIds <- Attempt.traverse(notifications)(
-        AnghammaradNotifications.send(_, config.anghammaradSnsTopicArn, snsClient)
+        AnghammaradNotifications.send(_, unrecognisedUsersConfig.anghammaradSnsTopicArn, snsClient)
       )
     } yield notificationIds
     result.tap {
