@@ -323,8 +323,8 @@ object IamOutdatedCredentials extends LazyLogging {
         remediationHistory.activityHistory
           // ...matching db records for the given access key
           .filter(_.problemCreationDate.isEqual(lastRotatedDate))
-          // ...where the last action was in the last week and a day
-          .filter(_.dateNotificationSent.isAfter(now.minusDays(8)))
+          // ...where the last action was in the last two weeks
+          .filter(_.dateNotificationSent.isAfter(now.minusWeeks(2)))
           // ...returning the most recent one, if any.
           .maxByOption(_.dateNotificationSent.getMillis)
       case None =>
