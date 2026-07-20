@@ -9,11 +9,11 @@ class ConfigTest extends AnyFreeSpec with Matchers with EitherValues {
 
   val configuration: Configuration = Configuration.from(
     Map(
-      "trueValue" -> "true",
-      "falseValue" -> "false",
-      "TRUEValue" -> "TRUE",
-      "FALSEValue" -> "FALSE",
-      "rubbishValue" -> "rubbish"
+      "trueValue.dryRun" -> "true",
+      "falseValue.dryRun" -> "false",
+      "TRUEValue.dryRun" -> "TRUE",
+      "FALSEValue.dryRun" -> "FALSE",
+      "rubbishValue.dryRun" -> "rubbish"
     )
   )
 
