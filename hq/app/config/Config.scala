@@ -6,7 +6,6 @@ import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV2, SecretSupplier}
 import com.gu.play.secretrotation.{SnapshotProvider, TransitionTiming}
 import model.*
 import play.api.{Configuration, Logging}
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ssm.SsmClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -135,24 +134,28 @@ object Config extends Logging {
     )
   }
 
-  def getUnrecognisedUserDryRun(config: Configuration)(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
-    Attempt.Right(
-      // Default to true; only an explicit "false" disables dry-run.
-      // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
-      config.getOptional[String]("unrecognisedUser.dryRun").exists(_.equalsIgnoreCase("false"))
-    ).tap(b =>
-      logger.info(s"unrecognisedUser.dryRun is set to ${b}")
-    )
+  def getUnrecognisedUserDryRun(
+      config: Configuration
+  )(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
+    Attempt
+      .Right(
+        // Default to true; only an explicit "false" disables dry-run.
+        // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
+        config.getOptional[String]("unrecognisedUser.dryRun").exists(_.equalsIgnoreCase("false"))
+      )
+      .tap(b => logger.info(s"unrecognisedUser.dryRun is set to ${b}"))
   }
 
-  def getOutdatedCredentialsDryRun(config: Configuration)(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
-    Attempt.Right(
-      // Default to true; only an explicit "false" disables dry-run.
-      // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
-      config.getOptional[String]("outdatedCredentials.dryRun").exists(_.equalsIgnoreCase("false"))
-    ).tap(b =>
-      logger.info(s"outdatedCredentials.dryRun is set to ${b}")
-    )
+  def getOutdatedCredentialsDryRun(
+      config: Configuration
+  )(implicit executionContext: ExecutionContext): Attempt[Boolean] = {
+    Attempt
+      .Right(
+        // Default to true; only an explicit "false" disables dry-run.
+        // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
+        config.getOptional[String]("outdatedCredentials.dryRun").exists(_.equalsIgnoreCase("false"))
+      )
+      .tap(b => logger.info(s"outdatedCredentials.dryRun is set to ${b}"))
   }
 
   def getAccountsForIamRemediationService(config: Configuration): Attempt[List[String]] = {
