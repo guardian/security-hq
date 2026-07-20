@@ -390,6 +390,7 @@ export class SecurityHQ extends GuStack {
       GuAnghammaradSenderPolicy.getInstance(this),
       guPutCloudwatchMetricsPolicy,
       guGetS3AuditObjectsPolicy,
+      guGetS3ConfigObjectsPolicy,
       guAssumeRolePolicy,
       guDescribeRegionsPolicy,
     ];

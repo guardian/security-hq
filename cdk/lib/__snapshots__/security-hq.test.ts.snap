@@ -1367,6 +1367,9 @@ exports[`HQ stack matches the snapshot 1`] = `
           {
             "Ref": "iamoutdatedcredentialsServiceRoleEE7EC16A",
           },
+          {
+            "Ref": "iamunrecognisedusersServiceRole58E0D3DD",
+          },
         ],
       },
       "Type": "AWS::IAM::Policy",
