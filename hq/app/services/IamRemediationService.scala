@@ -118,11 +118,11 @@ class IamRemediationService(
   }
 
   private def disableOutdatedCredentials(): Attempt[Unit] = for {
-    dryRun <- Config.getOutdatedCredentialsDryRun(config)
     notificationTopicArn <- getAnghammaradSNSTopicArn(config)
     tableName <- getIamDynamoTableName(config)
     serviceAccountIds <- Config.getAccountsForIamRemediationService(config)
     rawCredsReports = cacheService.getAllCredentials
+    dryRun = Config.getOutdatedCredentialsDryRun(config)
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
     result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun).disableOutdatedCredentials(
