@@ -6,8 +6,9 @@ import com.gu.janus.JanusConfig
 import config.Config
 import config.Config.{getAnghammaradSNSTopicArn, getIamDynamoTableName, getIamUnrecognisedUserConfig}
 import db.IamRemediationDb
-import logic.IamUnrecognisedUsers
 import logic.IamUnrecognisedUsers.*
+import logic.{IamOutdatedCredentials, IamUnrecognisedUsers}
+import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Mode}
@@ -73,23 +74,20 @@ class IamRemediationService(
       unrecognisedUserAccessKeys <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(
         listAccountAccessKeys(_, iamClients)
       )
-      _ = logger.warn(
-        s"NOT running IamRemediationService jobs to disable unrecognised users.  Dry run flag is ${unrecognisedUsersConfig.dryRun}"
+      // disable each access key for unrecognised users
+      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(
+        disableAccountAccessKeys(_, iamClients, unrecognisedUsersConfig.dryRun)
       )
-//      // disable each access key for unrecognised users
-//      _ <- Attempt.traverse(unrecognisedUserAccessKeys)(
-//        disableAccountAccessKeys(_, iamClients, unrecognisedUsersConfig.dryRun)
-//      )
-//      // remove passwords (i.e. login profiles) for each unrecognised user
-//      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(
-//        removeAccountPasswords(_, iamClients, unrecognisedUsersConfig.dryRun)
-//      )
-//      // construct and send a notification for each unrecognised user
-//      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers, unrecognisedUsersConfig.dryRun)
-//      notificationIds <- Attempt.traverse(notifications)(
-//        AnghammaradNotifications.send(_, unrecognisedUsersConfig.anghammaradSnsTopicArn, snsClient)
-//      )
-    } yield Nil // notificationIds
+      // remove passwords (i.e. login profiles) for each unrecognised user
+      _ <- Attempt.traverse(allowedAccountsUnrecognisedUsers)(
+        removeAccountPasswords(_, iamClients, unrecognisedUsersConfig.dryRun)
+      )
+      // construct and send a notification for each unrecognised user
+      notifications = unrecognisedUserNotifications(allowedAccountsUnrecognisedUsers, unrecognisedUsersConfig.dryRun)
+      notificationIds <- Attempt.traverse(notifications)(
+        AnghammaradNotifications.send(_, unrecognisedUsersConfig.anghammaradSnsTopicArn, snsClient)
+      )
+    } yield notificationIds
     result.tap {
       case Left(failedAttempt)    => logger.error(s"Failed to run unrecognised user job: ${failedAttempt.logMessage}")
       case Right(notificationIds) =>
@@ -127,13 +125,12 @@ class IamRemediationService(
     dryRun = Config.getOutdatedCredentialsDryRun(config)
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-    _ = logger.warn(s"NOT running IamRemediationService jobs to disable outdated credentials.  Dry run flag is $dryRun")
-//    result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun).disableOutdatedCredentials(
-//      notificationTopicArn,
-//      tableName,
-//      serviceAccountIds,
-//      rawCredsReports,
-//      allowedAwsAccountIds
-//    )
-  } yield () // result
+    result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun).disableOutdatedCredentials(
+      notificationTopicArn,
+      tableName,
+      serviceAccountIds,
+      rawCredsReports,
+      allowedAwsAccountIds
+    )
+  } yield result
 }
