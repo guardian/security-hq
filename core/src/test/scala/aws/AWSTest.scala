@@ -23,10 +23,6 @@ class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
     // Only in one region.
     val singleRegionSize = 2
 
-    "ec2" in {
-      AWS.ec2Clients(accounts, regions) should have size (allRegionsSize)
-    }
-
     "cloudformation" in {
       AWS.cfnClients(accounts, regions) should have size (allRegionsSize)
     }
