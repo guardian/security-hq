@@ -28,7 +28,7 @@ val playJsonVersion = "3.0.4"
  * 3. If no earlier version appears in the dependency list, the entry can be removed.
  */
 val safeTransitiveDependencies = {
-  val jacksonV2Version = "2.22.0"
+  val jacksonV2Version = "2.22.1"
   val jacksonV3Version = "3.2.0"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
@@ -175,7 +175,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
 
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
-      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ),
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "IAM Outdated Credentials lambda.",
