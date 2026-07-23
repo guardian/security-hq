@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+BUILD_NUMBER="${BUILD_NUMBER:-DEV}"
 set -e
 
 (
@@ -7,7 +8,14 @@ set -e
     ./script/ci
 )
 
-./sbt --no-conf '; project hq; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; Debian / packageBin'
-
 mkdir -p dist
+
+./sbt --no-conf '; project hq; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; Debian / packageBin'
 mv hq/target/security-hq_*_all.deb "dist/security-hq-$BUILD_NUMBER.deb"
+
+./sbt --no-conf '; project iamOutdatedCredentials; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
+mv iam-outdated-credentials/target/scala-*/iam-outdated-credentials-assembly-*.jar "dist/iam-outdated-credentials-$BUILD_NUMBER.jar"
+
+# Build the iam-unrecognised-users lambda assembly jar
+./sbt --no-conf '; project iamUnrecognisedUsers; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
+mv iam-unrecognised-users/target/scala-*/iam-unrecognised-users-assembly-*.jar "dist/iam-unrecognised-users-$BUILD_NUMBER.jar"

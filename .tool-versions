@@ -2,4 +2,4 @@ java corretto-21
 node 24
 sbt 1
 aqua:aws/aws-cli 2
-github:guardian/devenv 20260522-111753
+github:guardian/devenv 20260721-123412
