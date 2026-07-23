@@ -6,7 +6,7 @@ import software.amazon.awssdk.auth.credentials.{AwsCredentialsProviderChain, Pro
 import software.amazon.awssdk.awscore.client.builder.{AwsAsyncClientBuilder, AwsClientBuilder}
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
 import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sts.StsClient
@@ -67,8 +67,8 @@ object AWS {
         c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, newCachedThreadPool())
       )
 
-  def cfnClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[CloudFormationAsyncClient] =
-    clients(withCustomThreadPool(CloudFormationAsyncClient.builder), accounts, regions: _*)
+  def cfnClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[CloudFormationClient] =
+    clients(CloudFormationClient.builder, accounts, regions: _*)
 
   // Only needs Regions.US_EAST_1
   def taClients(accounts: List[AwsAccount], region: Region = Region.of("us-east-1")): AwsClients[SupportAsyncClient] =

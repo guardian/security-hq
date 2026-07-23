@@ -8,7 +8,7 @@ import logic.{CredentialsReportDisplay, Retry}
 import model.*
 import org.joda.time.DateTime
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
 import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.iam.model.*
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -78,7 +78,7 @@ object IAMClient extends LazyLogging {
   def getCredentialReportDisplay(
       account: AwsAccount,
       currentData: Either[FailedAttempt, CredentialReportDisplay],
-      cfnClients: AwsClients[CloudFormationAsyncClient],
+      cfnClients: AwsClients[CloudFormationClient],
       iamClients: AwsClients[IamClient],
       regions: List[Region]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
@@ -92,7 +92,7 @@ object IAMClient extends LazyLogging {
 
   def getUpdatedCredentialsReport(
       account: AwsAccount,
-      cfnClients: AwsClients[CloudFormationAsyncClient],
+      cfnClients: AwsClients[CloudFormationClient],
       iamClients: AwsClients[IamClient],
       regions: List[Region],
       delay: FiniteDuration = 3.seconds
@@ -115,7 +115,7 @@ object IAMClient extends LazyLogging {
   def getAllCredentialReports(
       accounts: Seq[AwsAccount],
       currentData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
-      cfnClients: AwsClients[CloudFormationAsyncClient],
+      cfnClients: AwsClients[CloudFormationClient],
       iamClients: AwsClients[IamClient],
       regions: List[Region]
   )(implicit

@@ -8,7 +8,7 @@ import model.*
 import play.api.*
 import play.api.inject.ApplicationLifecycle
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
 import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.support.SupportAsyncClient
@@ -22,7 +22,7 @@ class CacheService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    cfnClients: AwsClients[CloudFormationAsyncClient],
+    cfnClients: AwsClients[CloudFormationClient],
     taClients: AwsClients[SupportAsyncClient],
     s3Clients: AwsClients[S3Client],
     iamClients: AwsClients[IamClient],
