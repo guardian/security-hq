@@ -12,7 +12,7 @@ import notifications.AnghammaradNotifications
 import org.joda.time.DateTime
 import settings.Settings
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -22,7 +22,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
-    iamClients: AwsClients[IamAsyncClient],
+    iamClients: AwsClients[IamClient],
     dynamo: IamRemediationDb,
     dryRun: Boolean = true
 ) extends LazyLogging {

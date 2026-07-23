@@ -12,7 +12,7 @@ import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment, Mode}
-import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.Scheduler
@@ -34,7 +34,7 @@ class IamRemediationService(
     snsClient: SnsAsyncClient,
     dynamo: IamRemediationDb,
     config: Configuration,
-    iamClients: AwsClients[IamAsyncClient],
+    iamClients: AwsClients[IamClient],
     lifecycle: ApplicationLifecycle,
     environment: Environment,
     securityS3Client: S3Client

@@ -7,7 +7,7 @@ import software.amazon.awssdk.awscore.client.builder.{AwsAsyncClientBuilder, Aws
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
@@ -77,6 +77,6 @@ object AWS {
   def s3Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[S3Client] =
     clients(S3Client.builder, accounts, regions: _*)
 
-  def iamClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[IamAsyncClient] =
-    clients(withCustomThreadPool(IamAsyncClient.builder), accounts, regions: _*)
+  def iamClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[IamClient] =
+    clients(IamClient.builder, accounts, regions: _*)
 }

@@ -9,7 +9,7 @@ import model.*
 import org.joda.time.DateTime
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.iam.model.*
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -22,17 +22,18 @@ object IAMClient extends LazyLogging {
   val SOLE_REGION = Region.of("us-east-1")
 
   private def generateCredentialsReport(
-      client: AwsClient[IamAsyncClient]
+      client: AwsClient[IamClient]
   )(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResponse] = {
     val request = GenerateCredentialReportRequest.builder.build()
-    handleAWSErrs(client)(asScala(client.client.generateCredentialReport(request)))
+    handleAWSErrs(client)(Future { client.client.generateCredentialReport(request) })
   }
 
   private def getCredentialsReport(
-      client: AwsClient[IamAsyncClient]
+      client: AwsClient[IamClient]
   )(implicit ec: ExecutionContext): Attempt[IAMCredentialsReport] = {
     val request = GetCredentialReportRequest.builder.build()
-    handleAWSErrs(client)(asScala(client.client.getCredentialReport(request))).flatMap(CredentialsReport.extractReport)
+    handleAWSErrs(client)(Future { client.client.getCredentialReport(request) })
+      .flatMap(CredentialsReport.extractReport)
   }
 
   /** Attempts to update 'credential' with tags fetched from AWS. If the request to AWS fails, return the original
@@ -40,11 +41,11 @@ object IAMClient extends LazyLogging {
     * @return
     *   Updated or original credential
     */
-  private def enrichCredentialWithTags(credential: IAMCredential, client: AwsClient[IamAsyncClient])(implicit
+  private def enrichCredentialWithTags(credential: IAMCredential, client: AwsClient[IamClient])(implicit
       ec: ExecutionContext
   ) = {
     val request = ListUserTagsRequest.builder.userName(credential.user).build()
-    val result = asScala(client.client.listUserTags(request))
+    val result = Future { client.client.listUserTags(request) }
     result
       .map { tagsResult =>
         val tagsList = tagsResult.tags.asScala.toList.map(t => model.Tag(t.key, t.value))
@@ -57,7 +58,7 @@ object IAMClient extends LazyLogging {
       }
   }
 
-  private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[IamAsyncClient])(implicit
+  private def enrichReportWithTags(report: IAMCredentialsReport, client: AwsClient[IamClient])(implicit
       ec: ExecutionContext
   ): Attempt[IAMCredentialsReport] = {
     val updatedEntries = Future.sequence(report.entries.map(e => {
@@ -78,7 +79,7 @@ object IAMClient extends LazyLogging {
       account: AwsAccount,
       currentData: Either[FailedAttempt, CredentialReportDisplay],
       cfnClients: AwsClients[CloudFormationAsyncClient],
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamClient],
       regions: List[Region]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val now = DateTime.now()
@@ -92,7 +93,7 @@ object IAMClient extends LazyLogging {
   def getUpdatedCredentialsReport(
       account: AwsAccount,
       cfnClients: AwsClients[CloudFormationAsyncClient],
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamClient],
       regions: List[Region],
       delay: FiniteDuration = 3.seconds
   )(implicit executionContext: ExecutionContext): Attempt[CredentialReportDisplay] = {
@@ -115,7 +116,7 @@ object IAMClient extends LazyLogging {
       accounts: Seq[AwsAccount],
       currentData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
       cfnClients: AwsClients[CloudFormationAsyncClient],
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamClient],
       regions: List[Region]
   )(implicit
       executionContext: ExecutionContext
@@ -128,7 +129,7 @@ object IAMClient extends LazyLogging {
     }
   }
 
-  def listUserAccessKeys(account: AwsAccount, user: IAMUser, iamClients: AwsClients[IamAsyncClient])(implicit
+  def listUserAccessKeys(account: AwsAccount, user: IAMUser, iamClients: AwsClients[IamClient])(implicit
       ec: ExecutionContext
   ): Attempt[List[CredentialMetadata]] = {
     for {
@@ -159,23 +160,28 @@ object IAMClient extends LazyLogging {
                 )
               }
           }
-        } yield CredentialMetadata(akm.userName, akm.accessKeyId, new DateTime(akm.createDate.toEpochMilli), credentialStatus)
+        } yield CredentialMetadata(
+          akm.userName,
+          akm.accessKeyId,
+          new DateTime(akm.createDate.toEpochMilli),
+          credentialStatus
+        )
       }
     } yield credentialMetadatas
   }
 
-  private def listAccessKeys(client: AwsClient[IamAsyncClient], user: IAMUser)(implicit
+  private def listAccessKeys(client: AwsClient[IamClient], user: IAMUser)(implicit
       ec: ExecutionContext
   ): Attempt[ListAccessKeysResponse] = {
     val request = ListAccessKeysRequest.builder.userName(user.username).build()
-    handleAWSErrs(client)(asScala(client.client.listAccessKeys(request)))
+    handleAWSErrs(client)(Future { client.client.listAccessKeys(request) })
   }
 
   def disableAccessKey(
       awsAccount: AwsAccount,
       username: String,
       accessKeyId: String,
-      iamClients: AwsClients[IamAsyncClient]
+      iamClients: AwsClients[IamClient]
   )(implicit ec: ExecutionContext): Attempt[UpdateAccessKeyResponse] = {
     val request = UpdateAccessKeyRequest.builder
       .userName(username)
@@ -184,11 +190,11 @@ object IAMClient extends LazyLogging {
       .build()
     for {
       client <- iamClients.get(awsAccount, SOLE_REGION)
-      result <- handleAWSErrs(client)(asScala(client.client.updateAccessKey(request)))
+      result <- handleAWSErrs(client)(Future { client.client.updateAccessKey(request) })
     } yield result
   }
 
-  private def handleDeleteLoginProfileErrs(awsClient: AwsClient[IamAsyncClient], username: String)(
+  private def handleDeleteLoginProfileErrs(awsClient: AwsClient[IamClient], username: String)(
       f: => Future[DeleteLoginProfileResponse]
   )(implicit ec: ExecutionContext): Attempt[Option[DeleteLoginProfileResponse]] =
     AwsAsyncHandler.handleAWSErrs(awsClient)(
@@ -199,13 +205,13 @@ object IAMClient extends LazyLogging {
         })
     )
 
-  def deleteLoginProfile(awsAccount: AwsAccount, username: String, iamClients: AwsClients[IamAsyncClient])(implicit
+  def deleteLoginProfile(awsAccount: AwsAccount, username: String, iamClients: AwsClients[IamClient])(implicit
       ec: ExecutionContext
   ): Attempt[Option[DeleteLoginProfileResponse]] = {
     val request = DeleteLoginProfileRequest.builder.userName(username).build()
     for {
       client <- iamClients.get(awsAccount, SOLE_REGION)
-      result <- handleDeleteLoginProfileErrs(client, username)(asScala(client.client.deleteLoginProfile(request)))
+      result <- handleDeleteLoginProfileErrs(client, username)(Future { client.client.deleteLoginProfile(request) })
     } yield result
   }
 }

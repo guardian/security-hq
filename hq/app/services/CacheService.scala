@@ -9,7 +9,7 @@ import play.api.*
 import play.api.inject.ApplicationLifecycle
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import utils.attempt.{FailedAttempt, Failure}
@@ -25,7 +25,7 @@ class CacheService(
     cfnClients: AwsClients[CloudFormationAsyncClient],
     taClients: AwsClients[SupportAsyncClient],
     s3Clients: AwsClients[S3Client],
-    iamClients: AwsClients[IamAsyncClient],
+    iamClients: AwsClients[IamClient],
     regions: List[Region]
 )(implicit ec: ExecutionContext)
     extends Scheduler {

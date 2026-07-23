@@ -15,7 +15,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.concurrent.ExecutionContext
-import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.IamClient
 import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileResponse, UpdateAccessKeyResponse}
 
 object IamUnrecognisedUsers extends LazyLogging {
@@ -91,7 +91,7 @@ object IamUnrecognisedUsers extends LazyLogging {
 
   def listAccountAccessKeys(
       accountUnrecognisedUsers: AccountUnrecognisedUsers,
-      iamClients: AwsClients[IamAsyncClient]
+      iamClients: AwsClients[IamClient]
   )(implicit ec: ExecutionContext): Attempt[AccountUnrecognisedAccessKeys] = {
     val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
     Attempt.flatTraverse(users)(listUserAccessKeys(account, _, iamClients)).map {
@@ -101,7 +101,7 @@ object IamUnrecognisedUsers extends LazyLogging {
 
   def disableAccountAccessKeys(
       accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamClient],
       dryRun: Boolean
   )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
     if (!dryRun) {
@@ -139,7 +139,7 @@ object IamUnrecognisedUsers extends LazyLogging {
 
   def removeAccountPasswords(
       accountUnrecognisedUsers: AccountUnrecognisedUsers,
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamClient],
       dryRun: Boolean
   )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
     if (!dryRun) {
