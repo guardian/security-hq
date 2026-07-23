@@ -20,7 +20,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "26.1.1",
     "@typescript-eslint/eslint-plugin": "8.64.0",
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "9.39.5",
     "@guardian/eslint-config": "16.0.0",
     "aws-cdk": "^2.1030.0",
     "aws-cdk-lib": "^2.240.0",
