@@ -187,9 +187,7 @@ export class SecurityHQ extends GuStack {
         minimumInstances: 1,
       },
       userData,
-      roleConfiguration: {
-        additionalPolicies: appAdditionalPolicies,
-      },
+      additionalPolicies: appAdditionalPolicies,
       instanceMetricGranularity: "5Minute",
     });
 
