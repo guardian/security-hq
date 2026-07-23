@@ -61,10 +61,12 @@ object AWS {
     } yield AwsClient(client, account, region)
   }
 
+  private lazy val sharedThreadPool = newCachedThreadPool()
+
   private def withCustomThreadPool[A, B <: AwsAsyncClientBuilder[B, A]] =
     (asyncClientBuilder: AwsAsyncClientBuilder[B, A]) =>
       asyncClientBuilder.asyncConfiguration(c =>
-        c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, newCachedThreadPool())
+        c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, sharedThreadPool)
       )
 
   def cfnClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[CloudFormationAsyncClient] =
