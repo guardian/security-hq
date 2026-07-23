@@ -38,7 +38,8 @@ class IamOutdatedCredentials(
       now: DateTime,
       notificationTopicArn: String,
       tableName: String,
-      dryRun: Boolean
+      dryRun: Boolean,
+      devXSecurityAccountMaybe: Option[AwsAccount]
   )(implicit ec: ExecutionContext): Attempt[String] = {
     val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
     val iamUser = remediationOperation.vulnerableCandidate.iamUser
@@ -82,6 +83,14 @@ class IamOutdatedCredentials(
       case (Remediation, OutdatedCredential) if !dryRun =>
         val notification =
           AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
+        val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount
+          )
+        )
         for {
           // disable the correct credential
           userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
@@ -96,6 +105,12 @@ class IamOutdatedCredentials(
           notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           // save a record of the change
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
+          // Send a notification to devx too, if we've got an account for them.
+          _ <- notificationDevXSecurityMaybe
+            .map(notificationDevXSecurity =>
+              AnghammaradNotifications.send(notificationDevXSecurity, notificationTopicArn, snsClient)
+            )
+            .getOrElse(Attempt.Right(logger.warn("No devx security account configured")))
         } yield notificationId
 
       case (Remediation, OutdatedCredential) =>
@@ -124,7 +139,8 @@ class IamOutdatedCredentials(
       tableName: String,
       serviceAccountIds: List[String],
       rawCredsReports: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
-      allowedAwsAccountIds: List[String]
+      allowedAwsAccountIds: List[String],
+      devXSecurityAccount: Option[AwsAccount]
   )(implicit ec: ExecutionContext): Attempt[Unit] = {
     val now = new DateTime()
     val accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
@@ -151,7 +167,7 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
-        performRemediationOperation(_, now, notificationTopicArn, tableName, dryRun)
+        performRemediationOperation(_, now, notificationTopicArn, tableName, dryRun, devXSecurityAccount)
       )
     } yield results
     result.tap {
@@ -182,6 +198,7 @@ object IamOutdatedCredentials extends LazyLogging {
 
     val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
     val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
+    val devXSecurityAccount = awsAccounts.find(_.id == SECURITY_ACCOUNT_ID)
     val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
     val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
     val allowedAccountIds: List[String] =
@@ -210,7 +227,8 @@ object IamOutdatedCredentials extends LazyLogging {
         tableName = iamDynamoTableName,
         serviceAccountIds = accountIdsForIamRemediationService,
         rawCredsReports = listOfCredentialReports,
-        allowedAwsAccountIds = allowedAccountIds
+        allowedAwsAccountIds = allowedAccountIds,
+        devXSecurityAccount = devXSecurityAccount
       )
     } yield disableResult
   }
@@ -469,5 +487,6 @@ object IamOutdatedCredentials extends LazyLogging {
   private val ALLOWED_ACCOUNT_IDS_CONFIG_ITEM = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM = "ANGHAMMARAD_SNS_TOPIC_ARN"
   private val IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM = "IAM_DYNAMO_TABLE_NAME"
+  val SECURITY_ACCOUNT_ID = "security"
 
 }
