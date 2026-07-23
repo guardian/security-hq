@@ -7,8 +7,6 @@ import software.amazon.awssdk.awscore.client.builder.{AwsAsyncClientBuilder, Aws
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
-import software.amazon.awssdk.services.ec2.Ec2AsyncClient
-import software.amazon.awssdk.services.efs.EfsAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sts.StsClient
@@ -63,14 +61,13 @@ object AWS {
     } yield AwsClient(client, account, region)
   }
 
+  private lazy val sharedThreadPool = newCachedThreadPool()
+
   private def withCustomThreadPool[A, B <: AwsAsyncClientBuilder[B, A]] =
     (asyncClientBuilder: AwsAsyncClientBuilder[B, A]) =>
       asyncClientBuilder.asyncConfiguration(c =>
-        c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, newCachedThreadPool())
+        c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, sharedThreadPool)
       )
-
-  def ec2Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[Ec2AsyncClient] =
-    clients(withCustomThreadPool(Ec2AsyncClient.builder), accounts, regions: _*)
 
   def cfnClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[CloudFormationAsyncClient] =
     clients(withCustomThreadPool(CloudFormationAsyncClient.builder), accounts, regions: _*)
@@ -84,7 +81,4 @@ object AWS {
 
   def iamClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[IamAsyncClient] =
     clients(withCustomThreadPool(IamAsyncClient.builder), accounts, regions: _*)
-
-  def efsClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[EfsAsyncClient] =
-    clients(withCustomThreadPool(EfsAsyncClient.builder), accounts, regions: _*)
 }
