@@ -17,6 +17,7 @@ ThisBuild / scalacOptions ++= Seq(
 
 resolvers += DefaultMavenRepository
 
+val awsLambdaVersion = "1.4.0"
 val awsSdkVersion = "2.47.1"
 val playJsonVersion = "3.0.4"
 
@@ -27,8 +28,8 @@ val playJsonVersion = "3.0.4"
  * 3. If no earlier version appears in the dependency list, the entry can be removed.
  */
 val safeTransitiveDependencies = {
-  val jacksonV2Version = "2.22.0"
-  val jacksonV3Version = "3.2.0"
+  val jacksonV2Version = "2.22.1"
+  val jacksonV3Version = "3.2.1"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
@@ -66,7 +67,7 @@ lazy val core = (project in file("core"))
       "software.amazon.awssdk" % "sns" % awsSdkVersion,
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
-      "ch.qos.logback" % "logback-classic" % "1.5.35",
+      "ch.qos.logback" % "logback-classic" % "1.5.38",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
@@ -88,9 +89,9 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %% "play-v30" % "42.0.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "19.1.0",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "19.1.0",
+      "com.gu.play-googleauth" %% "play-v30" % "42.1.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "19.2.0",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "19.2.0",
 
       "joda-time" % "joda-time" % "2.14.2",
       "co.fs2" %% "fs2-core" % "3.13.0",
@@ -111,7 +112,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "7.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.35",
+      "ch.qos.logback" % "logback-classic" % "1.5.38",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "10.0.0"
     ) ++ safeTransitiveDependencies,
@@ -156,9 +157,8 @@ lazy val hq = (project in file("hq"))
   )
 
 lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
-  .enablePlugins(JDebPackaging)
-  .disablePlugins(sbtassembly.AssemblyPlugin)
-  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := """iam-outdated-credentials""",
     fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
@@ -171,9 +171,28 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
     Test / parallelExecution := false,
     Test / fork := false,
 
+    assembly / mainClass := Some("logic.IamOutdatedCredentialsMain"),
+
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
+    ),
     maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
     packageSummary := "IAM Outdated Credentials lambda.",
     packageDescription := """Deb for IAM Outdated Credentials lambda - the Guardian's service to check for outdated credentials in AWS accounts.""",
+    mergeStrategySettings
+  )
+
+lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
+  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .settings(
+    name := "iam-unrecognised-users",
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
+    ),
+    assembly / mainClass := Some("unrecognised.Main"),
     mergeStrategySettings
   )
 
@@ -181,7 +200,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
 Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val root = (project in file("."))
-  .aggregate(core, hq)
+  .aggregate(core, hq, iamUnrecognisedUsers)
   .settings(
     name := """security-hq"""
   )

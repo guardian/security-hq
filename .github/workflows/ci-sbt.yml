@@ -20,17 +20,17 @@ jobs:
       contents: read
       pull-requests: write # required by guardian/actions-riff-raff
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
           java-version: '21'
           distribution: 'corretto'
           cache: 'sbt'
 
       - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.tool-versions'
           cache: 'npm'
@@ -48,7 +48,7 @@ jobs:
       - name: Run script/ci
         run: ./script/ci
 
-      - uses: guardian/actions-riff-raff@f0806aac5659b052afe2416f5d35723448e7807f # v4.3.3
+      - uses: guardian/actions-riff-raff@ab360a150e2540439f7f675c37d170a2fd6c8604 # v4.3.4
         with:
           projectName: security-hq
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
@@ -60,6 +60,10 @@ jobs:
             cdk.out:
               - cdk/cdk.out/security-hq.template.json
             security-hq:
-              - dist
+              - dist/security-hq-${{ env.BUILD_NUMBER }}.deb
+            iam-outdated-credentials:
+              - dist/iam-outdated-credentials-${{ env.BUILD_NUMBER }}.jar
+            iam-unrecognised-users:
+              - dist/iam-unrecognised-users-${{ env.BUILD_NUMBER }}.jar
           # No point in links to a Code stage, as there isn't one
           commentingEnabled: false

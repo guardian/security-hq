@@ -14,6 +14,7 @@ modules:
   - scala
   - node
   - docker-in-docker
+  - github-copilot
 
 forwardPorts:
   - 9090 # Play app

@@ -5,8 +5,7 @@ import com.gu.googleauth.{AntiForgeryChecker, GoogleAuthConfig, GoogleGroupCheck
 import com.gu.play.secretrotation.aws.parameterstore.{AwsSdkV2, SecretSupplier}
 import com.gu.play.secretrotation.{SnapshotProvider, TransitionTiming}
 import model.*
-import play.api.Configuration
-import software.amazon.awssdk.regions.Region
+import play.api.{Configuration, Logging}
 import software.amazon.awssdk.services.ssm.SsmClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
@@ -16,7 +15,7 @@ import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-object Config {
+object Config extends Logging {
   val app = "security-hq"
 
   val documentationLinks: List[Documentation] = List(
@@ -122,7 +121,8 @@ object Config {
       bucket <- getIamUnrecognisedUserBucket(config)
       securityAccount <- getSecurityAccount(config)
       anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn)
+      dryRun = getUnrecognisedUserDryRun(config)
+    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn, dryRun)
   }
 
   def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
@@ -132,6 +132,23 @@ object Config {
         Failure("unable to get Anghammarad topic ARN", "unable to get Anghammarad topic ARN for IAM jobs", 500)
       )
     )
+  }
+
+  // Default to true; only an explicit "false" disables dry-run.
+  // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
+  private[config] def getDryRun(config: Configuration, key: String) =
+    !config.getOptional[String](s"$key.dryRun").exists(_.equalsIgnoreCase("false"))
+
+  def getUnrecognisedUserDryRun(config: Configuration): Boolean = {
+    val b = getDryRun(config, "unrecognisedUser")
+    logger.info(s"unrecognisedUser dry run is set to $b")
+    b
+  }
+
+  def getOutdatedCredentialsDryRun(config: Configuration): Boolean = {
+    val b = getDryRun(config, "outdatedCredentials")
+    logger.info(s"outdatedCredentials dry run is set to $b")
+    b
   }
 
   def getAccountsForIamRemediationService(config: Configuration): Attempt[List[String]] = {

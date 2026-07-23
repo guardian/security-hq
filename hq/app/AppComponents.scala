@@ -1,10 +1,11 @@
 import aws.ec2.EC2
 import aws.{AWS, AwsClient}
+import config.CoreConfig.{getSecurityDynamoDbClient, securityCredentialsProvider}
 import config.{Config, CoreConfig}
 import controllers.*
 import db.IamRemediationDb
 import filters.HstsFilter
-import model.{AwsAccount, DEV, PROD}
+import model.{AwsAccount, Stage}
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -14,27 +15,19 @@ import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
 import services.{CacheService, IamRemediationService, MetricService}
-import utils.attempt.Attempt
-
-import scala.concurrent.Await
-import scala.concurrent.duration.*
-import scala.jdk.CollectionConverters.*
-import scala.language.postfixOps
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder
 import software.amazon.awssdk.http.SdkHttpConfigurationOption
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
-import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.endpoints.{DynamoDbEndpointParams, DynamoDbEndpointProvider}
+import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.utils.AttributeMap
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder
+import utils.attempt.Attempt
+import scala.concurrent.duration.*
+import scala.concurrent.Await
+import scala.jdk.CollectionConverters.*
+import scala.language.postfixOps
 
 class AppComponents(context: Context)
     extends BuiltInComponentsFromContext(context)
@@ -58,6 +51,7 @@ class AppComponents(context: Context)
   private val stage = Config.getStage(configuration)
 
   // the aim of this is to get all the regions that are available to this account
+  // TODO: Delete this and only use calculateAvailableRegions which does not await.
   private val availableRegions: List[Region] = {
     val ec2Client = AwsClient(
       Ec2AsyncClient.builder
@@ -73,6 +67,7 @@ class AppComponents(context: Context)
       } yield regionList
       Await
         .result(availableRegionsAttempt.asFuture, 30 seconds)
+        // This is not correct - the lambda rewrite will not do this.
         .getOrElse(List(CoreConfig.region, Region.of("us-east-1")))
     } finally {
       ec2Client.client.close()
@@ -98,11 +93,6 @@ class AppComponents(context: Context)
   private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
   private val iamClients = AWS.iamClients(awsAccounts, availableRegions)
 
-  private val securityCredentialsProvider: AwsCredentialsProviderChain = AwsCredentialsProviderChain.of(
-    ProfileCredentialsProvider.create("security"),
-    DefaultCredentialsProvider.builder.build()
-  )
-
   /*
       The casting from SdkHttpConfigurationOption[Integer] to AttributeMap.Key[Any] is required because Scala compiler comlains
 
@@ -126,23 +116,8 @@ class AppComponents(context: Context)
   private val googleAuthConfig =
     Config.googleSettings(stage, stack, configuration, securitySsmClient)
 
-  private val securityDynamoDbClient = stage match {
-    case PROD =>
-      DynamoDbClient
-        .builder()
-        .credentialsProvider(securityCredentialsProvider)
-        .region(CoreConfig.region)
-        .build()
-    case DEV =>
-      DynamoDbClient
-        .builder()
-        .credentialsProvider(securityCredentialsProvider)
-        .region(CoreConfig.region)
-        .endpointOverride(
-          new java.net.URI("http://localhost:8000")
-        ) // An alternative could be to configure a specific builder DynamoDbEndpointParams.builder().endpoint("http://localhost:8000").region(Config.region)
-        .build()
-  }
+  private val securityDynamoDbClient = getSecurityDynamoDbClient(stage: Stage)
+
   private val securityS3Client = S3Client.builder
     .credentialsProvider(securityCredentialsProvider)
     .region(CoreConfig.region)
