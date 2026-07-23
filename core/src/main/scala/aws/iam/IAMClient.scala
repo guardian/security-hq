@@ -19,7 +19,7 @@ import scala.jdk.CollectionConverters.*
 
 object IAMClient extends LazyLogging {
 
-  val SOLE_REGION = Region.of("us-east-1")
+  private val SOLE_REGION = Region.of("us-east-1")
 
   private def generateCredentialsReport(
       client: AwsClient[IamAsyncClient]
@@ -74,7 +74,7 @@ object IAMClient extends LazyLogging {
     }
   }
 
-  def getCredentialReportDisplay(
+  private def getCredentialReportDisplay(
       account: AwsAccount,
       currentData: Either[FailedAttempt, CredentialReportDisplay],
       cfnClients: AwsClients[CloudFormationAsyncClient],
@@ -159,7 +159,12 @@ object IAMClient extends LazyLogging {
                 )
               }
           }
-        } yield CredentialMetadata(akm.userName, akm.accessKeyId, new DateTime(akm.createDate.toEpochMilli), credentialStatus)
+        } yield CredentialMetadata(
+          akm.userName,
+          akm.accessKeyId,
+          new DateTime(akm.createDate.toEpochMilli),
+          credentialStatus
+        )
       }
     } yield credentialMetadatas
   }

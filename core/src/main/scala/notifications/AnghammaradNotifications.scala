@@ -36,8 +36,8 @@ object AnghammaradNotifications extends LazyLogging {
       }
   }
 
-  val channel = Preferred(Email)
-  val sourceSystem = "Security HQ Credentials Notifier"
+  private val channel = Preferred(Email)
+  private val sourceSystem = "Security HQ Credentials Notifier"
 
   private def notificationTargets(awsAccount: AwsAccount, iamUser: IAMUser): List[Target] =
     Tag.tagsToAnghammaradTargets(iamUser.tags) :+ Account(awsAccount.accountNumber)
@@ -113,6 +113,37 @@ object AnghammaradNotifications extends LazyLogging {
       message + genericOutdatedCredentialText,
       Nil,
       notificationTargets(awsAccount, iamUser),
+      channel,
+      sourceSystem
+    )
+  }
+
+  def outdatedCredentialRemediationDevXSecurity(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      devXSecurityAccount: AwsAccount
+  ): Notification = {
+    val endUserNotificationTargets = notificationTargets(awsAccount, iamUser)
+    val devxSecurityNotificationTargets = List(Account(devXSecurityAccount.accountNumber))
+    val endUserTargetsString = endUserNotificationTargets.map(_.toString).mkString(", ")
+    val message =
+      s"""
+         |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today,
+         |because it was last rotated on ${printDay(problemCreationDate)}.
+         |
+         |Notification(s) have been sent to $endUserTargetsString, who are the owners of the disabled credential.
+         |
+         |THIS ACTION HAS HIGH POTENTIAL TO BREAK THINGS.
+         |
+         |BE PREPARED FOR USERS TO BE UPSET!
+         |""".stripMargin
+    val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
+    Notification(
+      subject,
+      message + genericOutdatedCredentialText,
+      Nil,
+      devxSecurityNotificationTargets,
       channel,
       sourceSystem
     )

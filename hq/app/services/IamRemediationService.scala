@@ -8,6 +8,7 @@ import config.Config.{getAnghammaradSNSTopicArn, getIamDynamoTableName, getIamUn
 import db.IamRemediationDb
 import logic.IamUnrecognisedUsers.*
 import logic.{IamOutdatedCredentials, IamUnrecognisedUsers}
+import model.AwsAccount
 import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
@@ -37,7 +38,8 @@ class IamRemediationService(
     iamClients: AwsClients[IamAsyncClient],
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    securityS3Client: S3Client
+    securityS3Client: S3Client,
+    devXSecurityAccountMaybe: Option[AwsAccount]
 )(implicit ec: ExecutionContext)
     extends Scheduler {
 
@@ -130,7 +132,8 @@ class IamRemediationService(
       tableName,
       serviceAccountIds,
       rawCredsReports,
-      allowedAwsAccountIds
+      allowedAwsAccountIds,
+      devXSecurityAccountMaybe
     )
   } yield result
 }
