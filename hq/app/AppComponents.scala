@@ -26,8 +26,8 @@ import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.utils.AttributeMap
 import utils.attempt.Attempt
 
-import scala.concurrent.duration.*
 import scala.concurrent.Await
+import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import scala.language.postfixOps
 
@@ -146,7 +146,8 @@ class AppComponents(context: Context)
 
   private val dynamo = new IamRemediationDb(securityDynamoDbClient)
   private val dryRun = Config.getOutdatedCredentialsDryRun(configuration)
-  private val iamOutdatedCredentials = IamOutdatedCredentials(securitySnsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
+  private val iamOutdatedCredentials =
+    IamOutdatedCredentials(securitySnsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
 
   new IamRemediationService(
     cacheService,
