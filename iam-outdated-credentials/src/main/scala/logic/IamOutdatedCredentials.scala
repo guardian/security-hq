@@ -60,6 +60,8 @@ class IamOutdatedCredentials(
         val notification =
           AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
+          // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
+          // don't want to record we sent a warning if we didn't, so we do it in this order
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield List(snsId)
@@ -72,6 +74,8 @@ class IamOutdatedCredentials(
         val notification =
           AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
+          // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
+          // don't want to record we sent a final warning if we didn't, so we do it in this order
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield List(snsId)
@@ -92,21 +96,26 @@ class IamOutdatedCredentials(
           )
         )
         for {
-          // disable the correct credential
+          // plan the disable action for the correct credential
           userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
           credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+
+          // record, then alert, then do.  Different order to the above.
+          // If we do the remediation, it's vitally important that the record happens, and the alert happens.
+          // So do them first.
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
+          // send a notification to say this is what we have done
+          userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          // Send a notification to devx too, if we've got an account for them.
+          securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
+
+          // only now do we actually disable the credential
           _ <- IAMClient.disableAccessKey(
             awsAccount,
             credentialToDisable.username,
             credentialToDisable.accessKeyId,
             iamClients
           )
-          // send a notification to say this is what we have done
-          userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
-          // Send a notification to devx too, if we've got an account for them.
-          securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
-          // save a record of the change
-          _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
         } yield List(userNotificationId) ++ securityNotificationIdMaybe
 
       case (Remediation, OutdatedCredential) =>
