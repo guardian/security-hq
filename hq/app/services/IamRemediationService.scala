@@ -39,12 +39,9 @@ class IamRemediationService(
     lifecycle: ApplicationLifecycle,
     environment: Environment,
     securityS3Client: S3Client,
-    devXSecurityAccountMaybe: Option[AwsAccount],
-    dryRun: Boolean
+    iamOutdatedCredentials: IamOutdatedCredentials,
 )(implicit ec: ExecutionContext)
     extends Scheduler {
-
-  private val iamOutdatedCredentials = IamOutdatedCredentials(snsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
 
   /** Removes AWS access for colleagues that have departed.
     *
