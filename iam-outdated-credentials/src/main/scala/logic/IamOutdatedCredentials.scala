@@ -25,6 +25,7 @@ class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
     iamClients: AwsClients[IamAsyncClient],
     dynamo: IamRemediationDb,
+    devXSecurityAccountMaybe: Option[AwsAccount],
     dryRun: Boolean = true
 ) extends LazyLogging {
 
@@ -38,8 +39,7 @@ class IamOutdatedCredentials(
       remediationOperation: RemediationOperation,
       now: DateTime,
       notificationTopicArn: String,
-      tableName: String,
-      devXSecurityAccountMaybe: Option[AwsAccount]
+      tableName: String
   )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
     val iamUser = remediationOperation.vulnerableCandidate.iamUser
@@ -149,8 +149,7 @@ class IamOutdatedCredentials(
       tableName: String,
       serviceAccountIds: List[String],
       rawCredsReports: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
-      allowedAwsAccountIds: List[String],
-      devXSecurityAccount: Option[AwsAccount]
+      allowedAwsAccountIds: List[String]
   )(implicit ec: ExecutionContext): Attempt[Unit] = {
     val now = new DateTime()
     val accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
@@ -177,7 +176,7 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
-        performRemediationOperation(_, now, notificationTopicArn, tableName, devXSecurityAccount)
+        performRemediationOperation(_, now, notificationTopicArn, tableName)
       )
     } yield results.flatten
     result.tap {
@@ -231,14 +230,14 @@ object IamOutdatedCredentials extends LazyLogging {
         snsClient = snsClient,
         iamClients = iamClients,
         dynamo = dynamo,
+        devXSecurityAccountMaybe = devXSecurityAccount,
         dryRun = settings.dryRun
       ).disableOutdatedCredentials(
         notificationTopicArn = anghammaradSnsArn,
         tableName = iamDynamoTableName,
         serviceAccountIds = accountIdsForIamRemediationService,
         rawCredsReports = listOfCredentialReports,
-        allowedAwsAccountIds = allowedAccountIds,
-        devXSecurityAccount = devXSecurityAccount
+        allowedAwsAccountIds = allowedAccountIds
       )
     } yield disableResult
   }

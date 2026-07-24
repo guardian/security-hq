@@ -39,9 +39,12 @@ class IamRemediationService(
     lifecycle: ApplicationLifecycle,
     environment: Environment,
     securityS3Client: S3Client,
-    devXSecurityAccountMaybe: Option[AwsAccount]
+    devXSecurityAccountMaybe: Option[AwsAccount],
+    dryRun: Boolean
 )(implicit ec: ExecutionContext)
     extends Scheduler {
+
+  private val iamOutdatedCredentials = IamOutdatedCredentials(snsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
 
   /** Removes AWS access for colleagues that have departed.
     *
@@ -124,16 +127,14 @@ class IamRemediationService(
     tableName <- getIamDynamoTableName(config)
     serviceAccountIds <- Config.getAccountsForIamRemediationService(config)
     rawCredsReports = cacheService.getAllCredentials
-    dryRun = Config.getOutdatedCredentialsDryRun(config)
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-    result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun).disableOutdatedCredentials(
+    result <- iamOutdatedCredentials.disableOutdatedCredentials(
       notificationTopicArn,
       tableName,
       serviceAccountIds,
       rawCredsReports,
-      allowedAwsAccountIds,
-      devXSecurityAccountMaybe
+      allowedAwsAccountIds
     )
   } yield result
 }
