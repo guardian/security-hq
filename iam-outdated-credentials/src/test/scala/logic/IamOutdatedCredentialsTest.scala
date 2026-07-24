@@ -754,7 +754,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
 
   "performRemediationOperation" - {
 
-    def getFakeRemediationSnsClient() = new SnsAsyncClient {
+    def getFakeRemediationSnsClient = new SnsAsyncClient {
       private var notificationCount = 0
 
       override def publish(publishRequest: PublishRequest): CompletableFuture[PublishResponse] = {
@@ -797,13 +797,14 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       ): Attempt[String] = Attempt.Right("fake-dynamo-write-id")
     }
 
-    def getIamOutdatedCredentials(dryRun: Boolean, devXSecurityAccountMaybe: Option[AwsAccount]) = new IamOutdatedCredentials(
-      snsClient = getFakeRemediationSnsClient(),
-      iamClients = List(AwsClient(fakeRemediationIamClient, account, Region.of("us-east-1"))),
-      dynamo = fakeRemediationDb,
-      devXSecurityAccountMaybe = devXSecurityAccountMaybe,
-      dryRun = dryRun
-    )
+    def getIamOutdatedCredentials(dryRun: Boolean, devXSecurityAccountMaybe: Option[AwsAccount]) =
+      new IamOutdatedCredentials(
+        snsClient = getFakeRemediationSnsClient,
+        iamClients = List(AwsClient(fakeRemediationIamClient, account, Region.of("us-east-1"))),
+        dynamo = fakeRemediationDb,
+        devXSecurityAccountMaybe = devXSecurityAccountMaybe,
+        dryRun = dryRun
+      )
 
     val fakeTopicArn = "arn:aws:sns:eu-west-1:123456789012:test-topic"
     val fakeRemediationTableName = "test-remediation-table"
@@ -832,7 +833,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           getOperation(FinalWarning),
           new DateTime(),
           fakeTopicArn,
-          fakeRemediationTableName,
+          fakeRemediationTableName
         )
         result.value() shouldEqual Nil
       }
@@ -842,7 +843,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           getOperation(Remediation),
           new DateTime(),
           fakeTopicArn,
-          fakeRemediationTableName,
+          fakeRemediationTableName
         )
         result.value() shouldEqual Nil
       }
