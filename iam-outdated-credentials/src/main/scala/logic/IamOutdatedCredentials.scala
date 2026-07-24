@@ -178,7 +178,7 @@ class IamOutdatedCredentials(
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
         performRemediationOperation(_, now, notificationTopicArn, tableName)
       )
-    } yield results.flatten
+    } yield results
     result.tap {
       case Left(failedAttempt) =>
         logger.error(
