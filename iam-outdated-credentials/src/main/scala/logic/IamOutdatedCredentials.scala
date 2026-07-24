@@ -2,6 +2,7 @@ package logic
 
 import aws.iam.IAMClient
 import aws.{AWS, AwsClients}
+import com.gu.anghammarad.models.Notification
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import db.IamRemediationDb
@@ -33,14 +34,13 @@ class IamOutdatedCredentials(
     *   - disable an IAM credential and send a notification that this has been done
     *   - remove an IAM password and send a notification that this has been done
     */
-  private def performRemediationOperation(
+  private[logic] def performRemediationOperation(
       remediationOperation: RemediationOperation,
       now: DateTime,
       notificationTopicArn: String,
       tableName: String,
-      dryRun: Boolean,
       devXSecurityAccountMaybe: Option[AwsAccount]
-  )(implicit ec: ExecutionContext): Attempt[String] = {
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
     val iamUser = remediationOperation.vulnerableCandidate.iamUser
     val problemCreationDate = remediationOperation.problemCreationDate
@@ -62,11 +62,11 @@ class IamOutdatedCredentials(
         for {
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
-        } yield snsId
+        } yield List(snsId)
 
       case (Warning, OutdatedCredential) =>
         logger.info(s"Dry run: Would send warning for $awsAccount, $iamUser")
-        Attempt.Right("dummy-warning")
+        Attempt.Right(Nil)
 
       case (FinalWarning, OutdatedCredential) if !dryRun =>
         val notification =
@@ -74,11 +74,11 @@ class IamOutdatedCredentials(
         for {
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
-        } yield snsId
+        } yield List(snsId)
 
       case (FinalWarning, OutdatedCredential) =>
         logger.info(s"Dry run: Would send final warning for $awsAccount, $iamUser")
-        Attempt.Right("dummy-finalWarning")
+        Attempt.Right(Nil)
 
       case (Remediation, OutdatedCredential) if !dryRun =>
         val notification =
@@ -102,20 +102,30 @@ class IamOutdatedCredentials(
             iamClients
           )
           // send a notification to say this is what we have done
-          notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          // Send a notification to devx too, if we've got an account for them.
+          securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
           // save a record of the change
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
-          // Send a notification to devx too, if we've got an account for them.
-          _ <- notificationDevXSecurityMaybe
-            .map(notificationDevXSecurity =>
-              AnghammaradNotifications.send(notificationDevXSecurity, notificationTopicArn, snsClient)
-            )
-            .getOrElse(Attempt.Right(logger.warn("No devx security account configured")))
-        } yield notificationId
+        } yield List(userNotificationId) ++ securityNotificationIdMaybe
 
       case (Remediation, OutdatedCredential) =>
         logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
-        Attempt.Right("dummy-remediation")
+        Attempt.Right(Nil)
+    }
+  }
+
+  private def sendSecurityNotification(
+      notificationTopicArn: String,
+      notificationDevXSecurityMaybe: Option[Notification]
+  )(implicit executionContext: ExecutionContext): Attempt[Option[String]] = {
+    notificationDevXSecurityMaybe match {
+      case Some(notificationDevXSecurity) =>
+        logger.info("Sending notification to devx security account")
+        AnghammaradNotifications.send(notificationDevXSecurity, notificationTopicArn, snsClient).map(Some(_))
+      case None =>
+        logger.warn("No devx security account configured")
+        Attempt.Right(None)
     }
   }
 
@@ -167,9 +177,9 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
-        performRemediationOperation(_, now, notificationTopicArn, tableName, dryRun, devXSecurityAccount)
+        performRemediationOperation(_, now, notificationTopicArn, tableName, devXSecurityAccount)
       )
-    } yield results
+    } yield results.flatten
     result.tap {
       case Left(failedAttempt) =>
         logger.error(
