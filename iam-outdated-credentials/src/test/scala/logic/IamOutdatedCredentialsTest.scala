@@ -754,7 +754,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
 
   "performRemediationOperation" - {
 
-    val fakeRemediationSnsClient = new SnsAsyncClient {
+    def getFakeRemediationSnsClient() = new SnsAsyncClient {
       private var notificationCount = 0
 
       override def publish(publishRequest: PublishRequest): CompletableFuture[PublishResponse] = {
@@ -798,7 +798,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
     }
 
     def getIamOutdatedCredentials(dryRun: Boolean) = new IamOutdatedCredentials(
-      snsClient = fakeRemediationSnsClient,
+      snsClient = getFakeRemediationSnsClient(),
       iamClients = List(AwsClient(fakeRemediationIamClient, account, Region.of("us-east-1"))),
       dynamo = fakeRemediationDb,
       dryRun = dryRun
@@ -873,10 +873,22 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           devXSecurityAccountMaybe = securityAccount
         )
         result.value().length shouldBe 1
-        result.value().head shouldBe "sns-2"
+        result.value().head shouldBe "sns-1"
       }
 
-      "should return two notifications for remediation" in {
+      "should return one notification for remediation when security account is not present" in {
+        val result = getIamOutdatedCredentials(dryRun).performRemediationOperation(
+          getOperation(Remediation),
+          new DateTime(),
+          fakeTopicArn,
+          fakeRemediationTableName,
+          devXSecurityAccountMaybe = None
+        )
+        result.value().length shouldBe 1
+        result.value().head shouldBe "sns-1"
+      }
+
+      "should return two notifications for remediation when security account is present" in {
         val result = getIamOutdatedCredentials(dryRun).performRemediationOperation(
           getOperation(Remediation),
           new DateTime(),
@@ -885,9 +897,8 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           devXSecurityAccountMaybe = securityAccount
         )
         result.value().length shouldBe 2
-        result.value().head shouldBe "sns-3"
-        result.value().tail.head shouldBe "sns-4"
-
+        result.value().head shouldBe "sns-1"
+        result.value().tail.head shouldBe "sns-2"
       }
     }
   }
