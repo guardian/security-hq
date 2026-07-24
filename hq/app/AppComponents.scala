@@ -153,7 +153,8 @@ class AppComponents(context: Context)
     applicationLifecycle,
     environment,
     securityS3Client,
-    devXSecurityAccountMaybe
+    devXSecurityAccountMaybe,
+    dryRun = Config.getOutdatedCredentialsDryRun(configuration)
   )(executionContext)
 
   override def router: Router = new Routes(
