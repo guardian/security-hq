@@ -144,17 +144,20 @@ class AppComponents(context: Context)
     cacheService
   )
 
+  private val dynamo = new IamRemediationDb(securityDynamoDbClient)
+  private val dryRun = Config.getOutdatedCredentialsDryRun(configuration)
+  private val iamOutdatedCredentials = IamOutdatedCredentials(securitySnsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
+
   new IamRemediationService(
     cacheService,
     securitySnsClient,
-    new IamRemediationDb(securityDynamoDbClient),
+    dynamo,
     configuration,
     iamClients,
     applicationLifecycle,
     environment,
     securityS3Client,
-    devXSecurityAccountMaybe,
-    dryRun = Config.getOutdatedCredentialsDryRun(configuration)
+    iamOutdatedCredentials
   )(executionContext)
 
   override def router: Router = new Routes(
