@@ -5,6 +5,7 @@ import config.{Config, CoreConfig}
 import controllers.*
 import db.IamRemediationDb
 import filters.HstsFilter
+import logic.IamOutdatedCredentials
 import model.{AwsAccount, Stage}
 import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSClient
@@ -24,8 +25,9 @@ import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.utils.AttributeMap
 import utils.attempt.Attempt
-import scala.concurrent.duration.*
+
 import scala.concurrent.Await
+import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import scala.language.postfixOps
 
@@ -92,6 +94,7 @@ class AppComponents(context: Context)
   private val taClients = AWS.taClients(awsAccounts)
   private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
   private val iamClients = AWS.iamClients(awsAccounts, availableRegions)
+  private val devXSecurityAccountMaybe = awsAccounts.find(_.id == IamOutdatedCredentials.SECURITY_ACCOUNT_ID)
 
   /*
       The casting from SdkHttpConfigurationOption[Integer] to AttributeMap.Key[Any] is required because Scala compiler comlains
@@ -141,15 +144,21 @@ class AppComponents(context: Context)
     cacheService
   )
 
+  private val dynamo = new IamRemediationDb(securityDynamoDbClient)
+  private val dryRun = Config.getOutdatedCredentialsDryRun(configuration)
+  private val iamOutdatedCredentials =
+    IamOutdatedCredentials(securitySnsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
+
   new IamRemediationService(
     cacheService,
     securitySnsClient,
-    new IamRemediationDb(securityDynamoDbClient),
+    dynamo,
     configuration,
     iamClients,
     applicationLifecycle,
     environment,
-    securityS3Client
+    securityS3Client,
+    iamOutdatedCredentials
   )(executionContext)
 
   override def router: Router = new Routes(

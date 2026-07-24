@@ -37,7 +37,8 @@ class IamRemediationService(
     iamClients: AwsClients[IamAsyncClient],
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    securityS3Client: S3Client
+    securityS3Client: S3Client,
+    iamOutdatedCredentials: IamOutdatedCredentials
 )(implicit ec: ExecutionContext)
     extends Scheduler {
 
@@ -122,10 +123,9 @@ class IamRemediationService(
     tableName <- getIamDynamoTableName(config)
     serviceAccountIds <- Config.getAccountsForIamRemediationService(config)
     rawCredsReports = cacheService.getAllCredentials
-    dryRun = Config.getOutdatedCredentialsDryRun(config)
     // this tells us which AWS accounts we are allowed to make changes to
     allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-    result <- IamOutdatedCredentials(snsClient, iamClients, dynamo, dryRun).disableOutdatedCredentials(
+    result <- iamOutdatedCredentials.disableOutdatedCredentials(
       notificationTopicArn,
       tableName,
       serviceAccountIds,

@@ -2,6 +2,7 @@ package logic
 
 import aws.iam.IAMClient
 import aws.{AWS, AwsClients}
+import com.gu.anghammarad.models.Notification
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import db.IamRemediationDb
@@ -24,6 +25,7 @@ class IamOutdatedCredentials(
     snsClient: SnsAsyncClient,
     iamClients: AwsClients[IamAsyncClient],
     dynamo: IamRemediationDb,
+    devXSecurityAccountMaybe: Option[AwsAccount],
     dryRun: Boolean = true
 ) extends LazyLogging {
 
@@ -33,13 +35,12 @@ class IamOutdatedCredentials(
     *   - disable an IAM credential and send a notification that this has been done
     *   - remove an IAM password and send a notification that this has been done
     */
-  private def performRemediationOperation(
+  private[logic] def performRemediationOperation(
       remediationOperation: RemediationOperation,
       now: DateTime,
       notificationTopicArn: String,
-      tableName: String,
-      dryRun: Boolean
-  )(implicit ec: ExecutionContext): Attempt[String] = {
+      tableName: String
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
     val iamUser = remediationOperation.vulnerableCandidate.iamUser
     val problemCreationDate = remediationOperation.problemCreationDate
@@ -59,48 +60,81 @@ class IamOutdatedCredentials(
         val notification =
           AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
+          // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
+          // don't want to record we sent a warning if we didn't, so we do it in this order
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
-        } yield snsId
+        } yield List(snsId)
 
       case (Warning, OutdatedCredential) =>
         logger.info(s"Dry run: Would send warning for $awsAccount, $iamUser")
-        Attempt.Right("dummy-warning")
+        Attempt.Right(Nil)
 
       case (FinalWarning, OutdatedCredential) if !dryRun =>
         val notification =
           AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate, now)
         for {
+          // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
+          // don't want to record we sent a final warning if we didn't, so we do it in this order
           snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
           _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
-        } yield snsId
+        } yield List(snsId)
 
       case (FinalWarning, OutdatedCredential) =>
         logger.info(s"Dry run: Would send final warning for $awsAccount, $iamUser")
-        Attempt.Right("dummy-finalWarning")
+        Attempt.Right(Nil)
 
       case (Remediation, OutdatedCredential) if !dryRun =>
         val notification =
           AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
+        val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount
+          )
+        )
         for {
-          // disable the correct credential
+          // plan the disable action for the correct credential
           userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
           credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+
+          // record, then alert, then do.  Different order to the above.
+          // If we do the remediation, it's vitally important that the record happens, and the alert happens.
+          // So do them first.
+          _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
+          // send a notification to say this is what we have done
+          userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+          // Send a notification to devx too, if we've got an account for them.
+          securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
+
+          // only now do we actually disable the credential
           _ <- IAMClient.disableAccessKey(
             awsAccount,
             credentialToDisable.username,
             credentialToDisable.accessKeyId,
             iamClients
           )
-          // send a notification to say this is what we have done
-          notificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
-          // save a record of the change
-          _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
-        } yield notificationId
+        } yield List(userNotificationId) ++ securityNotificationIdMaybe
 
       case (Remediation, OutdatedCredential) =>
         logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
-        Attempt.Right("dummy-remediation")
+        Attempt.Right(Nil)
+    }
+  }
+
+  private def sendSecurityNotification(
+      notificationTopicArn: String,
+      notificationDevXSecurityMaybe: Option[Notification]
+  )(implicit executionContext: ExecutionContext): Attempt[Option[String]] = {
+    notificationDevXSecurityMaybe match {
+      case Some(notificationDevXSecurity) =>
+        logger.info("Sending notification to devx security account")
+        AnghammaradNotifications.send(notificationDevXSecurity, notificationTopicArn, snsClient).map(Some(_))
+      case None =>
+        logger.warn("No devx security account configured")
+        Attempt.Right(None)
     }
   }
 
@@ -151,7 +185,7 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(dummyOperation)
       // now we know what operations need to be performed, so let's run each of those
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
-        performRemediationOperation(_, now, notificationTopicArn, tableName, dryRun)
+        performRemediationOperation(_, now, notificationTopicArn, tableName)
       )
     } yield results
     result.tap {
@@ -182,6 +216,7 @@ object IamOutdatedCredentials extends LazyLogging {
 
     val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
     val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
+    val devXSecurityAccount = awsAccounts.find(_.id == SECURITY_ACCOUNT_ID)
     val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
     val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
     val allowedAccountIds: List[String] =
@@ -204,6 +239,7 @@ object IamOutdatedCredentials extends LazyLogging {
         snsClient = snsClient,
         iamClients = iamClients,
         dynamo = dynamo,
+        devXSecurityAccountMaybe = devXSecurityAccount,
         dryRun = settings.dryRun
       ).disableOutdatedCredentials(
         notificationTopicArn = anghammaradSnsArn,
@@ -469,5 +505,6 @@ object IamOutdatedCredentials extends LazyLogging {
   private val ALLOWED_ACCOUNT_IDS_CONFIG_ITEM = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM = "ANGHAMMARAD_SNS_TOPIC_ARN"
   private val IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM = "IAM_DYNAMO_TABLE_NAME"
+  val SECURITY_ACCOUNT_ID = "security"
 
 }

@@ -44,6 +44,7 @@ downloadConfig() {
     # BSD sed (macOS)
     sed -i '' 's|"/Users/ADD_YOUR_NAME|${HOME}"|g' ~/.gu/security-hq/security-hq.local.conf
   fi
+}
 
 startDynamoDb() {
   docker-compose up -d
