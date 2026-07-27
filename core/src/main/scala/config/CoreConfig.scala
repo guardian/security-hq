@@ -2,6 +2,7 @@ package config
 
 import aws.AwsClient
 import aws.ec2.EC2
+import aws.ssm.SSM
 import com.typesafe.config.{Config, ConfigFactory}
 import model.{AwsAccount, DEV, PROD, Stage}
 import software.amazon.awssdk.auth.credentials.{
@@ -15,6 +16,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.ssm.SsmAsyncClient
 import utils.attempt.Attempt
 
 import java.net.URI
@@ -32,20 +34,19 @@ object CoreConfig {
   // TODO fetch the region dynamically from the instance
   val region: Region = Region.of("eu-west-1")
 
-  def calculateAvailableRegions(stack: String, stage: Stage)(implicit ec: ExecutionContext): Attempt[List[Region]] = {
-    val ec2Client = AwsClient(
-      Ec2AsyncClient.builder
+  def calculateAvailableRegions(stack: String, stage: Stage)(using ExecutionContext): Attempt[List[Region]] = {
+    val ssmClient = AwsClient(
+      SsmAsyncClient
+        .builder()
         .region(CoreConfig.region)
+        .credentialsProvider(securityCredentialsProvider)
         .build(),
       // This account name is the only useful element (in logging contextString)
       AwsAccount("n/a", stack, "n/a", "n/a"),
       CoreConfig.region
     )
-    (for {
-      ec2RegionList <- EC2.getAvailableRegions(ec2Client)
-      regionList = ec2RegionList.map(ec2Region => Region.of(ec2Region.regionName))
-    } yield regionList)
-      .tap(_ => ec2Client.client.close())
+
+    SSM.getAllRegions(ssmClient).tap(_ => ssmClient.client.close())
   }
 
   val securityCredentialsProvider: AwsCredentialsProviderChain = AwsCredentialsProviderChain.of(

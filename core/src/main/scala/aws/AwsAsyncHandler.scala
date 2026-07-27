@@ -25,7 +25,9 @@ object AwsAsyncHandler {
         case ServiceName(serviceName) => Some(serviceName)
         case _                        => None
       }
-      if (e.getMessage.contains("The security token included in the request is expired")) {
+      if (e.getMessage.contains("The security token included in the request is invalid")) {
+        Failure.invalidCredentials(serviceNameOpt, awsClient).attempt
+      } else if (e.getMessage.contains("The security token included in the request is expired")) {
         Failure.expiredCredentials(serviceNameOpt, awsClient).attempt
       } else if (e.getMessage.contains("Unable to load AWS credentials from any provider in the chain")) {
         Failure.noCredentials(serviceNameOpt, awsClient).attempt

@@ -2,6 +2,7 @@ package logic
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import settings.Settings
+import utils.attempt.FailedAttempt
 
 import java.io.{InputStream, OutputStream}
 import scala.concurrent.duration.*
@@ -21,10 +22,16 @@ class IamOutdatedCredentialsLambda extends RequestStreamHandler {
       case Right(_) => ()
 
       case Left(failedAttempt) =>
-        throw new RuntimeException(
-          s"IamOutdatedCredentials Lambda execution failed: ${failedAttempt.logMessage}",
-          failedAttempt.firstException.orNull
-        )
+        val (expectedFailures, otherFailures) = failedAttempt.failures.partition(_.isExpected)
+        if (otherFailures.nonEmpty) {
+          val attempt = FailedAttempt(otherFailures)
+          throw new RuntimeException(
+            s"IamOutdatedCredentials Lambda execution failed: ${attempt.logMessage}",
+            attempt.firstException.orNull
+          )
+        } else {
+          ()
+        }
     }
   }
 

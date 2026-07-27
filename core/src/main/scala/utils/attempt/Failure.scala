@@ -34,7 +34,8 @@ case class Failure(
     friendlyMessage: String,
     statusCode: Int,
     context: Option[String] = None,
-    throwable: Option[Throwable] = None
+    throwable: Option[Throwable] = None,
+    isExpected: Boolean = false,
 ) {
   def attempt = FailedAttempt(this)
 }
@@ -83,6 +84,14 @@ object Failure {
       s"expired AWS credentials, service: $serviceName, $context"
     }
     Failure(details, "Failed to request data from AWS, the temporary credentials have expired.", 401)
+  }
+
+  def invalidCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+    val context = contextString(clientContext)
+    val details = serviceNameOpt.fold(s"invalid AWS credentials, unknown service, $context") { serviceName =>
+      s"invalid AWS credentials, service: $serviceName, $context"  
+    }
+    Failure(details, "Credentials were not valid, which usually means the region is not enabled for this account", 401, isExpected = true)
   }
 
   def noCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
