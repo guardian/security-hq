@@ -146,8 +146,18 @@ class AppComponents(context: Context)
 
   private val dynamo = new IamRemediationDb(securityDynamoDbClient)
   private val dryRun = Config.getOutdatedCredentialsDryRun(configuration)
+  private val notificationTopicArn = Config.getAnghammaradSNSTopicArn(configuration)
+  private val tableName = Config.getIamDynamoTableName(configuration)
   private val iamOutdatedCredentials =
-    IamOutdatedCredentials(securitySnsClient, iamClients, dynamo, devXSecurityAccountMaybe, dryRun)
+    IamOutdatedCredentials(
+      securitySnsClient,
+      iamClients,
+      dynamo,
+      devXSecurityAccountMaybe,
+      dryRun,
+      notificationTopicArn,
+      tableName
+    )
 
   new IamRemediationService(
     cacheService,
