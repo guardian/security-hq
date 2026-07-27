@@ -797,17 +797,19 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       ): Attempt[String] = Attempt.Right("fake-dynamo-write-id")
     }
 
+    val fakeTopicArn = "arn:aws:sns:eu-west-1:123456789012:test-topic"
+    val fakeRemediationTableName = "test-remediation-table"
     def getIamOutdatedCredentials(dryRun: Boolean, devXSecurityAccountMaybe: Option[AwsAccount]) =
       new IamOutdatedCredentials(
         snsClient = getFakeRemediationSnsClient,
         iamClients = List(AwsClient(fakeRemediationIamClient, account, Region.of("us-east-1"))),
         dynamo = fakeRemediationDb,
         devXSecurityAccountMaybe = devXSecurityAccountMaybe,
-        dryRun = dryRun
+        dryRun = dryRun,
+        notificationTopicArn = fakeTopicArn,
+        tableName = fakeRemediationTableName
       )
 
-    val fakeTopicArn = "arn:aws:sns:eu-west-1:123456789012:test-topic"
-    val fakeRemediationTableName = "test-remediation-table"
     val securityAccount = AwsAccount("security", "Security", "role", "999999999999")
     def getOperation(IamRemediationActivityType: IamRemediationActivityType) = RemediationOperation(
       IamUserRemediationHistory(account, machineWithOneOldEnabledAccessKey, Nil),
@@ -821,9 +823,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return no notifications for warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(Warning),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value() shouldEqual Nil
       }
@@ -831,9 +831,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return no notifications for final warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(FinalWarning),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value() shouldEqual Nil
       }
@@ -841,9 +839,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return no notifications for remediation" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(Remediation),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value() shouldEqual Nil
       }
@@ -854,9 +850,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return one notification for warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(Warning),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
@@ -865,9 +859,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return one notification for final warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(FinalWarning),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
@@ -876,9 +868,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return one notification for remediation when security account is not present" in {
         val result = getIamOutdatedCredentials(dryRun, None).performRemediationOperation(
           getOperation(Remediation),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
@@ -887,9 +877,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return two notifications for remediation when security account is present" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(Remediation),
-          new DateTime(),
-          fakeTopicArn,
-          fakeRemediationTableName
+          new DateTime()
         )
         result.value().length shouldBe 2
         result.value().head shouldBe "sns-1"

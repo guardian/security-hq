@@ -105,12 +105,7 @@ object Config extends Logging {
     } yield AwsAccount(id, name, roleArn, number)
   }
 
-  def getIamDynamoTableName(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.iamDynamoTableName"),
-      FailedAttempt(Failure("unable to get dynamo table name", "unable to get dynamo table name for IAM jobs", 500))
-    )
-  }
+  def getIamDynamoTableName(config: Configuration): String = requiredString(config, "alert.iamDynamoTableName")
 
   def getIamUnrecognisedUserConfig(
       config: Configuration
@@ -120,19 +115,12 @@ object Config extends Logging {
       key <- getJanusDataFileKey(config)
       bucket <- getIamUnrecognisedUserBucket(config)
       securityAccount <- getSecurityAccount(config)
-      anghammaradSnsTopicArn <- getAnghammaradSNSTopicArn(config)
+      anghammaradSnsTopicArn = getAnghammaradSNSTopicArn(config)
       dryRun = getUnrecognisedUserDryRun(config)
     } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn, dryRun)
   }
 
-  def getAnghammaradSNSTopicArn(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.anghammaradSnsArn"),
-      FailedAttempt(
-        Failure("unable to get Anghammarad topic ARN", "unable to get Anghammarad topic ARN for IAM jobs", 500)
-      )
-    )
-  }
+  def getAnghammaradSNSTopicArn(config: Configuration): String = requiredString(config, "alert.anghammaradSnsArn")
 
   // Default to true; only an explicit "false" disables dry-run.
   // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
