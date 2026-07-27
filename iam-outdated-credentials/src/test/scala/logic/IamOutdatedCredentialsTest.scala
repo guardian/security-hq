@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.iam.model.{
   ListAccessKeysRequest,
   ListAccessKeysResponse,
   StatusType,
+  UpdateAccessKeyRequest,
   UpdateAccessKeyResponse
 }
 import software.amazon.awssdk.services.sns.SnsAsyncClient
@@ -26,6 +27,7 @@ import utils.attempt.{Attempt, AttemptValues}
 
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
@@ -771,7 +773,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       override def close(): Unit = ()
     }
 
-    val fakeRemediationIamClient = new IamAsyncClient {
+    def getFakeRemediationIamClient(remediationCounter: AtomicInteger): IamAsyncClient = new IamAsyncClient {
       override def listAccessKeys(request: ListAccessKeysRequest): CompletableFuture[ListAccessKeysResponse] = {
         val accessKeyMetadata = AccessKeyMetadata
           .builder()
@@ -787,8 +789,10 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
 
       override def updateAccessKey(
           request: software.amazon.awssdk.services.iam.model.UpdateAccessKeyRequest
-      ): CompletableFuture[UpdateAccessKeyResponse] =
+      ): CompletableFuture[UpdateAccessKeyResponse] = {
+        remediationCounter.incrementAndGet()
         CompletableFuture.completedFuture(UpdateAccessKeyResponse.builder().build())
+      }
 
       override def serviceName(): String = "iam"
 
@@ -803,10 +807,14 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
 
     val fakeTopicArn = "arn:aws:sns:eu-west-1:123456789012:test-topic"
     val fakeRemediationTableName = "test-remediation-table"
-    def getIamOutdatedCredentials(dryRun: Boolean, devXSecurityAccountMaybe: Option[AwsAccount]) =
+    def getIamOutdatedCredentials(
+        dryRun: Boolean,
+        devXSecurityAccountMaybe: Option[AwsAccount],
+        iamAsyncClient: IamAsyncClient
+    ) =
       new IamOutdatedCredentials(
         snsClient = getFakeRemediationSnsClient,
-        iamClients = List(AwsClient(fakeRemediationIamClient, account, Region.of("us-east-1"))),
+        iamClients = List(AwsClient(iamAsyncClient, account, Region.of("us-east-1"))),
         dynamo = fakeRemediationDb,
         devXSecurityAccountMaybe = devXSecurityAccountMaybe,
         dryRun = dryRun,
@@ -825,87 +833,121 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
     "in dry run mode" - {
       val dryRun = true
       "should return no notifications for warning" in {
-        val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-          getOperation(Warning),
-          today
-        )
+        val remediationCounter = new AtomicInteger(0)
+        val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+        val result =
+          getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+            getOperation(Warning),
+            today
+          )
         result.value() shouldEqual Nil
+        remediationCounter.get() shouldBe 0
       }
 
       "should return no notifications for final warning" in {
-        val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-          getOperation(FinalWarning),
-          today
-        )
+        val remediationCounter = new AtomicInteger(0)
+        val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+        val result =
+          getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+            getOperation(FinalWarning),
+            today
+          )
         result.value() shouldEqual Nil
+        remediationCounter.get() shouldBe 0
       }
 
       "should return no notifications for remediation" in {
-        val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-          getOperation(Remediation),
-          today
-        )
+        val remediationCounter = new AtomicInteger(0)
+        val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+        val result =
+          getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+            getOperation(Remediation),
+            today
+          )
         result.value() shouldEqual Nil
+        remediationCounter.get() shouldBe 0
       }
     }
 
     "not in dry run mode" - {
       val dryRun = false
       "should return one notification for warning" in {
-        val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-          getOperation(Warning),
-          today
-        )
+        val remediationCounter = new AtomicInteger(0)
+        val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+        val result =
+          getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+            getOperation(Warning),
+            today
+          )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
+        remediationCounter.get() shouldBe 0
       }
 
       "should return one notification for final warning" in {
-        val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-          getOperation(FinalWarning),
-          today
-        )
+        val remediationCounter = new AtomicInteger(0)
+        val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+        val result =
+          getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+            getOperation(FinalWarning),
+            today
+          )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
+        remediationCounter.get() shouldBe 0
       }
 
       "remediation on Remediation Tuesdays" - {
         "should return one notification when security account is not present" in {
-          val result = getIamOutdatedCredentials(dryRun, None).performRemediationOperation(
+          val remediationCounter = new AtomicInteger(0)
+          val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+          val result = getIamOutdatedCredentials(dryRun, None, iamAsyncClient).performRemediationOperation(
             getOperation(Remediation),
             tuesday
           )
           result.value().length shouldBe 1
           result.value().head shouldBe "sns-1"
+          remediationCounter.get() shouldBe 1
         }
 
         "should return two notifications when security account is present" in {
-          val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-            getOperation(Remediation),
-            tuesday
-          )
+          val remediationCounter = new AtomicInteger(0)
+          val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+          val result =
+            getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+              getOperation(Remediation),
+              tuesday
+            )
           result.value().length shouldBe 2
           result.value().head shouldBe "sns-1"
           result.value().tail.head shouldBe "sns-2"
+          remediationCounter.get() shouldBe 1
         }
       }
 
       "remediation on other days" - {
         "should return no notifications when security account is not present" in {
-          val result = getIamOutdatedCredentials(dryRun, None).performRemediationOperation(
+          val remediationCounter = new AtomicInteger(0)
+          val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+          val result = getIamOutdatedCredentials(dryRun, None, iamAsyncClient).performRemediationOperation(
             getOperation(Remediation),
             notTuesday
           )
           result.value().length shouldBe 0
+          remediationCounter.get() shouldBe 0
         }
 
         "should return one notification when security account is present" in {
-          val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
-            getOperation(Remediation),
-            notTuesday
-          )
+          val remediationCounter = new AtomicInteger(0)
+          val iamAsyncClient = getFakeRemediationIamClient(remediationCounter)
+          val result =
+            getIamOutdatedCredentials(dryRun, Some(securityAccount), iamAsyncClient).performRemediationOperation(
+              getOperation(Remediation),
+              notTuesday
+            )
           result.value().length shouldBe 1
           result.value().head shouldBe "sns-1"
+          remediationCounter.get() shouldBe 0
         }
       }
     }
