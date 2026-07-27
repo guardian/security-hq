@@ -752,9 +752,11 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
     }
   }
 
-  private val notTuesday = new DateTime().withDayOfWeek(1)
-  private val tuesday = new DateTime().withDayOfWeek(2)
   "performRemediationOperation" - {
+
+    val today = new DateTime()
+    val notTuesday = new DateTime().withDayOfWeek(1)
+    val tuesday = new DateTime().withDayOfWeek(2)
 
     def getFakeRemediationSnsClient = new SnsAsyncClient {
       private var notificationCount = 0
@@ -822,7 +824,6 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
 
     "in dry run mode" - {
       val dryRun = true
-      val today = new DateTime()
       "should return no notifications for warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(Warning),
@@ -853,7 +854,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return one notification for warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(Warning),
-          notTuesday
+          today
         )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
@@ -862,14 +863,14 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       "should return one notification for final warning" in {
         val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
           getOperation(FinalWarning),
-          notTuesday
+          today
         )
         result.value().length shouldBe 1
         result.value().head shouldBe "sns-1"
       }
 
-      "on Remediation Tuesdays" - {
-        "should return one notification for remediation when security account is not present" in {
+      "remediation on Remediation Tuesdays" - {
+        "should return one notification when security account is not present" in {
           val result = getIamOutdatedCredentials(dryRun, None).performRemediationOperation(
             getOperation(Remediation),
             tuesday
@@ -878,7 +879,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           result.value().head shouldBe "sns-1"
         }
 
-        "should return two notifications for remediation when security account is present" in {
+        "should return two notifications when security account is present" in {
           val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
             getOperation(Remediation),
             tuesday
@@ -889,8 +890,8 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
         }
       }
 
-      "on other days" - {
-        "should return no notifications for no remediation when security account is not present" in {
+      "remediation on other days" - {
+        "should return no notifications when security account is not present" in {
           val result = getIamOutdatedCredentials(dryRun, None).performRemediationOperation(
             getOperation(Remediation),
             notTuesday
@@ -898,7 +899,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           result.value().length shouldBe 0
         }
 
-        "should return one notification for no remediation when security account is present" in {
+        "should return one notification when security account is present" in {
           val result = getIamOutdatedCredentials(dryRun, Some(securityAccount)).performRemediationOperation(
             getOperation(Remediation),
             notTuesday
@@ -916,7 +917,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       IamUserRemediationHistory(AwsAccount(id, "", "", ""), machineUser, Nil),
       Warning,
       OutdatedCredential,
-      notTuesday
+      new DateTime()
     )
   }
   def remediationActivity(
