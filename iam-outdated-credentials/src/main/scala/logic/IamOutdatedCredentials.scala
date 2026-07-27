@@ -83,7 +83,9 @@ class IamOutdatedCredentials(
       logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
       Attempt.Right(Nil)
     } else if (now.dayOfWeek().get() != DateTimeConstants.TUESDAY) {
-      logger.info(s"""It's not "Remediation Tuesday"!  We will not execute remediation for $awsAccount, $iamUser TODAY, but we will SOON""")
+      logger.info(
+        s"""It's not "Remediation Tuesday"!  We will not execute remediation for $awsAccount, $iamUser TODAY, but we will SOON"""
+      )
       val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
         AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
           awsAccount,
