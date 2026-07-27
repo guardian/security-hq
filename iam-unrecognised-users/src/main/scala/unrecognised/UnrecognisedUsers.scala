@@ -36,13 +36,11 @@ object UnrecognisedUsers extends LazyLogging {
 
   def run(
       env: Map[String, String] = sys.env,
-      restrictToAccountId: Option[String] = None,
       timeout: FiniteDuration = 5.minutes
-  ): Unit = {
-    implicit val ec: ExecutionContext = ExecutionContext.global
+  )(using ExecutionContext): Unit = {
     val settings = Settings.fromEnvironment(env)
     logger.info(s"Starting iam-unrecognised-users job (dryRun=${settings.dryRun}, region=${settings.region.id})")
-    val result = disableUnrecognisedUsers(settings, restrictToAccountId)
+    val result = disableUnrecognisedUsers(settings)
     Await.result(result.asFuture, timeout) match {
       case Left(failure) =>
         logger.error(s"Failed to run unrecognised user job: ${failure.logMessage}")
@@ -54,9 +52,11 @@ object UnrecognisedUsers extends LazyLogging {
 
   def disableUnrecognisedUsers(
       settings: Settings,
-      restrictToAccountId: Option[String] = None
-  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
-    val s3Client = S3Client.builder.region(settings.region).build()
+  )(using ExecutionContext): Attempt[List[String]] = {
+    val s3Client = S3Client.builder
+      .region(settings.region)
+      .credentialsProvider(CoreConfig.securityCredentialsProvider)
+      .build()
     lazy val snsClient = SnsAsyncClient.builder.region(settings.region).build()
     // IAM is global; us-east-1 is required for credential reports. Additional regions only affect CloudFormation stack
     // enrichment, which this job does not rely on.
@@ -71,8 +71,7 @@ object UnrecognisedUsers extends LazyLogging {
       // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
       configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
       conf = ConfigFactory.parseString(configSource.mkString)
-      allAccounts = CoreConfig.parseAccounts(conf)
-      awsAccounts = restrictToAccountId.fold(allAccounts)(id => allAccounts.filter(_.id == id))
+      awsAccounts = CoreConfig.parseAccounts(conf)
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
       iamClients = AWS.iamClients(awsAccounts, regions)

@@ -3,6 +3,7 @@ package unrecognised
 import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 
 import java.io.{InputStream, OutputStream}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.*
 
 /** AWS lambda entrypoint. The trigger payload is ignored. */

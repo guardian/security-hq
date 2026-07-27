@@ -128,10 +128,10 @@ object IamUnrecognisedUsers extends LazyLogging {
       )
     } else {
       logger.info(
-        s"Attempt to disable access keys was skipped due to dry run."
+        s"DRY RUN: Attempt to disable access keys was skipped."
       )
       logger.info(
-        s"Skipping ${accountUnrecognisedKeys.vulnerableAccessKey.length} keys in ${accountUnrecognisedKeys.account} account."
+        s"DRY RUN: Skipping ${accountUnrecognisedKeys.vulnerableAccessKey.length} keys in ${accountUnrecognisedKeys.account} account."
       )
       Attempt.Right(Nil)
     }
@@ -158,10 +158,10 @@ object IamUnrecognisedUsers extends LazyLogging {
       }
     } else {
       logger.info(
-        s"Attempt to remove account passwords was skipped due to dry run."
+        s"DRY RUN: Attempt to remove account passwords was skipped."
       )
       logger.info(
-        s"Skipping password deletion for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}"
+        s"DRY RUN: Skipping password deletion for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}."
       )
       Attempt.Right(Nil)
     }
@@ -178,7 +178,7 @@ object IamUnrecognisedUsers extends LazyLogging {
         }
       }
     } else {
-      logger.info(s"Dry run: would send ${accountUsers.length} notification(s).")
+      logger.info(s"DRY RUN: Would send ${accountUsers.length} notification(s).")
       Nil
     }
   }
