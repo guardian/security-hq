@@ -1531,7 +1531,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             "APP": "iam-outdated-credentials",
             "CONFIG_BUCKET": "security-dist",
             "CONFIG_KEY": "security/PROD/security-hq/security-hq.conf",
-            "DRY_RUN": "true",
+            "DRY_RUN": "false",
             "STACK": "security",
             "STAGE": "PROD",
           },
