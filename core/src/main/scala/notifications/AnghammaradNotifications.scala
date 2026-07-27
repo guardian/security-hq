@@ -118,6 +118,37 @@ object AnghammaradNotifications extends LazyLogging {
     )
   }
 
+  def outdatedCredentialNoRemediationDevXSecurity(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      devXSecurityAccount: AwsAccount
+  ): Notification = {
+    val endUserNotificationTargets = notificationTargets(awsAccount, iamUser)
+    val devxSecurityNotificationTargets = List(Account(devXSecurityAccount.accountNumber))
+    val endUserTargetsString = endUserNotificationTargets.map(_.toString).mkString(", ")
+    val message =
+      s"""
+         |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was eligible for deactivation today,
+         |because it was last rotated on ${printDay(problemCreationDate)}.
+         |
+         |It wasn't deactivated because it's not Deactivation Tuesday.
+         |
+         |THIS ACTION HAS HIGH POTENTIAL TO BREAK THINGS.
+         |
+         |BE PREPARED FOR USERS TO BE UPSET!
+         |""".stripMargin
+    val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
+    Notification(
+      subject,
+      message + genericOutdatedCredentialText,
+      Nil,
+      devxSecurityNotificationTargets,
+      channel,
+      sourceSystem
+    )
+  }
+
   def outdatedCredentialRemediationDevXSecurity(
       awsAccount: AwsAccount,
       iamUser: IAMUser,

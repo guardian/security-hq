@@ -10,7 +10,7 @@ import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
 import model.*
 import notifications.AnghammaradNotifications
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeConstants}
 import settings.Settings
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
@@ -68,17 +68,32 @@ class IamOutdatedCredentials(
         )
 
       case (Remediation, OutdatedCredential) =>
-        remediation(awsAccount, iamUser, problemCreationDate, thisRemediationActivity)
+        remediation(now, awsAccount, iamUser, problemCreationDate, thisRemediationActivity)
     }
   }
 
   private def remediation(
+      now: DateTime,
       awsAccount: AwsAccount,
       iamUser: IAMUser,
       problemCreationDate: DateTime,
       thisRemediationActivity: IamRemediationActivity
   )(implicit ec: ExecutionContext) = {
-    if (!dryRun) {
+    if (dryRun) {
+      logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
+      Attempt.Right(Nil)
+    } else if (now.dayOfWeek().get() != DateTimeConstants.TUESDAY) {
+      logger.info(s"""It's not "Remediation Tuesday"!  We will not execute remediation for $awsAccount, $iamUser TODAY, but we will SOON""")
+      val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+        AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
+          awsAccount,
+          iamUser,
+          problemCreationDate,
+          devXSecurityAccount
+        )
+      )
+      sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
+    } else {
       val notification =
         AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
       val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
@@ -111,9 +126,6 @@ class IamOutdatedCredentials(
           iamClients
         )
       } yield List(userNotificationId) ++ securityNotificationIdMaybe
-    } else {
-      logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
-      Attempt.Right(Nil)
     }
   }
 
