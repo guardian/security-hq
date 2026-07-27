@@ -138,7 +138,7 @@ object AnghammaradNotifications extends LazyLogging {
          |
          |BE PREPARED FOR USERS TO BE UPSET!
          |""".stripMargin
-    val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
+    val subject = s"Imminent disabling of long-lived credential in ${awsAccount.name}"
     Notification(
       subject,
       message + genericOutdatedCredentialText,
