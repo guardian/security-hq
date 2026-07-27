@@ -74,7 +74,7 @@ object UnrecognisedUsers extends LazyLogging {
       awsAccounts = CoreConfig.parseAccounts(conf)
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
-      iamClients = AWS.iamClients(awsAccounts, regions)
+      iamClients = AWS.iamClients(awsAccounts)
       cfnClients = AWS.cfnClients(awsAccounts, regions)
       startingData = awsAccounts.map(account => account -> unloadedReport(account)).toMap
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames

@@ -279,7 +279,7 @@ object IamOutdatedCredentials extends LazyLogging {
 
     for {
       availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
-      iamClients = AWS.iamClients(awsAccounts, availableRegions)
+      iamClients = AWS.iamClients(awsAccounts)
       cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
         IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions)

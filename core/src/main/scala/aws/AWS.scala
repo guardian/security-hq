@@ -1,6 +1,7 @@
 package aws
 
 import config.CoreConfig
+import iam.IAMClient
 import model.AwsAccount
 import software.amazon.awssdk.auth.credentials.{AwsCredentialsProviderChain, ProfileCredentialsProvider}
 import software.amazon.awssdk.awscore
@@ -111,9 +112,10 @@ object AWS {
     client(withCustomThreadPool(IamAsyncClient.builder()), account, region)
   private val iamClientCache = new AwsClientCache(iamClientBuilder)
 
-  def iamClient(account: AwsAccount, region: Region): AwsClient[IamAsyncClient] =
-    iamClientCache.getClient(account, region)
+  // Only needs Regions.US_EAST_1
+  def iamClient(account: AwsAccount): AwsClient[IamAsyncClient] =
+    iamClientCache.getClient(account, IAMClient.SOLE_REGION)
 
-  def iamClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[IamAsyncClient] =
-    iamClientCache.getClients(accounts, regions)
+  def iamClients(accounts: List[AwsAccount]): AwsClients[IamAsyncClient] =
+    iamClientCache.getClients(accounts, List(IAMClient.SOLE_REGION))
 }

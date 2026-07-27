@@ -32,7 +32,7 @@ class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
     }
 
     "iam" in {
-      AWS.iamClients(accounts, regions) should have size (allRegionsSize)
+      AWS.iamClients(accounts) should have size (singleRegionSize)
     }
 
   }

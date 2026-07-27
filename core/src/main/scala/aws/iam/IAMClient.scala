@@ -97,7 +97,7 @@ object IAMClient extends LazyLogging {
       delay: FiniteDuration = 3.seconds
   )(implicit executionContext: ExecutionContext): Attempt[CredentialReportDisplay] = {
     for {
-      client <- iamClients.get(account, SOLE_REGION)
+      client <- iamClients.get(account)
       _ <- Retry.until(
         generateCredentialsReport(client),
         CredentialsReport.isComplete,
@@ -132,7 +132,7 @@ object IAMClient extends LazyLogging {
       ec: ExecutionContext
   ): Attempt[List[CredentialMetadata]] = {
     for {
-      client <- iamClients.get(account, SOLE_REGION)
+      client <- iamClients.get(account)
       result <- listAccessKeys(client, user)
       keyMetdatas = result.accessKeyMetadata.asScala.toList
       credentialMetadatas <- Attempt.traverse(keyMetdatas) { akm =>
@@ -188,7 +188,7 @@ object IAMClient extends LazyLogging {
       .status("Inactive")
       .build()
     for {
-      client <- iamClients.get(awsAccount, SOLE_REGION)
+      client <- iamClients.get(awsAccount)
       result <- handleAWSErrs(client)(asScala(client.client.updateAccessKey(request)))
     } yield result
   }
@@ -209,7 +209,7 @@ object IAMClient extends LazyLogging {
   ): Attempt[Option[DeleteLoginProfileResponse]] = {
     val request = DeleteLoginProfileRequest.builder.userName(username).build()
     for {
-      client <- iamClients.get(awsAccount, SOLE_REGION)
+      client <- iamClients.get(awsAccount)
       result <- handleDeleteLoginProfileErrs(client, username)(asScala(client.client.deleteLoginProfile(request)))
     } yield result
   }
