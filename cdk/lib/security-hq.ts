@@ -333,6 +333,7 @@ export class SecurityHQ extends GuStack {
           configS3BucketPath,
         ),
         this.listAuditBucketPolicy(),
+        this.getAuditObjectPolicy(),
         this.discoverRegionsPolicy(),
       ],
     });
@@ -510,7 +511,7 @@ export class SecurityHQ extends GuStack {
   }
 
   private listAuditBucketPolicy() {
-    // Used by the local dev setup to list the audit data bucket (for example Janus data exports)
+    // Used by lambdas
     return new PolicyStatement({
       sid: "ListAuditBucket",
       effect: Effect.ALLOW,
@@ -519,8 +520,18 @@ export class SecurityHQ extends GuStack {
     });
   }
 
+  private getAuditObjectPolicy() {
+    // Used by lambdas
+    return new PolicyStatement({
+      sid: "GetAuditObject",
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::${SecurityHQ.auditBucketName}/*`],
+    });
+  }
+
   private discoverRegionsPolicy() {
-    // Used by lambdas to get a list of regions
+    // Used by lambdas
     return new PolicyStatement({
       sid: "DiscoverRegions",
       effect: Effect.ALLOW,
