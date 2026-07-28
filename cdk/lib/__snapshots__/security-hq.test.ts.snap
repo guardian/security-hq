@@ -1295,6 +1295,12 @@ exports[`HQ stack matches the snapshot 1`] = `
               "Sid": "ListAuditBucket",
             },
             {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::gu-security-hq-audit/*",
+              "Sid": "GetAuditObject",
+            },
+            {
               "Action": "ec2:DescribeRegions",
               "Effect": "Allow",
               "Resource": "*",
