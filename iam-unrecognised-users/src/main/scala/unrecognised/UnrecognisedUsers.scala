@@ -51,7 +51,7 @@ object UnrecognisedUsers extends LazyLogging {
   }
 
   def disableUnrecognisedUsers(
-      settings: Settings,
+      settings: Settings
   )(using ExecutionContext): Attempt[List[String]] = {
     val s3Client = S3Client.builder
       .region(settings.region)
