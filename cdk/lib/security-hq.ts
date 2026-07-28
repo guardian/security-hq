@@ -377,7 +377,7 @@ export class SecurityHQ extends GuStack {
         environment: {
           STACK: this.stack,
           STAGE: this.stage,
-          DRY_RUN: "true",
+          DRY_RUN: "false",
           CONFIG_BUCKET: "security-dist",
           CONFIG_KEY: `security/${this.stage}/security-hq/security-hq.conf`,
         },
