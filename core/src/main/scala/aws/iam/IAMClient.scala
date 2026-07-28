@@ -159,7 +159,12 @@ object IAMClient extends LazyLogging {
                 )
               }
           }
-        } yield CredentialMetadata(akm.userName, akm.accessKeyId, new DateTime(akm.createDate.toEpochMilli), credentialStatus)
+        } yield CredentialMetadata(
+          akm.userName,
+          akm.accessKeyId,
+          new DateTime(akm.createDate.toEpochMilli),
+          credentialStatus
+        )
       }
     } yield credentialMetadatas
   }

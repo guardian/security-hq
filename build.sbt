@@ -159,6 +159,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := """iam-outdated-credentials""",
+    scalacOptions += "--deprecation",
     fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
     Assets / pipelineStages := Seq(digest),
     // exclude docs
@@ -186,6 +187,7 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
   .enablePlugins(AssemblyPlugin)
   .settings(
     name := "iam-unrecognised-users",
+    scalacOptions += "--deprecation",
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test

@@ -5,4 +5,25 @@ set -e
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ROOT_DIR="${DIR}/.."
 
-"$ROOT_DIR/sbt" "$*" "project hq; run"
+IAM_UNRECOGNISED_USERS_ENV=(
+  "CONFIG_BUCKET=security-dist"
+  "CONFIG_KEY=security/DEV/security-hq/security-hq.conf"
+  "IAM_UNRECOGNISED_USER_S3_BUCKET=gu-security-hq-audit"
+  "IAM_UNRECOGNISED_USER_S3_KEY=security/DEV/janus-data-export/janusData.conf"
+)
+
+# Select which application to run. Fails if no argument.
+MODE="${1}"
+
+case "$MODE" in
+  play)
+    "$ROOT_DIR/sbt" "project hq; run"
+    ;;
+  iam-unrecognised-users)
+    env "${IAM_UNRECOGNISED_USERS_ENV[@]}" "$ROOT_DIR/sbt" "project iamUnrecognisedUsers; run"
+    ;;
+  *)
+    echo "Usage: $(basename "$0") [play|iam-unrecognised-users]" >&2
+    exit 1
+    ;;
+esac

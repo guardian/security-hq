@@ -51,28 +51,22 @@ environment variables (matching the Play app).
 
 ## Running locally
 
-A local entrypoint is provided at [`Main.runUnrecognisedUsers`](src/main/scala/unrecognised/Main.scala), which can be
-run from sbt:
-
-```sh
-sbt 'iamUnrecognisedUsers/runMain unrecognised.runUnrecognisedUsers'
+The lambda has a [main](src/main/scala/unrecognised/Main.scala) entrypoint to allow it to be run locally 
+for functional testing.
+To run it, use the start script like so:
 ```
-
-### Required environment
-
-The locally run program reads `CONFIG_BUCKET` and `CONFIG_KEY` (the name of the Security account distribution bucket
-and the path of `security-hq.conf` within it), plus `IAM_UNRECOGNISED_USER_S3_BUCKET` and `IAM_UNRECOGNISED_USER_S3_KEY`
-(the audit-data bucket and the path of the Janus data file within it), from your local environment. Use the PROD paths
-so the account list and Janus data stay consistent. `REGION` is optional (defaults to `eu-west-1`).
+script/start iam-unrecognised-users
+```
+The script includes the required environment variables.
 
 ### Required permissions
 
-Running locally currently requires the **`dev`** Janus permission for the `security` account. (This will soon change.)  
+Running locally requires the **`Run Security HQ lambdas locally`** Janus permission for the `security` account.
 Use `janus` to assume the role before running so that a `security` profile is available in `~/.aws/credentials`.
 
 ### Limitations when run locally
 
-- Only the `security` account is polled (`restrictToAccountId` is hardcoded), so per-account coverage cannot be
+- Only the `security` account is polled so per-account coverage cannot be
   verified locally.
 - No changes are ever made (`DRY_RUN` is hardcoded), only logged, so the 'would deactivate'/'would send' output should be
   checked in the IDE console rather than in AWS.

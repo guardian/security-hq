@@ -67,6 +67,8 @@ export class SecurityHQ extends GuStack {
     app: "security-hq",
   };
 
+  private static readonly auditBucketName = "gu-security-hq-audit";
+
   constructor(scope: App, id: string, props: SecurityHQProps) {
     super(scope, id, props);
 
@@ -330,6 +332,8 @@ export class SecurityHQ extends GuStack {
           distBucket.valueAsString,
           configS3BucketPath,
         ),
+        this.listAuditBucketPolicy(),
+        this.getAuditObjectPolicy(),
         this.discoverRegionsPolicy(),
       ],
     });
@@ -424,7 +428,7 @@ export class SecurityHQ extends GuStack {
           DRY_RUN: "true",
           CONFIG_BUCKET: "security-dist",
           CONFIG_KEY: `security/${this.stage}/security-hq/security-hq.conf`,
-          IAM_UNRECOGNISED_USER_S3_BUCKET: "gu-security-hq-audit",
+          IAM_UNRECOGNISED_USER_S3_BUCKET: SecurityHQ.auditBucketName,
           IAM_UNRECOGNISED_USER_S3_KEY: `security/${this.stage}/janus-data-export/janusData.conf`,
         },
         fileName: `iam-unrecognised-users-${buildIdentifier}.jar`,
@@ -506,8 +510,28 @@ export class SecurityHQ extends GuStack {
     });
   }
 
+  private listAuditBucketPolicy() {
+    // Used by lambdas
+    return new PolicyStatement({
+      sid: "ListAuditBucket",
+      effect: Effect.ALLOW,
+      actions: ["s3:ListBucket"],
+      resources: [`arn:aws:s3:::${SecurityHQ.auditBucketName}`],
+    });
+  }
+
+  private getAuditObjectPolicy() {
+    // Used by lambdas
+    return new PolicyStatement({
+      sid: "GetAuditObject",
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::${SecurityHQ.auditBucketName}/*`],
+    });
+  }
+
   private discoverRegionsPolicy() {
-    // Used by lambdas to get a list of regions
+    // Used by lambdas
     return new PolicyStatement({
       sid: "DiscoverRegions",
       effect: Effect.ALLOW,
