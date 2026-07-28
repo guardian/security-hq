@@ -1,6 +1,7 @@
 package logic
 
 import aws.iam.IAMClient
+import aws.ec2.EC2
 import aws.{AWS, AwsClients}
 import com.gu.anghammarad.models.Notification
 import com.typesafe.scalalogging.LazyLogging
@@ -278,11 +279,17 @@ object IamOutdatedCredentials extends LazyLogging {
     val dynamo = new IamRemediationDb(CoreConfig.getSecurityDynamoDbClient(settings.stage))
 
     for {
-      availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
+      availableRegionsByAccount <- Attempt.traverse(awsAccounts) { account =>
+        EC2
+          .getAvailableRegions(AWS.ec2Client(account, CoreConfig.region))
+          .map(availableRegions => account -> availableRegions.map(region => Region.of(region.regionName)))
+      }
+      availableRegionsByAccountMap = availableRegionsByAccount.toMap
       iamClients = AWS.iamClients(awsAccounts)
-      cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
+      cfnClients = AWS.cfnClients(availableRegionsByAccountMap)
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
-        IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions)
+        val availableRegionsForAccount = availableRegionsByAccountMap.getOrElse(account, Nil)
+        IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegionsForAccount)
       }
 
       listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap

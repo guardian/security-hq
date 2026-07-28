@@ -32,22 +32,6 @@ object CoreConfig {
   // TODO fetch the region dynamically from the instance
   val region: Region = Region.of("eu-west-1")
 
-  def calculateAvailableRegions(stack: String, stage: Stage)(implicit ec: ExecutionContext): Attempt[List[Region]] = {
-    val ec2Client = AwsClient(
-      Ec2AsyncClient.builder
-        .region(CoreConfig.region)
-        .build(),
-      // This account name is the only useful element (in logging contextString)
-      AwsAccount("n/a", stack, "n/a", "n/a"),
-      CoreConfig.region
-    )
-    (for {
-      ec2RegionList <- EC2.getAvailableRegions(ec2Client)
-      regionList = ec2RegionList.map(ec2Region => Region.of(ec2Region.regionName))
-    } yield regionList)
-      .tap(_ => ec2Client.client.close())
-  }
-
   val securityCredentialsProvider: AwsCredentialsProviderChain = AwsCredentialsProviderChain.of(
     ProfileCredentialsProvider.create("security"),
     DefaultCredentialsProvider.builder.build()
