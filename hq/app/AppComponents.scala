@@ -93,7 +93,7 @@ class AppComponents(context: Context)
   private val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
   private val taClients = AWS.taClients(awsAccounts)
   private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
-  private val iamClients = AWS.iamClients(awsAccounts, availableRegions)
+  private val iamClients = AWS.iamClients(awsAccounts)
   private val devXSecurityAccountMaybe = awsAccounts.find(_.id == IamOutdatedCredentials.SECURITY_ACCOUNT_ID)
 
   /*
