@@ -308,18 +308,6 @@ export class SecurityHQ extends GuStack {
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
 
-    new GuDeveloperPolicyExperimental(this, "AccessSecurityHQInstancesBySsm", {
-      grantId: "security-hq-ssm",
-      friendlyName: "Access instances by SSM",
-      withoutPolicyChecks: true,
-      statements: [
-        this.getSsmInfoPolicy(),
-        this.getSsmStartSessionPolicy(
-          ec2App.autoScalingGroup.autoScalingGroupArn,
-        ),
-      ],
-    });
-
     new GuDeveloperPolicyExperimental(this, "RunSecurityHqLocallyPolicy", {
       grantId: "security-hq-dev",
       friendlyName: "Run Security HQ lambdas locally",
