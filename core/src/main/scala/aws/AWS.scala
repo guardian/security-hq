@@ -8,7 +8,6 @@ import software.amazon.awssdk.awscore
 import software.amazon.awssdk.awscore.client.builder.{AwsAsyncClientBuilder, AwsClientBuilder}
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sts.StsClient
@@ -79,16 +78,6 @@ object AWS {
   ): B = asyncClientBuilder.asyncConfiguration(c =>
     c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, sharedThreadPool)
   )
-
-  private def cfnClientBuilder(account: AwsAccount, region: Region): CloudFormationAsyncClient =
-    client(withCustomThreadPool(CloudFormationAsyncClient.builder()), account, region)
-  private val cfnClientCache = new AwsClientCache(cfnClientBuilder)
-
-  def cfnClient(account: AwsAccount, region: Region): AwsClient[CloudFormationAsyncClient] =
-    cfnClientCache.getClient(account, region)
-
-  def cfnClients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[CloudFormationAsyncClient] =
-    cfnClientCache.getClients(accounts, regions)
 
   private def taClientBuilder(account: AwsAccount, region: Region): SupportAsyncClient =
     client(withCustomThreadPool(SupportAsyncClient.builder), account, region)

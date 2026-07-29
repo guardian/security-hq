@@ -53,7 +53,6 @@ class AppComponents(context: Context)
   private val stage = Config.getStage(configuration)
 
   // the aim of this is to get all the regions that are available to this account
-  // TODO: Delete this and only use calculateAvailableRegions which does not await.
   private val availableRegions: List[Region] = {
     val ec2Client = AwsClient(
       Ec2AsyncClient.builder
@@ -90,7 +89,6 @@ class AppComponents(context: Context)
   }
 
   private val awsAccounts = Config.getAwsAccounts(configuration)
-  private val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
   private val taClients = AWS.taClients(awsAccounts)
   private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
   private val iamClients = AWS.iamClients(awsAccounts)
@@ -130,11 +128,9 @@ class AppComponents(context: Context)
     configuration,
     applicationLifecycle,
     environment,
-    cfnClients,
     taClients,
     s3Clients,
-    iamClients,
-    availableRegions
+    iamClients
   )
 
   new MetricService(

@@ -3,10 +3,7 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
-import IamUnrecognisedUsers.isTaggedForUnrecognisedUser
 import utils.attempt.FailedAttempt
-
-import java.net.URLEncoder
 
 object CredentialsReportDisplay {
 
@@ -68,10 +65,6 @@ object CredentialsReportDisplay {
     else Green
   }
 
-  def linkForAwsConsole(stack: AwsStack): String = {
-    s"https://${stack.region}.console.aws.amazon.com/cloudformation/home?${stack.region}#/stack/detail?stackId=${URLEncoder.encode(stack.id, "utf-8")}"
-  }
-
   def toCredentialReportDisplay(report: IAMCredentialsReport): CredentialReportDisplay = {
     val humanUsers = report.entries.filterNot(_.rootUser).collect {
       case cred if cred.passwordEnabled.contains(true) =>
@@ -82,7 +75,6 @@ object CredentialsReportDisplay {
           accessKey2Details(cred),
           humanReportStatus(cred),
           dayDiff(lastActivityDate(cred)),
-          stack = cred.stack,
           tags = cred.tags
         )
     }
@@ -95,7 +87,6 @@ object CredentialsReportDisplay {
           accessKey2Details(cred),
           machineReportStatus(cred),
           dayDiff(lastActivityDate(cred)),
-          stack = cred.stack,
           tags = cred.tags
         )
     }
