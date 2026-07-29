@@ -17,7 +17,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       "user-1",
       now,
       None,
-      None,
       Some(now.minusDays(1)),
       Some(now.minusDays(2)),
       Some(now.minusDays(3)),
@@ -163,7 +162,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, Some(now.minusDays(6))),
         Amber(Seq(ActiveAccessKey, MissingUsernameTag)),
         Some(1),
-        None,
         List.empty
       )
       val displayReport = CredentialReportDisplay(now, humanUsers = Seq(humanUser))
@@ -178,7 +176,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, Some(now.minusDays(6))),
         Green,
         Some(1),
-        None,
         List.empty
       )
       val displayReport = CredentialReportDisplay(now, machineUsers = Seq(machineUser))
@@ -194,7 +191,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, Some(now.minusDays(6))),
         Amber(Seq(ActiveAccessKey, MissingUsernameTag)),
         Some(1),
-        None,
         List.empty
       )
       val iAMCredentialsReport = IAMCredentialsReport(now, List(humanCred, cred))
@@ -204,7 +200,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, Some(now.minusDays(6))),
         Green,
         Some(1),
-        None,
         List.empty
       )
       val displayReport = CredentialReportDisplay(now, humanUsers = Seq(humanUser), machineUsers = Seq(machineUser))
@@ -223,7 +218,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Red(),
       Some(1),
-      None,
       List.empty
     )
     val humanAmber = HumanUser(
@@ -233,7 +227,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(AccessKeyEnabled, None),
       Amber(),
       Some(1),
-      None,
       List.empty
     )
     val humanGreen = HumanUser(
@@ -243,7 +236,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Green,
       Some(1),
-      None,
       List.empty
     )
     val machineAmber = MachineUser(
@@ -252,7 +244,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Amber(),
       Some(1),
-      None,
       List.empty
     )
     val machineGreen = MachineUser(
@@ -261,7 +252,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(AccessKeyEnabled, None),
       Green,
       Some(1),
-      None,
       List.empty
     )
 
@@ -371,20 +361,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
     }
   }
 
-  "linkForAwsConsole" - {
-    "will return a valid URL from a valid Stack" in {
-      val stack = AwsStack(
-        id = "arn:aws:cloudformation:eu-west-1:123456789123:stack/stack-name/8a123bc0-222d-33e4-5fg6-77aa88b12345",
-        name = "stack-name",
-        region = "eu-west-1"
-      )
-
-      linkForAwsConsole(
-        stack
-      ) shouldEqual "https://eu-west-1.console.aws.amazon.com/cloudformation/home?eu-west-1#/stack/detail?stackId=arn%3Aaws%3Acloudformation%3Aeu-west-1%3A123456789123%3Astack%2Fstack-name%2F8a123bc0-222d-33e4-5fg6-77aa88b12345"
-    }
-  }
-
   "reportStatusSummary" - {
     val now = DateTime.now()
 
@@ -403,7 +379,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, None),
         Red(),
         Some(1),
-        None,
         List.empty
       )
       val humanGreen = HumanUser(
@@ -413,7 +388,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, None),
         Green,
         Some(1),
-        None,
         List.empty
       )
       val machineAmber = MachineUser(
@@ -422,7 +396,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, None),
         Amber(),
         Some(1),
-        None,
         List.empty
       )
       val machineBlue = MachineUser(
@@ -431,7 +404,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, None),
         Blue,
         Some(1),
-        None,
         List.empty
       )
       val machineGreen = MachineUser(
@@ -440,7 +412,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
         AccessKey(AccessKeyEnabled, None),
         Green,
         Some(1),
-        None,
         List.empty
       )
       val report = CredentialReportDisplay(
@@ -464,7 +435,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Red(),
       Some(1),
-      None,
       List.empty
     )
     val humanRedB = HumanUser(
@@ -474,7 +444,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Red(),
       Some(1),
-      None,
       List.empty
     )
     val humanAmberA = HumanUser(
@@ -484,7 +453,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(AccessKeyEnabled, None),
       Amber(),
       Some(1),
-      None,
       List.empty
     )
     val humanAmberB = HumanUser(
@@ -494,7 +462,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(AccessKeyEnabled, None),
       Amber(),
       Some(1),
-      None,
       List.empty
     )
     val humanGreenA = HumanUser(
@@ -504,7 +471,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Green,
       Some(1),
-      None,
       List.empty
     )
     val humanGreenB = HumanUser(
@@ -514,7 +480,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Green,
       Some(1),
-      None,
       List.empty
     )
 
@@ -524,7 +489,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Amber(),
       Some(1),
-      None,
       List.empty
     )
     val machineAmberB = MachineUser(
@@ -533,7 +497,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(NoKey, None),
       Amber(),
       Some(1),
-      None,
       List.empty
     )
     val machineGreenA = MachineUser(
@@ -542,7 +505,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(AccessKeyEnabled, None),
       Green,
       Some(1),
-      None,
       List.empty
     )
     val machineGreenB = MachineUser(
@@ -551,7 +513,6 @@ class CredentialsReportDisplayTest extends AnyFreeSpec with Matchers {
       AccessKey(AccessKeyEnabled, None),
       Green,
       Some(1),
-      None,
       List.empty
     )
 

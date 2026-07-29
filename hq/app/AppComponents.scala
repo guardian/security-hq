@@ -90,7 +90,6 @@ class AppComponents(context: Context)
   }
 
   private val awsAccounts = Config.getAwsAccounts(configuration)
-  private val cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
   private val taClients = AWS.taClients(awsAccounts)
   private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
   private val iamClients = AWS.iamClients(awsAccounts)
@@ -130,11 +129,9 @@ class AppComponents(context: Context)
     configuration,
     applicationLifecycle,
     environment,
-    cfnClients,
     taClients,
     s3Clients,
-    iamClients,
-    availableRegions
+    iamClients
   )
 
   new MetricService(

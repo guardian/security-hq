@@ -3,7 +3,7 @@ package aws.iam
 import com.github.tototoshi.csv.*
 import com.typesafe.scalalogging.LazyLogging
 import logic.DateUtils
-import model.{AwsStack, CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
+import model.{CredentialReportDisplay, IAMCredential, IAMCredentialsReport}
 import net.logstash.logback.marker.Markers.appendEntries
 import org.joda.time.{DateTime, Hours, Seconds}
 import software.amazon.awssdk.regions.Region
@@ -35,18 +35,6 @@ object CredentialsReport extends LazyLogging {
         timeSinceLastReport.isGreaterThan(Hours.hours(4).toStandardSeconds)
       }
     }
-  }
-
-  private[iam] def enrichReportWithStackDetails(
-      report: IAMCredentialsReport,
-      stacks: List[AwsStack]
-  ): IAMCredentialsReport = {
-    val updatedEntries = report.entries.map { cred =>
-      stacks
-        .find(stack => cred.user.startsWith(stack.name) && cred.user.takeRight(12).matches("^[A-Z0-9]{12}$"))
-        .fold(cred)(s => cred.copy(stack = Some(s)))
-    }
-    report.copy(entries = updatedEntries)
   }
 
   private[iam] def tryParsingReport(content: String) = {
@@ -100,7 +88,6 @@ object CredentialsReport extends LazyLogging {
         user = row.getOrElse("user", "no username available"),
         arn = row.getOrElse("arn", "no ARN available"),
         creationTime = row.get("user_creation_time").flatMap(parseDateTimeOpt).get,
-        stack = None,
         passwordEnabled = row.get("password_enabled").flatMap(parseBoolean),
         passwordLastUsed = row.get("password_last_used").flatMap(parseDateTimeOpt),
         passwordLastChanged = row.get("password_last_changed").flatMap(parseDateTimeOpt),

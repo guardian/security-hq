@@ -41,15 +41,15 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
   val noAccessKey = AccessKey(NoKey, None)
   val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
   val humanWithOneOldEnabledAccessKey =
-    HumanUser("amina.adewusi", true, humanAccessKeyOldAndEnabled1, noAccessKey, Green, None, None, Nil)
+    HumanUser("amina.adewusi", true, humanAccessKeyOldAndEnabled1, noAccessKey, Green, None, Nil)
   val humanWithTwoOldEnabledAccessKeys =
-    HumanUser("nic.long", true, humanAccessKeyOldAndEnabled1, humanAccessKeyOldAndEnabled2, Green, None, None, Nil)
+    HumanUser("nic.long", true, humanAccessKeyOldAndEnabled1, humanAccessKeyOldAndEnabled2, Green, None, Nil)
   val humanWithHealthyKey =
-    HumanUser("jon.soul", true, noAccessKey, humanAccessKeyHealthAndEnabled, Green, None, None, Nil)
+    HumanUser("jon.soul", true, noAccessKey, humanAccessKeyHealthAndEnabled, Green, None, Nil)
   val machineWithOneOldEnabledAccessKey =
-    MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
+    MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, Nil)
   val machineWithOneOldEnabledAccessKey2 =
-    MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, None, Nil)
+    MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, Nil)
 
   "identifyUsersWithOutdatedCredentials" - {
     val humanAccessKeyOldAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(4)))
@@ -60,19 +60,18 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
     val noAccessKey = AccessKey(NoKey, None)
     val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
     val humanWithOneOldEnabledAccessKey =
-      HumanUser("amina.adewusi", true, humanAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
+      HumanUser("amina.adewusi", true, humanAccessKeyOldAndEnabled, noAccessKey, Green, None, Nil)
     val humanWithHealthyKey =
-      HumanUser("jon.soul", true, noAccessKey, humanEnabledAccessKeyHealthy, Green, None, None, Nil)
+      HumanUser("jon.soul", true, noAccessKey, humanEnabledAccessKeyHealthy, Green, None, Nil)
     val machineWithOneOldEnabledAccessKey =
-      MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, None, Nil)
+      MachineUser("machine1", machineAccessKeyOldAndEnabled, noAccessKey, Green, None, Nil)
     val machineWithOneOldEnabledAccessKey2 =
-      MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, None, Nil)
+      MachineUser("machine2", machineAccessKeyOldAndEnabledOnTimeThreshold, noAccessKey, Green, None, Nil)
     val machineWithOneOldEnabledAccessKeyAndOptOutTag = MachineUser(
       "machine3",
       machineAccessKeyOldAndEnabledOnTimeThreshold,
       noAccessKey,
       Green,
-      None,
       None,
       List(Tag(CoreConfig.outdatedCredentialOptOutUserTag, ""))
     )
@@ -105,25 +104,24 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
         AccessKey(AccessKeyDisabled, Some(date.minusMonths(4))),
         Green,
         None,
-        None,
         Nil
       )
       val machineAccessKeyOldAndDisabled = AccessKey(AccessKeyDisabled, Some(date.minusMonths(13)))
       val machineWithOneOldDisabledAccessKey =
-        MachineUser("machine3", noAccessKey, machineAccessKeyOldAndDisabled, Green, None, None, Nil)
+        MachineUser("machine3", noAccessKey, machineAccessKeyOldAndDisabled, Green, None, Nil)
       val credsReport =
         CredentialReportDisplay(date, Seq(machineWithOneOldDisabledAccessKey), Seq(humanWithOneOldDisabledAccessKey))
       identifyUsersWithOutdatedCredentials(credsReport, date) shouldBe empty
     }
     "given no users with access keys, return an empty list" in {
-      val humanWithNoKeys = HumanUser("jorge.azevedo", true, noAccessKey, noAccessKey, Green, None, None, Nil)
+      val humanWithNoKeys = HumanUser("jorge.azevedo", true, noAccessKey, noAccessKey, Green, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(), Seq(humanWithNoKeys))
       identifyUsersWithOutdatedCredentials(credsReport, date) shouldBe empty
     }
     "given no vulnerable access keys, return an empty list" in {
       val machineAccessKeyHealthyAndEnabled = AccessKey(AccessKeyEnabled, Some(date.minusMonths(11)))
       val machineWithHealthyKey =
-        MachineUser("machine4", noAccessKey, machineAccessKeyHealthyAndEnabled, Green, None, None, Nil)
+        MachineUser("machine4", noAccessKey, machineAccessKeyHealthyAndEnabled, Green, None, Nil)
       val credsReport = CredentialReportDisplay(date, Seq(machineWithHealthyKey), Seq(humanWithHealthyKey))
       identifyUsersWithOutdatedCredentials(credsReport, date) shouldBe empty
     }
@@ -225,7 +223,6 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       machineAccessKeyOldAndEnabledOnTimeThreshold,
       machineAccessKeyOldAndEnabled,
       Green,
-      None,
       None,
       Nil
     )
@@ -495,7 +492,6 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
         AccessKey(AccessKeyEnabled, Some(aYearAgo)),
         Green,
         None,
-        None,
         Nil
       )
       val aYearAndABit = aYearAgo.minusDays(daysBetweenWarningAndFinalNotification)
@@ -741,9 +737,9 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
     val date = new DateTime(2021, 1, 1, 1, 1)
     val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
     val humanUser =
-      HumanUser("human.user", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
+      HumanUser("human.user", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, Nil)
     val machineUser =
-      MachineUser("machine.user", AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
+      MachineUser("machine.user", AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, Nil)
 
     "should return a readable message for OutdatedCredentials" in {
       val iamUserRemediationHistory = IamUserRemediationHistory(account, machineUser, Nil)
@@ -954,7 +950,7 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
   }
 
   def operationForAccountId(id: String, username: String): RemediationOperation = {
-    val machineUser = MachineUser(username, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, None, Nil)
+    val machineUser = MachineUser(username, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, Nil)
     RemediationOperation(
       IamUserRemediationHistory(AwsAccount(id, "", "", ""), machineUser, Nil),
       Warning,
