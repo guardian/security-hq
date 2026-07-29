@@ -53,7 +53,6 @@ class AppComponents(context: Context)
   private val stage = Config.getStage(configuration)
 
   // the aim of this is to get all the regions that are available to this account
-  // TODO: Delete this and only use calculateAvailableRegions which does not await.
   private val availableRegions: List[Region] = {
     val ec2Client = AwsClient(
       Ec2AsyncClient.builder
