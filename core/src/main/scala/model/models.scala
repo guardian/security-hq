@@ -11,12 +11,6 @@ case class AwsAccount(
     accountNumber: String
 )
 
-case class AwsStack(
-    id: String,
-    name: String,
-    region: String
-)
-
 case class IAMCredentialsReport(
     generatedAt: DateTime,
     entries: List[IAMCredential]
@@ -26,7 +20,6 @@ case class IAMCredential(
     user: String,
     arn: String,
     creationTime: DateTime,
-    stack: Option[AwsStack],
     passwordEnabled: Option[Boolean],
     passwordLastUsed: Option[DateTime],
     passwordLastChanged: Option[DateTime],
@@ -189,7 +182,6 @@ sealed trait IAMUser {
   def key2: AccessKey
   def reportStatus: ReportStatus
   def lastActivityDay: Option[Long]
-  def stack: Option[AwsStack]
   def tags: List[Tag]
   def isHuman: Boolean
 }
@@ -201,7 +193,6 @@ case class HumanUser(
     key2: AccessKey,
     reportStatus: ReportStatus,
     lastActivityDay: Option[Long],
-    stack: Option[AwsStack],
     tags: List[Tag]
 ) extends IAMUser {
   val isHuman = true
@@ -213,7 +204,6 @@ case class MachineUser(
     key2: AccessKey,
     reportStatus: ReportStatus,
     lastActivityDay: Option[Long],
-    stack: Option[AwsStack],
     tags: List[Tag]
 ) extends IAMUser {
   val isHuman = false

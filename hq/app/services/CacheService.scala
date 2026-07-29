@@ -7,8 +7,6 @@ import config.Config
 import model.*
 import play.api.*
 import play.api.inject.ApplicationLifecycle
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.support.SupportAsyncClient
@@ -22,11 +20,9 @@ class CacheService(
     config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    cfnClients: AwsClients[CloudFormationAsyncClient],
     taClients: AwsClients[SupportAsyncClient],
     s3Clients: AwsClients[S3Client],
-    iamClients: AwsClients[IamAsyncClient],
-    regions: List[Region]
+    iamClients: AwsClients[IamAsyncClient]
 )(implicit ec: ExecutionContext)
     extends Scheduler {
   private val accounts = Config.getAwsAccounts(config)
@@ -103,9 +99,7 @@ class CacheService(
       updatedCredentialReports <- IAMClient.getAllCredentialReports(
         accounts,
         credentialsBox.get(),
-        cfnClients,
-        iamClients,
-        regions
+        iamClients
       )
     } yield {
       logCacheDataStatus("Credentials", updatedCredentialReports)

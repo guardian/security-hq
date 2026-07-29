@@ -58,7 +58,6 @@ lazy val core = (project in file("core"))
       "com.gu" %% "anghammarad-client" % "7.0.0",
       "com.gu" %% "janus-config-tools" % "11.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
-      "software.amazon.awssdk" % "cloudformation" % awsSdkVersion,
       "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
       "software.amazon.awssdk" % "dynamodb" % awsSdkVersion,
       "software.amazon.awssdk" % "ec2" % awsSdkVersion,

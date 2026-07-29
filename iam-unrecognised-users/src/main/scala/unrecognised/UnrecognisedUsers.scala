@@ -10,7 +10,6 @@ import config.CoreConfig
 import logic.IamUnrecognisedUsers.*
 import model.{AwsAccount, CredentialReportDisplay}
 import notifications.AnghammaradNotifications
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -58,9 +57,6 @@ object UnrecognisedUsers extends LazyLogging {
       .credentialsProvider(CoreConfig.securityCredentialsProvider)
       .build()
     lazy val snsClient = SnsAsyncClient.builder.region(settings.region).build()
-    // IAM is global; us-east-1 is required for credential reports. Additional regions only affect CloudFormation stack
-    // enrichment, which this job does not rely on.
-    val regions = List(settings.region, Region.of("us-east-1")).distinct
 
     // `getAllCredentialReports` refreshes an existing per-account report map. There is no previous report to build
     // on, so seed every account as "not yet loaded" to force a fresh report to be fetched for each.
@@ -75,14 +71,13 @@ object UnrecognisedUsers extends LazyLogging {
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
       iamClients = AWS.iamClients(awsAccounts)
-      cfnClients = AWS.cfnClients(awsAccounts, regions)
       startingData = awsAccounts.map(account => account -> unloadedReport(account)).toMap
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
       janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
       janusUsernames = getJanusUsernames(janusData)
       // generate a fresh IAM credential report for every configured account
-      credentialReports <- IAMClient.getAllCredentialReports(awsAccounts, startingData, cfnClients, iamClients, regions)
+      credentialReports <- IAMClient.getAllCredentialReports(awsAccounts, startingData, iamClients)
       accountCredsReports = getCredsReportDisplayForAccount(credentialReports.toMap)
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
