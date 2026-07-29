@@ -1306,6 +1306,11 @@ exports[`HQ stack matches the snapshot 1`] = `
               "Resource": "*",
               "Sid": "DiscoverRegions",
             },
+            {
+              "Action": "iam:GenerateCredentialReport",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
           ],
           "Version": "2012-10-17",
         },
