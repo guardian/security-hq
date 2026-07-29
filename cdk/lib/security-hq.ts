@@ -335,6 +335,7 @@ export class SecurityHQ extends GuStack {
         this.listAuditBucketPolicy(),
         this.getAuditObjectPolicy(),
         this.discoverRegionsPolicy(),
+        this.getIamGenerateCredentialReportPolicy(),
       ],
     });
 
@@ -476,6 +477,15 @@ export class SecurityHQ extends GuStack {
     return new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ["sts:GetCallerIdentity"],
+      resources: ["*"],
+    });
+  }
+
+  private getIamGenerateCredentialReportPolicy() {
+    // ONLY used when running lambda locally because it would usually be obtained from an assumed role
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["iam:GenerateCredentialReport"],
       resources: ["*"],
     });
   }
