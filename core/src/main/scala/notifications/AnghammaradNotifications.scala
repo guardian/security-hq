@@ -5,7 +5,7 @@ import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAcc
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import logic.DateUtils.printDay
-import model.{AwsAccount, IAMUser, Tag}
+import model.{AwsAccount, CredentialMetadata, IAMUser, Tag}
 import org.joda.time.DateTime
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, Failure}
@@ -42,32 +42,73 @@ object AnghammaradNotifications extends LazyLogging {
   private def notificationTargets(awsAccount: AwsAccount, iamUser: IAMUser): List[Target] =
     Tag.tagsToAnghammaradTargets(iamUser.tags) :+ Account(awsAccount.accountNumber)
 
-  private def tagText(iamUser: IAMUser) = iamUser.tags.map(t => s"${t.key}=${t.value}").mkString(", ")
+  // The console shows you an option to add a description for a key. This is implemented as a tag
+  // on the IAM user, which has the same Key as the Access Key ID.
+  private def keyDescription(iamUser: IAMUser, key: CredentialMetadata): String =
+    iamUser.tags.find(_.key == key.accessKeyId).map(_.value) match {
+      case Some(description) => s"This access key has description: $description"
+      case None              => "This access key has no description set."
+    }
+
+  // All of the tags on the User which are *not* added as descriptions for individual keys.
+  private def userTags(iamUser: IAMUser) = iamUser.tags
+    .filterNot(_.key.startsWith("AKIA")) // Common prefix for IAM user static credentials
+    .map(t => s"${t.key}=${t.value}")
+    .mkString(", ")
+
+  private def credentialInfo(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      credentialThatWillBeDisabled: CredentialMetadata
+  ): String =
+    s"""Further info:
+       |This is the access key which is affected: ${credentialThatWillBeDisabled.accessKeyId}
+       |${keyDescription(iamUser, credentialThatWillBeDisabled)}
+       |This user's tags:
+       |  ${userTags(iamUser)}
+       |Follow this link to find the user in the console: (remember you'll need to sign into the ${awsAccount.name} account first via Janus)
+       |https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1#/users/details/${iamUser.username}?section=security_credentials
+       |""".stripMargin
+
+  private def outdatedCredentialWarningMessage(
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: String,
+      credentialThatWillBeDisabled: CredentialMetadata,
+      deadline: String
+  ): String =
+    s"""Please rotate the permanent credential for ${iamUser.username} in AWS Account ${awsAccount.name},
+       |which has been flagged because it was last rotated on ${problemCreationDate}.
+       |
+       |${credentialInfo(awsAccount, iamUser, credentialThatWillBeDisabled)}
+       |
+       |If no action is taken before ${deadline}, this credential will be automatically disabled
+       |on or shortly after that date, which will likely break any applications still using it!
+       |
+       |$genericCredentialWarningText
+       |""".stripMargin
 
   def outdatedCredentialWarning(
       awsAccount: AwsAccount,
       iamUser: IAMUser,
       problemCreationDate: DateTime,
+      credentialThatWillBeDisabled: CredentialMetadata,
       now: DateTime
   ): Notification = {
     val deadline = printDay(
       now.plusDays(daysBetweenWarningAndFinalNotification + daysBetweenFinalNotificationAndRemediation)
     )
-    val message =
-      s"""
-         |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
-         |which has been flagged because it was last rotated on ${printDay(problemCreationDate)}.
-         |(if you're already planning on doing this, please ignore this message).
-         |
-         |If this is not rectified before $deadline, Security HQ will automatically disable this user.
-         |
-         |Further info: this credential is tagged with:
-         |  ${tagText(iamUser)}
-         |""".stripMargin
+    val message = outdatedCredentialWarningMessage(
+      awsAccount,
+      iamUser,
+      printDay(problemCreationDate),
+      credentialThatWillBeDisabled,
+      deadline
+    )
     val subject = s"Action required by $deadline: long-lived credential detected in ${awsAccount.name}"
     Notification(
       subject,
-      message + genericOutdatedCredentialText,
+      message,
       Nil,
       notificationTargets(awsAccount, iamUser),
       channel,
@@ -79,25 +120,21 @@ object AnghammaradNotifications extends LazyLogging {
       awsAccount: AwsAccount,
       iamUser: IAMUser,
       problemCreationDate: DateTime,
+      credentialThatWillBeDisabled: CredentialMetadata,
       now: DateTime
   ): Notification = {
     val deadline = printDay(now.plusDays(daysBetweenFinalNotificationAndRemediation))
-    val message =
-      s"""
-         |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
-         |which has been flagged because it was last rotated on ${printDay(problemCreationDate)}.
-         |(if you're already planning on doing this, please ignore this message).
-         |
-         |If this is not rectified before $deadline,
-         |Security HQ will automatically disable this user *at the next opportunity*.
-         |
-         |Further info: this credential is tagged with:
-         |  ${tagText(iamUser)}
-         |""".stripMargin
+    val message = outdatedCredentialWarningMessage(
+      awsAccount,
+      iamUser,
+      printDay(problemCreationDate),
+      credentialThatWillBeDisabled,
+      deadline
+    )
     val subject = s"Action required by $deadline: long-lived credential in ${awsAccount.name} will be disabled soon"
     Notification(
       subject,
-      message + genericOutdatedCredentialText,
+      message,
       Nil,
       notificationTargets(awsAccount, iamUser),
       channel,
@@ -108,22 +145,25 @@ object AnghammaradNotifications extends LazyLogging {
   def outdatedCredentialRemediation(
       awsAccount: AwsAccount,
       iamUser: IAMUser,
-      problemCreationDate: DateTime
+      problemCreationDate: DateTime,
+      credentialThatWasDisabled: CredentialMetadata
   ): Notification = {
     val message =
-      s"""
-         |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today,
+      s"""A permanent credential for ${iamUser.username} in AWS Account ${awsAccount.name} was disabled today,
          |because it was last rotated on ${printDay(problemCreationDate)}.
          |
-         |If you still require the disabled user, add new access keys(s) and rotate regularly. Otherwise, delete them.
+         |${credentialInfo(awsAccount, iamUser, credentialThatWasDisabled)}
          |
-         |Further info: this credential is tagged with:
-         |  ${tagText(iamUser)}
+         |If any applications were still relying on this credential, they have likely been broken!
+         |If you still require access using this user, you should create a new credential and rotate regularly.
+         |Otherwise, please delete the ${iamUser.username} IAM user.
+         |
+         |$genericCredentialWarningText
          |""".stripMargin
     val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
     Notification(
       subject,
-      message + genericOutdatedCredentialText,
+      message,
       Nil,
       notificationTargets(awsAccount, iamUser),
       channel,
@@ -135,14 +175,14 @@ object AnghammaradNotifications extends LazyLogging {
       awsAccount: AwsAccount,
       iamUser: IAMUser,
       problemCreationDate: DateTime,
-      devXSecurityAccount: AwsAccount
+      devXSecurityAccount: AwsAccount,
+      credentialThatWillBeDisabled: CredentialMetadata
   ): Notification = {
     val endUserNotificationTargets = notificationTargets(awsAccount, iamUser)
     val devxSecurityNotificationTargets = List(Account(devXSecurityAccount.accountNumber))
     val endUserTargetsString = endUserNotificationTargets.map(_.toString).mkString(", ")
     val message =
-      s"""
-         |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was eligible for deactivation today,
+      s"""A permanent credential for ${iamUser.username} in ${awsAccount.name} was eligible for deactivation today,
          |because it was last rotated on ${printDay(problemCreationDate)}.
          |
          |It wasn't deactivated because it's not Deactivation Tuesday.
@@ -153,13 +193,12 @@ object AnghammaradNotifications extends LazyLogging {
          |
          |BE PREPARED FOR USERS TO BE UPSET!
          |
-         |Further info: this credential is tagged with:
-         |  ${tagText(iamUser)}
+         |${credentialInfo(awsAccount, iamUser, credentialThatWillBeDisabled)}
          |""".stripMargin
     val subject = s"Imminent disabling of long-lived credential in ${awsAccount.name}"
     Notification(
       subject,
-      message + genericOutdatedCredentialText,
+      message,
       Nil,
       devxSecurityNotificationTargets,
       channel,
@@ -171,7 +210,8 @@ object AnghammaradNotifications extends LazyLogging {
       awsAccount: AwsAccount,
       iamUser: IAMUser,
       problemCreationDate: DateTime,
-      devXSecurityAccount: AwsAccount
+      devXSecurityAccount: AwsAccount,
+      credentialThatWillBeDisabled: CredentialMetadata
   ): Notification = {
     val endUserNotificationTargets = notificationTargets(awsAccount, iamUser)
     val devxSecurityNotificationTargets = List(Account(devXSecurityAccount.accountNumber))
@@ -186,13 +226,13 @@ object AnghammaradNotifications extends LazyLogging {
          |THIS ACTION HAS HIGH POTENTIAL TO BREAK THINGS.
          |
          |BE PREPARED FOR USERS TO BE UPSET!
-         | Further info: this credential is tagged with:
-         |  ${tagText(iamUser)}
+         |
+         |${credentialInfo(awsAccount, iamUser, credentialThatWillBeDisabled)}
          |""".stripMargin
     val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
     Notification(
       subject,
-      message + genericOutdatedCredentialText,
+      message,
       Nil,
       devxSecurityNotificationTargets,
       channel,
@@ -200,25 +240,25 @@ object AnghammaradNotifications extends LazyLogging {
     )
   }
 
-  private val genericOutdatedCredentialText = {
-    s"""
-       |To find out how to rectify this, see Grafana (https://metrics.gutools.co.uk/d/bdn97cui5rbi8f/iam-credentials-report?orgId=1).
+  private val genericCredentialWarningText =
+    s"""If you're not sure what this warning means, would like help resolving or have any questions, please contact the Developer Experience team: devx@theguardian.com.
+       |
+       |To see more details on the status of this or any other credential, see this dashboard: https://metrics.gutools.co.uk/d/bdn97cui5rbi8f/iam-credentials-report?orgId=1.
        |Here is some helpful documentation on:
-       |rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html,
-       |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_manage.html#id_users_deleting_console,
-       |If you have any questions, please contact the Developer Experience team: devx@theguardian.com.
+       |rotating credentials: https://docs.aws.amazon.com/IAM/latest/UserGuide/id-credentials-access-keys-update.html#rotating_access_keys_console
+       |deleting users: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_remove.html
        |""".stripMargin
-  }
 
   def unrecognisedUserRemediation(awsAccount: AwsAccount, iamUser: IAMUser): Notification = {
     val message =
-      s"""
-         |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today.
-         |Please check Grafana to review the IAM users in your account (https://metrics.gutools.co.uk/d/bdn97cui5rbi8f/iam-credentials-report?orgId=1).
-         |If you still require the disabled user, ensure they are tagged correctly with their Google username
+      s"""A permanent credential for ${iamUser.username}, in ${awsAccount.name} was disabled today.
+         |This is because it was identified as belonging to a person who does not have an entry in Janus.
+         |
+         |If you still require the disabled user, please ensure they are tagged correctly with their Google username
          |and have an entry in Janus.
-         |If the disabled user has left the organisation, they should be deleted.
-         |If you have any questions, contact devx@theguardian.com.
+         |If the disabled user has left the organisation, this IAM user should be deleted.
+         |
+         |$genericCredentialWarningText
          |""".stripMargin
     val subject = s"AWS IAM User ${iamUser.username} DISABLED in ${awsAccount.name} Account"
     Notification(subject, message, Nil, notificationTargets(awsAccount, iamUser), channel, sourceSystem)

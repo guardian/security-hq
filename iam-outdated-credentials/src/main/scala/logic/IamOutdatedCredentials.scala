@@ -77,7 +77,7 @@ class IamOutdatedCredentials(
       iamUser: IAMUser,
       problemCreationDate: DateTime,
       thisRemediationActivity: IamRemediationActivity
-  )(implicit ec: ExecutionContext) = {
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     if (dryRun) {
       logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
       Attempt.Right(Nil)
@@ -85,31 +85,43 @@ class IamOutdatedCredentials(
       logger.info(
         s"""It's not "Remediation Tuesday"!  We will not execute remediation for $awsAccount, $iamUser TODAY, but we will SOON"""
       )
-      val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
-        AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
-          awsAccount,
-          iamUser,
-          problemCreationDate,
-          devXSecurityAccount
+      for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount,
+            credentialToDisable
+          )
         )
-      )
-      sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
+        notificationIds <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
+      } yield notificationIds
     } else {
-      val notification =
-        AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
-      val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
-        AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
-          awsAccount,
-          iamUser,
-          problemCreationDate,
-          devXSecurityAccount
-        )
-      )
+
       for {
         // plan the disable action for the correct credential
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
         credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
 
+        notification =
+          AnghammaradNotifications.outdatedCredentialRemediation(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialToDisable
+          )
+        notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount,
+            credentialToDisable
+          )
+        )
         // record, then alert, then do.  Different order to the above.
         // If we do the remediation, it's vitally important that the record happens, and the alert happens.
         // So do them first.
@@ -139,9 +151,17 @@ class IamOutdatedCredentials(
   )(implicit ec: ExecutionContext) = {
     if (!dryRun) {
 
-      val notification =
-        AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate, now)
       for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialFinalWarning(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialThatWillBeDisabled,
+            now
+          )
         // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
         // don't want to record we sent a final warning if we didn't, so we do it in this order
         snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
@@ -161,9 +181,17 @@ class IamOutdatedCredentials(
       thisRemediationActivity: IamRemediationActivity
   )(implicit ec: ExecutionContext) = {
     if (!dryRun) {
-      val notification =
-        AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate, now)
       for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialWarning(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialThatWillBeDisabled,
+            now
+          )
         // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
         // don't want to record we sent a warning if we didn't, so we do it in this order
         snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
@@ -235,20 +263,31 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(logOperationOnly)
 
       // now we know what operations need to be performed, so let's run each of those
-      results <- Attempt.traverse(filteredOperations.allowedOperations)(
+      results <- Attempt.traverseWithFailures(filteredOperations.allowedOperations)(
         performRemediationOperation(_, now)
       )
     } yield results
     result.tap {
+      // A Left here is unlikely due to `traverseWithFailures` - the top-level result should be a success.
+      // Any failures are more likely to be picked up by the Right() case.
       case Left(failedAttempt) =>
         logger.error(
           s"Failure during 'disable outdated credentials' job: ${failedAttempt.logMessage}",
           failedAttempt.firstException.orNull // make sure the exception goes into the log, if present
         )
-      case Right(operationIds) =>
+      case Right(operations) =>
+        val failedOperations = operations.collect { case Left(failure) => failure }
+        val successfulOperations = operations.collect { case Right(ids) => ids }
         logger.info(
-          s"Successfully completed 'disable outdated credentials' job, with ${operationIds.length} operations"
+          s"Completed 'disable outdated credentials job', with ${successfulOperations.length} successful operations and ${failedOperations.length} failed operations"
         )
+        failedOperations.zipWithIndex.foreach { case ((failedAttempt), i) =>
+          // TODO emit metrics counting the number of operations which failed and create alarm
+          logger.error(
+            s"Failed operation $i of ${failedOperations.length}: ${failedAttempt.logMessage}",
+            failedAttempt.firstException.orNull
+          )
+        }
     }.unit
   }
 
