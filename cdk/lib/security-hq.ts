@@ -473,7 +473,7 @@ export class SecurityHQ extends GuStack {
     // ONLY used when running lambda locally because it would usually be obtained from an assumed role
     return new PolicyStatement({
       effect: Effect.ALLOW,
-      actions: ["iam:GenerateCredentialReport"],
+      actions: ["iam:GenerateCredentialReport", "iam:GetCredentialReport"],
       resources: ["*"],
     });
   }
