@@ -129,7 +129,7 @@ object IamUnrecognisedUsers extends LazyLogging {
     } else {
       if (accountUnrecognisedKeys.vulnerableAccessKey.nonEmpty) {
         logger.info(
-          s"DRY RUN: Would disable access keys in account '${accountUnrecognisedKeys.account.name}' for users: ${accountUnrecognisedKeys.vulnerableAccessKey.map(_.username).mkString("'", "', '", "'")}."
+          s"DRY RUN: Would disable access keys in account '${accountUnrecognisedKeys.account.name}' for IAM users: ${accountUnrecognisedKeys.vulnerableAccessKey.map(_.username).mkString("'", "', '", "'")}."
         )
       }
       Attempt.Right(Nil)
@@ -157,7 +157,7 @@ object IamUnrecognisedUsers extends LazyLogging {
       }
     } else {
       logger.info(
-        s"DRY RUN: Would delete passwords in account '${accountUnrecognisedUsers.account.name}' for users: ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString("'", "', '", "'")}."
+        s"DRY RUN: Would delete passwords in account '${accountUnrecognisedUsers.account.name}' for IAM users: ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString("'", "', '", "'")}."
       )
       Attempt.Right(Nil)
     }
