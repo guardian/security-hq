@@ -323,7 +323,9 @@ export class SecurityHQ extends GuStack {
         this.listAuditBucketPolicy(),
         this.getAuditObjectPolicy(),
         this.discoverRegionsPolicy(),
-        this.getIamGenerateCredentialReportPolicy(),
+        this.getIamCredentialReportPolicy(),
+        this.getCloudformationStacksPolicy(),
+        this.getUserInfoPolicy(),
       ],
     });
 
@@ -469,11 +471,29 @@ export class SecurityHQ extends GuStack {
     });
   }
 
-  private getIamGenerateCredentialReportPolicy() {
+  private getIamCredentialReportPolicy() {
     // ONLY used when running lambda locally because it would usually be obtained from an assumed role
     return new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ["iam:GenerateCredentialReport", "iam:GetCredentialReport"],
+      resources: ["*"],
+    });
+  }
+
+  private getCloudformationStacksPolicy() {
+    // ONLY used when running lambda locally because it would usually be obtained from an assumed role
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["cloudformation:DescribeStacks", "cloudformation:ListStacks"],
+      resources: ["*"],
+    });
+  }
+
+  private getUserInfoPolicy() {
+    // ONLY used when running lambda locally because it would usually be obtained from an assumed role
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["iam:ListUserTags", "iam:ListAccessKeys", "iam:ListMFADevices"],
       resources: ["*"],
     });
   }

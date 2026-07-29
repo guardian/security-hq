@@ -1255,6 +1255,23 @@ exports[`HQ stack matches the snapshot 1`] = `
               "Effect": "Allow",
               "Resource": "*",
             },
+            {
+              "Action": [
+                "cloudformation:DescribeStacks",
+                "cloudformation:ListStacks",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "iam:ListUserTags",
+                "iam:ListAccessKeys",
+                "iam:ListMFADevices",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
           ],
           "Version": "2012-10-17",
         },
