@@ -13,15 +13,10 @@ import play.api.routing.Router
 import play.api.{BuiltInComponentsFromContext, Logging}
 import play.filters.csrf.CSRFComponents
 import router.Routes
-import services.{CacheService, IamRemediationService, MetricService}
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder
-import software.amazon.awssdk.http.SdkHttpConfigurationOption
+import services.{CacheService, MetricService}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
-import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.ssm.SsmClient
-import software.amazon.awssdk.utils.AttributeMap
 import utils.attempt.Attempt
 
 import scala.concurrent.Await
@@ -91,33 +86,12 @@ class AppComponents(context: Context)
   private val s3Clients = AWS.s3Clients(awsAccounts, availableRegions)
   private val iamClients = AWS.iamClients(awsAccounts)
 
-  /*
-      The casting from SdkHttpConfigurationOption[Integer] to AttributeMap.Key[Any] is required because Scala compiler comlains
-
-      Integer <: Any, but Java-defined class Key is invariant in type T.
-      You may wish to investigate a wildcard type such as `_ <: Any`. (SLS 3.2.10)
-   */
-  private val MAX_10_CONNECTIONS: AttributeMap = AttributeMap
-    .builder()
-    .put(SdkHttpConfigurationOption.MAX_CONNECTIONS.asInstanceOf[AttributeMap.Key[Any]], 10)
-    .build()
-
-  private val securitySnsClient = SnsAsyncClient.builder
-    .credentialsProvider(securityCredentialsProvider)
-    .region(CoreConfig.region)
-    .httpClient(new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(MAX_10_CONNECTIONS))
-    .build()
   private val securitySsmClient = SsmClient.builder
     .credentialsProvider(securityCredentialsProvider)
     .region(CoreConfig.region)
     .build()
   private val googleAuthConfig =
     Config.googleSettings(stage, stack, configuration, securitySsmClient)
-
-  private val securityS3Client = S3Client.builder
-    .credentialsProvider(securityCredentialsProvider)
-    .region(CoreConfig.region)
-    .build()
 
   private val cacheService = new CacheService(
     configuration,
@@ -133,16 +107,6 @@ class AppComponents(context: Context)
     environment,
     cacheService
   )
-
-  new IamRemediationService(
-    cacheService,
-    securitySnsClient,
-    configuration,
-    iamClients,
-    applicationLifecycle,
-    environment,
-    securityS3Client
-  )(executionContext)
 
   override def router: Router = new Routes(
     httpErrorHandler,
