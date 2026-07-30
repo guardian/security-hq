@@ -12,7 +12,6 @@ import model.*
 import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import settings.Settings
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
@@ -277,12 +276,10 @@ object IamOutdatedCredentials extends LazyLogging {
       awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
     val dynamo = new IamRemediationDb(CoreConfig.getSecurityDynamoDbClient(settings.stage))
 
+    val iamClients = AWS.iamClients(awsAccounts)
     for {
-      availableRegions: List[Region] <- CoreConfig.calculateAvailableRegions(settings.stack, settings.stage)
-      iamClients = AWS.iamClients(awsAccounts)
-      cfnClients = AWS.cfnClients(awsAccounts, availableRegions)
       reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
-        IAMClient.getUpdatedCredentialsReport(account, cfnClients, iamClients, availableRegions)
+        IAMClient.getUpdatedCredentialsReport(account, iamClients)
       }
 
       listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap

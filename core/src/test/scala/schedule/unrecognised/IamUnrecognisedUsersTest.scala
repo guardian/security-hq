@@ -19,7 +19,6 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
     AccessKey(NoKey, None),
     Green,
     None,
-    None,
     List(Tag(USERNAME_TAG_KEY, "ade.bimbola"))
   )
   val humanUser2 = humanUser1.copy(username = "john.akindele", tags = List(Tag(USERNAME_TAG_KEY, "john.akindele")))

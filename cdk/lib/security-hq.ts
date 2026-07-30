@@ -308,18 +308,6 @@ export class SecurityHQ extends GuStack {
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
 
-    new GuDeveloperPolicyExperimental(this, "AccessSecurityHQInstancesBySsm", {
-      grantId: "security-hq-ssm",
-      friendlyName: "Access instances by SSM",
-      withoutPolicyChecks: true,
-      statements: [
-        this.getSsmInfoPolicy(),
-        this.getSsmStartSessionPolicy(
-          ec2App.autoScalingGroup.autoScalingGroupArn,
-        ),
-      ],
-    });
-
     new GuDeveloperPolicyExperimental(this, "RunSecurityHqLocallyPolicy", {
       grantId: "security-hq-dev",
       friendlyName: "Run Security HQ lambdas locally",
@@ -335,6 +323,9 @@ export class SecurityHQ extends GuStack {
         this.listAuditBucketPolicy(),
         this.getAuditObjectPolicy(),
         this.discoverRegionsPolicy(),
+        this.getIamCredentialReportPolicy(),
+        this.getCloudformationStacksPolicy(),
+        this.getUserInfoPolicy(),
       ],
     });
 
@@ -476,6 +467,33 @@ export class SecurityHQ extends GuStack {
     return new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ["sts:GetCallerIdentity"],
+      resources: ["*"],
+    });
+  }
+
+  private getIamCredentialReportPolicy() {
+    // ONLY used when running lambda locally because it would usually be obtained from an assumed role
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["iam:GenerateCredentialReport", "iam:GetCredentialReport"],
+      resources: ["*"],
+    });
+  }
+
+  private getCloudformationStacksPolicy() {
+    // ONLY used when running lambda locally because it would usually be obtained from an assumed role
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["cloudformation:DescribeStacks", "cloudformation:ListStacks"],
+      resources: ["*"],
+    });
+  }
+
+  private getUserInfoPolicy() {
+    // ONLY used when running lambda locally because it would usually be obtained from an assumed role
+    return new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["iam:ListUserTags", "iam:ListAccessKeys", "iam:ListMFADevices"],
       resources: ["*"],
     });
   }
