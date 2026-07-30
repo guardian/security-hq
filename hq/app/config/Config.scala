@@ -11,7 +11,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.FileInputStream
 import java.time.Duration.{ofHours, ofMinutes}
-import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
@@ -107,31 +106,12 @@ object Config extends Logging {
 
   def getIamDynamoTableName(config: Configuration): String = requiredString(config, "alert.iamDynamoTableName")
 
-  def getIamUnrecognisedUserConfig(
-      config: Configuration
-  )(implicit ec: ExecutionContext): Attempt[UnrecognisedJobConfigProperties] = {
-    for {
-      accounts <- getAllowedAccountsForStage(config)
-      key <- getJanusDataFileKey(config)
-      bucket <- getIamUnrecognisedUserBucket(config)
-      securityAccount <- getSecurityAccount(config)
-      anghammaradSnsTopicArn = getAnghammaradSNSTopicArn(config)
-      dryRun = getUnrecognisedUserDryRun(config)
-    } yield UnrecognisedJobConfigProperties(accounts, key, bucket, securityAccount, anghammaradSnsTopicArn, dryRun)
-  }
-
   def getAnghammaradSNSTopicArn(config: Configuration): String = requiredString(config, "alert.anghammaradSnsArn")
 
   // Default to true; only an explicit "false" disables dry-run.
   // Not using toBoolean because we want to default to true (do nothing) if the config is missing or invalid
   private[config] def getDryRun(config: Configuration, key: String) =
     !config.getOptional[String](s"$key.dryRun").exists(_.equalsIgnoreCase("false"))
-
-  def getUnrecognisedUserDryRun(config: Configuration): Boolean = {
-    val b = getDryRun(config, "unrecognisedUser")
-    logger.info(s"unrecognisedUser dry run is set to $b")
-    b
-  }
 
   def getOutdatedCredentialsDryRun(config: Configuration): Boolean = {
     val b = getDryRun(config, "outdatedCredentials")
@@ -159,58 +139,6 @@ object Config extends Logging {
         Failure(
           "unable to get list of accounts allowed to make changes to AWS. Rectify this by adding allowed accounts to config.",
           "I haven't been able to get a list of allowed AWS accounts, which should be in Security HQ's config. Check ~/.gu/security-hq/security-hq.local.conf or for PROD, check S3 for security-hq.conf.",
-          500
-        )
-      )
-    )
-  }
-
-  def getJanusDataFileKey(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.iamUnrecognisedUserS3Key"),
-      FailedAttempt(
-        Failure(
-          "unable to get janus data file key from config for the IAM unrecognised job",
-          "I haven't been able to get the Janus S3 file key from config. Please check ~/.gu/security-hq/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
-          500
-        )
-      )
-    )
-  }
-
-  def getIamUnrecognisedUserBucket(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.iamUnrecognisedUserS3Bucket"),
-      FailedAttempt(
-        Failure(
-          "unable to get IAM unrecognised user bucket from config",
-          "I haven't been able to get the S3 bucket, which contains the janus data used for the unrecognised user job. Please check ~/.gu/security-hq/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
-          500
-        )
-      )
-    )
-  }
-
-  def getIamUnrecognisedUserBucketRegion(config: Configuration): Attempt[String] = {
-    Attempt.fromOption(
-      config.getOptional[String]("alert.iamUnrecognisedUserS3BucketRegion"),
-      FailedAttempt(
-        Failure(
-          "unable to get IAM unrecognised user bucket region from config",
-          "I haven't been able to get the S3 bucket region for the unrecognised user job. Please check ~/.gu/security-hq/security-hq.local.conf for local conf or security-hq.conf in S3 for PROD conf.",
-          500
-        )
-      )
-    )
-  }
-
-  def getSecurityAccount(config: Configuration): Attempt[AwsAccount] = {
-    Attempt.fromOption(
-      Config.getAwsAccounts(config).find(_.id == "security"),
-      FailedAttempt(
-        Failure(
-          "unable to find security account details from config",
-          "I haven't been able to get the security account details from config",
           500
         )
       )

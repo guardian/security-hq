@@ -75,12 +75,3 @@ case class AccountUnrecognisedAccessKeys(
     account: AwsAccount,
     vulnerableAccessKey: List[CredentialMetadata]
 )
-
-case class UnrecognisedJobConfigProperties(
-    allowedAccounts: List[String],
-    janusDataFileKey: String,
-    janusUserBucket: String,
-    securityAccount: AwsAccount,
-    anghammaradSnsTopicArn: String,
-    dryRun: Boolean
-)
