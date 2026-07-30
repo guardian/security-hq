@@ -1,14 +1,12 @@
 package aws.iam
 
 import aws.AwsAsyncHandler.*
-import aws.cloudformation.CloudFormation
 import aws.{AwsAsyncHandler, AwsClient, AwsClients, AwsClientsList}
 import com.typesafe.scalalogging.LazyLogging
 import logic.{CredentialsReportDisplay, Retry}
 import model.*
 import org.joda.time.DateTime
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.iam.model.*
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -21,6 +19,13 @@ object IAMClient extends LazyLogging {
 
   val SOLE_REGION = Region.of("us-east-1")
 
+  /*
+   * Note: the report is actually generated a maximum of once every 4 hours.
+   * Even if it has a status of COMPLETE, that doesn't mean it's fresh.
+   * The GetCredentialsReportResponse.generatedAt field will tell you when it was actually generated.
+   *
+   * See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html.
+   */
   private def generateCredentialsReport(
       client: AwsClient[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResponse] = {
@@ -77,23 +82,19 @@ object IAMClient extends LazyLogging {
   def getCredentialReportDisplay(
       account: AwsAccount,
       currentData: Either[FailedAttempt, CredentialReportDisplay],
-      cfnClients: AwsClients[CloudFormationAsyncClient],
-      iamClients: AwsClients[IamAsyncClient],
-      regions: List[Region]
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[CredentialReportDisplay] = {
     val now = DateTime.now()
 
     if (CredentialsReport.credentialsReportReadyForRefresh(currentData, now))
-      getUpdatedCredentialsReport(account, cfnClients, iamClients, regions)
+      getUpdatedCredentialsReport(account, iamClients)
     else
       Attempt.fromEither(currentData)
   }
 
   def getUpdatedCredentialsReport(
       account: AwsAccount,
-      cfnClients: AwsClients[CloudFormationAsyncClient],
       iamClients: AwsClients[IamAsyncClient],
-      regions: List[Region],
       delay: FiniteDuration = 3.seconds
   )(implicit executionContext: ExecutionContext): Attempt[CredentialReportDisplay] = {
     for {
@@ -105,24 +106,20 @@ object IAMClient extends LazyLogging {
         delay
       )
       report <- getCredentialsReport(client)
-      stacks <- CloudFormation.getStacksFromAllRegions(account, cfnClients, regions)
       reportWithTags <- enrichReportWithTags(report, client)
-      reportWithStacks = CredentialsReport.enrichReportWithStackDetails(reportWithTags, stacks)
-    } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithStacks)
+    } yield CredentialsReportDisplay.toCredentialReportDisplay(reportWithTags)
   }
 
   def getAllCredentialReports(
       accounts: Seq[AwsAccount],
       currentData: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
-      cfnClients: AwsClients[CloudFormationAsyncClient],
-      iamClients: AwsClients[IamAsyncClient],
-      regions: List[Region]
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit
       executionContext: ExecutionContext
   ): Attempt[Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]] = {
     Attempt.Async.Right {
       Future.traverse(accounts) { account =>
-        getCredentialReportDisplay(account, currentData(account), cfnClients, iamClients, regions).asFuture
+        getCredentialReportDisplay(account, currentData(account), iamClients).asFuture
           .map(account -> _)
       }
     }
