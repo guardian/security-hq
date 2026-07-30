@@ -17,6 +17,7 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 import scala.jdk.CollectionConverters.*
+import scala.util.chaining.*
 
 /** Removes AWS access for colleagues who have departed.
   *
@@ -76,8 +77,10 @@ object UnrecognisedUsers extends LazyLogging {
       janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
       janusUsernames = getJanusUsernames(janusData)
-      // generate a fresh IAM credential report for every configured account
-      credentialReports <- IAMClient.getAllCredentialReports(awsAccounts, startingData, iamClients)
+      // generate a fresh IAM credential report for every configured account, logging the per-account outcome
+      credentialReports <- IAMClient
+        .getAllCredentialReports(awsAccounts, startingData, iamClients)
+        .map(_.tap(logCredentialReportResults))
       accountCredsReports = getCredsReportDisplayForAccount(credentialReports.toMap)
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
@@ -90,5 +93,14 @@ object UnrecognisedUsers extends LazyLogging {
       // if in dry run, notifications list is empty
       notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, anghammaradSnsArn, snsClient))
     } yield notificationIds
+  }
+
+  private def logCredentialReportResults(
+      credentialReports: Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]
+  ): Unit = credentialReports.foreach {
+    case (a, Left(e)) =>
+      logger.error(s"Credentials report for account '${a.name}' failed to generate: ${e.logMessage}.")
+    case (a, Right(r)) =>
+      logger.info(s"Credentials report for account '${a.name}' generated at ${r.reportDate}.")
   }
 }
