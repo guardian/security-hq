@@ -36,7 +36,7 @@ class IamRemediationDb(client: DynamoDbClient) {
     } yield result.responseMetadata.requestId
   }
 
-  private def scan(request: ScanRequest)(implicit ec: ExecutionContext): Attempt[List[Map[String, AttributeValue]]] = {
+  private def scan(request: ScanRequest): Attempt[List[Map[String, AttributeValue]]] = {
     try {
       Attempt.Right(client.scan(request).items.asScala.toList.map(_.asScala.toMap))
     } catch {
@@ -52,23 +52,7 @@ class IamRemediationDb(client: DynamoDbClient) {
     }
   }
 
-  private def get(request: GetItemRequest)(implicit ec: ExecutionContext): Attempt[Map[String, AttributeValue]] = {
-    try {
-      Attempt.Right(client.getItem(request).item.asScala.toMap)
-    } catch {
-      case NonFatal(e) =>
-        Attempt.Left(
-          Failure(
-            s"unable to get item from dynamoDB table",
-            s"I haven't been able to get the item you were looking for from the dynamo table for the vulnerable user job",
-            500,
-            throwable = Some(e)
-          )
-        )
-    }
-  }
-
-  private def put(request: PutItemRequest)(implicit ec: ExecutionContext): Attempt[PutItemResponse] = {
+  private def put(request: PutItemRequest): Attempt[PutItemResponse] = {
     try {
       Attempt.Right(client.putItem(request))
     } catch {

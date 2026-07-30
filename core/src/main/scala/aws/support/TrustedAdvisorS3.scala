@@ -12,7 +12,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
-import scala.util.control.NonFatal
 import scala.util.{Success, Try}
 
 object TrustedAdvisorS3 {

@@ -1,15 +1,12 @@
 package aws.s3
 
 import model.{BucketEncryptionResponse, BucketNotFound, Encrypted, NotEncrypted}
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.{GetBucketEncryptionRequest, GetObjectRequest, S3Exception}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.concurrent.ExecutionContext
 import scala.io.BufferedSource
 import scala.util.control.NonFatal
-
-import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.S3Exception
-import software.amazon.awssdk.services.s3.model.{GetObjectRequest, GetBucketEncryptionRequest}
 
 object S3 {
   def getS3Object(s3Client: S3Client, bucket: String, key: String): Attempt[BufferedSource] = {
@@ -34,9 +31,7 @@ object S3 {
     }
   }
 
-  def getBucketEncryption(client: S3Client, bucketName: String)(implicit
-      ec: ExecutionContext
-  ): Attempt[BucketEncryptionResponse] = {
+  def getBucketEncryption(client: S3Client, bucketName: String): Attempt[BucketEncryptionResponse] = {
     val request = GetBucketEncryptionRequest.builder().bucket(bucketName).build()
     try {
       Attempt.Right {

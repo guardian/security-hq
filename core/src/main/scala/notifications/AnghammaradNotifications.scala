@@ -5,7 +5,7 @@ import com.gu.anghammarad.models.{Email, Notification, Preferred, Target, AwsAcc
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import logic.DateUtils.printDay
-import model.{AwsAccount, HumanUser, IAMUser, Tag}
+import model.{AwsAccount, IAMUser, Tag}
 import org.joda.time.DateTime
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, Failure}

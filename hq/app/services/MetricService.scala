@@ -7,16 +7,13 @@ import play.api.inject.ApplicationLifecycle
 import utils.Scheduler
 import utils.attempt.FailedAttempt
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
 
 class MetricService(
-    config: Configuration,
     lifecycle: ApplicationLifecycle,
     environment: Environment,
     cacheService: CacheService
-)(implicit ec: ExecutionContext)
-    extends Scheduler {
+) extends Scheduler {
 
   def collectFailures[T](
       list: List[Map[AwsAccount, Either[FailedAttempt, T]]]

@@ -34,7 +34,7 @@ object TrustedAdvisorSGOpenPorts {
 
   private[support] def parseSGOpenPortsDetail(detail: TrustedAdvisorResourceDetail): Attempt[SGOpenPortsDetail] = {
     detail.metadata.asScala.toList match {
-      case region :: name :: SGIds(sgId, vpcId) :: protocol :: alertLevel :: port :: _ =>
+      case _ :: name :: SGIds(sgId, vpcId) :: protocol :: alertLevel :: port :: _ =>
         Attempt.Right {
           SGOpenPortsDetail(
             status = detail.status,
@@ -48,7 +48,7 @@ object TrustedAdvisorSGOpenPorts {
             isSuppressed = detail.isSuppressed
           )
         }
-      case region :: name :: sgId :: protocol :: alertLevel :: port :: _ =>
+      case _ :: name :: sgId :: protocol :: alertLevel :: port :: _ =>
         Attempt.Right {
           SGOpenPortsDetail(
             status = detail.status,
