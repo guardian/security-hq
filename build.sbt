@@ -199,7 +199,7 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
 Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val root = (project in file("."))
-  .aggregate(core, hq, iamUnrecognisedUsers)
+  .aggregate(core, hq, iamUnrecognisedUsers, iamOutdatedCredentials)
   .settings(
     name := """security-hq"""
   )
