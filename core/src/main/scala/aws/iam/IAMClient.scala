@@ -57,7 +57,14 @@ object IAMClient extends LazyLogging {
       }
       // If the request to fetch tags fails, just return the original user
       .recover { case error =>
-        logger.warn(s"Failed to fetch tags for user ${credential.user}. Storing user without tags.", error)
+        error.getCause match {
+          case _: NoSuchEntityException =>
+            logger.info(
+              s"User ${credential.user} has been deleted since the report was generated. Storing user without tags."
+            )
+          case _ =>
+            logger.warn(s"Failed to fetch tags for user ${credential.user}. Storing user without tags.", error)
+        }
         credential
       }
   }
