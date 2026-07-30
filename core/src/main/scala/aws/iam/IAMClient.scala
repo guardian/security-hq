@@ -19,6 +19,13 @@ object IAMClient extends LazyLogging {
 
   val SOLE_REGION = Region.of("us-east-1")
 
+  /*
+   * Note: the report is actually generated a maximum of once every 4 hours.
+   * Even if it has a status of COMPLETE, that doesn't mean it's fresh.
+   * The GetCredentialsReportResponse.generatedAt field will tell you when it was actually generated.
+   *
+   * See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html.
+   */
   private def generateCredentialsReport(
       client: AwsClient[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[GenerateCredentialReportResponse] = {
