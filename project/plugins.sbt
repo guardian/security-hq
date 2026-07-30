@@ -18,6 +18,6 @@ addSbtPlugin("com.github.sbt" % "sbt-rjs" % "2.0.0")
 addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.1.0")
 
 // Code formatting
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.1")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.2")
 
 addDependencyTreePlugin
