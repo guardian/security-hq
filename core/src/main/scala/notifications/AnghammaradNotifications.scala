@@ -42,6 +42,8 @@ object AnghammaradNotifications extends LazyLogging {
   private def notificationTargets(awsAccount: AwsAccount, iamUser: IAMUser): List[Target] =
     Tag.tagsToAnghammaradTargets(iamUser.tags) :+ Account(awsAccount.accountNumber)
 
+  private def tagText(iamUser: IAMUser) = iamUser.tags.map(t => s"${t.key}=${t.value}").mkString(", ")
+
   def outdatedCredentialWarning(
       awsAccount: AwsAccount,
       iamUser: IAMUser,
@@ -56,8 +58,11 @@ object AnghammaradNotifications extends LazyLogging {
          |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
          |which has been flagged because it was last rotated on ${printDay(problemCreationDate)}.
          |(if you're already planning on doing this, please ignore this message).
-         |If this is not rectified before $deadline,
-         |Security HQ will automatically disable this user at the next opportunity.
+         |
+         |If this is not rectified before $deadline, Security HQ will automatically disable this user.
+         |
+         |Further info: this credential is tagged with:
+         |  ${tagText(iamUser)}
          |""".stripMargin
     val subject = s"Action required by $deadline: long-lived credential detected in ${awsAccount.name}"
     Notification(
@@ -82,8 +87,12 @@ object AnghammaradNotifications extends LazyLogging {
          |Please check the permanent credential ${iamUser.username} in AWS Account ${awsAccount.name},
          |which has been flagged because it was last rotated on ${printDay(problemCreationDate)}.
          |(if you're already planning on doing this, please ignore this message).
+         |
          |If this is not rectified before $deadline,
-         |Security HQ will automatically disable this user at the next opportunity.
+         |Security HQ will automatically disable this user *at the next opportunity*.
+         |
+         |Further info: this credential is tagged with:
+         |  ${tagText(iamUser)}
          |""".stripMargin
     val subject = s"Action required by $deadline: long-lived credential in ${awsAccount.name} will be disabled soon"
     Notification(
@@ -105,7 +114,11 @@ object AnghammaradNotifications extends LazyLogging {
       s"""
          |The permanent credential, ${iamUser.username}, in ${awsAccount.name} was disabled today,
          |because it was last rotated on ${printDay(problemCreationDate)}.
+         |
          |If you still require the disabled user, add new access keys(s) and rotate regularly. Otherwise, delete them.
+         |
+         |Further info: this credential is tagged with:
+         |  ${tagText(iamUser)}
          |""".stripMargin
     val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
     Notification(
@@ -134,9 +147,14 @@ object AnghammaradNotifications extends LazyLogging {
          |
          |It wasn't deactivated because it's not Deactivation Tuesday.
          |
+         |The end users are $endUserTargetsString
+         |
          |THIS ACTION HAS HIGH POTENTIAL TO BREAK THINGS.
          |
          |BE PREPARED FOR USERS TO BE UPSET!
+         |
+         |Further info: this credential is tagged with:
+         |  ${tagText(iamUser)}
          |""".stripMargin
     val subject = s"Imminent disabling of long-lived credential in ${awsAccount.name}"
     Notification(
@@ -168,6 +186,8 @@ object AnghammaradNotifications extends LazyLogging {
          |THIS ACTION HAS HIGH POTENTIAL TO BREAK THINGS.
          |
          |BE PREPARED FOR USERS TO BE UPSET!
+         | Further info: this credential is tagged with:
+         |  ${tagText(iamUser)}
          |""".stripMargin
     val subject = s"DISABLED long-lived credential in ${awsAccount.name}"
     Notification(
