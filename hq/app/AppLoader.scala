@@ -1,7 +1,5 @@
 import play.api.ApplicationLoader.Context
-import play.api.{Application, ApplicationLoader, Mode}
-
-import scala.concurrent.Future
+import play.api.{Application, ApplicationLoader}
 
 class AppLoader extends ApplicationLoader {
   override def load(context: Context): Application = {

@@ -3,11 +3,9 @@ package services
 import aws.AwsClients
 import aws.s3.S3.getS3Object
 import com.gu.janus.JanusConfig
-import config.Config
 import config.Config.getIamUnrecognisedUserConfig
-import db.IamRemediationDb
 import logic.IamUnrecognisedUsers.*
-import logic.{IamOutdatedCredentials, IamUnrecognisedUsers}
+import logic.IamUnrecognisedUsers
 import notifications.AnghammaradNotifications
 import org.joda.time.{DateTime, DateTimeConstants}
 import play.api.inject.ApplicationLifecycle
@@ -32,13 +30,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class IamRemediationService(
     cacheService: CacheService,
     snsClient: SnsAsyncClient,
-    dynamo: IamRemediationDb,
     config: Configuration,
     iamClients: AwsClients[IamAsyncClient],
     lifecycle: ApplicationLifecycle,
     environment: Environment,
-    securityS3Client: S3Client,
-    iamOutdatedCredentials: IamOutdatedCredentials
+    securityS3Client: S3Client
 )(implicit ec: ExecutionContext)
     extends Scheduler {
 
@@ -110,7 +106,6 @@ class IamRemediationService(
           (now.getHourOfDay == 14 && now.getMinuteOfHour == 0)
 
         if (isWeekday && isTimeToRun) {
-          disableOutdatedCredentials()
           disableUnrecognisedUsers()
         }
       }
@@ -118,15 +113,4 @@ class IamRemediationService(
     lifecycle.addStopHook(iamRemediationServiceSubscription)
   }
 
-  private def disableOutdatedCredentials(): Attempt[Unit] = for {
-    serviceAccountIds <- Config.getAccountsForIamRemediationService(config)
-    rawCredsReports = cacheService.getAllCredentials
-    // this tells us which AWS accounts we are allowed to make changes to
-    allowedAwsAccountIds <- Config.getAllowedAccountsForStage(config)
-    result <- iamOutdatedCredentials.disableOutdatedCredentials(
-      serviceAccountIds,
-      rawCredsReports,
-      allowedAwsAccountIds
-    )
-  } yield result
 }
