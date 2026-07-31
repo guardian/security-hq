@@ -349,6 +349,7 @@ export class SecurityHQ extends GuStack {
           toleratedErrorPercentage: 0,
           snsTopicName:
             GuAnghammaradTopicParameter.getInstance(this).valueAsString,
+          description: "Iam Outdated Credentials lambda has issues.  Logs at https://logs.gutools.co.uk/s/security/app/r/s/dfvMj"
         },
         rules: [
           {
