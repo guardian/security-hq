@@ -58,7 +58,6 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       AccessKey(AccessKeyEnabled, Some(date.minusDays(CoreConfig.iamMachineUserRotationCadence.toInt)))
     val humanEnabledAccessKeyHealthy = AccessKey(AccessKeyEnabled, Some(date.minusMonths(1)))
     val noAccessKey = AccessKey(NoKey, None)
-    val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
     val humanWithOneOldEnabledAccessKey =
       HumanUser("amina.adewusi", true, humanAccessKeyOldAndEnabled, noAccessKey, Green, None, Nil)
     val humanWithHealthyKey =
@@ -533,8 +532,6 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       }
 
       "given a key that was given a final warning 13 days ago, but the task has not run since, carry on" in {
-        // Key was issued a final warning a year ago.
-        val aYearAgo = date.minusMonths(12)
         // Key was issued a warning 14 days ago
         val aYearAndFifteenDaysAgo = date.minusDays(15)
         // Key was issued a final warning 13 days ago
@@ -557,11 +554,9 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
       }
 
       "given a key that was given a final warning 14 days ago, but the task has not run since, go back to warning" in {
-        // Key was issued a final warning a year ago.
-        val aYearAgo = date.minusMonths(12)
         // Key was issued a warning 14 days ago
         val aYearAndFifteenDaysAgo = date.minusDays(15)
-        // Key was issued a final warning 13 days ago
+        // Key was issued a final warning 14 days ago
         val aYearAndfourteenDaysAgo = date.minusDays(14)
         val remediationOperation = calculateOutstandingAccessKeyOperations(
           List(
@@ -736,8 +731,6 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
   "formatRemediationOperation" - {
     val date = new DateTime(2021, 1, 1, 1, 1)
     val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
-    val humanUser =
-      HumanUser("human.user", hasMFA = true, AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, Nil)
     val machineUser =
       MachineUser("machine.user", AccessKey(NoKey, None), AccessKey(NoKey, None), Green, None, Nil)
 

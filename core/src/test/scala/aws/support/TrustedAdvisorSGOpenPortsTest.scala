@@ -117,7 +117,7 @@ class TrustedAdvisorSGOpenPortsTest extends AnyFreeSpec with Matchers with Attem
     }
 
     "handle simple port" in {
-      TrustedAdvisor.indexedPortMap.foreach { case ((k, ports), idx) =>
+      TrustedAdvisor.indexedPortMap.foreach { case ((_, ports), idx) =>
         ports.foreach { port =>
           TrustedAdvisor.findPortPriorityIndex(port.toString) shouldBe Some(idx)
         }

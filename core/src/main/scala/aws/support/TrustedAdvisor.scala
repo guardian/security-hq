@@ -1,21 +1,20 @@
 package aws.support
 
 import aws.AwsAsyncHandler.{asScala, handleAWSErrs}
-import aws.{AwsClient, AwsClients}
+import aws.AwsClient
 
 import logic.DateUtils.fromISOString
 import model._
-import utils.attempt.{Attempt, FailedAttempt, Failure}
+import utils.attempt.Attempt
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
-import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.support.SupportAsyncClient
 import software.amazon.awssdk.services.support.model._
 
 object TrustedAdvisor {
-  val portPriorityMap =
+  val portPriorityMap: Seq[(String, Set[Int])] =
     Seq(
       "FTP" -> Set(20, 21),
       "Postgres" -> Set(5432),
@@ -36,9 +35,9 @@ object TrustedAdvisor {
       "SSH" -> Set(22)
     )
 
-  val indexedPortMap = portPriorityMap.zipWithIndex
+  val indexedPortMap: Seq[((String, Set[Int]), Int)] = portPriorityMap.zipWithIndex
 
-  val alertLevelMapping = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
+  val alertLevelMapping: Map[String, Int] = Map("Red" -> 0, "Yellow" -> 1, "Green" -> 2)
 
   // SHOW ALL TRUSTED ADVISOR CHECKS
 

@@ -129,7 +129,6 @@ class AppComponents(context: Context)
   )
 
   new MetricService(
-    configuration,
     applicationLifecycle,
     environment,
     cacheService

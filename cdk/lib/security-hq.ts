@@ -430,38 +430,6 @@ export class SecurityHQ extends GuStack {
     });
   }
 
-  private getSsmInfoPolicy() {
-    return new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: [
-        "ec2:DescribeInstances",
-        "ec2:DescribeInstanceStatus",
-        "ec2:DescribeTags",
-        "ssm:DescribeSessions",
-        "ssm:GetConnectionStatus",
-        "ssm:DescribeInstanceInformation",
-        "ssm:TerminateSession",
-      ],
-      resources: ["*"],
-    });
-  }
-
-  private getSsmStartSessionPolicy(asgArn: string) {
-    return new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: ["ssm:StartSession"],
-      resources: [
-        "arn:aws:ec2:*:*:instance/*",
-        "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
-      ],
-      conditions: {
-        "ForAnyValue:StringEquals": {
-          "ssm:resourceTag/aws:autoscaling:groupName": [`${asgArn}`],
-        },
-      },
-    });
-  }
-
   private getCallerIdentityPolicy() {
     // Used by setup to check that valid, non-expired credentials are configured
     return new PolicyStatement({

@@ -50,7 +50,7 @@ package object aws extends LazyLogging {
               )
             )
           )
-        case multipleClients =>
+        case _ =>
           val errorString =
             s"More than one ${classTag.runtimeClass.getSimpleName} client exists for ${account.id} - perhaps you need to use get(account, region)??"
           logger.warn(errorString)
