@@ -1900,7 +1900,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             "APP": "iam-unrecognised-users",
             "CONFIG_BUCKET": "security-dist",
             "CONFIG_KEY": "security/PROD/security-hq/security-hq.conf",
-            "DRY_RUN": "true",
+            "DRY_RUN": "false",
             "IAM_UNRECOGNISED_USER_S3_BUCKET": "gu-security-hq-audit",
             "IAM_UNRECOGNISED_USER_S3_KEY": "security/PROD/janus-data-export/janusData.conf",
             "STACK": "security",
