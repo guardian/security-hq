@@ -12,6 +12,9 @@ ThisBuild / scalaVersion := "3.3.8"
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-no-indent", // don't support significant indentation
+  "-Wunused:all", // fail the build on unused imports, vals, params, and private members
+  "-Wconf:src=.*/twirl/.*&msg=.*unused.*:silent", // ignore dead-code warnings in generated Twirl sources
+  "-Wconf:src=.*/routes/.*&msg=.*unused.*:silent", // ignore dead-code warnings in generated Play routes sources
   "-Xfatal-warnings"
 )
 
