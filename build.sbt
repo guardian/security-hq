@@ -59,7 +59,7 @@ lazy val core = (project in file("core"))
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "joda-time" % "joda-time" % "2.14.2",
       "com.gu" %% "anghammarad-client" % "7.0.0",
-      "com.gu" %% "janus-config-tools" % "12.0.0",
+      "com.gu" %% "janus-config-tools" % "13.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
       "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
       "software.amazon.awssdk" % "dynamodb" % awsSdkVersion,
@@ -114,7 +114,7 @@ lazy val hq = (project in file("hq"))
       "com.gu" %% "anghammarad-client" % "7.0.0",
       "ch.qos.logback" % "logback-classic" % "1.5.38",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
-      "com.gu" %% "janus-config-tools" % "12.0.0"
+      "com.gu" %% "janus-config-tools" % "13.0.0"
     ) ++ safeTransitiveDependencies,
     Assets / pipelineStages := Seq(digest),
     // exclude docs
