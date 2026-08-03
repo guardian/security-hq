@@ -122,7 +122,6 @@ class IamOutdatedCredentials(
         securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
 
         // only now do we actually disable the credential
-        _ = Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success, 0)
         _ <- IAMClient.disableAccessKey(
           awsAccount,
           credentialToDisable.username,
@@ -238,6 +237,8 @@ class IamOutdatedCredentials(
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(logOperationOnly)
 
       // now we know what operations need to be performed, so let's run each of those
+      // First record a zero so that we know we ran, even if there ends up being nothing to do.
+      _ = Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success, 0)
       results <- Attempt.traverse(filteredOperations.allowedOperations)(
         performRemediationOperation(_, now)
       )

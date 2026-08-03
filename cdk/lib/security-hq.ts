@@ -386,7 +386,7 @@ export class SecurityHQ extends GuStack {
       metric: new Metric({
         metricName: "IamDisableOutdatedKeys",
         namespace: "SecurityHQ",
-        period: Duration.days(7), // we only remediate on tuesdays, twice
+        period: Duration.days(3), // we do not run sat/sun
         statistic: "sum",
       }),
       treatMissingData: TreatMissingData.BREACHING,
