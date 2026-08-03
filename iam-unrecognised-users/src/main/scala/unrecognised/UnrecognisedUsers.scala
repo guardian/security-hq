@@ -1,15 +1,20 @@
 package unrecognised
 
-import aws.AWS
 import aws.iam.IAMClient
+import aws.iam.IAMClient.getAllCredentialReports
 import aws.s3.S3.getS3Object
+import aws.{AWS, AwsClients}
 import com.gu.janus.JanusConfig
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
+import logging.Cloudwatch
+import logging.Cloudwatch.ReaperExecutionStatus
 import logic.IamUnrecognisedUsers.*
-import model.{AwsAccount, CredentialReportDisplay}
+import model.*
 import notifications.AnghammaradNotifications
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileResponse, UpdateAccessKeyResponse}
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
@@ -50,7 +55,7 @@ object UnrecognisedUsers extends LazyLogging {
     }
   }
 
-  def disableUnrecognisedUsers(
+  private[unrecognised] def disableUnrecognisedUsers(
       settings: Settings
   )(using ExecutionContext): Attempt[List[String]] = {
     val s3Client = S3Client.builder
@@ -78,21 +83,84 @@ object UnrecognisedUsers extends LazyLogging {
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
       janusUsernames = getJanusUsernames(janusData)
       // generate a fresh IAM credential report for every configured account, logging the per-account outcome
-      credentialReports <- IAMClient
-        .getAllCredentialReports(awsAccounts, startingData, iamClients)
+      credentialReports <- getAllCredentialReports(awsAccounts, startingData, iamClients)
         .map(_.tap(logCredentialReportResults))
       accountCredsReports = getCredsReportDisplayForAccount(credentialReports.toMap)
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
       accessKeys <- Attempt.traverse(unrecognisedUsers)(listAccountAccessKeys(_, iamClients))
       // deactivate access keys and remove login profiles for unrecognised users (skipped in dry run)
-      _ <- Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients, settings.dryRun)).map(_ => ())
-      _ <- Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients, settings.dryRun)).map(_ => ())
+      // First emit a zero metric in case there's no keys to disable
+      _ = Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success, 0)
+      _ <- Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients, settings.dryRun))
+      // First emit a zero metric in case there's no passwords to remove
+      _ = Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, 0)
+      _ <- Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients, settings.dryRun))
       // construct and send a notification for each unrecognised user
       notifications = unrecognisedUserNotifications(unrecognisedUsers, settings.dryRun)
       // if in dry run, notifications list is empty
       notificationIds <- Attempt.traverse(notifications)(AnghammaradNotifications.send(_, anghammaradSnsArn, snsClient))
     } yield notificationIds
+  }
+
+  private def removeAccountPasswords(
+      accountUnrecognisedUsers: AccountUnrecognisedUsers,
+      iamClients: AwsClients[IamAsyncClient],
+      dryRun: Boolean
+  )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
+    if (!dryRun) {
+      Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
+        IAMClient
+          .deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
+          .tap(emitRemovePasswordMetrics)
+      )
+    } else {
+      logger.info(
+        s"DRY RUN: Would delete passwords in account '${accountUnrecognisedUsers.account.name}' for IAM users: ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString("'", "', '", "'")}."
+      )
+      Attempt.Right(Nil)
+    }
+  }
+
+  private def emitRemovePasswordMetrics[T](result: Either[FailedAttempt, T]): Unit = {
+    result.fold(
+      { (failure: FailedAttempt) =>
+        logger.error(s"failed to delete at least one password: ${failure.logMessage}")
+        Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
+      },
+      { (_: T) => Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, 1) }
+    )
+  }
+
+  private[unrecognised] def disableAccountAccessKeys(
+      accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
+      iamClients: AwsClients[IamAsyncClient],
+      dryRun: Boolean
+  )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
+    if (!dryRun) {
+      val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
+      val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
+      Attempt.traverse(activeAccessKeys)(key =>
+        IAMClient.disableAccessKey(account, key.username, key.accessKeyId, iamClients).tap(emitDisabledAccessKeyMetrics)
+      )
+    } else {
+      if (accountUnrecognisedKeys.vulnerableAccessKey.nonEmpty) {
+        logger.info(
+          s"DRY RUN: Would disable access keys in account '${accountUnrecognisedKeys.account.name}' for IAM users: ${accountUnrecognisedKeys.vulnerableAccessKey.map(_.username).mkString("'", "', '", "'")}."
+        )
+      }
+      Attempt.Right(Nil)
+    }
+  }
+
+  private def emitDisabledAccessKeyMetrics[T](result: Either[FailedAttempt, T]): Unit = {
+    result.fold(
+      { (failure: FailedAttempt) =>
+        logger.error(s"Failed to disable unrecognised user access key: ${failure.logMessage}")
+        Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
+      },
+      { (_: T) => Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success) }
+    )
   }
 
   private def logCredentialReportResults(

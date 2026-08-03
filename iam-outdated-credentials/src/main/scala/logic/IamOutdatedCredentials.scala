@@ -6,6 +6,8 @@ import com.gu.anghammarad.models.Notification
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import db.IamRemediationDb
+import logging.Cloudwatch
+import logging.Cloudwatch.ReaperExecutionStatus
 import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
 import model.*
@@ -101,11 +103,9 @@ class IamOutdatedCredentials(
       } yield notificationIds
     } else {
 
-      for {
-        // plan the disable action for the correct credential
+      (for {
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
         credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
-
         notification =
           AnghammaradNotifications.outdatedCredentialRemediation(
             awsAccount,
@@ -113,6 +113,8 @@ class IamOutdatedCredentials(
             problemCreationDate,
             credentialToDisable
           )
+
+        // plan the disable action for the correct credential
         notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
           AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
             awsAccount,
@@ -130,16 +132,26 @@ class IamOutdatedCredentials(
         userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
         // Send a notification to devx too, if we've got an account for them.
         securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
-
         // only now do we actually disable the credential
-        _ <- IAMClient.disableAccessKey(
-          awsAccount,
-          credentialToDisable.username,
-          credentialToDisable.accessKeyId,
-          iamClients
-        )
-      } yield List(userNotificationId) ++ securityNotificationIdMaybe
+        _ <- IAMClient
+          .disableAccessKey(
+            awsAccount,
+            credentialToDisable.username,
+            credentialToDisable.accessKeyId,
+            iamClients
+          )
+      } yield List(userNotificationId) ++ securityNotificationIdMaybe).tap(emitMetricsTap)
     }
+  }
+
+  private[logic] def emitMetricsTap[T](result: Either[FailedAttempt, T]): Unit = {
+    result.fold(
+      { (failure: FailedAttempt) =>
+        logger.error(s"Failed to disable outdated access key: ${failure.logMessage}")
+        Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.failure)
+      },
+      { (_: T) => Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success) }
+    )
   }
 
   private def finalWarn(
@@ -262,6 +274,8 @@ class IamOutdatedCredentials(
       // we won't execute these operations, but can log them instead
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(logOperationOnly)
 
+      // First record a zero so that we know we ran, even if there ends up being nothing to do.
+      _ = Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success, 0)
       // now we know what operations need to be performed, so let's run each of those
       results <- Attempt.traverseWithFailures(filteredOperations.allowedOperations)(
         performRemediationOperation(_, now)
@@ -281,7 +295,7 @@ class IamOutdatedCredentials(
         logger.info(
           s"Completed 'disable outdated credentials job', with ${successfulOperations.length} successful operations and ${failedOperations.length} failed operations"
         )
-        failedOperations.zipWithIndex.foreach { case ((failedAttempt), i) =>
+        failedOperations.zipWithIndex.foreach { case (failedAttempt, i) =>
           // TODO emit metrics counting the number of operations which failed and create alarm
           logger.error(
             s"Failed operation $i of ${failedOperations.length}: ${failedAttempt.logMessage}",
@@ -593,6 +607,6 @@ object IamOutdatedCredentials extends LazyLogging {
   private val ALLOWED_ACCOUNT_IDS_CONFIG_ITEM = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM = "ANGHAMMARAD_SNS_TOPIC_ARN"
   private val IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM = "IAM_DYNAMO_TABLE_NAME"
-  val SECURITY_ACCOUNT_ID = "security"
+  private val SECURITY_ACCOUNT_ID = "security"
 
 }

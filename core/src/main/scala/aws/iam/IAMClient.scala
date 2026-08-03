@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters.*
 
 object IAMClient extends LazyLogging {
 
-  val SOLE_REGION = Region.of("us-east-1")
+  val SOLE_REGION: Region = Region.of("us-east-1")
 
   /*
    * Note: the report is actually generated a maximum of once every 4 hours.
@@ -86,7 +86,7 @@ object IAMClient extends LazyLogging {
     }
   }
 
-  def getCredentialReportDisplay(
+  private def getCredentialReportDisplay(
       account: AwsAccount,
       currentData: Either[FailedAttempt, CredentialReportDisplay],
       iamClients: AwsClients[IamAsyncClient]
@@ -194,6 +194,9 @@ object IAMClient extends LazyLogging {
     for {
       client <- iamClients.get(awsAccount)
       result <- handleAWSErrs(client)(asScala(client.client.updateAccessKey(request)))
+      _ = logger.info(
+        s"Disabled access key $accessKeyId for IAM user $username in account ${awsAccount.name}."
+      )
     } yield result
   }
 
@@ -215,6 +218,13 @@ object IAMClient extends LazyLogging {
     for {
       client <- iamClients.get(awsAccount)
       result <- handleDeleteLoginProfileErrs(client, username)(asScala(client.client.deleteLoginProfile(request)))
+      message = if (result.isDefined) {
+        s"Deleted login profile for IAM user $username in account ${awsAccount.name}."
+      } else {
+        s"No login profile found for IAM user $username in account ${awsAccount.name}; nothing to delete."
+      }
+      _ = logger.info(message)
     } yield result
   }
+
 }
