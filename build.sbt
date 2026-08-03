@@ -57,7 +57,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
-      "joda-time" % "joda-time" % "2.14.2",
+      "joda-time" % "joda-time" % "2.14.3",
       "com.gu" %% "anghammarad-client" % "7.0.0",
       "com.gu" %% "janus-config-tools" % "13.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
@@ -68,7 +68,7 @@ lazy val core = (project in file("core"))
       "software.amazon.awssdk" % "sns" % awsSdkVersion,
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
-      "ch.qos.logback" % "logback-classic" % "1.5.38",
+      "ch.qos.logback" % "logback-classic" % "1.6.0",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
@@ -90,11 +90,11 @@ lazy val hq = (project in file("hq"))
     libraryDependencies ++= Seq(
       ws,
       filters,
-      "com.gu.play-googleauth" %% "play-v30" % "42.1.0",
-      "com.gu.play-secret-rotation" %% "play-v30" % "19.2.0",
-      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "19.2.0",
+      "com.gu.play-googleauth" %% "play-v30" % "42.2.0",
+      "com.gu.play-secret-rotation" %% "play-v30" % "19.3.0",
+      "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "19.3.0",
 
-      "joda-time" % "joda-time" % "2.14.2",
+      "joda-time" % "joda-time" % "2.14.3",
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
@@ -112,7 +112,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "7.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.38",
+      "ch.qos.logback" % "logback-classic" % "1.6.0",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "13.0.0"
     ) ++ safeTransitiveDependencies,
