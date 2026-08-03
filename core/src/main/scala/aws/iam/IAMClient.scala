@@ -255,7 +255,7 @@ object IAMClient extends LazyLogging {
               s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}."
             )
             if (updateAccessKeyResults.nonEmpty) {
-              Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+              Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success, updateAccessKeyResults.length)
             }
           }
         )
