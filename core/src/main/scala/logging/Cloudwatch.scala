@@ -68,7 +68,7 @@ object Cloudwatch extends LazyLogging {
     )
   }
 
-  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
+  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1): Unit = {
     putMetric(
       defaultNamespace,
       MetricName.iamRemovePassword,
@@ -77,21 +77,21 @@ object Cloudwatch extends LazyLogging {
     )
   }
 
-  def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
+  def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1): Unit = {
     putMetric(
       defaultNamespace,
       MetricName.iamDisableAccessKey,
       Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
-      1
+      value
     )
   }
 
-  def putIamDisableOutdatedKeysMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
+  def putIamDisableOutdatedKeysMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1): Unit = {
     putMetric(
       defaultNamespace,
       MetricName.iamDisableOutdatedKeys,
       Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
-      1
+      value
     )
   }
 

@@ -1,12 +1,14 @@
 package unrecognised
 
 import aws.AWS
-import aws.iam.IAMClient.{disableAccountAccessKeys, removeAccountPasswords, getAllCredentialReports}
+import aws.iam.IAMClient.{disableAccountAccessKeys, getAllCredentialReports, removeAccountPasswords}
 import aws.s3.S3.getS3Object
 import com.gu.janus.JanusConfig
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
+import logging.Cloudwatch
+import logging.Cloudwatch.ReaperExecutionStatus
 import logic.IamUnrecognisedUsers.*
 import model.{AwsAccount, CredentialReportDisplay}
 import notifications.AnghammaradNotifications
@@ -84,8 +86,12 @@ object UnrecognisedUsers extends LazyLogging {
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
       accessKeys <- Attempt.traverse(unrecognisedUsers)(listAccountAccessKeys(_, iamClients))
+
       // deactivate access keys and remove login profiles for unrecognised users (skipped in dry run)
+      // First emit metrics of zero, in case there are none.
+      _ = Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success, 0)
       _ <- Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients, settings.dryRun))
+      _ = Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, 0)
       _ <- Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients, settings.dryRun))
       // construct and send a notification for each unrecognised user
       notifications = unrecognisedUserNotifications(unrecognisedUsers, settings.dryRun)

@@ -6,6 +6,8 @@ import com.gu.anghammarad.models.Notification
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import db.IamRemediationDb
+import logging.Cloudwatch
+import logging.Cloudwatch.ReaperExecutionStatus
 import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
 import model.*
@@ -120,6 +122,7 @@ class IamOutdatedCredentials(
         securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
 
         // only now do we actually disable the credential
+        _ = Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success, 0)
         _ <- IAMClient.disableAccessKey(
           awsAccount,
           credentialToDisable.username,
