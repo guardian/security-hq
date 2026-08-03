@@ -1,12 +1,10 @@
 package logic
 
 import aws.AwsClients
-import aws.iam.IAMClient.{deleteLoginProfile, disableAccessKey, listUserAccessKeys}
+import aws.iam.IAMClient.listUserAccessKeys
 import com.gu.anghammarad.models.Notification
 import com.gu.janus.model.JanusData
 import com.typesafe.scalalogging.LazyLogging
-import logging.Cloudwatch
-import logging.Cloudwatch.ReaperExecutionStatus
 import model.*
 import notifications.AnghammaradNotifications.unrecognisedUserRemediation
 import utils.attempt.{Attempt, FailedAttempt}
@@ -16,7 +14,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.concurrent.ExecutionContext
 import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.iam.model.{DeleteLoginProfileResponse, UpdateAccessKeyResponse}
 
 object IamUnrecognisedUsers extends LazyLogging {
   val USERNAME_TAG_KEY = "GoogleUsername"
@@ -96,70 +93,6 @@ object IamUnrecognisedUsers extends LazyLogging {
     val AccountUnrecognisedUsers(account, users) = accountUnrecognisedUsers
     Attempt.flatTraverse(users)(listUserAccessKeys(account, _, iamClients)).map {
       AccountUnrecognisedAccessKeys(account, _)
-    }
-  }
-
-  def disableAccountAccessKeys(
-      accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
-      iamClients: AwsClients[IamAsyncClient],
-      dryRun: Boolean
-  )(implicit ec: ExecutionContext): Attempt[List[UpdateAccessKeyResponse]] = {
-    if (!dryRun) {
-      val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
-      val activeAccessKeys = accessKeys.filter(_.status == CredentialActive)
-      val disableKeysAttempt =
-        Attempt.traverse(activeAccessKeys)(key => disableAccessKey(account, key.username, key.accessKeyId, iamClients))
-
-      disableKeysAttempt.tap(
-        _.fold(
-          { failure =>
-            logger.error(s"Failed to disable access key: ${failure.logMessage}")
-            Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
-          },
-          { updateAccessKeyResults =>
-            logger.info(
-              s"Attempt to disable access keys was successful. ${updateAccessKeyResults.length} key(s) were disabled in ${account.name}."
-            )
-            if (updateAccessKeyResults.nonEmpty) {
-              Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
-            }
-          }
-        )
-      )
-    } else {
-      if (accountUnrecognisedKeys.vulnerableAccessKey.nonEmpty) {
-        logger.info(
-          s"DRY RUN: Would disable access keys in account '${accountUnrecognisedKeys.account.name}' for IAM users: ${accountUnrecognisedKeys.vulnerableAccessKey.map(_.username).mkString("'", "', '", "'")}."
-        )
-      }
-      Attempt.Right(Nil)
-    }
-  }
-
-  def removeAccountPasswords(
-      accountUnrecognisedUsers: AccountUnrecognisedUsers,
-      iamClients: AwsClients[IamAsyncClient],
-      dryRun: Boolean
-  )(implicit ec: ExecutionContext): Attempt[List[Option[DeleteLoginProfileResponse]]] = {
-    if (!dryRun) {
-      val results = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
-        deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
-      )
-      results.tap {
-        case Left(failure) =>
-          logger.error(s"failed to delete at least one password: ${failure.logMessage}")
-          Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
-        case Right(success) =>
-          logger.info(
-            s"passwords deleted for ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString(",")}"
-          )
-          Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, success.flatten.length)
-      }
-    } else {
-      logger.info(
-        s"DRY RUN: Would delete passwords in account '${accountUnrecognisedUsers.account.name}' for IAM users: ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString("'", "', '", "'")}."
-      )
-      Attempt.Right(Nil)
     }
   }
 

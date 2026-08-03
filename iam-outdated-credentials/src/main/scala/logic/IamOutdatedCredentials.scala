@@ -77,7 +77,7 @@ class IamOutdatedCredentials(
       iamUser: IAMUser,
       problemCreationDate: DateTime,
       thisRemediationActivity: IamRemediationActivity
-  )(implicit ec: ExecutionContext) = {
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     if (dryRun) {
       logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
       Attempt.Right(Nil)

@@ -12,21 +12,28 @@ import scala.util.{Failure, Success, Try}
 
 object Cloudwatch extends LazyLogging {
 
-  val cloudwatchClient = CloudWatchClient.builder.build()
+  private val cloudwatchClient = CloudWatchClient.builder.build()
 
-  val defaultNamespace = "SecurityHQ"
+  private val defaultNamespace = "SecurityHQ"
 
   object DataType extends Enumeration {
-    val s3Total = Value("s3/total")
-    val iamCredentialsTotal = Value("iam/credentials/total")
-    val iamCredentialsCritical = Value("iam/credentials/critical")
-    val iamCredentialsWarning = Value("iam/credentials/warning")
-    val iamKeysTotal = Value("iam/keys/total")
+    val s3Total: Value = Value("s3/total")
+    val iamCredentialsTotal: Value = Value("iam/credentials/total")
+    val iamCredentialsCritical: Value = Value("iam/credentials/critical")
+    val iamCredentialsWarning: Value = Value("iam/credentials/warning")
+    val iamKeysTotal: Value = Value("iam/keys/total")
+  }
+
+  private object MetricName extends Enumeration {
+    val iamDisableOutdatedKeys = "IamDisableOutdatedKeys"
+    val iamDisableAccessKey = "IamDisableAccessKey"
+    val iamRemovePassword = "IamRemovePassword"
+    val vulnerabilities = "Vulnerabilities"
   }
 
   object ReaperExecutionStatus extends Enumeration {
-    val success = Value("Success")
-    val failure = Value("Failure")
+    val success: Value = Value("Success")
+    val failure: Value = Value("Failure")
   }
 
   def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Unit = {
@@ -47,15 +54,15 @@ object Cloudwatch extends LazyLogging {
         putAwsMetric(account, dataType, details.length)
       case (account: AwsAccount, Left(_)) =>
         logger.error(
-          s"Attempt to log cloudwatch metric failed. Data of type ${dataType} is missing for account ${account.name}."
+          s"Attempt to log cloudwatch metric failed. Data of type $dataType is missing for account ${account.name}."
         )
     }
   }
 
-  def putAwsMetric(account: AwsAccount, dataType: DataType.Value, value: Int): Unit = {
+  private def putAwsMetric(account: AwsAccount, dataType: DataType.Value, value: Int): Unit = {
     putMetric(
       defaultNamespace,
-      "Vulnerabilities",
+      MetricName.vulnerabilities,
       Seq(("Account", account.name), ("DataType", dataType.toString)),
       value
     )
@@ -64,7 +71,7 @@ object Cloudwatch extends LazyLogging {
   def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
     putMetric(
       defaultNamespace,
-      "IamRemovePassword",
+      MetricName.iamRemovePassword,
       Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
       value
     )
@@ -73,7 +80,16 @@ object Cloudwatch extends LazyLogging {
   def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
     putMetric(
       defaultNamespace,
-      "IamDisableAccessKey",
+      MetricName.iamDisableAccessKey,
+      Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
+      1
+    )
+  }
+
+  def putIamDisableOutdatedKeysMetric(reaperExecutionStatus: ReaperExecutionStatus.Value): Unit = {
+    putMetric(
+      defaultNamespace,
+      MetricName.iamDisableOutdatedKeys,
       Seq(("ReaperExecutionStatus", reaperExecutionStatus.toString)),
       1
     )

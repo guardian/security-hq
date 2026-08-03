@@ -1,7 +1,7 @@
 package unrecognised
 
 import aws.AWS
-import aws.iam.IAMClient
+import aws.iam.IAMClient.{disableAccountAccessKeys, removeAccountPasswords, getAllCredentialReports}
 import aws.s3.S3.getS3Object
 import com.gu.janus.JanusConfig
 import com.typesafe.config.ConfigFactory
@@ -50,7 +50,7 @@ object UnrecognisedUsers extends LazyLogging {
     }
   }
 
-  def disableUnrecognisedUsers(
+  private def disableUnrecognisedUsers(
       settings: Settings
   )(using ExecutionContext): Attempt[List[String]] = {
     val s3Client = S3Client.builder
@@ -78,16 +78,15 @@ object UnrecognisedUsers extends LazyLogging {
       janusData = JanusConfig.load(makeFile(janusSource.mkString))
       janusUsernames = getJanusUsernames(janusData)
       // generate a fresh IAM credential report for every configured account, logging the per-account outcome
-      credentialReports <- IAMClient
-        .getAllCredentialReports(awsAccounts, startingData, iamClients)
+      credentialReports <- getAllCredentialReports(awsAccounts, startingData, iamClients)
         .map(_.tap(logCredentialReportResults))
       accountCredsReports = getCredsReportDisplayForAccount(credentialReports.toMap)
       // determine the unrecognised users by comparing Janus usernames to the IAM users (filtered to allowed accounts)
       unrecognisedUsers = unrecognisedUsersForAllowedAccounts(accountCredsReports, janusUsernames, allowedAccountIds)
       accessKeys <- Attempt.traverse(unrecognisedUsers)(listAccountAccessKeys(_, iamClients))
       // deactivate access keys and remove login profiles for unrecognised users (skipped in dry run)
-      _ <- Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients, settings.dryRun)).map(_ => ())
-      _ <- Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients, settings.dryRun)).map(_ => ())
+      _ <- Attempt.traverse(accessKeys)(disableAccountAccessKeys(_, iamClients, settings.dryRun))
+      _ <- Attempt.traverse(unrecognisedUsers)(removeAccountPasswords(_, iamClients, settings.dryRun))
       // construct and send a notification for each unrecognised user
       notifications = unrecognisedUserNotifications(unrecognisedUsers, settings.dryRun)
       // if in dry run, notifications list is empty
