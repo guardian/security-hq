@@ -269,7 +269,8 @@ export class SecurityHQ extends GuStack {
       alarmName:
         "Security HQ failed to remove a vulnerable password (new stack)",
       alarmDescription:
-        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. " +
+        "Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
       snsTopicName: notificationTopic.topicName,
       threshold: 1,
       evaluationPeriods: 1,
@@ -286,12 +287,35 @@ export class SecurityHQ extends GuStack {
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
     });
 
+    new GuAlarm(this, "RemovePasswordNotRunningAlarm", {
+      app: SecurityHQ.app.app,
+      alarmName: "Security HQ failed to emit vulnerable password metrics",
+      alarmDescription:
+        "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit. " +
+        "Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+      snsTopicName: notificationTopic.topicName,
+      threshold: 0,
+      evaluationPeriods: 1,
+      metric: new Metric({
+        metricName: "IamRemovePassword",
+        namespace: "SecurityHQ",
+        period: Duration.days(3), // we do not run sat/sun
+        statistic: "sum",
+        dimensionsMap: {
+          ReaperExecutionStatus: "Success",
+        },
+      }),
+      treatMissingData: TreatMissingData.BREACHING,
+      comparisonOperator: ComparisonOperator.LESS_THAN_THRESHOLD,
+    });
+
     new GuAlarm(this, "DisableAccessKeyFailureAlarm", {
       app: SecurityHQ.app.app,
       alarmName:
         "Security HQ failed to disable a vulnerable access key (new stack)",
       alarmDescription:
-        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. " +
+        "Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
       snsTopicName: notificationTopic.topicName,
       threshold: 1,
       evaluationPeriods: 1,
@@ -306,6 +330,67 @@ export class SecurityHQ extends GuStack {
       }),
       treatMissingData: TreatMissingData.NOT_BREACHING,
       comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+    });
+
+    new GuAlarm(this, "DisableAccessKeyNotRunningAlarm", {
+      app: SecurityHQ.app.app,
+      alarmName: "Security HQ failed to emit vulnerable access key metrics",
+      alarmDescription:
+        "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit." +
+        " Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+      snsTopicName: notificationTopic.topicName,
+      threshold: 0,
+      evaluationPeriods: 1,
+      metric: new Metric({
+        metricName: "IamDisableAccessKey",
+        namespace: "SecurityHQ",
+        period: Duration.days(3), // we do not run sat/sun
+        statistic: "sum",
+      }),
+      treatMissingData: TreatMissingData.BREACHING,
+      comparisonOperator: ComparisonOperator.LESS_THAN_THRESHOLD,
+    });
+
+    new GuAlarm(this, "DisableOutdatedKeysFailureAlarm", {
+      app: SecurityHQ.app.app,
+      alarmName:
+        "Security HQ failed to disable an outdated access key (new stack)",
+      alarmDescription:
+        "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. " +
+        "Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+      snsTopicName: notificationTopic.topicName,
+      threshold: 1,
+      evaluationPeriods: 1,
+      metric: new Metric({
+        metricName: "IamDisableOutdatedKeys",
+        namespace: "SecurityHQ",
+        period: Duration.seconds(60),
+        statistic: "sum",
+        dimensionsMap: {
+          ReaperExecutionStatus: "Failure",
+        },
+      }),
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+      comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+    });
+
+    new GuAlarm(this, "DisableOutdatedKeysNotRunningAlarm", {
+      app: SecurityHQ.app.app,
+      alarmName: "Security HQ failed to emit outdated access key metrics",
+      alarmDescription:
+        "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit." +
+        " Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+      snsTopicName: notificationTopic.topicName,
+      threshold: 0,
+      evaluationPeriods: 1,
+      metric: new Metric({
+        metricName: "IamDisableOutdatedKeys",
+        namespace: "SecurityHQ",
+        period: Duration.days(3), // we do not run sat/sun
+        statistic: "sum",
+      }),
+      treatMissingData: TreatMissingData.BREACHING,
+      comparisonOperator: ComparisonOperator.LESS_THAN_THRESHOLD,
     });
 
     new GuDeveloperPolicyExperimental(this, "RunSecurityHqLocallyPolicy", {
