@@ -109,7 +109,7 @@ object IAMClient extends LazyLogging {
       _ <- Retry.until(
         generateCredentialsReport(client),
         CredentialsReport.isComplete,
-        "Failed to generate credentials report",
+        s"Failed to generate credentials report for account $account",
         delay
       )
       report <- getCredentialsReport(client)

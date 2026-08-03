@@ -25,14 +25,19 @@ object IamUnrecognisedUsers extends LazyLogging {
     * uses generics to make it easier to test, but to avoid confusion it was written to take a Map of AWSAccount to
     * Either and return a list of tuples of AWS Account to CredentialReportDisplay.
     */
-  def getCredsReportDisplayForAccount[A, B](allCreds: Map[A, Either[FailedAttempt, B]]): List[(A, B)] = {
-    allCreds.toList.foldLeft[List[(A, B)]](Nil) {
-      case (acc, (_, Left(failure))) =>
+  def getCredsReportDisplayForAccount[B](allCreds: Map[AwsAccount, Either[FailedAttempt, B]]): List[(AwsAccount, B)] = {
+    allCreds.toList.foldLeft[List[(AwsAccount, B)]](Nil) {
+      case (acc, (account, Left(failure))) =>
         failure.firstException match {
           case Some(cause) =>
-            logger.error(s"unable to generate credential report display: ${failure.logMessage}", cause)
+            logger.error(
+              s"unable to generate credential report display for account ${account.name}: ${failure.logMessage}",
+              cause
+            )
           case None =>
-            logger.error(s"unable to generate credential report display: ${failure.logMessage}")
+            logger.error(
+              s"unable to generate credential report display for account ${account.name}: ${failure.logMessage}"
+            )
         }
         acc
       case (acc, (account, Right(credReportDisplay))) =>

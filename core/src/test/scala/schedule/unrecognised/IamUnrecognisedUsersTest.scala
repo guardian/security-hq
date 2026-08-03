@@ -29,6 +29,16 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
   val humanUser7 = humanUser1.copy(username = "amina.adewusi", tags = List(Tag(USERNAME_TAG_KEY, "amina.adewusi")))
   val allJanusUsernames = List("ade.bimbola", "john.akindele", "khadija.omodara", "nneka.obi", "jane.fonda")
 
+  def awsAccount(n: Int) = AwsAccount(
+    id = s"$n",
+    name = s"Account $n",
+    roleArn = s"mock arn $n",
+    accountNumber = s"$n$n$n$n"
+  )
+  val awsAccount1 = awsAccount(1)
+  val awsAccount2 = awsAccount(2)
+  val awsAccount3 = awsAccount(3)
+
   "findUnrecognisedIamUsers" - {
     "output janus username from JanusData type" in {
       val dummyJanusData = JanusData(
@@ -47,22 +57,23 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
     val failedAttempt: FailedAttempt = FailedAttempt(Failure("error", "error", 500))
 
     "if the either is a left, an empty list is output" in {
-      val accountCredsLeft = Map(1 -> Left(failedAttempt))
+      val accountCredsLeft = Map(awsAccount1 -> Left(failedAttempt))
       getCredsReportDisplayForAccount(accountCredsLeft) shouldEqual Nil
     }
     "if the either is a right, it is returned" in {
-      val accountCredsRight = Map(1 -> Right(1))
-      getCredsReportDisplayForAccount(accountCredsRight) shouldEqual List((1, 1))
+      val accountCredsRight = Map(awsAccount1 -> Right(1))
+      getCredsReportDisplayForAccount(accountCredsRight) shouldEqual List((awsAccount1, 1))
     }
     "given an empty map, return an empty list" in {
       getCredsReportDisplayForAccount(Map.empty) shouldEqual Nil
     }
     "if all eithers are a left, return an empty list" in {
-      val accountCredsAllLeft = Map(1 -> Left(failedAttempt), 2 -> Left(failedAttempt), 3 -> Left(failedAttempt))
+      val accountCredsAllLeft =
+        Map(awsAccount1 -> Left(failedAttempt), awsAccount2 -> Left(failedAttempt), awsAccount3 -> Left(failedAttempt))
       getCredsReportDisplayForAccount(accountCredsAllLeft) shouldEqual Nil
     }
     "if every either is a right, output list contains same number of elements" in {
-      val accountCredsAllRight = Map(1 -> Right(1), 2 -> Right(2), 3 -> Right(3))
+      val accountCredsAllRight = Map(awsAccount1 -> Right(1), awsAccount2 -> Right(2), awsAccount3 -> Right(3))
       getCredsReportDisplayForAccount(accountCredsAllRight) should have length 3
     }
   }
