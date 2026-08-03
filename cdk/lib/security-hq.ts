@@ -301,6 +301,9 @@ export class SecurityHQ extends GuStack {
         namespace: "SecurityHQ",
         period: Duration.days(3), // we do not run sat/sun
         statistic: "sum",
+        dimensionsMap: {
+          ReaperExecutionStatus: "Success",
+        },
       }),
       treatMissingData: TreatMissingData.BREACHING,
       comparisonOperator: ComparisonOperator.LESS_THAN_THRESHOLD,
