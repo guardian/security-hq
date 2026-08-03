@@ -42,6 +42,10 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuParameter",
       "GuAlarm",
       "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
+      "GuAlarm",
       "GuDeveloperPolicyExperimental",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
@@ -441,6 +445,174 @@ exports[`HQ stack matches the snapshot 1`] = `
         ],
         "Threshold": 1,
         "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DisableAccessKeyNotRunningAlarm94D518B3": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "AlarmName": "Security HQ failed to emit vulnerable access key metrics",
+        "ComparisonOperator": "LessThanThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "IamDisableAccessKey",
+        "Namespace": "SecurityHQ",
+        "Period": 259200,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "breaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DisableOutdatedKeysFailureAlarmEB74E827": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The credentials reaper feature of Security HQ logs either success or failure to cloudwatch, and this alarm lets us know when it logs a failure. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "AlarmName": "Security HQ failed to disable an outdated access key (new stack)",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "ReaperExecutionStatus",
+            "Value": "Failure",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "IamDisableOutdatedKeys",
+        "Namespace": "SecurityHQ",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DisableOutdatedKeysNotRunningAlarm496E6C34": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "AlarmName": "Security HQ failed to emit outdated access key metrics",
+        "ComparisonOperator": "LessThanThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "IamDisableOutdatedKeys",
+        "Namespace": "SecurityHQ",
+        "Period": 259200,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "breaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
     },
@@ -1166,6 +1338,66 @@ exports[`HQ stack matches the snapshot 1`] = `
         ],
         "Threshold": 1,
         "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RemovePasswordNotRunningAlarmB4DB66B6": {
+      "Properties": {
+        "ActionsEnabled": true,
+        "AlarmActions": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:eu-west-1:",
+                {
+                  "Ref": "AWS::AccountId",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "NotificationTopicEB7A0DF1",
+                    "TopicName",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
+        "AlarmName": "Security HQ failed to emit vulnerable password metrics",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ReaperExecutionStatus",
+            "Value": "Success",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "IamRemovePassword",
+        "Namespace": "SecurityHQ",
+        "Period": 259200,
+        "Statistic": "Sum",
+        "Tags": [
+          {
+            "Key": "gu:cdk:version",
+            "Value": "TEST",
+          },
+          {
+            "Key": "gu:repo",
+            "Value": "guardian/security-hq",
+          },
+          {
+            "Key": "Stack",
+            "Value": "security",
+          },
+          {
+            "Key": "Stage",
+            "Value": "PROD",
+          },
+        ],
+        "Threshold": 0,
+        "TreatMissingData": "breaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
     },
