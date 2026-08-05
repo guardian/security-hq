@@ -103,7 +103,7 @@ object IAMClient extends LazyLogging {
       account: AwsAccount,
       iamClients: AwsClients[IamAsyncClient],
       delay: FiniteDuration = 3.seconds
-  )(implicit executionContext: ExecutionContext): Attempt[CredentialReportDisplay] = {
+  )(using ExecutionContext): Attempt[CredentialReportDisplay] = {
     for {
       client <- iamClients.get(account)
       _ <- Retry.until(
@@ -218,11 +218,12 @@ object IAMClient extends LazyLogging {
     for {
       client <- iamClients.get(awsAccount)
       result <- handleDeleteLoginProfileErrs(client, username)(asScala(client.client.deleteLoginProfile(request)))
-      message = if (result.isDefined) {
-        s"Deleted login profile for IAM user $username in account ${awsAccount.name}."
-      } else {
-        s"No login profile found for IAM user $username in account ${awsAccount.name}; nothing to delete."
-      }
+      message =
+        if (result.isDefined) {
+          s"Deleted login profile for IAM user $username in account ${awsAccount.name}."
+        } else {
+          s"No login profile found for IAM user $username in account ${awsAccount.name}; nothing to delete."
+        }
       _ = logger.info(message)
     } yield result
   }

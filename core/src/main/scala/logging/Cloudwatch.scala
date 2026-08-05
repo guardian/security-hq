@@ -1,22 +1,23 @@
 package logging
 
 import com.typesafe.scalalogging.LazyLogging
-import logic.CredentialsReportDisplay.{ReportSummary, reportStatusSummary}
+import logic.CredentialsReportDisplay.reportStatusSummary
 import model.{AwsAccount, CredentialReportDisplay}
-import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
-import software.amazon.awssdk.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
-import utils.attempt.FailedAttempt
+import software.amazon.awssdk.services.cloudwatch.model.*
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
+import utils.attempt.{Attempt, FailedAttempt, Failure}
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.jdk.FutureConverters.*
 
 object Cloudwatch extends LazyLogging {
 
-  private val cloudwatchClient = CloudWatchClient.builder.build()
+  private val cloudwatchClient = CloudWatchAsyncClient.builder.build()
 
   private val defaultNamespace = "SecurityHQ"
 
-  object DataType extends Enumeration {
+  private object DataType extends Enumeration {
     val s3Total: Value = Value("s3/total")
     val iamCredentialsTotal: Value = Value("iam/credentials/total")
     val iamCredentialsCritical: Value = Value("iam/credentials/critical")
@@ -36,30 +37,76 @@ object Cloudwatch extends LazyLogging {
     val failure: Value = Value("Failure")
   }
 
-  def logMetricsForCredentialsReport(data: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]]): Unit = {
-    data.toSeq.foreach {
-      case (account: AwsAccount, Right(details: CredentialReportDisplay)) =>
-        val reportSummary: ReportSummary = reportStatusSummary(details)
-        putAwsMetric(account, DataType.iamCredentialsCritical, reportSummary.errors)
-        putAwsMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings)
+  def logMetricsForCredentialsReport(
+      data: Map[AwsAccount, CredentialReportDisplay]
+  )(using ExecutionContext): Attempt[Unit] = {
+    val metricAttempts = data.flatMap { (account, data) =>
+      val reportSummary = reportStatusSummary(data)
+      List(
+        putAwsMetric(account, DataType.iamCredentialsCritical, reportSummary.errors),
+        putAwsMetric(account, DataType.iamCredentialsWarning, reportSummary.warnings),
         putAwsMetric(account, DataType.iamCredentialsTotal, reportSummary.errors + reportSummary.warnings)
-      case (account: AwsAccount, Left(_)) =>
-        logger.error(s"Attempt to log cloudwatch metric failed. IAM data is missing for account ${account.name}.")
+      )
     }
-  }
-
-  def logAsMetric[T](data: Map[AwsAccount, Either[FailedAttempt, List[T]]], dataType: DataType.Value): Unit = {
-    data.toSeq.foreach {
-      case (account: AwsAccount, Right(details: List[T])) =>
-        putAwsMetric(account, dataType, details.length)
-      case (account: AwsAccount, Left(_)) =>
-        logger.error(
-          s"Attempt to log cloudwatch metric failed. Data of type $dataType is missing for account ${account.name}."
+    Attempt
+      .traverse(metricAttempts.toList) { _ =>
+        Attempt.Left(
+          FailedAttempt(
+            List(
+              Failure(
+                message = s"Failed to log cloudwatch metric for credentials report.",
+                friendlyMessage = "Failed to log cloudwatch metric",
+                statusCode = 500,
+                context = None,
+                throwable = None
+              )
+            )
+          )
         )
-    }
+      }
+      .map(_ => ())
   }
 
-  private def putAwsMetric(account: AwsAccount, dataType: DataType.Value, value: Int): Unit = {
+  def logExposedKeysMetric[T](
+      data: Map[AwsAccount, List[T]]
+  )(using ExecutionContext): Attempt[Unit] = {
+    logAsMetric(data = data, dataType = DataType.iamKeysTotal)
+  }
+
+  def logS3TotalMetric[T](
+      data: Map[AwsAccount, List[T]]
+  )(using ExecutionContext): Attempt[Unit] = {
+    logAsMetric(data = data, dataType = DataType.s3Total)
+  }
+
+  private def logAsMetric[T](data: Map[AwsAccount, List[T]], dataType: DataType.Value)(implicit
+      executionContext: ExecutionContext
+  ): Attempt[Unit] = {
+    val metricsAttempts = data.map { case (account, details) =>
+      putAwsMetric(account, dataType, details.length)
+    }
+    Attempt
+      .traverse(metricsAttempts.toList) { _ =>
+        Attempt.Left(
+          FailedAttempt(
+            List(
+              Failure(
+                message = s"Failed to log cloudwatch metric for data of type $dataType.",
+                friendlyMessage = "Failed to log cloudwatch metric",
+                statusCode = 500,
+                context = None,
+                throwable = None
+              )
+            )
+          )
+        )
+      }
+      .map(_ => ())
+  }
+
+  private def putAwsMetric(account: AwsAccount, dataType: DataType.Value, value: Int)(implicit
+      executionContext: ExecutionContext
+  ): Attempt[Unit] = {
     putMetric(
       defaultNamespace,
       MetricName.vulnerabilities,
@@ -68,7 +115,9 @@ object Cloudwatch extends LazyLogging {
     )
   }
 
-  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int): Unit = {
+  def putIamRemovePasswordMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int)(implicit
+      executionContext: ExecutionContext
+  ): Attempt[Unit] = {
     putMetric(
       defaultNamespace,
       MetricName.iamRemovePassword,
@@ -77,7 +126,9 @@ object Cloudwatch extends LazyLogging {
     )
   }
 
-  def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1): Unit = {
+  def putIamDisableAccessKeyMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1)(implicit
+      executionContext: ExecutionContext
+  ): Attempt[Unit] = {
     putMetric(
       defaultNamespace,
       MetricName.iamDisableAccessKey,
@@ -86,7 +137,9 @@ object Cloudwatch extends LazyLogging {
     )
   }
 
-  def putIamDisableOutdatedKeysMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1): Unit = {
+  def putIamDisableOutdatedKeysMetric(reaperExecutionStatus: ReaperExecutionStatus.Value, value: Int = 1)(implicit
+      executionContext: ExecutionContext
+  ): Attempt[Unit] = {
     putMetric(
       defaultNamespace,
       MetricName.iamDisableOutdatedKeys,
@@ -100,7 +153,7 @@ object Cloudwatch extends LazyLogging {
       metricName: MetricName.Value,
       metricDimensions: Seq[(String, String)],
       value: Int
-  ): Unit = {
+  )(implicit ec: ExecutionContext): Attempt[Unit] = {
     val dimension = metricDimensions.map(d => Dimension.builder.name(d._1).value(d._2).build()).toList
     val datum = MetricDatum.builder
       .metricName(metricName.toString)
@@ -110,9 +163,16 @@ object Cloudwatch extends LazyLogging {
       .build()
     val request = PutMetricDataRequest.builder.namespace(namespace).metricData(datum).build()
 
-    Try(cloudwatchClient.putMetricData(request)) match {
-      case Success(_) => logger.debug(s"putMetric success: $datum")
-      case Failure(e) => logger.error(s"putMetric failure: $datum", e)
+    val future: Future[Unit] = cloudwatchClient.putMetricData(request).asScala.map(_ => ())
+
+    Attempt.fromFuture(future) { case exception =>
+      Failure(
+        message = s"Failed to put metric data to CloudWatch: ${exception.getMessage}",
+        friendlyMessage = "Failed to put metric data to CloudWatch",
+        statusCode = 500,
+        context = None,
+        throwable = Some(exception)
+      ).attempt
     }
   }
 }
