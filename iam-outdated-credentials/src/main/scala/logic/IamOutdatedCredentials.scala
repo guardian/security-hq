@@ -103,7 +103,7 @@ class IamOutdatedCredentials(
       } yield notificationIds
     } else {
 
-      (for {
+      val x = for {
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
         credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
         notification =
@@ -140,11 +140,15 @@ class IamOutdatedCredentials(
             credentialToDisable.accessKeyId,
             iamClients
           )
-      } yield List(userNotificationId) ++ securityNotificationIdMaybe).tap(emitMetricsTap)
+      } yield List(userNotificationId) ++ securityNotificationIdMaybe
+      emitDisableOutdatedCredentialMetrics(x)
+      x
     }
   }
 
-  private[logic] def emitMetricsTap[T](result: Either[FailedAttempt, T]): Unit = {
+  private[logic] def emitDisableOutdatedCredentialMetrics[T](
+      result: Attempt[T]
+  )(using ExecutionContext): Unit = {
     result.fold(
       { (failure: FailedAttempt) =>
         logger.error(s"Failed to disable outdated access key: ${failure.logMessage}")
@@ -218,7 +222,7 @@ class IamOutdatedCredentials(
   private def sendSecurityNotification(
       notificationTopicArn: String,
       notificationDevXSecurityMaybe: Option[Notification]
-  )(implicit executionContext: ExecutionContext): Attempt[Option[String]] = {
+  )(using ExecutionContext): Attempt[Option[String]] = {
     notificationDevXSecurityMaybe match {
       case Some(notificationDevXSecurity) =>
         logger.info("Sending notification to devx security account")
@@ -314,7 +318,7 @@ object IamOutdatedCredentials extends LazyLogging {
   // sequentially, and the SnsAsyncClient is used in the middle of the process.  We could use a Resource pattern
   // to manage this better.
 
-  def disableOutdatedCredentials(settings: Settings)(implicit executionContext: ExecutionContext): Attempt[Unit] = {
+  def disableOutdatedCredentials(settings: Settings)(using ExecutionContext): Attempt[Unit] = {
     val snsClient = SnsAsyncClient.builder().build()
     val s3Client = S3Client.builder.build()
 

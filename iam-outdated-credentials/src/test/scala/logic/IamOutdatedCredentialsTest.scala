@@ -6,20 +6,20 @@ import config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetwee
 import db.IamRemediationDb
 import logic.IamOutdatedCredentials.*
 import model.*
-import model.AccessKey
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
 import org.scalatest.OptionValues
+import org.scalatest.exceptions.TestFailedException
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.iam.model.{
-  AccessKeyMetadata,
-  ListAccessKeysRequest,
-  ListAccessKeysResponse,
   StatusType,
-  UpdateAccessKeyResponse
+  AccessKeyMetadata,
+  UpdateAccessKeyResponse,
+  ListAccessKeysResponse,
+  ListAccessKeysRequest
 }
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.{PublishRequest, PublishResponse}
@@ -28,8 +28,8 @@ import utils.attempt.{Attempt, AttemptValues, FailedAttempt}
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)
@@ -817,7 +817,9 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
         notificationTopicArn = fakeTopicArn,
         tableName = fakeRemediationTableName
       ) {
-        override private[logic] def emitMetricsTap[T](result: Either[FailedAttempt, T]): Unit = {
+        override private[logic] def emitDisableOutdatedCredentialMetrics[T](result: Attempt[T])(implicit
+            executionContext: ExecutionContext
+        ): Unit = {
           result.fold(
             (_: FailedAttempt) => failureMetricCounter.incrementAndGet(),
             (_: T) => successMetricCounter.incrementAndGet()
@@ -956,16 +958,16 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
           val (successMetricCounter, failureMetricCounter, iamOutdatedCredentials) =
             getIamOutdatedCredentials(dryRun, None, None)
 
-          import scala.concurrent.duration.DurationInt
-          Await.result(
+          try {
             iamOutdatedCredentials
               .performRemediationOperation(
                 getOperation(Remediation),
                 tuesday
               )
-              .asFuture,
-            4.seconds
-          )
+              .value()
+          } catch {
+            case _: TestFailedException =>
+          }
           failureMetricCounter.get() shouldBe 1
           successMetricCounter.get() shouldBe 0
         }

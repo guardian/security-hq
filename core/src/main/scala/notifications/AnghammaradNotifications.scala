@@ -18,7 +18,7 @@ object AnghammaradNotifications extends LazyLogging {
       notification: Notification,
       topicArn: String,
       snsClient: SnsAsyncClient
-  )(implicit executionContext: ExecutionContext): Attempt[String] = {
+  )(using ExecutionContext): Attempt[String] = {
     Attempt
       .fromFuture(Anghammarad.notify(notification, topicArn, snsClient)) { case NonFatal(e) =>
         Failure(
