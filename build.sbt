@@ -57,7 +57,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
-      "joda-time" % "joda-time" % "2.14.2",
+      "joda-time" % "joda-time" % "2.14.3",
       "com.gu" %% "anghammarad-client" % "7.0.0",
       "com.gu" %% "janus-config-tools" % "13.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
@@ -94,7 +94,7 @@ lazy val hq = (project in file("hq"))
       "com.gu.play-secret-rotation" %% "play-v30" % "19.2.0",
       "com.gu.play-secret-rotation" %% "aws-parameterstore-sdk-v2" % "19.2.0",
 
-      "joda-time" % "joda-time" % "2.14.2",
+      "joda-time" % "joda-time" % "2.14.3",
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
