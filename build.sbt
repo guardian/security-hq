@@ -68,7 +68,7 @@ lazy val core = (project in file("core"))
       "software.amazon.awssdk" % "sns" % awsSdkVersion,
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
-      "ch.qos.logback" % "logback-classic" % "1.5.38",
+      "ch.qos.logback" % "logback-classic" % "1.6.1",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
@@ -112,7 +112,7 @@ lazy val hq = (project in file("hq"))
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
       "com.gu" %% "anghammarad-client" % "7.0.0",
-      "ch.qos.logback" % "logback-classic" % "1.5.38",
+      "ch.qos.logback" % "logback-classic" % "1.6.1",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.gu" %% "janus-config-tools" % "13.0.0"
     ) ++ safeTransitiveDependencies,
