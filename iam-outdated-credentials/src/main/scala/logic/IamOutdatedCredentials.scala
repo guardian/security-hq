@@ -102,6 +102,7 @@ class IamOutdatedCredentials(
         notificationIds <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
       } yield notificationIds
     } else {
+      logger.info(s"Executing remediation for $awsAccount, $iamUser")
 
       val listOfNotificationsAttempt = for {
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
@@ -141,6 +142,7 @@ class IamOutdatedCredentials(
             iamClients
           )
         notifications = List(userNotificationId) ++ securityNotificationIdMaybe
+        _ = logger.info(s"Remediation executed for $awsAccount, $iamUser")
       } yield notifications
       Cloudwatch
         .emitOutcomeMetric(
@@ -167,6 +169,7 @@ class IamOutdatedCredentials(
       thisRemediationActivity: IamRemediationActivity
   )(implicit ec: ExecutionContext) = {
     if (!dryRun) {
+      logger.info(s"Sending final warning for $awsAccount, $iamUser")
 
       for {
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
@@ -182,6 +185,7 @@ class IamOutdatedCredentials(
         // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
         // don't want to record we sent a final warning if we didn't, so we do it in this order
         snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        _ = logger.info(s"Sent final warning for $awsAccount, $iamUser")
         _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
       } yield List(snsId)
     } else {
@@ -198,6 +202,7 @@ class IamOutdatedCredentials(
       thisRemediationActivity: IamRemediationActivity
   )(implicit ec: ExecutionContext) = {
     if (!dryRun) {
+      logger.info(s"Sending first warning for $awsAccount, $iamUser")
       for {
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
         credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
@@ -212,6 +217,7 @@ class IamOutdatedCredentials(
         // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
         // don't want to record we sent a warning if we didn't, so we do it in this order
         snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        _ = logger.info(s"Sent first warning for $awsAccount, $iamUser")
         _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
       } yield List(snsId)
     } else {
@@ -257,6 +263,13 @@ class IamOutdatedCredentials(
     val now = new DateTime()
     val accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
     val accountUsersWithOutdatedCredentials = identifyAllUsersWithOutdatedCredentials(accountsCredReports, now)
+
+    val numberOfAccountsWithOutdatedCredentials = accountUsersWithOutdatedCredentials.count(_._2.nonEmpty)
+    val numberOfOutdatedCredentials = accountUsersWithOutdatedCredentials.map(_._2.size).sum
+
+    logger.info(
+      s"Discovered $numberOfOutdatedCredentials outdated credentials across $numberOfAccountsWithOutdatedCredentials accounts"
+    )
 
     val result = for {
       // fetch IAM data from the application cache

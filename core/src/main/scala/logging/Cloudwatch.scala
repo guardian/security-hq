@@ -184,7 +184,6 @@ object Cloudwatch extends LazyLogging {
     * If the Attempt fails, it will execute the onFailure block and return the resulting Attempt if it fails, or the
     * original failure if the onFailure block succeeds.
     *
-    *
     * @param result
     *   Any attempt
     * @param onSuccess
