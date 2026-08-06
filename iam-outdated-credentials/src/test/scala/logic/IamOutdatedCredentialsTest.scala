@@ -15,15 +15,15 @@ import org.scalatest.matchers.should.Matchers
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.iam.model.{
-  StatusType,
   AccessKeyMetadata,
-  UpdateAccessKeyResponse,
+  ListAccessKeysRequest,
   ListAccessKeysResponse,
-  ListAccessKeysRequest
+  StatusType,
+  UpdateAccessKeyResponse
 }
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.{PublishRequest, PublishResponse}
-import utils.attempt.{Attempt, AttemptValues, FailedAttempt}
+import utils.attempt.{Attempt, AttemptValues}
 
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
@@ -817,13 +817,14 @@ class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionVa
         notificationTopicArn = fakeTopicArn,
         tableName = fakeRemediationTableName
       ) {
-        override private[logic] def emitDisableOutdatedCredentialMetrics[T](result: Attempt[T])(implicit
-            executionContext: ExecutionContext
-        ): Unit = {
-          result.fold(
-            (_: FailedAttempt) => failureMetricCounter.incrementAndGet(),
-            (_: T) => successMetricCounter.incrementAndGet()
-          )
+        override private[logic] def failureMetric(using executionContext: ExecutionContext) = {
+          failureMetricCounter.incrementAndGet()
+          Attempt.Right(())
+        }
+
+        override private[logic] def successMetric(using executionContext: ExecutionContext) = {
+          successMetricCounter.incrementAndGet()
+          Attempt.Right(())
         }
       }
       (successMetricCounter, failureMetricCounter, iamOutdatedCredentials)

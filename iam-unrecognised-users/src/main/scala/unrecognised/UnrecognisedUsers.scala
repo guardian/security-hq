@@ -111,7 +111,12 @@ object UnrecognisedUsers extends LazyLogging {
       val result = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
         IAMClient.deleteLoginProfile(accountUnrecognisedUsers.account, user.username, iamClients)
       )
-      emitRemovePasswordMetrics(result)
+      Cloudwatch.emitOutcomeMetric(
+        result,
+        successMetricRemovePassword,
+        failureMetricRemovePassword,
+        actionLabel = "unrecognised user password"
+      )
     } else {
       logger.info(
         s"DRY RUN: Would delete passwords in account '${accountUnrecognisedUsers.account.name}' for IAM users: ${accountUnrecognisedUsers.unrecognisedUsers.map(_.username).mkString("'", "', '", "'")}."
@@ -120,17 +125,11 @@ object UnrecognisedUsers extends LazyLogging {
     }
   }
 
-  private def emitRemovePasswordMetrics[T](result: Attempt[T])(implicit ec: ExecutionContext): Attempt[Unit] = {
-    Attempt.Async.Right(
-      result.fold(
-        { failure =>
-          logger.error(s"failed to delete at least one password: ${failure.logMessage}")
-          Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
-        },
-        { _ => Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, 1) }
-      ).flatMap(_.asFuture)
-    ).unit
-  }
+  private def failureMetricRemovePassword[T](using ExecutionContext) =
+    Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.success, 1)
+
+  private def successMetricRemovePassword[T](using ExecutionContext) =
+    Cloudwatch.putIamRemovePasswordMetric(ReaperExecutionStatus.failure, 1)
 
   private[unrecognised] def disableAccountAccessKeys(
       accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
@@ -143,7 +142,12 @@ object UnrecognisedUsers extends LazyLogging {
       val result = Attempt.traverse(activeAccessKeys)(key =>
         IAMClient.disableAccessKey(account, key.username, key.accessKeyId, iamClients)
       )
-      emitDisabledAccessKeyMetrics(result)
+      Cloudwatch.emitOutcomeMetric(
+        result,
+        onSuccess = successMetricIamDisableAccessKey,
+        onFailure = failureMetricIamDisableAccessKey,
+        actionLabel = "unrecognised user access"
+      )
     } else {
       if (accountUnrecognisedKeys.vulnerableAccessKey.nonEmpty) {
         logger.info(
@@ -154,17 +158,11 @@ object UnrecognisedUsers extends LazyLogging {
     }
   }
 
-  private def emitDisabledAccessKeyMetrics[T](result: Attempt[T])(implicit ec: ExecutionContext): Attempt[Unit] = {
-    Attempt.Async.Right(
-      result.fold(
-        { failure =>
-          logger.error(s"Failed to disable unrecognised user access key: ${failure.logMessage}")
-          Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
-        },
-        { _ => Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success) }
-      ).flatMap(_.asFuture)
-    ).unit
-  }
+  private def successMetricIamDisableAccessKey[T](using ExecutionContext) =
+    Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.success)
+
+  private def failureMetricIamDisableAccessKey[T](using ExecutionContext) =
+    Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
 
   private def logCredentialReportResults(
       credentialReports: Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]

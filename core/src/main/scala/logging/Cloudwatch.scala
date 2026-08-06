@@ -3,8 +3,9 @@ package logging
 import com.typesafe.scalalogging.LazyLogging
 import logic.CredentialsReportDisplay.reportStatusSummary
 import model.{AwsAccount, CredentialReportDisplay}
-import software.amazon.awssdk.services.cloudwatch.model.*
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
+import software.amazon.awssdk.services.cloudwatch.model.*
+import software.amazon.awssdk.regions.Region
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,7 +14,7 @@ import scala.jdk.FutureConverters.*
 
 object Cloudwatch extends LazyLogging {
 
-  private val cloudwatchClient = CloudWatchAsyncClient.builder.build()
+  private val cloudwatchClient = CloudWatchAsyncClient.builder.region(Region.EU_WEST_1).build()
 
   private val defaultNamespace = "SecurityHQ"
 
@@ -175,4 +176,44 @@ object Cloudwatch extends LazyLogging {
       ).attempt
     }
   }
+
+  /** Emits a metric to CloudWatch based on the outcome of an Attempt.
+    *
+    * If the Attempt is successful, it will execute the onSuccess block and return the resulting attempt.
+    *
+    * If the Attempt fails, it will execute the onFailure block and return the resulting Attempt if it fails, or the
+    * original failure if the onFailure block succeeds.
+    *
+    *
+    * @param result
+    *   Any attempt
+    * @param onSuccess
+    *   The action to perform if the result is successful, typically emitting a success metric.
+    * @param onFailure
+    *   The action to perform if the result is a failure, typically emitting a failure metric.
+    * @param actionLabel
+    *   A label describing the action being performed, used for logging purposes.
+    * @return
+    *   An Attempt that represents the outcome of the original result and the metric emission.
+    */
+  def emitOutcomeMetric[T](
+      result: Attempt[T],
+      onSuccess: => Attempt[Unit],
+      onFailure: => Attempt[Unit],
+      actionLabel: String
+  )(using ExecutionContext): Attempt[Unit] =
+    Attempt
+      .fromFuture(
+        result.underlying.flatMap {
+          case Left(failure) =>
+            logger.error(s"$actionLabel failed: ${failure.logMessage}")
+            onFailure.flatMap(_ => Attempt.Left(failure)).asFuture
+          case Right(_) =>
+            onSuccess.asFuture
+        }
+      )(e => {
+        logger.error(s"Failed to emit $actionLabel metric: ${e.getMessage}", e)
+        FailedAttempt(List(Failure(e.getMessage, e.getMessage, 500)))
+      })
+      .map(_ => ())
 }

@@ -103,7 +103,7 @@ class IamOutdatedCredentials(
       } yield notificationIds
     } else {
 
-      val x = for {
+      val listOfNotificationsAttempt = for {
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
         credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
         notification =
@@ -140,23 +140,24 @@ class IamOutdatedCredentials(
             credentialToDisable.accessKeyId,
             iamClients
           )
-      } yield List(userNotificationId) ++ securityNotificationIdMaybe
-      emitDisableOutdatedCredentialMetrics(x)
-      x
+        notifications = List(userNotificationId) ++ securityNotificationIdMaybe
+      } yield notifications
+      Cloudwatch
+        .emitOutcomeMetric(
+          listOfNotificationsAttempt,
+          successMetric,
+          failureMetric,
+          "disable outdated credential"
+        )
+        .flatMap(_ => listOfNotificationsAttempt)
     }
   }
 
-  private[logic] def emitDisableOutdatedCredentialMetrics[T](
-      result: Attempt[T]
-  )(using ExecutionContext): Unit = {
-    result.fold(
-      { (failure: FailedAttempt) =>
-        logger.error(s"Failed to disable outdated access key: ${failure.logMessage}")
-        Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.failure)
-      },
-      { (_: T) => Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success) }
-    )
-  }
+  private[logic] def failureMetric(using executionContext: ExecutionContext) =
+    Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.failure)
+
+  private[logic] def successMetric(using executionContext: ExecutionContext) =
+    Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success)
 
   private def finalWarn(
       now: DateTime,
