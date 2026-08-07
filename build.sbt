@@ -185,7 +185,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   )
 
 lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
   .enablePlugins(AssemblyPlugin)
   .settings(
     name := "iam-unrecognised-users",
