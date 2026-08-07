@@ -6,6 +6,8 @@ import com.gu.anghammarad.models.Notification
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
 import db.IamRemediationDb
+import logging.Cloudwatch
+import logging.Cloudwatch.ReaperExecutionStatus
 import logic.IamOutdatedCredentials.*
 import logic.IamUnrecognisedUsers.*
 import model.*
@@ -77,7 +79,7 @@ class IamOutdatedCredentials(
       iamUser: IAMUser,
       problemCreationDate: DateTime,
       thisRemediationActivity: IamRemediationActivity
-  )(implicit ec: ExecutionContext) = {
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
     if (dryRun) {
       logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
       Attempt.Right(Nil)
@@ -85,31 +87,44 @@ class IamOutdatedCredentials(
       logger.info(
         s"""It's not "Remediation Tuesday"!  We will not execute remediation for $awsAccount, $iamUser TODAY, but we will SOON"""
       )
-      val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
-        AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
-          awsAccount,
-          iamUser,
-          problemCreationDate,
-          devXSecurityAccount
-        )
-      )
-      sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
-    } else {
-      val notification =
-        AnghammaradNotifications.outdatedCredentialRemediation(awsAccount, iamUser, problemCreationDate)
-      val notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
-        AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
-          awsAccount,
-          iamUser,
-          problemCreationDate,
-          devXSecurityAccount
-        )
-      )
       for {
-        // plan the disable action for the correct credential
         userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
         credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount,
+            credentialToDisable
+          )
+        )
+        notificationIds <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
+      } yield notificationIds
+    } else {
+      logger.info(s"Executing remediation for $awsAccount, $iamUser")
 
+      val listOfNotificationsAttempt = for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialRemediation(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialToDisable
+          )
+
+        // plan the disable action for the correct credential
+        notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount,
+            credentialToDisable
+          )
+        )
         // record, then alert, then do.  Different order to the above.
         // If we do the remediation, it's vitally important that the record happens, and the alert happens.
         // So do them first.
@@ -118,17 +133,33 @@ class IamOutdatedCredentials(
         userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
         // Send a notification to devx too, if we've got an account for them.
         securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
-
         // only now do we actually disable the credential
-        _ <- IAMClient.disableAccessKey(
-          awsAccount,
-          credentialToDisable.username,
-          credentialToDisable.accessKeyId,
-          iamClients
+        _ <- IAMClient
+          .disableAccessKey(
+            awsAccount,
+            credentialToDisable.username,
+            credentialToDisable.accessKeyId,
+            iamClients
+          )
+        notifications = List(userNotificationId) ++ securityNotificationIdMaybe
+        _ = logger.info(s"Remediation executed for $awsAccount, $iamUser")
+      } yield notifications
+      Cloudwatch
+        .emitOutcomeMetric(
+          listOfNotificationsAttempt,
+          successMetric,
+          failureMetric,
+          "disable outdated credential"
         )
-      } yield List(userNotificationId) ++ securityNotificationIdMaybe
+        .flatMap(_ => listOfNotificationsAttempt)
     }
   }
+
+  private[logic] def failureMetric(using executionContext: ExecutionContext) =
+    Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.failure)
+
+  private[logic] def successMetric(using executionContext: ExecutionContext) =
+    Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success)
 
   private def finalWarn(
       now: DateTime,
@@ -138,13 +169,23 @@ class IamOutdatedCredentials(
       thisRemediationActivity: IamRemediationActivity
   )(implicit ec: ExecutionContext) = {
     if (!dryRun) {
+      logger.info(s"Sending final warning for $awsAccount, $iamUser")
 
-      val notification =
-        AnghammaradNotifications.outdatedCredentialFinalWarning(awsAccount, iamUser, problemCreationDate, now)
       for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialFinalWarning(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialThatWillBeDisabled,
+            now
+          )
         // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
         // don't want to record we sent a final warning if we didn't, so we do it in this order
         snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        _ = logger.info(s"Sent final warning for $awsAccount, $iamUser")
         _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
       } yield List(snsId)
     } else {
@@ -161,12 +202,22 @@ class IamOutdatedCredentials(
       thisRemediationActivity: IamRemediationActivity
   )(implicit ec: ExecutionContext) = {
     if (!dryRun) {
-      val notification =
-        AnghammaradNotifications.outdatedCredentialWarning(awsAccount, iamUser, problemCreationDate, now)
+      logger.info(s"Sending first warning for $awsAccount, $iamUser")
       for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialWarning(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialThatWillBeDisabled,
+            now
+          )
         // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
         // don't want to record we sent a warning if we didn't, so we do it in this order
         snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        _ = logger.info(s"Sent first warning for $awsAccount, $iamUser")
         _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
       } yield List(snsId)
     } else {
@@ -178,7 +229,7 @@ class IamOutdatedCredentials(
   private def sendSecurityNotification(
       notificationTopicArn: String,
       notificationDevXSecurityMaybe: Option[Notification]
-  )(implicit executionContext: ExecutionContext): Attempt[Option[String]] = {
+  )(using ExecutionContext): Attempt[Option[String]] = {
     notificationDevXSecurityMaybe match {
       case Some(notificationDevXSecurity) =>
         logger.info("Sending notification to devx security account")
@@ -213,6 +264,13 @@ class IamOutdatedCredentials(
     val accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
     val accountUsersWithOutdatedCredentials = identifyAllUsersWithOutdatedCredentials(accountsCredReports, now)
 
+    val numberOfAccountsWithOutdatedCredentials = accountUsersWithOutdatedCredentials.count(_._2.nonEmpty)
+    val numberOfOutdatedCredentials = accountUsersWithOutdatedCredentials.map(_._2.size).sum
+
+    logger.info(
+      s"Discovered $numberOfOutdatedCredentials outdated credentials across $numberOfAccountsWithOutdatedCredentials accounts"
+    )
+
     val result = for {
       // fetch IAM data from the application cache
       // identify users with outdated credentials for each account, from the credentials report
@@ -234,21 +292,34 @@ class IamOutdatedCredentials(
       // we won't execute these operations, but can log them instead
       _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(logOperationOnly)
 
+      // First record a zero so that we know we ran, even if there ends up being nothing to do.
+      _ = Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success, 0)
       // now we know what operations need to be performed, so let's run each of those
-      results <- Attempt.traverse(filteredOperations.allowedOperations)(
+      results <- Attempt.traverseWithFailures(filteredOperations.allowedOperations)(
         performRemediationOperation(_, now)
       )
     } yield results
     result.tap {
+      // A Left here is unlikely due to `traverseWithFailures` - the top-level result should be a success.
+      // Any failures are more likely to be picked up by the Right() case.
       case Left(failedAttempt) =>
         logger.error(
           s"Failure during 'disable outdated credentials' job: ${failedAttempt.logMessage}",
           failedAttempt.firstException.orNull // make sure the exception goes into the log, if present
         )
-      case Right(operationIds) =>
+      case Right(operations) =>
+        val failedOperations = operations.collect { case Left(failure) => failure }
+        val successfulOperations = operations.collect { case Right(ids) => ids }
         logger.info(
-          s"Successfully completed 'disable outdated credentials' job, with ${operationIds.length} operations"
+          s"Completed 'disable outdated credentials job', with ${successfulOperations.length} successful operations and ${failedOperations.length} failed operations"
         )
+        failedOperations.zipWithIndex.foreach { case (failedAttempt, i) =>
+          // TODO emit metrics counting the number of operations which failed and create alarm
+          logger.error(
+            s"Failed operation $i of ${failedOperations.length}: ${failedAttempt.logMessage}",
+            failedAttempt.firstException.orNull
+          )
+        }
     }.unit
   }
 
@@ -261,7 +332,7 @@ object IamOutdatedCredentials extends LazyLogging {
   // sequentially, and the SnsAsyncClient is used in the middle of the process.  We could use a Resource pattern
   // to manage this better.
 
-  def disableOutdatedCredentials(settings: Settings)(implicit executionContext: ExecutionContext): Attempt[Unit] = {
+  def disableOutdatedCredentials(settings: Settings)(using ExecutionContext): Attempt[Unit] = {
     val snsClient = SnsAsyncClient.builder().build()
     val s3Client = S3Client.builder.build()
 
@@ -554,6 +625,6 @@ object IamOutdatedCredentials extends LazyLogging {
   private val ALLOWED_ACCOUNT_IDS_CONFIG_ITEM = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM = "ANGHAMMARAD_SNS_TOPIC_ARN"
   private val IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM = "IAM_DYNAMO_TABLE_NAME"
-  val SECURITY_ACCOUNT_ID = "security"
+  private val SECURITY_ACCOUNT_ID = "security"
 
 }

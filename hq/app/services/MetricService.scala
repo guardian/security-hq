@@ -7,6 +7,7 @@ import play.api.inject.ApplicationLifecycle
 import utils.Scheduler
 import utils.attempt.FailedAttempt
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
 
 class MetricService(
@@ -40,24 +41,38 @@ class MetricService(
    * - https://github.com/guardian/security-hq/pull/211
    * - https://github.com/guardian/security-hq/pull/245#discussion_r632548991
    */
-  def postCachedContentsAsMetrics(): Unit = {
+  def postCachedContentsAsMetrics()(using ExecutionContext): Unit = {
     val allExposedKeys = cacheService.getAllExposedKeys
     val allPublicBuckets = cacheService.getAllPublicBuckets
     val allCredentials = cacheService.getAllCredentials
 
-    val failures = collectFailures(
-      List(allExposedKeys, allPublicBuckets, allCredentials)
-    )
+    val (allExposedKeysFailures, allExposedKeysSuccesses) =
+      allExposedKeys.toSeq.partitionMap {
+        case (account, Right(value)) => Right((account, value))
+        case (_, Left(err))          => Left(err)
+      }
 
-    if (failures.nonEmpty) {
+    val (allPublicBucketsFailures, allPublicBucketsSuccesses) =
+      allPublicBuckets.toSeq.partitionMap {
+        case (account, Right(value)) => Right((account, value))
+        case (_, Left(err))          => Left(err)
+      }
+
+    val (allCredentialsFailures, allCredentialsSuccesses) =
+      allCredentials.toSeq.partitionMap {
+        case (account, Right(value)) => Right((account, value))
+        case (_, Left(err))          => Left(err)
+      }
+
+    if (allExposedKeysFailures.nonEmpty || allPublicBucketsFailures.nonEmpty || allCredentialsFailures.nonEmpty) {
       logger.warn(
-        s"Skipping cloudwatch metrics update as some data is missing from the cache: $failures"
+        s"Skipping cloudwatch metrics update as some data is missing from the cache: $allExposedKeysFailures, $allPublicBucketsFailures, $allCredentialsFailures"
       )
     } else {
       logger.info("Posting new metrics to cloudwatch")
-      Cloudwatch.logAsMetric(allExposedKeys, Cloudwatch.DataType.iamKeysTotal)
-      Cloudwatch.logAsMetric(allPublicBuckets, Cloudwatch.DataType.s3Total)
-      Cloudwatch.logMetricsForCredentialsReport(allCredentials)
+      Cloudwatch.logExposedKeysMetric(allExposedKeysSuccesses.toMap)
+      Cloudwatch.logS3TotalMetric(allPublicBucketsSuccesses.toMap)
+      Cloudwatch.logMetricsForCredentialsReport(allCredentialsSuccesses.toMap)
     }
   }
 
@@ -71,6 +86,7 @@ class MetricService(
         initialDelay = initialDelay,
         interval = 6.hours
       ) { () =>
+        implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
         postCachedContentsAsMetrics()
       }
 

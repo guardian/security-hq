@@ -72,7 +72,7 @@ class AppComponents(context: Context)
     s"Polling in the following regions: ${availableRegions.map(_.id).mkString(", ")}"
   )
 
-  val regionsNotInSdk: Set[String] = availableRegions
+  private val regionsNotInSdk: Set[String] = availableRegions
     .map(_.id)
     .toSet -- Region.regions.asScala.map(_.id).toSet
   if (regionsNotInSdk.nonEmpty) {
