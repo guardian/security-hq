@@ -1,14 +1,32 @@
 package unrecognised
 
 import aws.AwsClient
-import model.{AccountUnrecognisedAccessKeys, AwsAccount, CredentialActive, CredentialMetadata}
+import model.{
+  AccessKey,
+  AccessKeyEnabled,
+  AccountUnrecognisedAccessKeys,
+  AccountUnrecognisedUsers,
+  AwsAccount,
+  CredentialActive,
+  CredentialMetadata,
+  HumanUser,
+  Red
+}
 import org.joda.time.DateTime
 import org.scalatest.OptionValues
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.iam.model.{AccessKeyMetadata, ListAccessKeysRequest, ListAccessKeysResponse, StatusType, UpdateAccessKeyResponse}
+import software.amazon.awssdk.services.iam.model.{
+  AccessKeyMetadata,
+  DeleteLoginProfileRequest,
+  DeleteLoginProfileResponse,
+  ListAccessKeysRequest,
+  ListAccessKeysResponse,
+  StatusType,
+  UpdateAccessKeyResponse
+}
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.{PublishRequest, PublishResponse}
 import utils.attempt.{Attempt, AttemptValues}
@@ -21,9 +39,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
 
-  private def getIamAsyncClient: (AtomicInteger, IamAsyncClient) = {
+  private def getIamAsyncClient: (AtomicInteger, AtomicInteger, IamAsyncClient) = {
     val disabledKeyCount: AtomicInteger = new AtomicInteger(0)
+    val deletedLoginProfile: AtomicInteger = new AtomicInteger(0)
     val iamAsyncClient = new IamAsyncClient {
+
+      override def deleteLoginProfile(
+          request: DeleteLoginProfileRequest
+      ): CompletableFuture[DeleteLoginProfileResponse] = {
+        deletedLoginProfile.incrementAndGet()
+        CompletableFuture.completedFuture(DeleteLoginProfileResponse.builder().build())
+      }
+
       override def listAccessKeys(request: ListAccessKeysRequest): CompletableFuture[ListAccessKeysResponse] = {
         val accessKeyMetadata = AccessKeyMetadata
           .builder()
@@ -38,8 +65,8 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
       }
 
       override def updateAccessKey(
-                                    request: software.amazon.awssdk.services.iam.model.UpdateAccessKeyRequest
-                                  ): CompletableFuture[UpdateAccessKeyResponse] = {
+          request: software.amazon.awssdk.services.iam.model.UpdateAccessKeyRequest
+      ): CompletableFuture[UpdateAccessKeyResponse] = {
         disabledKeyCount.incrementAndGet()
         CompletableFuture.completedFuture(UpdateAccessKeyResponse.builder().build())
       }
@@ -48,7 +75,7 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
 
       override def close(): Unit = ()
     }
-    (disabledKeyCount, iamAsyncClient)
+    (disabledKeyCount, deletedLoginProfile, iamAsyncClient)
   }
 
   def getFakeRemediationSnsClient: SnsAsyncClient = new SnsAsyncClient {
@@ -70,7 +97,7 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
       dryRun: Boolean,
       awsAccounts: Option[AwsAccount],
       janusUsernames: List[String],
-      allowedAccountIds: List[String],
+      allowedAccountIds: List[String]
   ): (AtomicInteger, AtomicInteger, AtomicInteger, AtomicInteger, UnrecognisedUsers) = {
     val successMetricRemovePasswordCounter: AtomicInteger = new AtomicInteger(0)
     val failureMetricRemovePasswordCounter: AtomicInteger = new AtomicInteger(0)
@@ -104,7 +131,13 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
         Attempt.Right(())
       }
     }
-    (successMetricRemovePasswordCounter, failureMetricRemovePasswordCounter, successMetricDisableAccessKeyCounter, failureMetricDisableAccessKeyCounter, unrecognisedUsers)
+    (
+      successMetricRemovePasswordCounter,
+      failureMetricRemovePasswordCounter,
+      successMetricDisableAccessKeyCounter,
+      failureMetricDisableAccessKeyCounter,
+      unrecognisedUsers
+    )
   }
 
   val account = AwsAccount("testAccountId", "testAccount", "roleArn", "12345")
@@ -113,22 +146,32 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
     "in dry run mode should" - {
       val dryRun = true
 
-      "handle disabling a key" in {
+      // In dry run mode, we don't actually do _anything_, so the counters remain at 0 and no error.
+      "handle disabling a key when the account is not present" in {
         val awsAccounts = None
-        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(dryRun, awsAccounts = awsAccounts, janusUsernames = List.empty, allowedAccountIds = List.empty)
+        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(
+          dryRun,
+          awsAccounts = awsAccounts,
+          janusUsernames = List.empty,
+          allowedAccountIds = List.empty
+        )
         val keys = AccountUnrecognisedAccessKeys(
           account = account,
-          vulnerableAccessKey = List(CredentialMetadata(
-            username = "testuser",
-            accessKeyId = "testAccessKey",
-            creationDate = new DateTime(),
-            status = CredentialActive
-          ))
+          vulnerableAccessKey = List(
+            CredentialMetadata(
+              username = "testuser",
+              accessKeyId = "testAccessKey",
+              creationDate = new DateTime(),
+              status = CredentialActive
+            )
+          )
         )
-        unrecognisedUsers.disableAccountAccessKeys(
-          accountUnrecognisedKeys = keys,
-          iamClients = awsAccounts.map(c => AwsClient(c, account, Region.of("us-east-1"))).toList
-        )
+        unrecognisedUsers
+          .disableAccountAccessKeys(
+            accountUnrecognisedKeys = keys,
+            iamClients = awsAccounts.map(c => AwsClient(c, account, Region.of("us-east-1"))).toList
+          )
+          .value()
         sRemovePassword.get() shouldBe 0
         fRemovePassword.get() shouldBe 0
         sDisableKey.get() shouldBe 0
@@ -140,20 +183,29 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
 
       "handle disabling a key when the account is not present with an error metric" in {
         val awsAccounts = None
-        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(dryRun, awsAccounts = awsAccounts, janusUsernames = List.empty, allowedAccountIds = List.empty)
+        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(
+          dryRun,
+          awsAccounts = awsAccounts,
+          janusUsernames = List.empty,
+          allowedAccountIds = List.empty
+        )
         val keys = AccountUnrecognisedAccessKeys(
           account = account,
-          vulnerableAccessKey = List(CredentialMetadata(
-            username = "testuser",
-            accessKeyId = "testAccessKey",
-            creationDate = new DateTime(),
-            status = CredentialActive
-          ))
+          vulnerableAccessKey = List(
+            CredentialMetadata(
+              username = "testuser",
+              accessKeyId = "testAccessKey",
+              creationDate = new DateTime(),
+              status = CredentialActive
+            )
+          )
         )
-        unrecognisedUsers.disableAccountAccessKeys(
-          accountUnrecognisedKeys = keys,
-          iamClients = awsAccounts.map(c => AwsClient(c, account, Region.of("us-east-1"))).toList
-        )
+        unrecognisedUsers
+          .disableAccountAccessKeys(
+            accountUnrecognisedKeys = keys,
+            iamClients = awsAccounts.map(c => AwsClient(c, account, Region.of("us-east-1"))).toList
+          )
+          .value()
         sRemovePassword.get() shouldBe 0
         fRemovePassword.get() shouldBe 0
         sDisableKey.get() shouldBe 0
@@ -162,27 +214,129 @@ class UnrecognisedUsersTest extends AnyFreeSpec with Matchers with OptionValues 
 
       "handle disabling a key when the account is present with a success metric" in {
         val awsAccounts = Some(account)
-        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(dryRun, awsAccounts, janusUsernames = List.empty, allowedAccountIds = List.empty)
+        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) =
+          getUnrecognisedUsers(dryRun, awsAccounts, janusUsernames = List.empty, allowedAccountIds = List.empty)
         val keys = AccountUnrecognisedAccessKeys(
           account = account,
-          vulnerableAccessKey = List(CredentialMetadata(
-            username = "testuser",
-            accessKeyId = "testAccessKey",
-            creationDate = new DateTime(),
-            status = CredentialActive
-          ))
+          vulnerableAccessKey = List(
+            CredentialMetadata(
+              username = "testuser",
+              accessKeyId = "testAccessKey",
+              creationDate = new DateTime(),
+              status = CredentialActive
+            )
+          )
         )
-        val (accessKeyDisabled, iamClient) = getIamAsyncClient
-        unrecognisedUsers.disableAccountAccessKeys(
-          accountUnrecognisedKeys = keys,
-          iamClients = List(AwsClient(iamClient, account, Region.of("us-east-1")))
-        ).value()
+        val (accessKeyDisabled, _, iamClient) = getIamAsyncClient
+        unrecognisedUsers
+          .disableAccountAccessKeys(
+            accountUnrecognisedKeys = keys,
+            iamClients = List(AwsClient(iamClient, account, Region.of("us-east-1")))
+          )
+          .value()
 
         accessKeyDisabled.get() shouldBe 1
 
         sRemovePassword.get() shouldBe 0
         fRemovePassword.get() shouldBe 0
         sDisableKey.get() shouldBe 1
+        fDisableKey.get() shouldBe 0
+      }
+    }
+  }
+
+  "removeAccountPasswords" - {
+    val testHumanUser = HumanUser(
+      username = "testuser",
+      hasMFA = true,
+      key1 = AccessKey(
+        keyStatus = AccessKeyEnabled,
+        lastRotated = None
+      ),
+      key2 = AccessKey(
+        keyStatus = AccessKeyEnabled,
+        lastRotated = None
+      ),
+      reportStatus = Red(),
+      lastActivityDay = None,
+      tags = Nil
+    )
+    "in dry run mode should" - {
+      val dryRun = true
+
+      // In dry run mode, we don't actually do _anything_, so the counters remain at 0 and no error.
+      "handle disabling a user when the account is not present" in {
+        val awsAccounts = None
+        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(
+          dryRun,
+          awsAccounts = awsAccounts,
+          janusUsernames = List.empty,
+          allowedAccountIds = List.empty
+        )
+        val users = AccountUnrecognisedUsers(
+          account = account,
+          unrecognisedUsers = List(testHumanUser)
+        )
+        unrecognisedUsers
+          .removeAccountPasswords(
+            accountUnrecognisedUsers = users,
+            iamClients = awsAccounts.map(c => AwsClient(c, account, Region.of("us-east-1"))).toList
+          )
+          .value()
+        sRemovePassword.get() shouldBe 0
+        fRemovePassword.get() shouldBe 0
+        sDisableKey.get() shouldBe 0
+        fDisableKey.get() shouldBe 0
+      }
+    }
+    "not in dry run mode should" - {
+      val dryRun = false
+
+      "handle disabling a user when the account is not present with an error metric" in {
+        val awsAccounts = None
+        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) = getUnrecognisedUsers(
+          dryRun,
+          awsAccounts = awsAccounts,
+          janusUsernames = List.empty,
+          allowedAccountIds = List.empty
+        )
+        val users = AccountUnrecognisedUsers(
+          account = account,
+          unrecognisedUsers = List(testHumanUser)
+        )
+        unrecognisedUsers
+          .removeAccountPasswords(
+            accountUnrecognisedUsers = users,
+            iamClients = awsAccounts.map(c => AwsClient(c, account, Region.of("us-east-1"))).toList
+          )
+          .value()
+        sRemovePassword.get() shouldBe 0
+        fRemovePassword.get() shouldBe 1
+        sDisableKey.get() shouldBe 0
+        fDisableKey.get() shouldBe 0
+      }
+
+      "handle disabling a user when the account is present with a success metric" in {
+        val awsAccounts = Some(account)
+        val (sRemovePassword, fRemovePassword, sDisableKey, fDisableKey, unrecognisedUsers) =
+          getUnrecognisedUsers(dryRun, awsAccounts, janusUsernames = List.empty, allowedAccountIds = List.empty)
+        val users = AccountUnrecognisedUsers(
+          account = account,
+          unrecognisedUsers = List(testHumanUser)
+        )
+        val (_, deletedLoginProfile, iamClient) = getIamAsyncClient
+        unrecognisedUsers
+          .removeAccountPasswords(
+            accountUnrecognisedUsers = users,
+            iamClients = List(AwsClient(iamClient, account, Region.of("us-east-1")))
+          )
+          .value()
+
+        deletedLoginProfile.get() shouldBe 1
+
+        sRemovePassword.get() shouldBe 1
+        fRemovePassword.get() shouldBe 0
+        sDisableKey.get() shouldBe 0
         fDisableKey.get() shouldBe 0
       }
     }
