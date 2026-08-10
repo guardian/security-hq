@@ -91,19 +91,12 @@ object AWS {
     client(S3Client.builder(), account, region)
   private val s3ClientCache = new AwsClientCache(s3ClientBuilder)
 
-  def s3Client(account: AwsAccount, region: Region): AwsClient[S3Client] =
-    s3ClientCache.getClient(account, region)
-
   def s3Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[S3Client] =
     s3ClientCache.getClients(accounts, regions)
 
   private def iamClientBuilder(account: AwsAccount, region: Region): IamAsyncClient =
     client(withCustomThreadPool(IamAsyncClient.builder()), account, region)
   private val iamClientCache = new AwsClientCache(iamClientBuilder)
-
-  // Only needs Regions.US_EAST_1
-  def iamClient(account: AwsAccount): AwsClient[IamAsyncClient] =
-    iamClientCache.getClient(account, IAMClient.SOLE_REGION)
 
   def iamClients(accounts: List[AwsAccount]): AwsClients[IamAsyncClient] =
     iamClientCache.getClients(accounts, List(IAMClient.SOLE_REGION))
