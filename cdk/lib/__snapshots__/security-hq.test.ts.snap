@@ -474,6 +474,12 @@ exports[`HQ stack matches the snapshot 1`] = `
         "AlarmDescription": "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
         "AlarmName": "Security HQ failed to emit vulnerable access key metrics",
         "ComparisonOperator": "LessThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ReaperExecutionStatus",
+            "Value": "Success",
+          },
+        ],
         "EvaluationPeriods": 1,
         "MetricName": "IamDisableAccessKey",
         "Namespace": "SecurityHQ",
@@ -588,6 +594,12 @@ exports[`HQ stack matches the snapshot 1`] = `
         "AlarmDescription": "The credentials reaper feature of Security HQ emits metrics showing how many actions it has taken, and this alarm lets us know when it does not emit. Check the application logs for more details https://logs.gutools.co.uk/s/devx/goto/f9915a6e4e94a000732d67026cea91be.",
         "AlarmName": "Security HQ failed to emit outdated access key metrics",
         "ComparisonOperator": "LessThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ReaperExecutionStatus",
+            "Value": "Success",
+          },
+        ],
         "EvaluationPeriods": 1,
         "MetricName": "IamDisableOutdatedKeys",
         "Namespace": "SecurityHQ",
