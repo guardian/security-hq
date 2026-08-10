@@ -299,28 +299,22 @@ class IamOutdatedCredentials(
         performRemediationOperation(_, now)
       )
     } yield results
-    result.tap {
-      // A Left here is unlikely due to `traverseWithFailures` - the top-level result should be a success.
-      // Any failures are more likely to be picked up by the Right() case.
-      case Left(failedAttempt) =>
+
+    // A Left here is unlikely due to `traverseWithFailures` - the top-level result should be a success.
+    // Any failures are more likely to be picked up by the Right() case.
+    // Use .map (not .tap) so logging is sequenced inside the future chain and guaranteed to complete before the lambda exits.
+    result.map { operations =>
+      val (failedOperations, successfulOperations) = operations.partitionMap(identity)
+      logger.info(
+        s"Completed 'disable outdated credentials job', with ${successfulOperations.length} successful operations and ${failedOperations.length} failed operations"
+      )
+      failedOperations.zipWithIndex.foreach { case (failedAttempt, i) =>
         logger.error(
-          s"Failure during 'disable outdated credentials' job: ${failedAttempt.logMessage}",
-          failedAttempt.firstException.orNull // make sure the exception goes into the log, if present
+          s"Failed operation $i of ${failedOperations.length}: ${failedAttempt.logMessage}",
+          failedAttempt.firstException.orNull
         )
-      case Right(operations) =>
-        val failedOperations = operations.collect { case Left(failure) => failure }
-        val successfulOperations = operations.collect { case Right(ids) => ids }
-        logger.info(
-          s"Completed 'disable outdated credentials job', with ${successfulOperations.length} successful operations and ${failedOperations.length} failed operations"
-        )
-        failedOperations.zipWithIndex.foreach { case (failedAttempt, i) =>
-          // TODO emit metrics counting the number of operations which failed and create alarm
-          logger.error(
-            s"Failed operation $i of ${failedOperations.length}: ${failedAttempt.logMessage}",
-            failedAttempt.firstException.orNull
-          )
-        }
-    }.unit
+      }
+    }
   }
 
 }
