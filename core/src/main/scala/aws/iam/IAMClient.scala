@@ -191,7 +191,6 @@ object IAMClient extends LazyLogging {
       .accessKeyId(accessKeyId)
       .status("Inactive")
       .build()
-
     for {
       client <- iamClients.get(awsAccount)
       result <- handleAWSErrs(client)(asScala(client.client.updateAccessKey(request)))

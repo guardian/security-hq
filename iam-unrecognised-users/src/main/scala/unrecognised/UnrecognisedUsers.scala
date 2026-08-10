@@ -33,6 +33,76 @@ import scala.util.chaining.*
   * tags. If an IAM user is tagged with an identity that is no longer in Janus, we assume they have left and deactivate
   * the user — removing their access keys and login profile, and notifying the relevant team via Anghammarad.
   */
+object UnrecognisedUsers extends LazyLogging {
+
+  private val ALLOWED_ACCOUNT_IDS = "ALLOWED_ACCOUNT_IDS"
+  private val ANGHAMMARAD_SNS_ARN = "ANGHAMMARAD_SNS_TOPIC_ARN"
+
+  def run(
+      env: Map[String, String] = sys.env,
+      timeout: FiniteDuration = 5.minutes
+  )(using ExecutionContext): Unit = {
+    val settings = Settings.fromEnvironment(env)
+    logger.info(s"Starting iam-unrecognised-users job (dryRun=${settings.dryRun}, region=${settings.region.id})")
+    val result = disableUnrecognisedUsers(settings)
+    Await.result(result.asFuture, timeout) match {
+      case Left(failure) =>
+        logger.error(s"Failed to run unrecognised user job: ${failure.logMessage}")
+        throw new RuntimeException(failure.logMessage)
+      case Right(notificationIds) =>
+        logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.length} notification(s).")
+    }
+  }
+
+  // `getAllCredentialReports` refreshes an existing per-account report map. There is no previous report to build
+  // on, so seed every account as "not yet loaded" to force a fresh report to be fetched for each.
+  private def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
+    Left(Failure.notYetLoaded(account.id, "credentials").attempt)
+
+  private def disableUnrecognisedUsers(
+      settings: Settings
+  )(using ExecutionContext): Attempt[List[String]] = {
+    val s3Client = S3Client.builder
+      .region(settings.region)
+      .credentialsProvider(CoreConfig.securityCredentialsProvider)
+      .build()
+    lazy val snsClient = SnsAsyncClient.builder.region(settings.region).build()
+
+    for {
+      // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
+      configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
+      conf = ConfigFactory.parseString(configSource.mkString)
+      awsAccounts = CoreConfig.parseAccounts(conf)
+      allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
+      anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
+
+      // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
+      janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
+      janusData = JanusConfig.load(makeFile(janusSource.mkString))
+      janusUsernames = getJanusUsernames(janusData)
+      notificationIds <- new UnrecognisedUsers(
+        awsAccounts,
+        janusUsernames,
+        allowedAccountIds,
+        dryRun = settings.dryRun,
+        anghammaradSnsArn,
+        snsClient
+      )
+        .disableUnrecognisedUsers()
+    } yield notificationIds
+  }
+
+  private def logCredentialReportResults(
+      credentialReports: Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]
+  ): Unit = credentialReports.foreach {
+    case (a, Left(e)) =>
+      logger.error(s"Credentials report for account '${a.name}' failed to generate: ${e.logMessage}.")
+    case (a, Right(r)) =>
+      logger.info(s"Credentials report for account '${a.name}' generated at ${r.reportDate}.")
+  }
+
+}
+
 class UnrecognisedUsers(
     awsAccounts: List[AwsAccount],
     janusUsernames: List[String],
@@ -40,14 +110,13 @@ class UnrecognisedUsers(
     dryRun: Boolean,
     anghammaradSnsArn: String,
     snsClient: SnsAsyncClient
-
 ) extends LazyLogging {
 
   private val iamClients = AWS.iamClients(awsAccounts)
 
-  private def removeAccountPasswords(
+  private[unrecognised] def removeAccountPasswords(
       accountUnrecognisedUsers: AccountUnrecognisedUsers,
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[Unit] = {
     if (!dryRun) {
       val result = Attempt.traverse(accountUnrecognisedUsers.unrecognisedUsers)(user =>
@@ -75,7 +144,7 @@ class UnrecognisedUsers(
 
   private[unrecognised] def disableAccountAccessKeys(
       accountUnrecognisedKeys: AccountUnrecognisedAccessKeys,
-      iamClients: AwsClients[IamAsyncClient],
+      iamClients: AwsClients[IamAsyncClient]
   )(implicit ec: ExecutionContext): Attempt[Unit] = {
     if (!dryRun) {
       val AccountUnrecognisedAccessKeys(account, accessKeys) = accountUnrecognisedKeys
@@ -128,68 +197,5 @@ class UnrecognisedUsers(
 
   private[unrecognised] def failureMetricIamDisableAccessKey[T](using ExecutionContext) =
     Cloudwatch.putIamDisableAccessKeyMetric(ReaperExecutionStatus.failure)
-
-}
-
-object UnrecognisedUsers extends LazyLogging {
-
-  // `getAllCredentialReports` refreshes an existing per-account report map. There is no previous report to build
-  // on, so seed every account as "not yet loaded" to force a fresh report to be fetched for each.
-  private def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
-    Left(Failure.notYetLoaded(account.id, "credentials").attempt)
-
-  private def disableUnrecognisedUsers(
-      settings: Settings
-  )(using ExecutionContext): Attempt[List[String]] = {
-    val s3Client = S3Client.builder
-      .region(settings.region)
-      .credentialsProvider(CoreConfig.securityCredentialsProvider)
-      .build()
-    lazy val snsClient = SnsAsyncClient.builder.region(settings.region).build()
-
-    for {
-      // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
-      configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
-      conf = ConfigFactory.parseString(configSource.mkString)
-      awsAccounts = CoreConfig.parseAccounts(conf)
-      allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
-      anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
-
-      // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
-      janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
-      janusData = JanusConfig.load(makeFile(janusSource.mkString))
-      janusUsernames = getJanusUsernames(janusData)
-      notificationIds <- new UnrecognisedUsers(awsAccounts, janusUsernames, allowedAccountIds, dryRun = settings.dryRun, anghammaradSnsArn, snsClient)
-        .disableUnrecognisedUsers()
-    } yield notificationIds
-  }
-
-  private def logCredentialReportResults(
-      credentialReports: Seq[(AwsAccount, Either[FailedAttempt, CredentialReportDisplay])]
-  ): Unit = credentialReports.foreach {
-    case (a, Left(e)) =>
-      logger.error(s"Credentials report for account '${a.name}' failed to generate: ${e.logMessage}.")
-    case (a, Right(r)) =>
-      logger.info(s"Credentials report for account '${a.name}' generated at ${r.reportDate}.")
-  }
-
-  def run(
-      env: Map[String, String] = sys.env,
-      timeout: FiniteDuration = 5.minutes
-  )(using ExecutionContext): Unit = {
-    val settings = Settings.fromEnvironment(env)
-    logger.info(s"Starting iam-unrecognised-users job (dryRun=${settings.dryRun}, region=${settings.region.id})")
-    val result = UnrecognisedUsers.disableUnrecognisedUsers(settings)
-    Await.result(result.asFuture, timeout) match {
-      case Left(failure) =>
-        logger.error(s"Failed to run unrecognised user job: ${failure.logMessage}")
-        throw new RuntimeException(failure.logMessage)
-      case Right(notificationIds) =>
-        logger.info(s"Successfully ran unrecognised user job and sent ${notificationIds.length} notification(s).")
-    }
-  }
-
-  private val ALLOWED_ACCOUNT_IDS = "ALLOWED_ACCOUNT_IDS"
-  private val ANGHAMMARAD_SNS_ARN = "ANGHAMMARAD_SNS_TOPIC_ARN"
 
 }
