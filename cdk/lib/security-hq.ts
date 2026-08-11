@@ -1,5 +1,4 @@
 import { GuScheduledLambda } from "@guardian/cdk";
-import { AccessScope } from "@guardian/cdk/lib/constants";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import type { GuStackProps } from "@guardian/cdk/lib/constructs/core";
 import {
@@ -10,9 +9,7 @@ import {
   GuStringParameter,
 } from "@guardian/cdk/lib/constructs/core";
 import type { AppIdentity } from "@guardian/cdk/lib/constructs/core/identity";
-import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { GuDynamoTable } from "@guardian/cdk/lib/constructs/dynamodb";
-import { GuHttpsEgressSecurityGroup } from "@guardian/cdk/lib/constructs/ec2";
 import {
   GuAllowPolicy,
   GuDynamoDBReadPolicy,
@@ -23,36 +20,19 @@ import {
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
 import { GuDeveloperPolicyExperimental } from "@guardian/cdk/lib/experimental/constructs/iam/policies";
-import { GuEc2AppExperimental } from "@guardian/cdk/lib/experimental/patterns/ec2-app";
 import type { App } from "aws-cdk-lib";
-import { Duration, RemovalPolicy, SecretValue } from "aws-cdk-lib";
-import type { CfnAutoScalingGroup } from "aws-cdk-lib/aws-autoscaling";
+import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import {
   ComparisonOperator,
   Metric,
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
 import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
-import {
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-  UserData,
-} from "aws-cdk-lib/aws-ec2";
-import {
-  ListenerAction,
-  UnauthenticatedAction,
-} from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import { Schedule } from "aws-cdk-lib/aws-events";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { Topic } from "aws-cdk-lib/aws-sns";
 import { EmailSubscription } from "aws-cdk-lib/aws-sns-subscriptions";
-import {
-  ParameterDataType,
-  ParameterTier,
-  StringParameter,
-} from "aws-cdk-lib/aws-ssm";
 
 interface SecurityHQProps extends GuStackProps {
   /**
@@ -74,6 +54,8 @@ export class SecurityHQ extends GuStack {
 
     const { buildIdentifier } = props;
 
+    // Used by outdated credentials lambda.
+    // See IAM_DYNAMO_TABLE_NAME in config file
     const table = new GuDynamoTable(this, "DynamoTable", {
       tableName: `security-hq-iam`,
       removalPolicy: RemovalPolicy.RETAIN,
@@ -108,18 +90,6 @@ export class SecurityHQ extends GuStack {
       },
     );
     const auditDataS3BucketPath = `${this.stack}/${this.stage}/*`;
-
-    const domainName = "security-hq.gutools.co.uk";
-
-    const userData = UserData.forLinux();
-    userData.addCommands(`# setup security-hq
-    mkdir -p /etc/gu
-
-    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq.conf /etc/gu
-    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-service-account-cert.json /etc/gu
-    aws --region eu-west-1 s3 cp s3://${distBucket.valueAsString}/security/${this.stage}/security-hq/security-hq-${buildIdentifier}.deb /tmp/installer.deb
-
-    dpkg -i /tmp/installer.deb`);
 
     const guPutCloudwatchMetricsPolicy = new GuPutCloudwatchMetricsPolicy(this);
     const guGetS3AuditObjectsPolicy = new GuGetS3ObjectsPolicy(
@@ -158,100 +128,6 @@ export class SecurityHQ extends GuStack {
     const guDescribeRegionsPolicy = new GuAllowPolicy(this, "DescribeRegions", {
       resources: ["*"],
       actions: ["ec2:DescribeRegions"],
-    });
-    const appAdditionalPolicies = [
-      GuAnghammaradSenderPolicy.getInstance(this),
-      guPutCloudwatchMetricsPolicy,
-      guGetS3AuditObjectsPolicy,
-      guDynamoDBReadPolicy,
-      guDynamoDBWritePolicy,
-      guAssumeRolePolicy,
-      guDescribeRegionsPolicy,
-    ];
-
-    const ec2App = new GuEc2AppExperimental(this, {
-      buildIdentifier,
-      applicationLogging: {
-        enabled: true,
-      },
-      access: {
-        scope: AccessScope.PUBLIC,
-      },
-      app: "security-hq",
-      applicationPort: 9000,
-      imageRecipe: "arm64-jammy-java21-security",
-      instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.LARGE),
-      certificateProps: {
-        domainName,
-      },
-      monitoringConfiguration: { noMonitoring: true },
-      scaling: {
-        minimumInstances: 1,
-      },
-      userData,
-      additionalPolicies: appAdditionalPolicies,
-      instanceMetricGranularity: "5Minute",
-    });
-
-    /*
-     * Increase the health-check grace period for a new instance added to the ASG
-     * from the default value of 2 mins to 4 mins.
-     * This is in response to occasional failed deploys because of timeouts.
-     *
-     * To do this, we have to access the underlying ASG node.
-     */
-    const cfnAsg = ec2App.autoScalingGroup.node
-      .defaultChild as CfnAutoScalingGroup;
-    cfnAsg.healthCheckGracePeriod = Duration.minutes(4).toSeconds();
-
-    new GuCname(this, "DnsRecord", {
-      app: SecurityHQ.app.app,
-      domainName,
-      ttl: Duration.hours(1),
-      resourceRecord: ec2App.loadBalancer.loadBalancerDnsName,
-    });
-
-    // Need to give the ALB outbound access on 443 for the IdP endpoints (to support Google Auth).
-    const outboundHttpsSecurityGroup = new GuHttpsEgressSecurityGroup(
-      this,
-      "idp-access",
-      {
-        app: SecurityHQ.app.app,
-        vpc: ec2App.vpc,
-      },
-    );
-
-    ec2App.loadBalancer.addSecurityGroup(outboundHttpsSecurityGroup);
-
-    // This parameter is used by https://github.com/guardian/waf
-    new StringParameter(this, "AlbSsmParam", {
-      parameterName: `/infosec/waf/services/${this.stage}/security-hq-alb-arn`,
-      description: `The arn of the ALB for security-hq-${this.stage}. N.B. this parameter is created via cdk`,
-      simpleName: false,
-      stringValue: ec2App.loadBalancer.loadBalancerArn,
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT,
-    });
-
-    const clientId = new GuStringParameter(this, "ClientId", {
-      description: "Google OAuth client ID",
-    });
-
-    ec2App.listener.addAction("DefaultAction", {
-      action: ListenerAction.authenticateOidc({
-        authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-        issuer: "https://accounts.google.com",
-        scope: "openid",
-        authenticationRequestExtraParams: { hd: "guardian.co.uk" },
-        onUnauthenticatedRequest: UnauthenticatedAction.AUTHENTICATE,
-        tokenEndpoint: "https://oauth2.googleapis.com/token",
-        userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
-        clientId: clientId.valueAsString,
-        clientSecret: SecretValue.secretsManager(
-          `/${this.stage}/deploy/security-hq/client-secret`,
-        ),
-        next: ListenerAction.forward([ec2App.targetGroup]),
-      }),
     });
 
     const notificationTopic = new Topic(this, "NotificationTopic", {
