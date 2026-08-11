@@ -1,14 +1,20 @@
 package logic
 
+import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.{DateTime, DateTimeZone, Duration}
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 
-object DateUtils {
+object DateUtils extends LazyLogging {
   val formatter = ISODateTimeFormat.dateTimeParser()
   val isoDateTimeParser = ISODateTimeFormat.dateTimeParser().withZoneUTC()
 
-  def fromISOString(dateTime: String): DateTime = {
+  def fromISOString(dateTime: String): DateTime = try {
     formatter.parseDateTime(dateTime)
+  } catch {
+    case e: Throwable =>
+      val currentDateTime = new DateTime()
+      logger.error(s"Invalid ISO date string: $dateTime; returning $currentDateTime", e)
+      currentDateTime
   }
   def toISOString(dateTime: DateTime) = ISODateTimeFormat.dateTime().print(dateTime)
 
