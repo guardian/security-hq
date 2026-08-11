@@ -115,14 +115,17 @@ object TrustedAdvisor {
     val result = response.result
     for {
       resources <- Attempt.traverse(result.flaggedResources.asScala.toList)(parseDetails)
-    } yield TrustedAdvisorDetailsResult(
-      checkId = result.checkId,
-      status = result.status,
-      timestamp = fromISOString(result.timestamp),
-      flaggedResources = sortSecurityFlags(resources),
-      resourcesIgnored = result.resourcesSummary.resourcesIgnored,
-      resourcesFlagged = result.resourcesSummary.resourcesFlagged,
-      resourcesSuppressed = result.resourcesSummary.resourcesSuppressed
-    )
+      maybeSummary = Option(result.resourcesSummary)
+    } yield {
+      TrustedAdvisorDetailsResult(
+        checkId = result.checkId,
+        status = result.status,
+        timestamp = fromISOString(result.timestamp),
+        flaggedResources = sortSecurityFlags(resources),
+        resourcesIgnored = maybeSummary.flatMap(rs => Option(rs.resourcesIgnored).map(ri => ri.longValue())).getOrElse(0L),
+        resourcesFlagged = maybeSummary.flatMap(rs => Option(rs.resourcesFlagged).map(rf => rf.longValue())).getOrElse(0L),
+        resourcesSuppressed = maybeSummary.flatMap(rs => Option(rs.resourcesSuppressed).map(rs => rs.longValue())).getOrElse(0L)
+      )
+    }
   }
 }
