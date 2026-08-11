@@ -84,7 +84,18 @@ object UnrecognisedUsers extends LazyLogging {
 
   private def loadJanusConfig(dataFile: File): Attempt[JanusData] = {
     try {
-      Attempt.Right { JanusConfig.load(dataFile) }
+      val config = JanusConfig.load(dataFile)
+      val hasSensibleNumberOfUsers = config.access.userAccess.size > 10
+      if (hasSensibleNumberOfUsers)
+        Attempt.Right(config)
+      else
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"Janus config only lists ${config.access.userAccess.size} users, which is suspiciously low"
+            )
+          )
+        )
     } catch {
       case e: JanusConfigurationException =>
         Attempt.Left(
