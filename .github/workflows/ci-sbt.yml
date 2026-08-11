@@ -59,8 +59,6 @@ jobs:
           contentDirectories: |
             cdk.out:
               - cdk/cdk.out/security-hq.template.json
-            security-hq:
-              - dist/security-hq-${{ env.BUILD_NUMBER }}.deb
             iam-outdated-credentials:
               - dist/iam-outdated-credentials-${{ env.BUILD_NUMBER }}.jar
             iam-unrecognised-users:
