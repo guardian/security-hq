@@ -82,7 +82,7 @@ object IAMClient extends LazyLogging {
     val updatedReport = updatedEntries.map(e => report.copy(entries = e))
     // Convert to an Attempt
     Attempt.fromFuture(updatedReport) { case throwable =>
-      Failure(throwable.getMessage, "failed to enrich report with tags", 500, throwable = Some(throwable)).attempt
+      Failure(throwable.getMessage, throwable = Some(throwable)).attempt
     }
   }
 
@@ -149,17 +149,13 @@ object IAMClient extends LazyLogging {
             case StatusType.UNKNOWN_TO_SDK_VERSION =>
               Attempt.Left {
                 Failure(
-                  s"Could not create credential metadata from status value, as it is unknown to SDK version (expected 'Active' or 'Inactive')",
-                  "Couldn't lookup AWS Access Key metadata",
-                  500
+                  s"Could not create credential metadata from status value, as it is unknown to SDK version (expected 'Active' or 'Inactive')"
                 )
               }
             case StatusType.EXPIRED =>
               Attempt.Left {
                 Failure(
-                  s"Could not create credential metadata from status value, as it is expired (expected 'Active' or 'Inactive')",
-                  "Couldn't lookup AWS Access Key metadata",
-                  500
+                  s"Could not create credential metadata from status value, as it is expired (expected 'Active' or 'Inactive')"
                 )
               }
           }

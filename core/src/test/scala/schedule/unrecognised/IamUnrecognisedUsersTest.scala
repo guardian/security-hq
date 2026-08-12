@@ -54,7 +54,7 @@ class IamUnrecognisedUsersTest extends AnyFreeSpec with Matchers {
   }
 
   "getCredsReportDisplayForAccount" - {
-    val failedAttempt: FailedAttempt = FailedAttempt(Failure("error", "error", 500))
+    val failedAttempt: FailedAttempt = FailedAttempt(Failure("error"))
 
     "if the either is a left, an empty list is output" in {
       val accountCredsLeft = Map(awsAccount1 -> Left(failedAttempt))

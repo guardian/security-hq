@@ -586,9 +586,7 @@ object IamOutdatedCredentials extends LazyLogging {
         Attempt.Left(
           FailedAttempt(
             Failure(
-              "unable to identify matching access key in user's metadata",
-              s"I've made a list-access-keys AWS API call for $username, but I have not found a matching key in the response.",
-              500
+              "unable to identify matching access key in user's metadata"
             )
           )
         )
@@ -598,9 +596,7 @@ object IamOutdatedCredentials extends LazyLogging {
         Attempt.Left(
           FailedAttempt(
             Failure(
-              s"both of $username's access keys have the exact same creation date - cannot decide which one to select for disablement",
-              s"I've hit an edge case for $username's access keys where both have the same creation date, please investigate as I can't decide which one to disable.",
-              500
+              s"both of $username's access keys have the exact same creation date - cannot decide which one to select for disablement"
             )
           )
         )

@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
 import software.amazon.awssdk.services.support.SupportAsyncClient
-import utils.attempt.{Attempt, Failure}
 
 import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.concurrent.ConcurrentHashMap
@@ -33,13 +32,6 @@ private class AwsClientCache[T <: awscore.AwsClient](clientBuilder: (AwsAccount,
 }
 
 object AWS {
-
-  def lookupAccount(accountId: String, accounts: List[AwsAccount]): Attempt[AwsAccount] = {
-    Attempt.fromOption(
-      accounts.find(_.id == accountId),
-      Failure.awsAccountNotFound(accountId).attempt
-    )
-  }
 
   private def credentialsProvider(account: AwsAccount): AwsCredentialsProviderChain = {
     AwsCredentialsProviderChain.of(

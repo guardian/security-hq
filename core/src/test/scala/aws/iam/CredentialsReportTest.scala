@@ -45,7 +45,7 @@ class CredentialsReportTest extends AnyFreeSpec with Matchers with OptionValues 
 
     "returns true if the argument is a failure" in {
       val result = credentialsReportReadyForRefresh(
-        Left(FailedAttempt(Failure("Test error", "Test error", 500))),
+        Left(FailedAttempt(Failure("Test error"))),
         new DateTime(2021, 5, 6, 16, 43)
       )
       result shouldEqual true

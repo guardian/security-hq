@@ -55,7 +55,7 @@ case class Attempt[A] private (underlying: Future[Either[FailedAttempt, A]]) ext
     */
   def asFuture(implicit ec: ExecutionContext): Future[Either[FailedAttempt, A]] = {
     underlying recover { case err =>
-      val apiErrors = FailedAttempt(Failure(err.getMessage, "Unexpected error", 500, throwable = Some(err)))
+      val apiErrors = FailedAttempt(Failure(err.getMessage, throwable = Some(err)))
       logger.error(apiErrors.logMessage, apiErrors.firstException.orNull)
       scala.Left(apiErrors)
     }
@@ -228,7 +228,7 @@ object Attempt {
 
     def apply[A](delay: FiniteDuration)(body: => A)(implicit ctx: ExecutionContext): Attempt[A] = {
       Attempt.fromFuture(makeTask(body)(timer.schedule(_, delay.toMillis))) { case th =>
-        Failure(th.getMessage, "Cannot execute the delayed task", 500).attempt
+        Failure(th.getMessage).attempt
       }
     }
   }

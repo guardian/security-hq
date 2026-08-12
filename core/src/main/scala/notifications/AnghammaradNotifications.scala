@@ -23,8 +23,6 @@ object AnghammaradNotifications extends LazyLogging {
       .fromFuture(Anghammarad.notify(notification, topicArn, snsClient)) { case NonFatal(e) =>
         Failure(
           s"Failed to send Anghammarad notification ${e.getMessage}",
-          "Unable to send developer notification",
-          500,
           throwable = Some(e)
         ).attempt
       }
