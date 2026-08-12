@@ -23,9 +23,7 @@ package object aws extends LazyLogging {
         maybeClient,
         FailedAttempt(
           Failure(
-            errorString,
-            s"Cannot find AWS client",
-            500
+            errorString
           )
         )
       )
@@ -43,11 +41,7 @@ package object aws extends LazyLogging {
           logger.warn(errorString)
           Attempt.Left(
             FailedAttempt(
-              Failure(
-                errorString,
-                s"Cannot find AWS client",
-                500
-              )
+              Failure(errorString)
             )
           )
         case _ =>
@@ -56,11 +50,7 @@ package object aws extends LazyLogging {
           logger.warn(errorString)
           Attempt.Left(
             FailedAttempt(
-              Failure(
-                errorString,
-                s"Multiple AWS clients found when only one was expected",
-                500
-              )
+              Failure(errorString)
             )
           )
       }

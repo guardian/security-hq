@@ -48,67 +48,6 @@ object IAMCredential {
   def isRootUser(user: String): Boolean = user == "<root_account>"
 }
 
-case class TrustedAdvisorCheck(
-    id: String,
-    name: String,
-    description: String,
-    category: String
-)
-
-case class TrustedAdvisorDetailsResult[A <: TrustedAdvisorCheckDetails](
-    checkId: String,
-    status: String,
-    timestamp: DateTime,
-    flaggedResources: List[A],
-    resourcesIgnored: Long,
-    resourcesFlagged: Long,
-    resourcesSuppressed: Long
-)
-
-sealed trait TrustedAdvisorCheckDetails
-case class SGOpenPortsDetail(
-    status: String,
-    region: String,
-    name: String,
-    id: String,
-    vpcId: String,
-    protocol: String,
-    port: String,
-    alertLevel: String,
-    isSuppressed: Boolean,
-    vpcName: Option[String] = None,
-    stackId: Option[String] = None,
-    stackName: Option[String] = None
-) extends TrustedAdvisorCheckDetails
-case class RDSSGsDetail(
-    region: String,
-    rdsSgId: String,
-    ec2SGId: String,
-    alertLevel: String,
-    isSuppressed: Boolean
-) extends TrustedAdvisorCheckDetails
-case class ExposedIAMKeyDetail(
-    keyId: String,
-    username: String,
-    fraudType: String,
-    caseId: String,
-    updated: String,
-    location: String,
-    deadline: String,
-    usage: String
-) extends TrustedAdvisorCheckDetails
-case class BucketDetail(
-    region: String,
-    bucketName: String,
-    status: String,
-    aclAllowsRead: Boolean,
-    aclAllowsWrite: Boolean,
-    policyAllowsAccess: Boolean,
-    isSuppressed: Boolean,
-    reportStatus: Option[ReportStatus] = None,
-    isEncrypted: Boolean = false
-) extends TrustedAdvisorCheckDetails
-
 sealed trait BucketEncryptionResponse
 case object Encrypted extends BucketEncryptionResponse
 case object NotEncrypted extends BucketEncryptionResponse
@@ -208,5 +147,3 @@ case class MachineUser(
 ) extends IAMUser {
   val isHuman = false
 }
-
-case class Documentation(title: String, description: String, icon: String, slug: String)

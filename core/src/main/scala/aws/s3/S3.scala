@@ -22,9 +22,6 @@ object S3 {
           FailedAttempt(
             Failure(
               s"Unable to get S3 object for bucket $bucket and key $key",
-              "Failed to fetch an S3 object",
-              500,
-              context = Some(Option(e.getMessage).getOrElse(e.getClass.getSimpleName)),
               throwable = Some(e)
             )
           )
@@ -43,7 +40,8 @@ object S3 {
     } catch {
       // If there is no bucket encryption, AWS returns an error...
       // Assume bucket is not encrypted if we receive the specific error
-      case e: S3Exception if Option(e.getMessage).exists(_.contains("ServerSideEncryptionConfigurationNotFoundError")) =>
+      case e: S3Exception
+          if Option(e.getMessage).exists(_.contains("ServerSideEncryptionConfigurationNotFoundError")) =>
         Attempt.Right(NotEncrypted)
       case e: S3Exception if Option(e.getMessage).exists(_.contains("NoSuchBucket")) =>
         Attempt.Right(BucketNotFound)
@@ -52,9 +50,6 @@ object S3 {
           FailedAttempt(
             Failure(
               s"unable to get S3 bucket encryption status for bucket $bucketName",
-              "Encryption status for this bucket was not found.",
-              500,
-              context = Some(Option(e.getMessage).getOrElse(e.getClass.getSimpleName)),
               throwable = Some(e)
             )
           )
