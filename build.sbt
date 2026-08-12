@@ -1,5 +1,3 @@
-import com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd
-import play.sbt.PlayImport.PlayKeys._
 import sbt.Keys.libraryDependencies
 
 import scala.concurrent.duration.DurationInt
@@ -8,13 +6,10 @@ import scala.concurrent.duration.DurationInt
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
 ThisBuild / scalaVersion := "3.3.8"
-// Omitting scalacOptions 'deprecation' and 'feature' here because they are included by the Play plugin
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-no-indent", // don't support significant indentation
   "-Wunused:all", // fail the build on unused imports, vals, params, and private members
-  "-Wconf:src=.*/twirl/.*&msg=.*unused.*:silent", // ignore dead-code warnings in generated Twirl sources
-  "-Wconf:src=.*/routes/.*&msg=.*unused.*:silent", // ignore dead-code warnings in generated Play routes sources
   "-Xfatal-warnings"
 )
 
@@ -22,7 +17,6 @@ resolvers += DefaultMavenRepository
 
 val awsLambdaVersion = "1.4.0"
 val awsSdkVersion = "2.47.1"
-val playJsonVersion = "3.0.4"
 
 /*
  * To test whether any of these entries are redundant:
@@ -85,11 +79,9 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .settings(
     name := """iam-outdated-credentials""",
     scalacOptions += "--deprecation",
-    fileDescriptorLimit := Some("16384"), // This increases the number of open files allowed when running in AWS
     Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
-    Universal / packageName := "iam-outdated-credentials",
     Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
     Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
     Test / parallelExecution := false,
@@ -101,9 +93,6 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ),
-    maintainer := "Security Team <devx.sec.ops@guardian.co.uk>",
-    packageSummary := "IAM Outdated Credentials lambda.",
-    packageDescription := """Deb for IAM Outdated Credentials lambda - the Guardian's service to check for outdated credentials in AWS accounts.""",
     mergeStrategySettings
   )
 
@@ -120,9 +109,6 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
     assembly / mainClass := Some("unrecognised.Main"),
     mergeStrategySettings
   )
-
-// exclude this key from the linting (unused keys) as it is incorrectly flagged
-Global / excludeLintKeys += Universal / topLevelDirectory
 
 lazy val root = (project in file("."))
   .aggregate(core, iamUnrecognisedUsers, iamOutdatedCredentials)
