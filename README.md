@@ -1,21 +1,32 @@
 # Security HQ
-Centralised security information for AWS accounts.
 
-## Security HQ webapp
-This webapp presents the primary interface for Security HQ.
+This project contains two lambdas, previously referred to as Credentials Reaper.
 
-The `watched-account` CloudFormation template will create ConfigRules
-that monitor the status of other AWS accounts. This application
-presents the data collected by those processes.
+The original web app has been removed.  It also contains a `core` project of code shared by the lambdas
 
-It also provides an interface on some markers of a watched AWS
-account's health from a security point of view.
+Instructions to run each lambda are found in the relevant documentation in the sub-project.
 
-## Trusted Advisor
-Security HQ uses information from AWS Trusted Advisor.
-This might not be as up-to-date as one might wish and may be noticeable for S3 buckets.
+## Credentials Reaper actions.
 
-## Local development
+The Credentials Reaper processes automatically disable permanent IAM users
+with access keys that haven’t been rotated within 90 days for users with a password (human users)
+or 365 days for users without a password (machine users).
+
+It also disables permanent users who have left the Guardian.
+
+The reaper sends email notifications to the AWS account the user is in, before disabling a user.
+The emails are sent via Anghammarad and uses its AWS Account to email address mappings.
+
+You can also find the dynamo table in the Security AWS Account.
+
+# Local development
+
+This project is suitable to run in a devcontainer.  Required files will be fetched by the setup script, and can be 
+altered as desired.
+
+There is a limitation to the accounts which can be checked, as we don't want to hand extensive power to the DEV environment
+to assume roles in real accounts.
+
 ### Requirements
 1. Java 21. See [.tool-versions](.tool-versions) for the exact version. [mise](https://mise.en.dev/) is the recommended Java version manager.
 2. [Docker](https://docs.docker.com/desktop/install/mac-install/).
@@ -35,19 +46,7 @@ This might not be as up-to-date as one might wish and may be noticeable for S3 b
    ```
 
 ### Running locally
-1. Ensure project has been setup as described in the previous section.
-2. Run the start script:
-   
-   ```bash
-   ./script/start
-   ```
-3. Open [https://security-hq.local.dev-gutools.co.uk/](https://security-hq.local.dev-gutools.co.uk/)
-
-If you want to debug, you can run 
-   ```bash
-   ./script/start --debug
-   ```
-You will need to attach you debugger (Remote JVM Debug) to the right port (possibly 1058)
+1. See lambda documentation
 
 ### Adding additional AWS accounts for local development
 When running Security HQ locally, you can modify the list of AWS accounts to include additional accounts.
@@ -87,21 +86,3 @@ If you have it installed, you can run:
 
 `cfn_nag_scan --input-path cloudformation/*`
 
-## Introduction to Security HQ's features
-
-### Credentials Reaper
-The Credentials Reaper is a feature in Security HQ which automatically disables permanent IAM users
-with access keys that haven’t been rotated within 90 days for users with a password (human users)
-or 365 days for users without a password (machine users).
-It also disables permanent users who have left the Guardian.
-
-The reaper sends email notifications to the AWS account the user is in, before disabling a user.
-The emails are sent via Anghammarad and uses its AWS Account to email address mappings.
-
-You can also find the dynamo table in the Security AWS Account.
-
-## Further docs in this repo
-
-[SSH Access](hq/markdown/ssh-access.md)
-
-[Wazuh](hq/markdown/wazuh.md)

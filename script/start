@@ -4,6 +4,7 @@ set -e
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ROOT_DIR="${DIR}/.."
+cd $ROOT_DIR
 
 IAM_UNRECOGNISED_USERS_ENV=(
   "CONFIG_BUCKET=security-dist"
@@ -12,18 +13,18 @@ IAM_UNRECOGNISED_USERS_ENV=(
   "IAM_UNRECOGNISED_USER_S3_KEY=security/DEV/janus-data-export/janusData.conf"
 )
 
-# Select which application to run. Fails if no argument.
-MODE="${1}"
-
-case "$MODE" in
-  play)
-    "$ROOT_DIR/sbt" "project hq; run"
+case "${1}" in
+  iam-outdated-credentials)
+    shift
+    sbt "iamOutdatedCredentials / run $@"
     ;;
   iam-unrecognised-users)
-    env "${IAM_UNRECOGNISED_USERS_ENV[@]}" "$ROOT_DIR/sbt" "project iamUnrecognisedUsers; run"
+    shift
+    env "${IAM_UNRECOGNISED_USERS_ENV[@]}" "sbt" "project iamUnrecognisedUsers; run"
     ;;
   *)
-    echo "Usage: $(basename "$0") [play|iam-unrecognised-users]" >&2
+    echo "Usage: $(basename "$0") iam-unrecognised-users" >&2
+    echo "       $(basename "$0") iam-outdated-credentials \"<stack> <stage> <dryRunFlag> <configBucket> <configKey>\"" >&2
     exit 1
     ;;
 esac
