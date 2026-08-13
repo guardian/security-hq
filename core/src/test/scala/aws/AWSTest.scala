@@ -4,7 +4,6 @@ import model.AwsAccount
 import org.scalatest.freespec.AnyFreeSpec
 import utils.attempt.AttemptValues
 import org.scalatest.matchers.should.Matchers
-import software.amazon.awssdk.regions.Region
 
 class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
 
@@ -15,16 +14,8 @@ class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
       AwsAccount("test2", "Test2", "", "")
     )
 
-    val regions =
-      List(Region.of("eu-west-1"), Region.of("eu-west-2"), Region.of("eu-west-3"), Region.of("eu-central-1"))
-
-    // Two accounts, three regions.
-    val allRegionsSize = regions.size * 2
-    // Only in one region.
-    val singleRegionSize = 2
-
     "iam" in {
-      AWS.iamClients(accounts) should have size (singleRegionSize)
+      AWS.iamClients(accounts) should have size (accounts.size)
     }
 
   }
