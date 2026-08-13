@@ -228,7 +228,7 @@ object Attempt {
 
     def apply[A](delay: FiniteDuration)(body: => A)(implicit ctx: ExecutionContext): Attempt[A] = {
       Attempt.fromFuture(makeTask(body)(timer.schedule(_, delay.toMillis))) { case th =>
-        Failure(th.getMessage).attempt
+        Failure(th.getMessage, Some(th)).attempt
       }
     }
   }
