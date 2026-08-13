@@ -22,11 +22,9 @@ import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.File
-import java.time.Instant
-import java.time.temporal.ChronoUnit.DAYS
+import java.time.{Instant, Period}
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
-import scala.io.Source
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.*
 
@@ -66,14 +64,15 @@ object UnrecognisedUsers extends LazyLogging {
   private def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
     Left(Failure.notYetLoaded(account.id, "credentials").attempt)
 
+  val ONE_WEEK = Period.ofDays(7)
   private def janusConfigIsFresh(objectResponse: GetObjectResponse): Attempt[Boolean] = {
     val lastModified = objectResponse.lastModified()
-    val isStale = lastModified.isBefore(Instant.now().minus(7, DAYS))
+    val isStale = lastModified.isBefore(Instant.now().minus(ONE_WEEK))
     if (isStale) {
       Attempt.Left(
         FailedAttempt(
           Failure(
-            "Janus config has not been updated in over 7 days"
+            s"Janus config has not been updated since ${lastModified.toString()}"
           )
         )
       )
@@ -120,8 +119,7 @@ object UnrecognisedUsers extends LazyLogging {
     for {
       // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
       configObject <- getS3Object(s3Client, settings.configBucket, settings.configKey)
-      configSource = Source.fromInputStream(configObject)
-      conf = ConfigFactory.parseString(configSource.mkString)
+      conf = ConfigFactory.parseString(configObject.asUtf8String())
       awsAccounts = CoreConfig.parseAccounts(conf)
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
@@ -129,8 +127,7 @@ object UnrecognisedUsers extends LazyLogging {
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
       janusConfigObject <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
       _ <- janusConfigIsFresh(janusConfigObject.response())
-      janusSource = Source.fromInputStream(janusConfigObject)
-      janusData <- loadJanusConfig(makeFile(janusSource.mkString))
+      janusData <- loadJanusConfig(makeFile(janusConfigObject.asUtf8String()))
       janusUsernames = getJanusUsernames(janusData)
       notificationIds <- new UnrecognisedUsers(
         awsAccounts,
