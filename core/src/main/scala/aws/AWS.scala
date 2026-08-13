@@ -9,11 +9,9 @@ import software.amazon.awssdk.awscore.client.builder.{AwsAsyncClientBuilder, Aws
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
-import software.amazon.awssdk.services.support.SupportAsyncClient
 
 import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.concurrent.ConcurrentHashMap
@@ -70,21 +68,6 @@ object AWS {
   ): B = asyncClientBuilder.asyncConfiguration(c =>
     c.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, sharedThreadPool)
   )
-
-  private def taClientBuilder(account: AwsAccount, region: Region): SupportAsyncClient =
-    client(withCustomThreadPool(SupportAsyncClient.builder), account, region)
-  private val taClientCache = new AwsClientCache(taClientBuilder)
-
-  // Only needs Regions.US_EAST_1
-  def taClients(accounts: List[AwsAccount], region: Region = Region.of("us-east-1")): AwsClients[SupportAsyncClient] =
-    taClientCache.getClients(accounts, List(region))
-
-  private def s3ClientBuilder(account: AwsAccount, region: Region): S3Client =
-    client(S3Client.builder(), account, region)
-  private val s3ClientCache = new AwsClientCache(s3ClientBuilder)
-
-  def s3Clients(accounts: List[AwsAccount], regions: List[Region]): AwsClients[S3Client] =
-    s3ClientCache.getClients(accounts, regions)
 
   private def iamClientBuilder(account: AwsAccount, region: Region): IamAsyncClient =
     client(withCustomThreadPool(IamAsyncClient.builder()), account, region)

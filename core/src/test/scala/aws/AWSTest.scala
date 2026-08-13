@@ -23,14 +23,6 @@ class AWSTest extends AnyFreeSpec with Matchers with AttemptValues {
     // Only in one region.
     val singleRegionSize = 2
 
-    "S3" in {
-      AWS.s3Clients(accounts, regions) should have size (allRegionsSize)
-    }
-
-    "trusted advisor" in {
-      AWS.taClients(accounts) should have size (singleRegionSize)
-    }
-
     "iam" in {
       AWS.iamClients(accounts) should have size (singleRegionSize)
     }
