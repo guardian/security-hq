@@ -47,7 +47,7 @@ object CredentialsReport extends LazyLogging {
       case Failure(th) =>
         Attempt.Left(
           utils.attempt
-            .Failure(s"CREDENTIALS_PARSE_ERROR: ${th.getMessage}")
+            .Failure("CREDENTIALS_PARSE_ERROR", Some(th))
         )
     }
   }
