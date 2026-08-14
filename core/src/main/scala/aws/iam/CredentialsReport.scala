@@ -43,11 +43,11 @@ object CredentialsReport extends LazyLogging {
     } match {
       case Success(x) if x.nonEmpty => Attempt.Right(x)
       case Success(_)               =>
-        Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR", "Credentials report is empty", 500))
+        Attempt.Left(utils.attempt.Failure(s"CREDENTIALS_PARSE_ERROR"))
       case Failure(th) =>
         Attempt.Left(
           utils.attempt
-            .Failure(s"CREDENTIALS_PARSE_ERROR: ${th.getMessage}", "Cannot parse AWS credentials audit report", 500)
+            .Failure("CREDENTIALS_PARSE_ERROR", Some(th))
         )
     }
   }

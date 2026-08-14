@@ -44,8 +44,6 @@ class IamRemediationDb(client: DynamoDbClient) {
         Attempt.Left(
           Failure(
             s"unable to scan dynamoDB table",
-            s"I haven't been able to scan the dynamo table for the vulnerable user job",
-            500,
             throwable = Some(e)
           )
         )
@@ -60,8 +58,6 @@ class IamRemediationDb(client: DynamoDbClient) {
         Attempt.Left(
           Failure(
             s"unable to put item to dynamoDB table",
-            s"I haven't been able to put the item into the dynamo table for the vulnerable user job",
-            500,
             throwable = Some(e)
           )
         )
@@ -148,8 +144,6 @@ object IamRemediationDb {
       dbData.get(key).flatMap(data => Option(f(data))),
       Failure(
         s"The item retrieved from the database with id ${dbData.get("id")} has an invalid attribute with key $key",
-        s"Failed to deserialise database item into an IamRemediationActivity object",
-        500,
         None
       ).attempt
     )
@@ -162,9 +156,7 @@ object IamRemediationDb {
       case _              =>
         Attempt.Left {
           Failure(
-            s"Could not turn $str to a IamRemediationActivityType",
-            "Did not understand database record",
-            500
+            s"Could not turn $str to a IamRemediationActivityType"
           ).attempt
         }
     }
@@ -175,7 +167,7 @@ object IamRemediationDb {
       case "OutdatedCredential" => Attempt.Right(OutdatedCredential)
       case _                    =>
         Attempt.Left {
-          Failure(s"Could not turn $str to an IamProblem", "Did not understand database record", 500).attempt
+          Failure(s"Could not turn $str to an IamProblem").attempt
         }
     }
   }

@@ -3,7 +3,6 @@ package logic
 import logic.DateUtils.dayDiff
 import model._
 import org.joda.time.{DateTime, DateTimeZone, Days}
-import utils.attempt.FailedAttempt
 
 object CredentialsReportDisplay {
 
@@ -114,15 +113,6 @@ object CredentialsReportDisplay {
     val others = reportStatuses.collect({ case Blue => }).size
 
     ReportSummary(warnings, errors, others)
-  }
-
-  def exposedKeysSummary(
-      allReports: Map[AwsAccount, Either[FailedAttempt, List[ExposedIAMKeyDetail]]]
-  ): Map[AwsAccount, Boolean] = {
-    allReports.view.mapValues {
-      case Right(keys) if keys.nonEmpty => true
-      case _                            => false
-    }.toMap
   }
 
   def sortAccountsByReportSummary[L](

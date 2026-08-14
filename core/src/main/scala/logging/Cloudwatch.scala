@@ -55,11 +55,7 @@ object Cloudwatch extends LazyLogging {
           FailedAttempt(
             List(
               Failure(
-                message = s"Failed to log cloudwatch metric for credentials report.",
-                friendlyMessage = "Failed to log cloudwatch metric",
-                statusCode = 500,
-                context = None,
-                throwable = None
+                message = s"Failed to log cloudwatch metric for credentials report."
               )
             )
           )
@@ -92,11 +88,7 @@ object Cloudwatch extends LazyLogging {
           FailedAttempt(
             List(
               Failure(
-                message = s"Failed to log cloudwatch metric for data of type $dataType.",
-                friendlyMessage = "Failed to log cloudwatch metric",
-                statusCode = 500,
-                context = None,
-                throwable = None
+                message = s"Failed to log cloudwatch metric for data of type $dataType."
               )
             )
           )
@@ -169,9 +161,6 @@ object Cloudwatch extends LazyLogging {
     Attempt.fromFuture(future) { case exception =>
       Failure(
         message = s"Failed to put metric data to CloudWatch: ${exception.getMessage}",
-        friendlyMessage = "Failed to put metric data to CloudWatch",
-        statusCode = 500,
-        context = None,
         throwable = Some(exception)
       ).attempt
     }
@@ -212,7 +201,7 @@ object Cloudwatch extends LazyLogging {
         }
       )(e => {
         logger.error(s"Failed to emit $actionLabel metric: ${e.getMessage}", e)
-        FailedAttempt(List(Failure(e.getMessage, e.getMessage, 500)))
+        FailedAttempt(List(Failure(e.getMessage)))
       })
       .map(_ => ())
 }

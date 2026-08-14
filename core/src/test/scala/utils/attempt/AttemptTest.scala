@@ -85,7 +85,7 @@ class AttemptTest extends AnyFreeSpec with Matchers with EitherValues {
   def checkError(errors: FailedAttempt, expected: String): Unit = {
     errors.failures.head.message shouldEqual expected
   }
-  def expectedFailure[A](message: String): Attempt[A] = Left[A](Failure(message, "this will fail", 500))
+  def expectedFailure[A](message: String): Attempt[A] = Left[A](Failure(message))
 
   /** Utility for dealing with futures in tests
     */
