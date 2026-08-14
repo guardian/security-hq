@@ -1,20 +1,25 @@
 package aws.s3
 
 import model.{BucketEncryptionResponse, BucketNotFound, Encrypted, NotEncrypted}
+import software.amazon.awssdk.core.ResponseBytes
+import software.amazon.awssdk.core.sync.ResponseTransformer
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{GetBucketEncryptionRequest, GetObjectRequest, S3Exception}
+import software.amazon.awssdk.services.s3.model.{
+  GetBucketEncryptionRequest,
+  GetObjectRequest,
+  GetObjectResponse,
+  S3Exception
+}
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
-import scala.io.BufferedSource
 import scala.util.control.NonFatal
 
 object S3 {
-  def getS3Object(s3Client: S3Client, bucket: String, key: String): Attempt[BufferedSource] = {
+  def getS3Object(s3Client: S3Client, bucket: String, key: String): Attempt[ResponseBytes[GetObjectResponse]] = {
     val request = GetObjectRequest.builder().bucket(bucket).key(key).build()
     try {
       Attempt.Right {
-        scala.io.Source
-          .fromInputStream(s3Client.getObject(request))
+        s3Client.getObject(request, ResponseTransformer.toBytes())
       }
     } catch {
       case NonFatal(e) =>

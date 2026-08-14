@@ -5,6 +5,8 @@ import aws.iam.IAMClient.getAllCredentialReports
 import aws.s3.S3.getS3Object
 import aws.{AWS, AwsClients}
 import com.gu.janus.JanusConfig
+import com.gu.janus.JanusConfig.JanusConfigurationException
+import com.gu.janus.model.JanusData
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import config.CoreConfig
@@ -15,9 +17,12 @@ import model.*
 import notifications.AnghammaradNotifications
 import software.amazon.awssdk.services.iam.IamAsyncClient
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import utils.attempt.{Attempt, FailedAttempt, Failure}
 
+import java.io.File
+import java.time.{Instant, Period}
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 import scala.jdk.CollectionConverters.*
@@ -59,6 +64,49 @@ object UnrecognisedUsers extends LazyLogging {
   private def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
     Left(Failure.notYetLoaded(account.id, "credentials").attempt)
 
+  val ONE_WEEK = Period.ofDays(7)
+  private def janusConfigIsFresh(objectResponse: GetObjectResponse): Attempt[Boolean] = {
+    val lastModified = objectResponse.lastModified()
+    val isStale = lastModified.isBefore(Instant.now().minus(ONE_WEEK))
+    if (isStale) {
+      Attempt.Left(
+        FailedAttempt(
+          Failure(
+            s"Janus config has not been updated since ${lastModified.toString()}"
+          )
+        )
+      )
+    } else {
+      Attempt.Right(true)
+    }
+  }
+
+  private def loadJanusConfig(dataFile: File): Attempt[JanusData] = {
+    try {
+      val config = JanusConfig.load(dataFile)
+      val hasSensibleNumberOfUsers = config.access.userAccess.size > 10
+      if (hasSensibleNumberOfUsers)
+        Attempt.Right(config)
+      else
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"Janus config only lists ${config.access.userAccess.size} users, which is suspiciously low"
+            )
+          )
+        )
+    } catch {
+      case e: JanusConfigurationException =>
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              e.getMessage(),
+              throwable = Some(e)
+            )
+          )
+        )
+    }
+  }
   private def disableUnrecognisedUsers(
       settings: Settings
   )(using ExecutionContext): Attempt[List[String]] = {
@@ -70,15 +118,16 @@ object UnrecognisedUsers extends LazyLogging {
 
     for {
       // load Security HQ's config (accounts, allowed accounts, notification topic) from S3
-      configSource <- getS3Object(s3Client, settings.configBucket, settings.configKey)
-      conf = ConfigFactory.parseString(configSource.mkString)
+      configObject <- getS3Object(s3Client, settings.configBucket, settings.configKey)
+      conf = ConfigFactory.parseString(configObject.asUtf8String())
       awsAccounts = CoreConfig.parseAccounts(conf)
       allowedAccountIds = conf.getStringList(ALLOWED_ACCOUNT_IDS).asScala.toList
       anghammaradSnsArn = conf.getString(ANGHAMMARAD_SNS_ARN)
 
       // fetch and parse our stored Janus config to use as the canonical source of "recognised" usernames
-      janusSource <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
-      janusData = JanusConfig.load(makeFile(janusSource.mkString))
+      janusConfigObject <- getS3Object(s3Client, settings.janusBucket, settings.janusKey)
+      _ <- janusConfigIsFresh(janusConfigObject.response())
+      janusData <- loadJanusConfig(makeFile(janusConfigObject.asUtf8String()))
       janusUsernames = getJanusUsernames(janusData)
       notificationIds <- new UnrecognisedUsers(
         awsAccounts,
