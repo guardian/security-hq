@@ -1230,10 +1230,29 @@ exports[`HQ stack matches the snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI07494ADB7": {
+    "iamoutdatedcredentialsiamoutdatedcredentialscron09MONFRI0AllowEventRulesecurityhqiamoutdatedcredentials0C07F7DEF59189D6": {
       "Properties": {
-        "Description": "Run iam-outdated-credentials lambda, Monday-Friday at 9AM and 2PM",
-        "ScheduleExpression": "cron(0 9,14 ? * MON-FRI *)",
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "iamoutdatedcredentials652F7EC1",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "iamoutdatedcredentialsiamoutdatedcredentialscron09MONFRI0EB8C1E06",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "iamoutdatedcredentialsiamoutdatedcredentialscron09MONFRI0EB8C1E06": {
+      "Properties": {
+        "Description": "Run iam-outdated-credentials lambda, Monday-Friday at 9AM",
+        "ScheduleExpression": "cron(0 9 ? * MON-FRI *)",
         "State": "ENABLED",
         "Tags": [
           {
@@ -1270,25 +1289,6 @@ exports[`HQ stack matches the snapshot 1`] = `
         ],
       },
       "Type": "AWS::Events::Rule",
-    },
-    "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI0AllowEventRulesecurityhqiamoutdatedcredentials0C07F7DE459CE6E8": {
-      "Properties": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "iamoutdatedcredentials652F7EC1",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": {
-          "Fn::GetAtt": [
-            "iamoutdatedcredentialsiamoutdatedcredentialscron0914MONFRI07494ADB7",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
     },
     "iamunrecognisedusersD1D8EA98": {
       "DependsOn": [

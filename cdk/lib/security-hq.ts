@@ -321,11 +321,11 @@ export class SecurityHQ extends GuStack {
           {
             schedule: Schedule.cron({
               minute: "0",
-              hour: "9,14",
+              hour: "9",
               weekDay: "MON-FRI",
             }),
             description:
-              "Run iam-outdated-credentials lambda, Monday-Friday at 9AM and 2PM",
+              "Run iam-outdated-credentials lambda, Monday-Friday at 9AM",
           },
         ],
         app: "iam-outdated-credentials",
