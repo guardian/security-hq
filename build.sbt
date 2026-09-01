@@ -25,8 +25,8 @@ val awsSdkVersion = "2.52.1"
  * 3. If no earlier version appears in the dependency list, the entry can be removed.
  */
 val safeTransitiveDependencies = {
-  val jacksonV2Version = "2.22.1"
-  val jacksonV3Version = "3.2.1"
+  val jacksonV2Version = "2.22.2"
+  val jacksonV3Version = "3.2.2"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
