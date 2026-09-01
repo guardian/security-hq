@@ -52,7 +52,7 @@ lazy val core = (project in file("core"))
       "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "joda-time" % "joda-time" % "2.14.3",
-      "com.gu" %% "anghammarad-client" % "7.0.0",
+      "com.gu" %% "anghammarad-client" % "8.0.0",
       "com.gu" %% "janus-config-tools" % "14.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
       "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
