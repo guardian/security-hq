@@ -1,7 +1,7 @@
 Guardian Duty
 =============
 
-Notifications for [AWS GuardDuty](https://aws.amazon.com/guardduty/). This is currently a "prototype" application.
+Notifications for [AWS GuardDuty](https://aws.amazon.com/guardduty/).
 
 ## Overview
 
