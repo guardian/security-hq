@@ -3,11 +3,9 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "quarterly"
     commit-message:
       prefix: "chore(deps): "
-    labels:
-      - "dependencies"
     cooldown:
       default-days: 7
     groups:
@@ -17,17 +15,9 @@ updates:
   - package-ecosystem: "npm"
     directory: "/cdk"
     schedule:
-      interval: "monthly"
+      interval: "quarterly"
     commit-message:
       prefix: "chore(deps): "
-    # The version of AWS CDK libraries must match those from @guardian/cdk.
-    # We'd never be able to update them here independently, so just ignore them.
-    ignore:
-      - dependency-name: "aws-cdk"
-      - dependency-name: "aws-cdk-lib"
-      - dependency-name: "constructs"
-    labels:
-      - "dependencies"
     cooldown:
       default-days: 7
     groups:
@@ -37,11 +27,9 @@ updates:
   - package-ecosystem: "sbt"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "quarterly"
     commit-message:
       prefix: "chore(deps): "
-    labels:
-      - "dependencies"
     cooldown:
       default-days: 7
     ignore:
