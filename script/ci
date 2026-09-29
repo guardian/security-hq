@@ -18,3 +18,7 @@ mv iam-outdated-credentials/target/scala-*/iam-outdated-credentials-assembly-*.j
 # Build the iam-unrecognised-users lambda assembly jar
 ./sbt --no-conf '; project iamUnrecognisedUsers; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
 mv iam-unrecognised-users/target/scala-*/iam-unrecognised-users-assembly-*.jar "dist/iam-unrecognised-users-$BUILD_NUMBER.jar"
+
+./sbt --no-conf '; project guardianDuty; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
+
+mv guardian-duty/target/scala-*/guardian-duty-assembly-*.jar "dist/guardian-duty-$BUILD_NUMBER.jar"
