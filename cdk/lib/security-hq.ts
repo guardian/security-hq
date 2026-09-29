@@ -19,6 +19,7 @@ import {
   GuPutCloudwatchMetricsPolicy,
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
+import { GuLambdaFunction } from "@guardian/cdk/lib/constructs/lambda";
 import { GuDeveloperPolicyExperimental } from "@guardian/cdk/lib/experimental/constructs/iam/policies";
 import type { App } from "aws-cdk-lib";
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
@@ -28,7 +29,8 @@ import {
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
 import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
-import { Schedule } from "aws-cdk-lib/aws-events";
+import { Rule, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { Topic } from "aws-cdk-lib/aws-sns";
@@ -395,6 +397,36 @@ export class SecurityHQ extends GuStack {
     iamUnrecognisedUsersLambdaAdditionalPolicies.forEach((policy) => {
       iamUnrecognisedUsersLambda.role!.attachInlinePolicy(policy);
     });
+
+    const guardianDutyLambda = new GuLambdaFunction(
+      this,
+      "guardian-duty-lambda",
+      {
+        app: "guardian-duty",
+        fileName: `guardian-duty-${buildIdentifier}.jar`,
+        handler: "com.gu.guardianduty.Lambda::handleRequest",
+        runtime: Runtime.JAVA_21,
+        timeout: Duration.seconds(60),
+        memorySize: 512,
+        environment: {
+          ANGHAMMARAD_SNS_ARN:
+            GuAnghammaradTopicParameter.getInstance(this).valueAsString,
+        },
+      },
+    );
+
+    guardianDutyLambda.role?.attachInlinePolicy(
+      GuAnghammaradSenderPolicy.getInstance(this),
+    );
+
+    const rule = new Rule(this, "guardduty-finding-rule", {
+      eventPattern: {
+        source: ["aws.guardduty"],
+        detailType: ["GuardDuty Finding"],
+      },
+    });
+
+    rule.addTarget(new LambdaFunctionTarget(guardianDutyLambda));
   }
 
   private getCallerIdentityPolicy() {
