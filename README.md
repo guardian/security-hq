@@ -1,10 +1,14 @@
 # Security HQ
 
-This project contains two lambdas, previously referred to as Credentials Reaper.
+This project contains three lambdas.
 
-The original web app has been removed.  It also contains a `core` project of code shared by the lambdas
+The combination of the Outdated Credentials and Unrecognised Users lambdas replace the processes which were previously referred to as the "Credentials Reaper".
 
-Instructions to run each lambda are found in the relevant documentation in the sub-project.
+The third, "Guardian Duty", notifies teams when a new GuardDuty alert is raised in AWS.
+
+The original web app has been removed.  It also contains a `core` project of code shared by the lambdas.
+
+Instructions to run each lambda are found in the relevant documentation in each sub-project.
 
 ## Credentials Reaper actions.
 
@@ -19,7 +23,7 @@ The emails are sent via Anghammarad and uses its AWS Account to email address ma
 
 You can also find the dynamo table in the Security AWS Account.
 
-# Local development
+## Local development
 
 This project is suitable to run in a devcontainer.  Required files will be fetched by the setup script, and can be 
 altered as desired.

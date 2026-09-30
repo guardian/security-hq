@@ -103,15 +103,33 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
     name := "iam-unrecognised-users",
     scalacOptions += "--deprecation",
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
+      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ),
     assembly / mainClass := Some("unrecognised.Main"),
     mergeStrategySettings
   )
 
+lazy val guardianDuty = (project in file("guardian-duty"))
+  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .settings(
+    name := "guardian-duty",
+    scalacOptions += "--deprecation",
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
+      "com.amazonaws" % "aws-lambda-java-events" % "3.16.1",
+      "software.amazon.awssdk" % "guardduty" % awsSdkVersion,
+      "software.amazon.awssdk" % "aws-crt-client" % awsSdkVersion,
+      "org.scalameta" %% "munit" % "1.3.1" % Test,
+    ),
+    assembly / mainClass := Some("com.gu.guardianduty.Lambda"),
+    mergeStrategySettings,
+  )
+
+
 lazy val root = (project in file("."))
-  .aggregate(core, iamUnrecognisedUsers, iamOutdatedCredentials)
+  .aggregate(core, iamUnrecognisedUsers, iamOutdatedCredentials, guardianDuty)
   .settings(
     name := """security-hq"""
   )
