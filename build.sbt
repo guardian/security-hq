@@ -49,7 +49,7 @@ lazy val core = (project in file("core"))
   .settings(
     name := "security-hq-core",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "3.13.0",
+      "co.fs2" %% "fs2-core" % "3.14.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "joda-time" % "joda-time" % "2.14.3",
       "com.gu" %% "anghammarad-client" % "8.0.0",
