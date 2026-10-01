@@ -26,7 +26,7 @@ val awsSdkVersion = "2.55.4"
  */
 val safeTransitiveDependencies = {
   val jacksonV2Version = "2.22.3"
-  val jacksonV3Version = "3.2.2"
+  val jacksonV3Version = "3.2.3"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
