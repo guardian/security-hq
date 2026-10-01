@@ -67,7 +67,7 @@ lazy val core = (project in file("core"))
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
       "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.19.0" % Test
+      "org.scalacheck" %% "scalacheck" % "1.20.0" % Test
     ) ++ safeTransitiveDependencies,
     Test / parallelExecution := false,
     Test / fork := false
