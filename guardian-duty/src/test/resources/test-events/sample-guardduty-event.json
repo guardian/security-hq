@@ -1,0 +1,649 @@
+{
+  "version": "0",
+  "id": "ee33b3c3-9ff9-0d12-f345-6789e56e4321",
+  "detail-type": "GuardDuty Finding",
+  "source": "aws.guardduty",
+  "account": "100000000000",
+  "time": "2026-05-29T14:15:03Z",
+  "region": "eu-west-1",
+  "resources": [],
+  "detail": {
+    "schemaVersion": "2.0",
+    "accountId": "100000000000",
+    "region": "eu-west-1",
+    "partition": "aws",
+    "id": "dc7f7821c5404f68ad2aa6ff85237ddd",
+    "arn": "arn:aws:guardduty:eu-west-1:100000000000:detector/f0b0111930986e6267f4ea7422997d4c/finding/dc7f7821c5404f68ad2aa6ff85237ddd",
+    "type": "Exfiltration:S3/AnomalousBehavior",
+    "resource": {
+      "resourceType": "S3Bucket",
+      "accessKeyDetails": {
+        "accessKeyId": "GeneratedFindingAccessKeyId",
+        "principalId": "GeneratedFindingPrincipalId",
+        "userType": "IAMUser",
+        "userName": "GeneratedFindingUserName"
+      },
+      "s3BucketDetails": [
+        {
+          "arn": "arn:aws:s3:::example-bucket1",
+          "name": "example-bucket1",
+          "type": "Destination",
+          "createdAt": 1.513612691551E9,
+          "owner": {
+            "id": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456781"
+          },
+          "tags": [
+            {
+              "key": "GeneratedFindingS3Tag1",
+              "value": "GeneratedFindingS3TagValue1"
+            },
+            {
+              "key": "GeneratedFindingS3Tag2",
+              "value": "GeneratedFindingS3TagValue2"
+            },
+            {
+              "key": "GeneratedFindingS3Tag3",
+              "value": "GeneratedFindingS3TagValue3"
+            },
+            {
+              "key": "GeneratedFindingS3Tag4",
+              "value": "bGeneratedFindingS3TagValue4"
+            }
+          ],
+          "defaultServerSideEncryption": {
+            "encryptionType": "SSEAlgorithm",
+            "kmsMasterKeyArn": "arn:aws:kms:us-west-2:123456789012:key/abcd1234-5678-90ab-cdef-1234567890a1"
+          },
+          "publicAccess": {
+            "permissionConfiguration": {
+              "bucketLevelPermissions": {
+                "accessControlList": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "bucketPolicy": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              },
+              "accountLevelPermissions": {
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              }
+            },
+            "effectivePermission": "NOT_PUBLIC"
+          }
+        },
+        {
+          "arn": "arn:aws:s3:::example-bucket2",
+          "name": "example-bucket2",
+          "type": "Destination",
+          "createdAt": 1.513612691551E9,
+          "owner": {
+            "id": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456782"
+          },
+          "tags": [
+            {
+              "key": "GeneratedFindingS3Tag1",
+              "value": "GeneratedFindingS3TagValue1"
+            },
+            {
+              "key": "GeneratedFindingS3Tag2",
+              "value": "GeneratedFindingS3TagValue2"
+            },
+            {
+              "key": "GeneratedFindingS3Tag3",
+              "value": "GeneratedFindingS3TagValue3"
+            },
+            {
+              "key": "GeneratedFindingS3Tag4",
+              "value": "bGeneratedFindingS3TagValue4"
+            }
+          ],
+          "defaultServerSideEncryption": {
+            "encryptionType": "SSEAlgorithm",
+            "kmsMasterKeyArn": "arn:aws:kms:us-west-2:123456789012:key/abcd1234-5678-90ab-cdef-1234567890a2"
+          },
+          "publicAccess": {
+            "permissionConfiguration": {
+              "bucketLevelPermissions": {
+                "accessControlList": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "bucketPolicy": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              },
+              "accountLevelPermissions": {
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              }
+            },
+            "effectivePermission": "NOT_PUBLIC"
+          }
+        },
+        {
+          "arn": "arn:aws:s3:::example-bucket3",
+          "name": "example-bucket3",
+          "type": "Destination",
+          "createdAt": 1.513612691551E9,
+          "owner": {
+            "id": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456783"
+          },
+          "tags": [
+            {
+              "key": "GeneratedFindingS3Tag1",
+              "value": "GeneratedFindingS3TagValue1"
+            },
+            {
+              "key": "GeneratedFindingS3Tag2",
+              "value": "GeneratedFindingS3TagValue2"
+            },
+            {
+              "key": "GeneratedFindingS3Tag3",
+              "value": "GeneratedFindingS3TagValue3"
+            },
+            {
+              "key": "GeneratedFindingS3Tag4",
+              "value": "bGeneratedFindingS3TagValue4"
+            }
+          ],
+          "defaultServerSideEncryption": {
+            "encryptionType": "SSEAlgorithm",
+            "kmsMasterKeyArn": "arn:aws:kms:us-west-2:123456789012:key/abcd1234-5678-90ab-cdef-1234567890a3"
+          },
+          "publicAccess": {
+            "permissionConfiguration": {
+              "bucketLevelPermissions": {
+                "accessControlList": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "bucketPolicy": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              },
+              "accountLevelPermissions": {
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              }
+            },
+            "effectivePermission": "NOT_PUBLIC"
+          }
+        },
+        {
+          "arn": "arn:aws:s3:::example-bucket4",
+          "name": "example-bucket4",
+          "type": "Destination",
+          "createdAt": 1.513612691551E9,
+          "owner": {
+            "id": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456784"
+          },
+          "tags": [
+            {
+              "key": "GeneratedFindingS3Tag1",
+              "value": "GeneratedFindingS3TagValue1"
+            },
+            {
+              "key": "GeneratedFindingS3Tag2",
+              "value": "GeneratedFindingS3TagValue2"
+            },
+            {
+              "key": "GeneratedFindingS3Tag3",
+              "value": "GeneratedFindingS3TagValue3"
+            },
+            {
+              "key": "GeneratedFindingS3Tag4",
+              "value": "bGeneratedFindingS3TagValue4"
+            }
+          ],
+          "defaultServerSideEncryption": {
+            "encryptionType": "SSEAlgorithm",
+            "kmsMasterKeyArn": "arn:aws:kms:us-west-2:123456789012:key/abcd1234-5678-90ab-cdef-1234567890a4"
+          },
+          "publicAccess": {
+            "permissionConfiguration": {
+              "bucketLevelPermissions": {
+                "accessControlList": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "bucketPolicy": {
+                  "allowsPublicReadAccess": false,
+                  "allowsPublicWriteAccess": false
+                },
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              },
+              "accountLevelPermissions": {
+                "blockPublicAccess": {
+                  "ignorePublicAcls": false,
+                  "restrictPublicBuckets": false,
+                  "blockPublicAcls": false,
+                  "blockPublicPolicy": false
+                }
+              }
+            },
+            "effectivePermission": "NOT_PUBLIC"
+          }
+        }
+      ],
+      "instanceDetails": {
+        "instanceId": "i-99999999",
+        "instanceType": "m3.xlarge",
+        "outpostArn": "arn:aws:outposts:us-west-2:123456789000:outpost/op-0fbc006e9abbc73c3",
+        "launchTime": "2016-08-02T02:05:06.000Z",
+        "platform": null,
+        "productCodes": [
+          {
+            "productCodeId": "GeneratedFindingProductCodeId1",
+            "productCodeType": "marketplace"
+          },
+          {
+            "productCodeId": "GeneratedFindingProductCodeId2",
+            "productCodeType": "marketplace"
+          },
+          {
+            "productCodeId": "GeneratedFindingProductCodeId3",
+            "productCodeType": "marketplace"
+          },
+          {
+            "productCodeId": "GeneratedFindingProductCodeId4",
+            "productCodeType": "marketplace"
+          },
+          {
+            "productCodeId": "GeneratedFindingProductCodeId5",
+            "productCodeType": "marketplace"
+          }
+        ],
+        "iamInstanceProfile": {
+          "arn": "arn:aws:iam::100000000000:instance-profile/generated",
+          "id": "GeneratedFindingInstanceProfileId"
+        },
+        "networkInterfaces": [
+          {
+            "ipv6Addresses": [],
+            "networkInterfaceId": "eni-abcdef00",
+            "privateDnsName": "GeneratedFindingPrivateDnsName1",
+            "privateIpAddress": "10.0.0.1",
+            "privateIpAddresses": [
+              {
+                "privateDnsName": "GeneratedFindingPrivateName1",
+                "privateIpAddress": "10.0.0.1"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName2",
+                "privateIpAddress": "10.0.0.2"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName3",
+                "privateIpAddress": "10.0.0.3"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName4",
+                "privateIpAddress": "10.0.0.4"
+              }
+            ],
+            "subnetId": "GeneratedFindingSubnetId1",
+            "vpcId": "vpc-generatedvpcid1",
+            "securityGroups": [
+              {
+                "groupName": "GeneratedFindingSecurityGroupName1",
+                "groupId": "GeneratedFindingSecurityId1"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName2",
+                "groupId": "GeneratedFindingSecurityId2"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName3",
+                "groupId": "GeneratedFindingSecurityId3"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName4",
+                "groupId": "GeneratedFindingSecurityId4"
+              }
+            ],
+            "publicDnsName": "GeneratedFindingPublicDNSName1",
+            "publicIp": "198.51.100.1"
+          },
+          {
+            "ipv6Addresses": [],
+            "networkInterfaceId": "eni-abcdef01",
+            "privateDnsName": "GeneratedFindingPrivateDnsName2",
+            "privateIpAddress": "10.0.0.2",
+            "privateIpAddresses": [
+              {
+                "privateDnsName": "GeneratedFindingPrivateName1",
+                "privateIpAddress": "10.0.0.1"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName2",
+                "privateIpAddress": "10.0.0.2"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName3",
+                "privateIpAddress": "10.0.0.3"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName4",
+                "privateIpAddress": "10.0.0.4"
+              }
+            ],
+            "subnetId": "GeneratedFindingSubnetId2",
+            "vpcId": "vpc-generatedvpcid2",
+            "securityGroups": [
+              {
+                "groupName": "GeneratedFindingSecurityGroupName1",
+                "groupId": "GeneratedFindingSecurityId1"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName2",
+                "groupId": "GeneratedFindingSecurityId2"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName3",
+                "groupId": "GeneratedFindingSecurityId3"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName4",
+                "groupId": "GeneratedFindingSecurityId4"
+              }
+            ],
+            "publicDnsName": "GeneratedFindingPublicDNSName2",
+            "publicIp": "198.51.100.2"
+          },
+          {
+            "ipv6Addresses": [],
+            "networkInterfaceId": "eni-abcdef02",
+            "privateDnsName": "GeneratedFindingPrivateDnsName3",
+            "privateIpAddress": "10.0.0.3",
+            "privateIpAddresses": [
+              {
+                "privateDnsName": "GeneratedFindingPrivateName1",
+                "privateIpAddress": "10.0.0.1"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName2",
+                "privateIpAddress": "10.0.0.2"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName3",
+                "privateIpAddress": "10.0.0.3"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName4",
+                "privateIpAddress": "10.0.0.4"
+              }
+            ],
+            "subnetId": "GeneratedFindingSubnetId3",
+            "vpcId": "vpc-generatedvpcid3",
+            "securityGroups": [
+              {
+                "groupName": "GeneratedFindingSecurityGroupName1",
+                "groupId": "GeneratedFindingSecurityId1"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName2",
+                "groupId": "GeneratedFindingSecurityId2"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName3",
+                "groupId": "GeneratedFindingSecurityId3"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName4",
+                "groupId": "GeneratedFindingSecurityId4"
+              }
+            ],
+            "publicDnsName": "GeneratedFindingPublicDNSName3",
+            "publicIp": "198.51.100.3"
+          },
+          {
+            "ipv6Addresses": [],
+            "networkInterfaceId": "eni-abcdef03",
+            "privateDnsName": "GeneratedFindingPrivateDnsName4",
+            "privateIpAddress": "10.0.0.4",
+            "privateIpAddresses": [
+              {
+                "privateDnsName": "GeneratedFindingPrivateName1",
+                "privateIpAddress": "10.0.0.1"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName2",
+                "privateIpAddress": "10.0.0.2"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName3",
+                "privateIpAddress": "10.0.0.3"
+              },
+              {
+                "privateDnsName": "GeneratedFindingPrivateName4",
+                "privateIpAddress": "10.0.0.4"
+              }
+            ],
+            "subnetId": "GeneratedFindingSubnetId4",
+            "vpcId": "vpc-generatedvpcid4",
+            "securityGroups": [
+              {
+                "groupName": "GeneratedFindingSecurityGroupName1",
+                "groupId": "GeneratedFindingSecurityId1"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName2",
+                "groupId": "GeneratedFindingSecurityId2"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName3",
+                "groupId": "GeneratedFindingSecurityId3"
+              },
+              {
+                "groupName": "GeneratedFindingSecurityGroupName4",
+                "groupId": "GeneratedFindingSecurityId4"
+              }
+            ],
+            "publicDnsName": "GeneratedFindingPublicDNSName4",
+            "publicIp": "198.51.100.4"
+          }
+        ],
+        "tags": [
+          {
+            "key": "GeneratedFindingInstaceTag1",
+            "value": "GeneratedFindingInstaceValue1"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag2",
+            "value": "GeneratedFindingInstaceTagValue2"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag3",
+            "value": "GeneratedFindingInstaceTagValue3"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag4",
+            "value": "GeneratedFindingInstaceTagValue4"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag5",
+            "value": "GeneratedFindingInstaceTagValue5"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag6",
+            "value": "GeneratedFindingInstaceTagValue6"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag7",
+            "value": "GeneratedFindingInstaceTagValue7"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag8",
+            "value": "GeneratedFindingInstaceTagValue8"
+          },
+          {
+            "key": "GeneratedFindingInstaceTag9",
+            "value": "GeneratedFindingInstaceTagValue9"
+          }
+        ],
+        "instanceState": "running",
+        "availabilityZone": "generated-az-1a",
+        "imageId": "ami-99999999",
+        "imageDescription": "GeneratedFindingInstaceImageDescription"
+      }
+    },
+    "service": {
+      "serviceName": "guardduty",
+      "detectorId": "f0b0111930986e6267f4ea7422997d4c",
+      "action": {
+        "actionType": "AWS_API_CALL",
+        "awsApiCallAction": {
+          "api": "GeneratedFindingAPIName",
+          "serviceName": "GeneratedFindingAPIServiceName",
+          "callerType": "Remote IP",
+          "errorCode": "AccessDenied",
+          "remoteIpDetails": {
+            "ipAddressV4": "198.51.100.0",
+            "organization": {
+              "asn": "-1",
+              "asnOrg": "GeneratedFindingASNOrg",
+              "isp": "GeneratedFindingISP",
+              "org": "GeneratedFindingOrg"
+            },
+            "country": {
+              "countryName": "GeneratedFindingCountryName"
+            },
+            "city": {
+              "cityName": "GeneratedFindingCityName"
+            },
+            "geoLocation": {
+              "lat": 0,
+              "lon": 0
+            },
+            "ipAddressV6": "1234:5678:90ab:cdef:1234:5678:90ab:cde0"
+          },
+          "affectedResources": {}
+        }
+      },
+      "resourceRole": "TARGET",
+      "additionalInfo": {
+        "userAgent": {
+          "fullUserAgent": "GeneratedFindingFullUserAgent",
+          "userAgentCategory": "GeneratedFindingUserAgentCategory"
+        },
+        "anomalies": {
+          "anomalousAPIs": "GeneratedFindingAPIServiceName:[GeneratedFindingAPIName:AccessDenied , GeneratedFindingAPINameTwo:AccessDenied] , GeneratedFindingAPIServiceNameThree:[GeneratedFindingAPINameThree:success] , GeneratedFindingAPIServiceNameFour:[GeneratedFindingAPINameFour:success]"
+        },
+        "profiledBehavior": {
+          "rareProfiledAPIsAccountProfiling": "GeneratedFindingAPINameTwo , GeneratedFindingAPINameThree",
+          "infrequentProfiledAPIsAccountProfiling": "GeneratedFindingAPINameFour",
+          "frequentProfiledAPIsAccountProfiling": "GeneratedFindingAPINameFive , GeneratedFindingAPINameSix",
+          "rareProfiledAPIsUserIdentityProfiling": "GeneratedFindingAPINameTwo",
+          "infrequentProfiledAPIsUserIdentityProfiling": "GeneratedFindingAPINameSix",
+          "frequentProfiledAPIsUserIdentityProfiling": "GeneratedFindingAPINameFive",
+          "rareProfiledUserTypesAccountProfiling": "GeneratedFindingUserType",
+          "infrequentProfiledUserTypesAccountProfiling": "",
+          "frequentProfiledUserTypesAccountProfiling": "ASSUMED_ROLE",
+          "rareProfiledUserNamesAccountProfiling": "GeneratedFindingUserName , GeneratedFindingUserNameTwo",
+          "infrequentProfiledUserNamesAccountProfiling": "",
+          "frequentProfiledUserNamesAccountProfiling": "GeneratedFindingUserNameTwoThree",
+          "rareProfiledUserNamesBucketProfiling": "",
+          "infrequentProfiledUserNamesBucketProfiling": "",
+          "frequentProfiledUserNamesBucketProfiling": "GeneratedFindingBucketName",
+          "rareProfiledASNsAccountProfiling": "",
+          "infrequentProfiledASNsAccountProfiling": "",
+          "frequentProfiledASNsAccountProfiling": "asnNumber: GeneratedFindingASNOne asnOrg: GeneratedFindingASNOrgOne",
+          "rareProfiledASNsUserIdentityProfiling": "asnNumber: GeneratedFindingASNOne asnOrg: GeneratedFindingASNOrgOne",
+          "infrequentProfiledASNsUserIdentityProfiling": "",
+          "frequentProfiledASNsUserIdentityProfiling": "",
+          "rareProfiledASNsBucketProfiling": "",
+          "infrequentProfiledASNsBucketProfiling": "",
+          "frequentProfiledASNsBucketProfiling": "",
+          "rareProfiledUserAgentsAccountProfiling": "",
+          "infrequentProfiledUserAgentsAccountProfiling": "",
+          "frequentProfiledUserAgentsAccountProfiling": "AWS Service , AWS Internal",
+          "rareProfiledUserAgentsUserIdentityProfiling": "",
+          "infrequentProfiledUserAgentsUserIdentityProfiling": "",
+          "frequentProfiledUserAgentsUserIdentityProfiling": "",
+          "rareProfiledBucketsAccountProfiling": "",
+          "infrequentProfiledBucketsAccountProfiling": "",
+          "frequentProfiledBucketsAccountProfiling": "GeneratedFindingBucketName",
+          "rareProfiledBucketsUserIdentityProfiling": "",
+          "infrequentProfiledBucketsUserIdentityProfiling": "",
+          "frequentProfiledBucketsUserIdentityProfiling": "",
+          "numberOfHistoricalDailyMaxAPIsBucketUserIdentityProfiling": "1000",
+          "numberOfHistoricalDailyAvgAPIsBucketUserIdentityProfiling": "150",
+          "numberOfHistoricalDailyMaxAPIsBucketProfiling": "100000",
+          "numberOfHistoricalDailyAvgAPIsBucketProfiling": "2000",
+          "numberOfHistoricalDailyMaxAPIsUserIdentityProfiling": "2000",
+          "numberOfHistoricalDailyAvgAPIsUserIdentityProfiling": "300"
+        },
+        "unusualBehavior": {
+          "unusualAPIsAccountProfiling": "GeneratedFindingAPIName",
+          "unusualAPIsUserIdentityProfiling": "GeneratedFindingAPIName",
+          "unusualUserTypesAccountProfiling": "",
+          "unusualUserNamesAccountProfiling": "GeneratedFindingUserName",
+          "unusualUserNamesBucketProfiling": "",
+          "unusualASNsAccountProfiling": "asnNumber: -1 asnOrg: GeneratedFindingASNOrg",
+          "unusualASNsUserIdentityProfiling": "",
+          "unusualASNsBucketProfiling": "",
+          "unusualUserAgentsAccountProfiling": "GeneratedFindingUserAgentCategory",
+          "unusualUserAgentsUserIdentityProfiling": "",
+          "unusualBucketsAccountProfiling": "GeneratedFindingBucketName",
+          "unusualBucketsUserIdentityProfiling": "",
+          "isUnusualUserIdentity": "false",
+          "numberOfPast24HoursAPIsBucketUserIdentityProfiling": "20000",
+          "numberOfPast24HoursAPIsBucketProfiling": "30000",
+          "numberOfPast24HoursAPIsUserIdentityProfiling": "25000"
+        },
+        "sample": true,
+        "value": "{\"userAgent\":{\"fullUserAgent\":\"GeneratedFindingFullUserAgent\",\"userAgentCategory\":\"GeneratedFindingUserAgentCategory\"},\"anomalies\":{\"anomalousAPIs\":\"GeneratedFindingAPIServiceName:[GeneratedFindingAPIName:AccessDenied, GeneratedFindingAPINameTwo:AccessDenied], GeneratedFindingAPIServiceNameThree:[GeneratedFindingAPINameThree:success], GeneratedFindingAPIServiceNameFour:[GeneratedFindingAPINameFour:success]\"},\"profiledBehavior\":{\"rareProfiledAPIsAccountProfiling\":\"GeneratedFindingAPINameTwo, GeneratedFindingAPINameThree\",\"infrequentProfiledAPIsAccountProfiling\":\"GeneratedFindingAPINameFour\",\"frequentProfiledAPIsAccountProfiling\":\"GeneratedFindingAPINameFive, GeneratedFindingAPINameSix\",\"rareProfiledAPIsUserIdentityProfiling\":\"GeneratedFindingAPINameTwo\",\"infrequentProfiledAPIsUserIdentityProfiling\":\"GeneratedFindingAPINameSix\",\"frequentProfiledAPIsUserIdentityProfiling\":\"GeneratedFindingAPINameFive\",\"rareProfiledUserTypesAccountProfiling\":\"GeneratedFindingUserType\",\"infrequentProfiledUserTypesAccountProfiling\":\"\",\"frequentProfiledUserTypesAccountProfiling\":\"ASSUMED_ROLE\",\"rareProfiledUserNamesAccountProfiling\":\"GeneratedFindingUserName, GeneratedFindingUserNameTwo\",\"infrequentProfiledUserNamesAccountProfiling\":\"\",\"frequentProfiledUserNamesAccountProfiling\":\"GeneratedFindingUserNameTwoThree\",\"rareProfiledUserNamesBucketProfiling\":\"\",\"infrequentProfiledUserNamesBucketProfiling\":\"\",\"frequentProfiledUserNamesBucketProfiling\":\"GeneratedFindingBucketName\",\"rareProfiledASNsAccountProfiling\":\"\",\"infrequentProfiledASNsAccountProfiling\":\"\",\"frequentProfiledASNsAccountProfiling\":\"asnNumber: GeneratedFindingASNOne asnOrg: GeneratedFindingASNOrgOne\",\"rareProfiledASNsUserIdentityProfiling\":\"asnNumber: GeneratedFindingASNOne asnOrg: GeneratedFindingASNOrgOne\",\"infrequentProfiledASNsUserIdentityProfiling\":\"\",\"frequentProfiledASNsUserIdentityProfiling\":\"\",\"rareProfiledASNsBucketProfiling\":\"\",\"infrequentProfiledASNsBucketProfiling\":\"\",\"frequentProfiledASNsBucketProfiling\":\"\",\"rareProfiledUserAgentsAccountProfiling\":\"\",\"infrequentProfiledUserAgentsAccountProfiling\":\"\",\"frequentProfiledUserAgentsAccountProfiling\":\"AWS Service, AWS Internal\",\"rareProfiledUserAgentsUserIdentityProfiling\":\"\",\"infrequentProfiledUserAgentsUserIdentityProfiling\":\"\",\"frequentProfiledUserAgentsUserIdentityProfiling\":\"\",\"rareProfiledBucketsAccountProfiling\":\"\",\"infrequentProfiledBucketsAccountProfiling\":\"\",\"frequentProfiledBucketsAccountProfiling\":\"GeneratedFindingBucketName\",\"rareProfiledBucketsUserIdentityProfiling\":\"\",\"infrequentProfiledBucketsUserIdentityProfiling\":\"\",\"frequentProfiledBucketsUserIdentityProfiling\":\"\",\"numberOfHistoricalDailyMaxAPIsBucketUserIdentityProfiling\":\"1000\",\"numberOfHistoricalDailyAvgAPIsBucketUserIdentityProfiling\":\"150\",\"numberOfHistoricalDailyMaxAPIsBucketProfiling\":\"100000\",\"numberOfHistoricalDailyAvgAPIsBucketProfiling\":\"2000\",\"numberOfHistoricalDailyMaxAPIsUserIdentityProfiling\":\"2000\",\"numberOfHistoricalDailyAvgAPIsUserIdentityProfiling\":\"300\"},\"unusualBehavior\":{\"unusualAPIsAccountProfiling\":\"GeneratedFindingAPIName\",\"unusualAPIsUserIdentityProfiling\":\"GeneratedFindingAPIName\",\"unusualUserTypesAccountProfiling\":\"\",\"unusualUserNamesAccountProfiling\":\"GeneratedFindingUserName\",\"unusualUserNamesBucketProfiling\":\"\",\"unusualASNsAccountProfiling\":\"asnNumber: -1 asnOrg: GeneratedFindingASNOrg\",\"unusualASNsUserIdentityProfiling\":\"\",\"unusualASNsBucketProfiling\":\"\",\"unusualUserAgentsAccountProfiling\":\"GeneratedFindingUserAgentCategory\",\"unusualUserAgentsUserIdentityProfiling\":\"\",\"unusualBucketsAccountProfiling\":\"GeneratedFindingBucketName\",\"unusualBucketsUserIdentityProfiling\":\"\",\"isUnusualUserIdentity\":\"false\",\"numberOfPast24HoursAPIsBucketUserIdentityProfiling\":\"20000\",\"numberOfPast24HoursAPIsBucketProfiling\":\"30000\",\"numberOfPast24HoursAPIsUserIdentityProfiling\":\"25000\"},\"sample\":true}",
+        "type": "default"
+      },
+      "eventFirstSeen": "2026-05-29T14:14:19.000Z",
+      "eventLastSeen": "2026-05-29T14:14:19.000Z",
+      "archived": false,
+      "count": 1
+    },
+    "severity": 8,
+    "createdAt": "2026-05-29T14:14:19.598Z",
+    "updatedAt": "2026-05-29T14:14:19.598Z",
+    "title": "An IAM entity invoked an S3 API in an unusual way.",
+    "description": "An IAM entity in your AWS environment is making API calls that involve an S3 bucket and that differ from that entity's established baseline. The API call used in this activity is associated with the exfiltration stage of an attack, wherein and attacker is attempting to collect data. This activity is suspicious because the way the IAM entity invoked the API was unusual. For example, this IAM entity had no prior history of invoking this type of API, or the API was invoked from an unusual location."
+  }
+}
