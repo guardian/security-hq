@@ -51,7 +51,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "joda-time" % "joda-time" % "2.14.4",
-      "com.gu" %% "anghammarad-client" % "8.0.0",
+      "com.gu" %% "anghammarad-client" % "9.0.0",
       "com.gu" %% "janus-config-tools" % "14.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
       "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
@@ -62,7 +62,7 @@ lazy val core = (project in file("core"))
       "ch.qos.logback" % "logback-classic" % "1.6.4",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
-      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ) ++ safeTransitiveDependencies,
     Test / parallelExecution := false,
     Test / fork := false
@@ -116,12 +116,11 @@ lazy val guardianDuty = (project in file("guardian-duty"))
       "com.amazonaws" % "aws-lambda-java-events" % "3.16.1",
       "software.amazon.awssdk" % "guardduty" % awsSdkVersion,
       "software.amazon.awssdk" % "aws-crt-client" % awsSdkVersion,
-      "org.scalameta" %% "munit" % "1.3.6" % Test,
+      "org.scalameta" %% "munit" % "1.3.6" % Test
     ),
     assembly / mainClass := Some("com.gu.guardianduty.Lambda"),
-    mergeStrategySettings,
+    mergeStrategySettings
   )
-
 
 lazy val root = (project in file("."))
   .aggregate(core, iamUnrecognisedUsers, iamOutdatedCredentials, guardianDuty)
