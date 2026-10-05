@@ -49,9 +49,9 @@ lazy val core = (project in file("core"))
   .settings(
     name := "security-hq-core",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "3.13.0",
+      "co.fs2" %% "fs2-core" % "3.14.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
-      "joda-time" % "joda-time" % "2.14.3",
+      "joda-time" % "joda-time" % "2.14.4",
       "com.gu" %% "anghammarad-client" % "8.0.0",
       "com.gu" %% "janus-config-tools" % "14.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
@@ -62,12 +62,12 @@ lazy val core = (project in file("core"))
       "software.amazon.awssdk" % "sns" % awsSdkVersion,
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
       "software.amazon.awssdk" % "support" % awsSdkVersion,
-      "ch.qos.logback" % "logback-classic" % "1.6.3",
+      "ch.qos.logback" % "logback-classic" % "1.6.4",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
       "org.scalatest" %% "scalatest" % "3.2.20" % Test,
       "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.19.0" % Test
+      "org.scalacheck" %% "scalacheck" % "1.20.0" % Test
     ) ++ safeTransitiveDependencies,
     Test / parallelExecution := false,
     Test / fork := false
