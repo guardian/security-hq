@@ -74,11 +74,8 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .settings(
     name := """iam-outdated-credentials""",
     scalacOptions += "--deprecation",
-    Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
-    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
-    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
     Test / parallelExecution := false,
     Test / fork := false,
 
@@ -114,7 +111,6 @@ lazy val guardianDuty = (project in file("guardian-duty"))
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
       "com.amazonaws" % "aws-lambda-java-events" % "3.16.1",
-      "software.amazon.awssdk" % "guardduty" % awsSdkVersion,
       "software.amazon.awssdk" % "aws-crt-client" % awsSdkVersion,
       "org.scalameta" %% "munit" % "1.3.6" % Test
     ),
