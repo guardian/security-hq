@@ -114,7 +114,6 @@ lazy val guardianDuty = (project in file("guardian-duty"))
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
       "com.amazonaws" % "aws-lambda-java-events" % "3.16.1",
-      "software.amazon.awssdk" % "guardduty" % awsSdkVersion,
       "software.amazon.awssdk" % "aws-crt-client" % awsSdkVersion,
       "org.scalameta" %% "munit" % "1.3.6" % Test
     ),
