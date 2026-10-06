@@ -74,11 +74,8 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .settings(
     name := """iam-outdated-credentials""",
     scalacOptions += "--deprecation",
-    Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
-    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
-    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
     Test / parallelExecution := false,
     Test / fork := false,
 
