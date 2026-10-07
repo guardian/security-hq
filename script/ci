@@ -8,13 +8,36 @@ set -e
     ./script/ci
 )
 
+checkLambdaArtifactSize() {
+  aws_lambda_max_size_in_bytes=262144000
+  file_path=$1
+  actual_size_in_bytes=$(unzip -Zt "$file_path" | awk '{print $3}')
+
+  percent_used=$(echo "scale=2; ($actual_size_in_bytes / $aws_lambda_max_size_in_bytes) * 100" | bc)
+  percent_used_int=$(printf "%.0f" "$percent_used")
+  echo "Checking uncompressed size of AWS Lambda artifact $file_path"
+
+  if [ "$actual_size_in_bytes" -le "$aws_lambda_max_size_in_bytes" ]; then
+    echo "  PASSED: Uncompressed, $file_path is $actual_size_in_bytes bytes (max allowed: $aws_lambda_max_size_in_bytes bytes), ${percent_used_int}% of the maximum allowed size for AWS Lambda."
+  else
+    echo "  ❌ FAILED: Uncompressed, $file_path is $actual_size_in_bytes bytes (max allowed: $aws_lambda_max_size_in_bytes bytes), ${percent_used_int}% of the maximum allowed size for AWS Lambda."
+    exit 1
+  fi
+}
+
 mkdir -p dist
 
 ./sbt --no-conf '; project core; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test'
 
 ./sbt --no-conf '; project iamOutdatedCredentials; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
 mv iam-outdated-credentials/target/scala-*/iam-outdated-credentials-assembly-*.jar "dist/iam-outdated-credentials-$BUILD_NUMBER.jar"
+checkLambdaArtifactSize "dist/iam-outdated-credentials-$BUILD_NUMBER.jar"
 
 # Build the iam-unrecognised-users lambda assembly jar
 ./sbt --no-conf '; project iamUnrecognisedUsers; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
 mv iam-unrecognised-users/target/scala-*/iam-unrecognised-users-assembly-*.jar "dist/iam-unrecognised-users-$BUILD_NUMBER.jar"
+checkLambdaArtifactSize "dist/iam-unrecognised-users-$BUILD_NUMBER.jar"
+
+./sbt --no-conf '; project guardianDuty; scalafmtCheckAll; scalafmtSbtCheck; clean; compile; test; assembly'
+mv guardian-duty/target/scala-*/guardian-duty-assembly-*.jar "dist/guardian-duty-$BUILD_NUMBER.jar"
+checkLambdaArtifactSize "dist/guardian-duty-$BUILD_NUMBER.jar"

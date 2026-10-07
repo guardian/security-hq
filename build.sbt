@@ -16,7 +16,7 @@ ThisBuild / scalacOptions ++= Seq(
 resolvers += DefaultMavenRepository
 
 val awsLambdaVersion = "1.4.0"
-val awsSdkVersion = "2.52.1"
+val awsSdkVersion = "2.55.4"
 
 /*
  * To test whether any of these entries are redundant:
@@ -25,8 +25,8 @@ val awsSdkVersion = "2.52.1"
  * 3. If no earlier version appears in the dependency list, the entry can be removed.
  */
 val safeTransitiveDependencies = {
-  val jacksonV2Version = "2.22.2"
-  val jacksonV3Version = "3.2.2"
+  val jacksonV2Version = "2.22.3"
+  val jacksonV3Version = "3.2.3"
   Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonV2Version,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonV2Version,
@@ -49,25 +49,20 @@ lazy val core = (project in file("core"))
   .settings(
     name := "security-hq-core",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "3.13.0",
       "com.github.tototoshi" %% "scala-csv" % "2.0.0",
       "joda-time" % "joda-time" % "2.14.4",
-      "com.gu" %% "anghammarad-client" % "8.0.0",
+      "com.gu" %% "anghammarad-client" % "9.0.0",
       "com.gu" %% "janus-config-tools" % "14.0.0",
       "software.amazon.awssdk" % "iam" % awsSdkVersion,
       "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion,
       "software.amazon.awssdk" % "dynamodb" % awsSdkVersion,
-      "software.amazon.awssdk" % "ec2" % awsSdkVersion,
       "software.amazon.awssdk" % "s3" % awsSdkVersion,
       "software.amazon.awssdk" % "sns" % awsSdkVersion,
       "software.amazon.awssdk" % "sts" % awsSdkVersion,
-      "software.amazon.awssdk" % "support" % awsSdkVersion,
-      "ch.qos.logback" % "logback-classic" % "1.6.3",
+      "ch.qos.logback" % "logback-classic" % "1.6.4",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6",
-      "org.scalatest" %% "scalatest" % "3.2.20" % Test,
-      "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.19.0" % Test
+      "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ) ++ safeTransitiveDependencies,
     Test / parallelExecution := false,
     Test / fork := false
@@ -79,11 +74,8 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
   .settings(
     name := """iam-outdated-credentials""",
     scalacOptions += "--deprecation",
-    Assets / pipelineStages := Seq(digest),
     // exclude docs
     Compile / doc / sources := Seq.empty,
-    Compile / unmanagedResourceDirectories += baseDirectory.value / "markdown",
-    Test / unmanagedSourceDirectories += baseDirectory.value / "test" / "jars",
     Test / parallelExecution := false,
     Test / fork := false,
 
@@ -103,15 +95,31 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
     name := "iam-unrecognised-users",
     scalacOptions += "--deprecation",
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
+      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ),
     assembly / mainClass := Some("unrecognised.Main"),
     mergeStrategySettings
   )
 
+lazy val guardianDuty = (project in file("guardian-duty"))
+  .dependsOn(core)
+  .enablePlugins(AssemblyPlugin)
+  .settings(
+    name := "guardian-duty",
+    scalacOptions += "--deprecation",
+    libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
+      "com.amazonaws" % "aws-lambda-java-events" % "3.16.1",
+      "software.amazon.awssdk" % "aws-crt-client" % awsSdkVersion,
+      "org.scalameta" %% "munit" % "1.3.6" % Test
+    ),
+    assembly / mainClass := Some("com.gu.guardianduty.Lambda"),
+    mergeStrategySettings
+  )
+
 lazy val root = (project in file("."))
-  .aggregate(core, iamUnrecognisedUsers, iamOutdatedCredentials)
+  .aggregate(core, iamUnrecognisedUsers, iamOutdatedCredentials, guardianDuty)
   .settings(
     name := """security-hq"""
   )

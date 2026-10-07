@@ -1,20 +1,5 @@
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.4.2")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.5.0")
 
-libraryDependencies += "org.vafer" % "jdeb" % "1.14" artifacts Artifact("jdeb", "jar", "jar")
-
-// web plugins
-
-addSbtPlugin("com.github.sbt" % "sbt-coffeescript" % "2.0.1")
-
-addSbtPlugin("com.github.sbt" % "sbt-less" % "2.0.1")
-
-addSbtPlugin("com.github.sbt" % "sbt-jshint" % "2.0.1")
-
-addSbtPlugin("com.github.sbt" % "sbt-rjs" % "2.0.0")
-
-addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.1.0")
-
-// Code formatting
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.2")
 
 addDependencyTreePlugin
