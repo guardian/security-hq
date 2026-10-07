@@ -16,7 +16,13 @@ class Lambda extends RequestStreamHandler {
   private given ExecutionContext = ExecutionContext.global
 
   private val topicArn: String =
-    sys.env.getOrElse("ANGHAMMARAD_SNS_ARN", "")
+    sys.env.getOrElse(
+      "ANGHAMMARAD_SNS_ARN",
+      throw new Exception("Missing Anghammarad SNS ARN, notifications cannot be sent")
+    )
+  private val runbookUrl: String =
+    sys.env.getOrElse("RUNBOOK_URL", throw new Exception("Missing runbook url configuration"))
+
   private val crtAsyncHttpClient = AwsCrtAsyncHttpClient
     .builder()
     .connectionTimeout(Duration.ofSeconds(3))
@@ -45,6 +51,6 @@ class Lambda extends RequestStreamHandler {
     )
     val rawJson = new String(input.readAllBytes(), "UTF-8")
     val today = LocalDate.now()
-    GuardianDuty.processEvent(rawJson, services, today)
+    GuardianDuty.processEvent(rawJson, services, today, runbookUrl)
   }
 }

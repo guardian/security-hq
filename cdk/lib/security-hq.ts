@@ -398,6 +398,15 @@ export class SecurityHQ extends GuStack {
       iamUnrecognisedUsersLambda.role!.attachInlinePolicy(policy);
     });
 
+    const guarddutyRunbookUrl = new GuStringParameter(
+      this,
+      "guardian-duty-runbook-param",
+      {
+        fromSSM: true,
+        default: `/${this.stage}/${this.stack}/guardian-duty/runbook-param`,
+      },
+    );
+
     const guardianDutyLambda = new GuLambdaFunction(
       this,
       "guardian-duty-lambda",
@@ -411,6 +420,7 @@ export class SecurityHQ extends GuStack {
         environment: {
           ANGHAMMARAD_SNS_ARN:
             GuAnghammaradTopicParameter.getInstance(this).valueAsString,
+          RUNBOOK_URL: guarddutyRunbookUrl.valueAsString,
         },
       },
     );

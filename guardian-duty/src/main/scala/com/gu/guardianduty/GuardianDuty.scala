@@ -26,7 +26,8 @@ object GuardianDuty {
   def processEvent(
       rawJson: String,
       services: Services,
-      today: LocalDate
+      today: LocalDate,
+      runbookUrl: String
   ): Unit = {
     services.logger.log("Processing GuardDuty finding")
     val finding = decode[GuardDutyEventBridgeEvent](rawJson) match {
@@ -40,7 +41,7 @@ object GuardianDuty {
     )
 
     if (finding.severity >= minimumSeverity) {
-      val notification = findingAsNotification(finding, today)
+      val notification = findingAsNotification(finding, today, runbookUrl)
       val notificationId = Await.result(
         services.notifications.notify(notification),
         30.seconds
@@ -62,7 +63,8 @@ object GuardianDuty {
 
   private def findingAsNotification(
       finding: GuardDutyFinding,
-      today: LocalDate
+      today: LocalDate,
+      runbookUrl: String
   ): Notification = {
     val severityLabel = calculateSeverityLabel(finding.severity)
     val rawSubject = s"[$severityLabel] GuardDuty: ${finding.`type`}"
@@ -82,10 +84,15 @@ object GuardianDuty {
          |
          |${finding.description}""".stripMargin
 
+    val actions: List[Action] = List(
+      Action("View in GuardDuty console", finding.consoleUrl),
+      Action("Open runbook", runbookUrl)
+    )
+
     Notification(
       subject = subject,
       message = message,
-      actions = List(Action("View in GuardDuty console", finding.consoleUrl)),
+      actions = actions,
       target = List(
         GithubTeamSlug("devx-security")
       ),
