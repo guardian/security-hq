@@ -2,6 +2,8 @@ package unrecognised
 
 import software.amazon.awssdk.regions.Region
 
+import scala.concurrent.duration.FiniteDuration
+
 /** Runtime configuration for the iam-unrecognised-users lambda, sourced from environment variables set by the CDK
   * stack.
   *
@@ -19,36 +21,6 @@ case class Settings(
     configKey: String,
     janusBucket: String,
     janusKey: String,
-    region: Region
+    region: Region,
+    timeout: FiniteDuration
 )
-
-object Settings {
-
-  /** @param env
-    *   the environment variables to read from; defaults to the process environment, but can be overridden (for example
-    *   by local entrypoints or tests) without mutating global state.
-    */
-  def fromEnvironment(env: Map[String, String] = sys.env): Settings = {
-    def required(key: String): String =
-      env.getOrElse(
-        key,
-        throw new RuntimeException(s"Missing required environment variable $key")
-      )
-
-    Settings(
-      dryRun = env.getOrElse(DRY_RUN, "true").toBoolean,
-      configBucket = required(CONFIG_BUCKET),
-      configKey = required(CONFIG_KEY),
-      janusBucket = required(IAM_UNRECOGNISED_USER_S3_BUCKET),
-      janusKey = required(IAM_UNRECOGNISED_USER_S3_KEY),
-      region = Region.of(env.getOrElse(REGION, "eu-west-1"))
-    )
-  }
-
-  private val DRY_RUN = "DRY_RUN"
-  private val CONFIG_BUCKET = "CONFIG_BUCKET"
-  private val CONFIG_KEY = "CONFIG_KEY"
-  private val IAM_UNRECOGNISED_USER_S3_BUCKET = "IAM_UNRECOGNISED_USER_S3_BUCKET"
-  private val IAM_UNRECOGNISED_USER_S3_KEY = "IAM_UNRECOGNISED_USER_S3_KEY"
-  private val REGION = "REGION"
-}

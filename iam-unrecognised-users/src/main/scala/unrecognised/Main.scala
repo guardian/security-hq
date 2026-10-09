@@ -1,15 +1,25 @@
 package unrecognised
 
+import software.amazon.awssdk.regions.Region
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.DurationInt
 
 /** Local entrypoint for running the unrecognised-users job outside lambda.
   *
-  * Configuration is supplied by the surrounding environment, for example via `script/start iam-unrecognised-users`.
-  *
-  * `DRY_RUN` is hardcoded to `true` here so that running locally can never accidentally deactivate real IAM users or
-  * send real notifications, regardless of what is set in the surrounding environment.
+  * Configuration is hardcoded to appropriate values for running locally; 
+  * edit them if needed for your specific usecase.
   */
-@main def runUnrecognisedUsers(): Unit =
-  UnrecognisedUsers.run(
-    env = sys.env + ("DRY_RUN" -> "true")
+@main def runUnrecognisedUsers(): Unit = {
+  val settings = Settings(
+    dryRun = true,
+    configBucket = "security-dist",
+    configKey = "security/DEV/security-hq/security-hq.conf",
+    janusBucket = "gu-security-hq-audit",
+    janusKey = "security/DEV/janus-data-export/janusData.conf",
+    region = Region.EU_WEST_1,
+    timeout = 5.minutes
   )
+
+  UnrecognisedUsers.run(settings)
+}

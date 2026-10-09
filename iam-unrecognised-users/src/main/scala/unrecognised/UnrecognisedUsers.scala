@@ -23,7 +23,6 @@ import utils.attempt.{Attempt, FailedAttempt, Failure}
 
 import java.io.File
 import java.time.{Instant, Period}
-import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext}
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.*
@@ -43,14 +42,10 @@ object UnrecognisedUsers extends LazyLogging {
   private val ALLOWED_ACCOUNT_IDS = "ALLOWED_ACCOUNT_IDS"
   private val ANGHAMMARAD_SNS_ARN = "ANGHAMMARAD_SNS_TOPIC_ARN"
 
-  def run(
-      env: Map[String, String] = sys.env,
-      timeout: FiniteDuration = 5.minutes
-  )(using ExecutionContext): Unit = {
-    val settings = Settings.fromEnvironment(env)
+  def run(settings: Settings)(using ExecutionContext): Unit = {
     logger.info(s"Starting iam-unrecognised-users job (dryRun=${settings.dryRun}, region=${settings.region.id})")
     val result = disableUnrecognisedUsers(settings)
-    Await.result(result.asFuture, timeout) match {
+    Await.result(result.asFuture, settings.timeout) match {
       case Left(failure) =>
         logger.error(s"Failed to run unrecognised user job: ${failure.logMessage}")
         throw new RuntimeException(failure.logMessage)
@@ -64,7 +59,7 @@ object UnrecognisedUsers extends LazyLogging {
   private def unloadedReport(account: AwsAccount): Either[FailedAttempt, CredentialReportDisplay] =
     Left(Failure.notYetLoaded(account.id, "credentials").attempt)
 
-  val ONE_WEEK = Period.ofDays(7)
+  private val ONE_WEEK = Period.ofDays(7)
   private def janusConfigIsFresh(objectResponse: GetObjectResponse): Attempt[Boolean] = {
     val lastModified = objectResponse.lastModified()
     val isStale = lastModified.isBefore(Instant.now().minus(ONE_WEEK))

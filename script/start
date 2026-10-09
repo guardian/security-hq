@@ -6,25 +6,13 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ROOT_DIR="${DIR}/.."
 cd $ROOT_DIR
 
-IAM_UNRECOGNISED_USERS_ENV=(
-  "CONFIG_BUCKET=security-dist"
-  "CONFIG_KEY=security/DEV/security-hq/security-hq.conf"
-  "IAM_UNRECOGNISED_USER_S3_BUCKET=gu-security-hq-audit"
-  "IAM_UNRECOGNISED_USER_S3_KEY=security/DEV/janus-data-export/janusData.conf"
-)
-
 case "${1}" in
   iam-outdated-credentials)
     shift
     sbt "iamOutdatedCredentials / run $@"
     ;;
-  iam-unrecognised-users)
-    shift
-    env "${IAM_UNRECOGNISED_USERS_ENV[@]}" "sbt" "project iamUnrecognisedUsers; run"
-    ;;
   *)
-    echo "Usage: $(basename "$0") iam-unrecognised-users" >&2
-    echo "       $(basename "$0") iam-outdated-credentials \"<stack> <stage> <dryRunFlag> <configBucket> <configKey>\"" >&2
+    echo "Usage: $(basename "$0") iam-outdated-credentials \"<stack> <stage> <dryRunFlag> <configBucket> <configKey>\"" >&2
     exit 1
     ;;
 esac

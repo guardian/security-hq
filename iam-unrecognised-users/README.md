@@ -53,11 +53,10 @@ environment variables (matching the Play app).
 
 The lambda has a [main](src/main/scala/unrecognised/Main.scala) entrypoint to allow it to be run locally 
 for functional testing.
-To run it, use the start script like so:
+
+```sh
+sbt "unrecognisedUsers / run"
 ```
-script/start iam-unrecognised-users
-```
-The script includes the required environment variables.
 
 ### Required permissions
 
