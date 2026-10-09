@@ -10,7 +10,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-no-indent", // don't support significant indentation
   "-Wunused:all", // fail the build on unused imports, vals, params, and private members
-  "-Xfatal-warnings"
+  "-Werror"
 )
 
 resolvers += DefaultMavenRepository
