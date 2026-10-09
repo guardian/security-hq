@@ -12,6 +12,7 @@ import type { AppIdentity } from "@guardian/cdk/lib/constructs/core/identity";
 import { GuDynamoTable } from "@guardian/cdk/lib/constructs/dynamodb";
 import {
   GuAllowPolicy,
+  GuDeveloperPolicy,
   GuDynamoDBReadPolicy,
   GuDynamoDBWritePolicy,
   GuGetS3ObjectsPolicy,
@@ -20,7 +21,6 @@ import {
 } from "@guardian/cdk/lib/constructs/iam";
 import { GuAnghammaradSenderPolicy } from "@guardian/cdk/lib/constructs/iam/policies/anghammarad";
 import { GuLambdaFunction } from "@guardian/cdk/lib/constructs/lambda";
-import { GuDeveloperPolicyExperimental } from "@guardian/cdk/lib/experimental/constructs/iam/policies";
 import type { App } from "aws-cdk-lib";
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import {
@@ -277,7 +277,7 @@ export class SecurityHQ extends GuStack {
       comparisonOperator: ComparisonOperator.LESS_THAN_THRESHOLD,
     });
 
-    new GuDeveloperPolicyExperimental(this, "RunSecurityHqLocallyPolicy", {
+    new GuDeveloperPolicy(this, "RunSecurityHqLocallyPolicy", {
       grantId: "security-hq-dev",
       friendlyName: "Run Security HQ lambdas locally",
       withoutPolicyChecks: true,

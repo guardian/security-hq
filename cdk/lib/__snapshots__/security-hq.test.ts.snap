@@ -21,7 +21,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuAlarm",
       "GuAlarm",
       "GuAlarm",
-      "GuDeveloperPolicyExperimental",
+      "GuDeveloperPolicy",
       "GuAnghammaradTopicParameter",
       "GuAnghammaradSenderPolicy",
       "GuScheduledLambda",
