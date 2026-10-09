@@ -28,5 +28,5 @@ import scala.io.Source
 
   val today = LocalDate.now()
 
-  GuardianDuty.processEvent(rawJson, services, today)
+  GuardianDuty.processEvent(rawJson, services, today, runbookUrl = "[runbook url not available when running locally]")
 }

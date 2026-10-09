@@ -28,6 +28,7 @@ exports[`HQ stack matches the snapshot 1`] = `
       "GuLambdaErrorPercentageAlarm",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
+      "GuStringParameter",
       "GuLambdaFunction",
     ],
     "gu:cdk:version": "TEST",
@@ -50,6 +51,10 @@ exports[`HQ stack matches the snapshot 1`] = `
     "DistributionBucketName": {
       "Default": "/account/services/artifact.bucket",
       "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "guardiandutyrunbookparam": {
+      "Default": "/PROD/security/guardian-duty/runbook-param",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
   },
@@ -983,6 +988,9 @@ exports[`HQ stack matches the snapshot 1`] = `
               "Ref": "AnghammaradSnsArn",
             },
             "APP": "guardian-duty",
+            "RUNBOOK_URL": {
+              "Ref": "guardiandutyrunbookparam",
+            },
             "STACK": "security",
             "STAGE": "PROD",
           },

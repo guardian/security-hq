@@ -37,6 +37,8 @@ class GuardianDutySpec extends munit.FunSuite {
       |""".stripMargin
   }
 
+  val runbookUrl = "https://example.com/runbook"
+
   val today = LocalDate.of(2024, 1, 1)
 
   test(
@@ -46,10 +48,14 @@ class GuardianDutySpec extends munit.FunSuite {
     val deps =
       Services(notifications = notifications, logger = new NoOpLogger)
 
-    GuardianDuty.processEvent(sampleEvent, deps, today)
+    GuardianDuty.processEvent(sampleEvent, deps, today, runbookUrl)
 
     assertEquals(notifications.sent.length, 1)
     assert(notifications.sent.head.subject.contains("[HIGH]"))
+    assertEquals(
+      notifications.sent.head.actions.find(_.cta == "Open runbook").map(_.url),
+      Some(runbookUrl)
+    )
     assertEquals(
       notifications.sent.head.threadKey,
       Some("abc123findingid-2024-01-01")
@@ -63,7 +69,7 @@ class GuardianDutySpec extends munit.FunSuite {
     val deps =
       Services(notifications = notifications, logger = new NoOpLogger)
 
-    GuardianDuty.processEvent(lowSeverityEvent, deps, today)
+    GuardianDuty.processEvent(lowSeverityEvent, deps, today, runbookUrl)
 
     assertEquals(notifications.sent.length, 0)
   }
@@ -80,7 +86,7 @@ class GuardianDutySpec extends munit.FunSuite {
     val deps =
       Services(notifications = notifications, logger = new NoOpLogger)
 
-    GuardianDuty.processEvent(realEvent, deps, today)
+    GuardianDuty.processEvent(realEvent, deps, today, runbookUrl)
 
     assertEquals(notifications.sent.length, 1)
     assertEquals(
