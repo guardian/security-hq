@@ -45,7 +45,7 @@ case class Failure(
 object Failure {
   // Pre-defined "common" failures
 
-  def awsError(serviceNameOpt: Option[String], clientContext: AwsClient[_], err: Throwable): Failure = {
+  def awsError(serviceNameOpt: Option[String], clientContext: AwsClient[?], err: Throwable): Failure = {
     val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"AWS unknown error, unknown service (check logs for stacktrace), $context") {
       serviceName =>
@@ -59,13 +59,13 @@ object Failure {
     Failure(details)
   }
 
-  private def contextString(clientContext: AwsClient[_]): String = {
+  private def contextString(clientContext: AwsClient[?]): String = {
     val acc = s"account: ${clientContext.account.name}"
     val reg = s"region: ${clientContext.region.id}"
     s"$acc, $reg"
   }
 
-  def expiredCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+  def expiredCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[?]): Failure = {
     val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"expired AWS credentials, unknown service, $context") { serviceName =>
       s"expired AWS credentials, service: $serviceName, $context"
@@ -73,7 +73,7 @@ object Failure {
     Failure(details)
   }
 
-  def noCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+  def noCredentials(serviceNameOpt: Option[String], clientContext: AwsClient[?]): Failure = {
     val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"no AWS credentials available, unknown service, $context") { serviceName =>
       s"no credentials found, service: $serviceName, $context"
@@ -81,7 +81,7 @@ object Failure {
     Failure(details)
   }
 
-  def insufficientPermissions(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+  def insufficientPermissions(serviceNameOpt: Option[String], clientContext: AwsClient[?]): Failure = {
     val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"application is not authorized to perform actions for a service, $context") {
       serviceName =>
@@ -90,7 +90,7 @@ object Failure {
     Failure(details)
   }
 
-  def rateLimitExceeded(serviceNameOpt: Option[String], clientContext: AwsClient[_]): Failure = {
+  def rateLimitExceeded(serviceNameOpt: Option[String], clientContext: AwsClient[?]): Failure = {
     val context = contextString(clientContext)
     val details = serviceNameOpt.fold(s"rate limit exceeded while calling an AWS service, $context") { serviceName =>
       s"rate limit exceeded while calling service: $serviceName, $context"
