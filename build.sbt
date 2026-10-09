@@ -5,12 +5,12 @@ import scala.concurrent.duration.DurationInt
 // common settings (apply to all projects)
 ThisBuild / organization := "com.gu"
 ThisBuild / version := "0.5.0"
-ThisBuild / scalaVersion := "3.3.8"
+ThisBuild / scalaVersion := "3.9.0"
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-no-indent", // don't support significant indentation
   "-Wunused:all", // fail the build on unused imports, vals, params, and private members
-  "-Xfatal-warnings"
+  "-Werror"
 )
 
 resolvers += DefaultMavenRepository
