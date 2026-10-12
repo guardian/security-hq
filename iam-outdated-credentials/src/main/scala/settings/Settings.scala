@@ -14,28 +14,6 @@ case class Settings(
 )
 
 object Settings {
-  def fromArgs(args: Array[String]): Settings = {
-    args.toList match {
-      case stack
-          :: stageString
-          :: dryRunString
-          :: configBucket
-          :: configKey
-          :: Nil =>
-
-        val stage = if (stageString.equalsIgnoreCase("prod")) PROD else DEV
-        val dryRun = dryRunString.equalsIgnoreCase("true")
-        Settings(
-          stack = stack,
-          stage = stage,
-          dryRun = dryRun,
-          configBucket = configBucket,
-          configKey = configKey
-        )
-      case _ =>
-        throw new IllegalArgumentException("Expected args: <stack> <stage> <dryRunFlag> <configBucket> <configKey>")
-    }
-  }
   def fromEnvironment(): Settings = {
     def required(key: String): String =
       sys.env.getOrElse(

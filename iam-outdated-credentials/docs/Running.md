@@ -2,15 +2,10 @@
 
 There is a provided Main file which invokes the same function as the lambda, but takes parameters from the command line instead of environment variables.
 
-It can be invoked with sbt or by downloading the build artifact:
+It can be invoked with sbt:
 
 ```
-sbt 'iamOutdatedCredentials / run testStack DEV true security-dist security/DEV/security-hq/security-hq.conf'
-
-```
-
-```
-java -cp ~/Downloads/iam-outdated-credentials-xxxx.jar logic.IamOutdatedCredentialsMain testStack DEV true security-dist security/DEV/security-hq/security-hq.conf
+sbt 'iamOutdatedCredentials / run'
 ```
 
 # Parameters for local run

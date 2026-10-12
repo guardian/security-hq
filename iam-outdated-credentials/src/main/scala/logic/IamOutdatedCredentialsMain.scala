@@ -1,5 +1,6 @@
 package logic
 
+import model.DEV
 import settings.Settings
 import utils.attempt.Attempt
 
@@ -11,7 +12,13 @@ object IamOutdatedCredentialsMain {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   def main(args: Array[String]): Unit = try {
-    val settings = Settings.fromArgs(args)
+    val settings = Settings(
+      stack = "testStack",
+      stage = DEV,
+      dryRun = true,
+      configBucket = "security-dist",
+      configKey = "security/DEV/security-hq/security-hq.conf"
+    )
 
     val result: Attempt[Unit] = IamOutdatedCredentials.disableOutdatedCredentials(settings)
 
