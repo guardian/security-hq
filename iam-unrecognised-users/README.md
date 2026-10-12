@@ -33,8 +33,7 @@ step).
 
 ## Configuration
 
-Configuration is provided via environment variables. Deployment is not yet wired up; once it is, these will be set by
-the Security HQ CDK stack (`cdk/lib/security-hq.ts`):
+Configuration is provided via environment variables set by the Security HQ CDK stack (`cdk/lib/security-hq.ts`):
 
 | Variable                          | Default       | Description                                                                   |
 |-----------------------------------|---------------|-------------------------------------------------------------------------------|
@@ -58,6 +57,8 @@ for functional testing.
 sbt "unrecognisedUsers / run"
 ```
 
+The above configuration values are set inline in the entrypoint file.
+
 ### Required permissions
 
 Running locally requires the **`Run Security HQ lambdas locally`** Janus permission for the `security` account.
@@ -74,8 +75,6 @@ Use `janus` to assume the role before running so that a `security` profile is av
 
 - **No accounts loaded / config parse errors**: check that `security-hq.conf` at `CONFIG_KEY` contains the expected
   `AWS_ACCOUNTS` block along with `ALLOWED_ACCOUNT_IDS` and `ANGHAMMARAD_SNS_TOPIC_ARN`.
-- **`Missing required environment variable …`**: one of the four required env vars is unset in the shell you launched
-  `sbt` from — export them (see [Required environment](#required-environment)) and re-run in the same shell.
 - **Assume-role or credential-report failures for an account**: usually a missing reaper role / IAM permission in the
   target account, or throttling. Check the logged failure for the underlying cause.
 - **Janus data fails to load**: check that `IAM_UNRECOGNISED_USER_S3_BUCKET`/`_S3_KEY` point at the audit-data bucket and
