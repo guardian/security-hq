@@ -332,7 +332,7 @@ export class SecurityHQ extends GuStack {
         ],
         app: "iam-outdated-credentials",
         runtime: Runtime.JAVA_21,
-        handler: "logic.IamOutdatedCredentialsLambda::handleRequest",
+        handler: "com.gu.shq.outdatedcredentials.Lambda::handleRequest",
         timeout: Duration.minutes(10),
         environment: {
           STACK: this.stack,
@@ -380,7 +380,7 @@ export class SecurityHQ extends GuStack {
         ],
         app: "iam-unrecognised-users",
         runtime: Runtime.JAVA_21,
-        handler: "unrecognised.Handler::handleRequest",
+        handler: "com.gu.shq.unrecognisedusers.Lambda::handleRequest",
         timeout: Duration.minutes(10),
         environment: {
           STACK: this.stack,
@@ -413,7 +413,7 @@ export class SecurityHQ extends GuStack {
       {
         app: "guardian-duty",
         fileName: `guardian-duty-${buildIdentifier}.jar`,
-        handler: "com.gu.guardianduty.Lambda::handleRequest",
+        handler: "com.gu.shq.guardianduty.Lambda::handleRequest",
         runtime: Runtime.JAVA_21,
         timeout: Duration.seconds(60),
         memorySize: 512,

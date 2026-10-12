@@ -44,7 +44,7 @@ Remediations are only performed on Tuesdays to try to ensure that any actions ar
 (ie. avoiding bank holidays or Fridays), allowing them to respond to any outage caused by the automated removal of keys.
 
 It also publishes reaper execution-status metrics (success/failure counts) to the `SecurityHQ` CloudWatch namespace,
-defined in [`Cloudwatch`](../core/src/main/scala/logging/Cloudwatch.scala).
+defined in [`Cloudwatch`](../core/src/main/scala/com/gu/shq/logging/Cloudwatch.scala).
 
 <!-- alex ignore disable-disabled -->
 The metric name is `IamDisableOutdatedKeys`.
@@ -67,7 +67,7 @@ remediation DynamoDB table name are all read from `security-hq.conf` in S3.
 
 ## Running locally
 
-The lambda has a [main](src/main/scala/logic/IamOutdatedCredentialsMain.scala) entrypoint to allow it to be run
+The lambda has a [main](src/main/scala/com/gu/shq/outdatedcredentials/Cli.scala) entrypoint to allow it to be run
 locally for functional testing.
 
 ```sh

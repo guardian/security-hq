@@ -79,7 +79,7 @@ lazy val iamOutdatedCredentials = (project in file("iam-outdated-credentials"))
     Test / parallelExecution := false,
     Test / fork := false,
 
-    assembly / mainClass := Some("logic.IamOutdatedCredentialsMain"),
+    assembly / mainClass := Some("com.gu.shq.outdatedcredentials.Lambda"),
 
     libraryDependencies ++= Seq(
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
@@ -98,7 +98,7 @@ lazy val iamUnrecognisedUsers = (project in file("iam-unrecognised-users"))
       "com.amazonaws" % "aws-lambda-java-core" % awsLambdaVersion,
       "org.scalatest" %% "scalatest" % "3.2.20" % Test
     ),
-    assembly / mainClass := Some("unrecognised.Main"),
+    assembly / mainClass := Some("com.gu.shq.unrecognisedusers.Lambda"),
     mergeStrategySettings
   )
 
@@ -114,7 +114,7 @@ lazy val guardianDuty = (project in file("guardian-duty"))
       "software.amazon.awssdk" % "aws-crt-client" % awsSdkVersion,
       "org.scalameta" %% "munit" % "1.3.6" % Test
     ),
-    assembly / mainClass := Some("com.gu.guardianduty.Lambda"),
+    assembly / mainClass := Some("com.gu.shq.guardianduty.Lambda"),
     mergeStrategySettings
   )
 

@@ -1,0 +1,634 @@
+package com.gu.shq.outdatedcredentials
+
+import com.gu.anghammarad.models.Notification
+import IamOutdatedCredentials.*
+import com.gu.shq.aws.{AWS, AwsClients}
+import com.gu.shq.aws.iam.IAMClient
+import com.gu.shq.config.CoreConfig
+import com.gu.shq.logging.Cloudwatch
+import com.gu.shq.notifications.AnghammaradNotifications
+import com.typesafe.scalalogging.LazyLogging
+import Cloudwatch.ReaperExecutionStatus
+import com.gu.shq.db.IamRemediationDb
+import com.gu.shq.logic.IamUnrecognisedUsers.*
+import com.gu.shq.model.{
+  AccessKey,
+  AccessKeyEnabled,
+  AwsAccount,
+  CredentialMetadata,
+  CredentialReportDisplay,
+  FinalWarning,
+  IAMUser,
+  IamRemediationActivity,
+  IamUserRemediationHistory,
+  OutdatedCredential,
+  PartitionedRemediationOperations,
+  Remediation,
+  RemediationOperation,
+  Warning
+}
+import com.gu.shq.utils.attempt.{Attempt, FailedAttempt, Failure}
+import org.joda.time.{DateTime, DateTimeConstants}
+import software.amazon.awssdk.services.iam.IamAsyncClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.sns.SnsAsyncClient
+
+import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.ListHasAsScala
+
+class IamOutdatedCredentials(
+    snsClient: SnsAsyncClient,
+    iamClients: AwsClients[IamAsyncClient],
+    dynamo: IamRemediationDb,
+    devXSecurityAccountMaybe: Option[AwsAccount],
+    dryRun: Boolean,
+    notificationTopicArn: String,
+    tableName: String
+) extends LazyLogging {
+
+  /** Performs the specified operation, which will be one of:
+    *   - send a warning
+    *   - send a final warning
+    *   - disable an IAM credential and send a notification that this has been done
+    *   - remove an IAM password and send a notification that this has been done
+    */
+  private[outdatedcredentials] def performRemediationOperation(
+      remediationOperation: RemediationOperation,
+      now: DateTime
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
+    val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
+    val iamUser = remediationOperation.vulnerableCandidate.iamUser
+    val problemCreationDate = remediationOperation.problemCreationDate
+    // if successful, this record will be added to the database
+    val thisRemediationActivity = IamRemediationActivity(
+      awsAccount.id,
+      iamUser.username,
+      now,
+      remediationOperation.iamRemediationActivityType,
+      remediationOperation.iamProblem,
+      remediationOperation.problemCreationDate
+    )
+
+    (remediationOperation.iamRemediationActivityType, remediationOperation.iamProblem) match {
+      // Outdated credentials
+      case (Warning, OutdatedCredential) =>
+        warn(now, awsAccount, iamUser, problemCreationDate, thisRemediationActivity)
+      case (FinalWarning, OutdatedCredential) =>
+        finalWarn(
+          now,
+          awsAccount,
+          iamUser,
+          problemCreationDate,
+          thisRemediationActivity
+        )
+
+      case (Remediation, OutdatedCredential) =>
+        remediation(now, awsAccount, iamUser, problemCreationDate, thisRemediationActivity)
+    }
+  }
+
+  private def remediation(
+      now: DateTime,
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      thisRemediationActivity: IamRemediationActivity
+  )(implicit ec: ExecutionContext): Attempt[List[String]] = {
+    if (dryRun) {
+      logger.info(s"Dry run: Would execute remediation for $awsAccount, $iamUser")
+      Attempt.Right(Nil)
+    } else if (now.dayOfWeek().get() != DateTimeConstants.TUESDAY) {
+      logger.info(
+        s"""It's not "Remediation Tuesday"!  We will not execute remediation for $awsAccount, $iamUser TODAY, but we will SOON"""
+      )
+      for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialNoRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount,
+            credentialToDisable
+          )
+        )
+        notificationIds <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe).map(_.toList)
+      } yield notificationIds
+    } else {
+      logger.info(s"Executing remediation for $awsAccount, $iamUser")
+
+      val listOfNotificationsAttempt = for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialToDisable <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialRemediation(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialToDisable
+          )
+
+        // plan the disable action for the correct credential
+        notificationDevXSecurityMaybe = devXSecurityAccountMaybe.map(devXSecurityAccount =>
+          AnghammaradNotifications.outdatedCredentialRemediationDevXSecurity(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            devXSecurityAccount,
+            credentialToDisable
+          )
+        )
+        // record, then alert, then do.  Different order to the above.
+        // If we do the remediation, it's vitally important that the record happens, and the alert happens.
+        // So do them first.
+        _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
+        // send a notification to say this is what we have done
+        userNotificationId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        // Send a notification to devx too, if we've got an account for them.
+        securityNotificationIdMaybe <- sendSecurityNotification(notificationTopicArn, notificationDevXSecurityMaybe)
+        // only now do we actually disable the credential
+        _ <- IAMClient
+          .disableAccessKey(
+            awsAccount,
+            credentialToDisable.username,
+            credentialToDisable.accessKeyId,
+            iamClients
+          )
+        notifications = List(userNotificationId) ++ securityNotificationIdMaybe
+        _ = logger.info(s"Remediation executed for $awsAccount, $iamUser")
+      } yield notifications
+      Cloudwatch
+        .emitOutcomeMetric(
+          listOfNotificationsAttempt,
+          successMetric,
+          failureMetric,
+          "disable outdated credential"
+        )
+        .flatMap(_ => listOfNotificationsAttempt)
+    }
+  }
+
+  private[outdatedcredentials] def failureMetric(using executionContext: ExecutionContext) =
+    Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.failure)
+
+  private[outdatedcredentials] def successMetric(using executionContext: ExecutionContext) =
+    Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success)
+
+  private def finalWarn(
+      now: DateTime,
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      thisRemediationActivity: IamRemediationActivity
+  )(implicit ec: ExecutionContext) = {
+    if (!dryRun) {
+      logger.info(s"Sending final warning for $awsAccount, $iamUser")
+
+      for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialFinalWarning(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialThatWillBeDisabled,
+            now
+          )
+        // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
+        // don't want to record we sent a final warning if we didn't, so we do it in this order
+        snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        _ = logger.info(s"Sent final warning for $awsAccount, $iamUser")
+        _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
+      } yield List(snsId)
+    } else {
+      logger.info(s"Dry run: Would send final warning for $awsAccount, $iamUser")
+      Attempt.Right(Nil)
+    }
+  }
+
+  private def warn(
+      now: DateTime,
+      awsAccount: AwsAccount,
+      iamUser: IAMUser,
+      problemCreationDate: DateTime,
+      thisRemediationActivity: IamRemediationActivity
+  )(implicit ec: ExecutionContext) = {
+    if (!dryRun) {
+      logger.info(s"Sending first warning for $awsAccount, $iamUser")
+      for {
+        userCredentialInformation <- IAMClient.listUserAccessKeys(awsAccount, iamUser, iamClients)
+        credentialThatWillBeDisabled <- lookupCredentialId(problemCreationDate, userCredentialInformation)
+        notification =
+          AnghammaradNotifications.outdatedCredentialWarning(
+            awsAccount,
+            iamUser,
+            problemCreationDate,
+            credentialThatWillBeDisabled,
+            now
+          )
+        // alert then record: user might get alerted but the database write fails; we want to make sure the alert is sent
+        // don't want to record we sent a warning if we didn't, so we do it in this order
+        snsId <- AnghammaradNotifications.send(notification, notificationTopicArn, snsClient)
+        _ = logger.info(s"Sent first warning for $awsAccount, $iamUser")
+        _ <- dynamo.writeRemediationActivity(thisRemediationActivity, tableName)
+      } yield List(snsId)
+    } else {
+      logger.info(s"Dry run: Would send warning for $awsAccount, $iamUser")
+      Attempt.Right(Nil)
+    }
+  }
+
+  private def sendSecurityNotification(
+      notificationTopicArn: String,
+      notificationDevXSecurityMaybe: Option[Notification]
+  )(using ExecutionContext): Attempt[Option[String]] = {
+    notificationDevXSecurityMaybe match {
+      case Some(notificationDevXSecurity) =>
+        logger.info("Sending notification to devx security account")
+        AnghammaradNotifications.send(notificationDevXSecurity, notificationTopicArn, snsClient).map(Some(_))
+      case None =>
+        logger.warn("No devx security account configured")
+        Attempt.Right(None)
+    }
+  }
+
+  /** We only perform actions on accounts that are explicitly allowed, but it is helpful to log the operation that
+    * *would* have been performed, if allowed.
+    */
+  private def logOperationOnly(remediationOperation: RemediationOperation): Unit = {
+    val awsAccount = remediationOperation.vulnerableCandidate.awsAccount
+    logger.warn(s"Remediation operation skipped because ${awsAccount.id} is not configured for remediation")
+    logger.warn(s"Skipping remediation action: ${formatRemediationOperation(remediationOperation)}")
+  }
+
+  /** If an AWS access key has not been rotated in a long time, then will automatically disable it.
+    *
+    * This job will first send a warning notification when it detects an outdated credential. If nothing changes it will
+    * send a final warning notification. After both these notifications have been ignored, the credential will be
+    * automatically disabled.
+    */
+  def disableOutdatedCredentials(
+      serviceAccountIds: List[String],
+      rawCredsReports: Map[AwsAccount, Either[FailedAttempt, CredentialReportDisplay]],
+      allowedAwsAccountIds: List[String]
+  )(implicit ec: ExecutionContext): Attempt[Unit] = {
+    val now = new DateTime()
+    val accountsCredReports = getCredsReportDisplayForAccount(rawCredsReports)
+    val accountUsersWithOutdatedCredentials = identifyAllUsersWithOutdatedCredentials(accountsCredReports, now)
+
+    val numberOfAccountsWithOutdatedCredentials = accountUsersWithOutdatedCredentials.count(_._2.nonEmpty)
+    val numberOfOutdatedCredentials = accountUsersWithOutdatedCredentials.map(_._2.size).sum
+
+    logger.info(
+      s"Discovered $numberOfOutdatedCredentials outdated credentials across $numberOfAccountsWithOutdatedCredentials accounts"
+    )
+
+    val result = for {
+      // fetch IAM data from the application cache
+      // identify users with outdated credentials for each account, from the credentials report
+      // DB lookup of previous SHQ activity for each user to produce a list of "candidate" vulnerabilities
+      vulnerabilitiesWithRemediationHistory <- lookupActivityHistory(
+        accountUsersWithOutdatedCredentials,
+        dynamo,
+        tableName
+      )
+      // based on activity history, decide which of these candidates have outstanding SHQ operations
+      outstandingOperations = calculateOutstandingAccessKeyOperations(vulnerabilitiesWithRemediationHistory, now)
+      // we'll only perform operations on accounts that have been configured as eligible
+      filteredOperations = partitionOperationsByAllowedAccounts(
+        outstandingOperations,
+        allowedAwsAccountIds,
+        serviceAccountIds
+      )
+
+      // we won't execute these operations, but can log them instead
+      _ = filteredOperations.operationsOnAccountsThatAreNotAllowed.foreach(logOperationOnly)
+
+      // First record a zero so that we know we ran, even if there ends up being nothing to do.
+      _ = Cloudwatch.putIamDisableOutdatedKeysMetric(ReaperExecutionStatus.success, 0)
+      // now we know what operations need to be performed, so let's run each of those
+      results <- Attempt.traverseWithFailures(filteredOperations.allowedOperations)(
+        performRemediationOperation(_, now)
+      )
+    } yield results
+
+    // A Left here is unlikely due to `traverseWithFailures` - the top-level result should be a success.
+    // Any failures are more likely to be picked up by the Right() case.
+    // Use .map (not .tap) so logging is sequenced inside the future chain and guaranteed to complete before the lambda exits.
+    result.map { operations =>
+      val (failedOperations, successfulOperations) = operations.partitionMap(identity)
+      logger.info(
+        s"Completed 'disable outdated credentials job', with ${successfulOperations.length} successful operations and ${failedOperations.length} failed operations"
+      )
+      failedOperations.zipWithIndex.foreach { case (failedAttempt, i) =>
+        logger.error(
+          s"Failed operation $i of ${failedOperations.length}: ${failedAttempt.logMessage}",
+          failedAttempt.firstException.orNull
+        )
+      }
+    }
+  }
+
+}
+object IamOutdatedCredentials extends LazyLogging {
+
+  // TODO this code does not close the SnsAsyncClient or S3Client, or any of the IAM/CFN clients.
+  // In practice, the lambda will exit after this job is complete, so the resources will be cleaned up by the OS,
+  // but it would be better to close them explicitly.  This is not trivial to do, because the clients are created
+  // sequentially, and the SnsAsyncClient is used in the middle of the process.  We could use a Resource pattern
+  // to manage this better.
+
+  def disableOutdatedCredentials(settings: Settings)(using ExecutionContext): Attempt[Unit] = {
+    val snsClient = SnsAsyncClient.builder().build()
+    val s3Client = S3Client.builder.build()
+
+    val awsAccountsConfig = CoreConfig.loadConfigFromS3(settings.configBucket, settings.configKey, s3Client)
+    val awsAccounts = CoreConfig.parseAccounts(awsAccountsConfig)
+    val devXSecurityAccount = awsAccounts.find(_.id == SECURITY_ACCOUNT_ID)
+    val anghammaradSnsArn = awsAccountsConfig.getString(ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM)
+    val iamDynamoTableName = awsAccountsConfig.getString(IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM)
+    val allowedAccountIds: List[String] =
+      awsAccountsConfig.getStringList(ALLOWED_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
+    val accountIdsForIamRemediationService =
+      awsAccountsConfig.getStringList(REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM).asScala.toList
+    val dynamo = new IamRemediationDb(CoreConfig.getSecurityDynamoDbClient(settings.stage))
+
+    val iamClients = AWS.iamClients(awsAccounts)
+    for {
+      reportAttemptsList <- Attempt.traverseWithFailures(awsAccounts) { account =>
+        IAMClient.getUpdatedCredentialsReport(account, iamClients)
+      }
+
+      listOfCredentialReports = awsAccounts.zip(reportAttemptsList).toMap
+
+      disableResult <- new IamOutdatedCredentials(
+        snsClient = snsClient,
+        iamClients = iamClients,
+        dynamo = dynamo,
+        devXSecurityAccountMaybe = devXSecurityAccount,
+        dryRun = settings.dryRun,
+        notificationTopicArn = anghammaradSnsArn,
+        tableName = iamDynamoTableName
+      ).disableOutdatedCredentials(
+        serviceAccountIds = accountIdsForIamRemediationService,
+        rawCredsReports = listOfCredentialReports,
+        allowedAwsAccountIds = allowedAccountIds
+      )
+    } yield disableResult
+  }
+
+  /** Look through all credentials reports to find users with expired credentials, see below for more detail
+    * (`identifyUsersWithOutdatedCredentials`).
+    */
+  private def identifyAllUsersWithOutdatedCredentials(
+      accountCredentialReports: List[(AwsAccount, CredentialReportDisplay)],
+      now: DateTime
+  ): List[(AwsAccount, List[IAMUser])] = {
+    accountCredentialReports.map { case (awsAccount, credentialReport) =>
+      (awsAccount, identifyUsersWithOutdatedCredentials(credentialReport, now))
+    }
+  }
+
+  /** Looks through the credentials report to identify users with Access Keys that are older than we allow.
+    */
+  private[outdatedcredentials] def identifyUsersWithOutdatedCredentials(
+      credentialReportDisplay: CredentialReportDisplay,
+      now: DateTime
+  ): List[IAMUser] = {
+    val machineUsersWithOutdatedKeys =
+      credentialReportDisplay.machineUsers.filter(user => hasOutdatedMachineKey(List(user.key1, user.key2), now))
+    val humanUsersWithOutdatedKeys =
+      credentialReportDisplay.humanUsers.filter(user => hasOutdatedHumanKey(List(user.key1, user.key2), now))
+
+    // Filter out any users tagged with opt-out tag, so we can enable the job on accounts
+    // while attempting to rotate difficult keys. This should be used as a last resort only.
+    (machineUsersWithOutdatedKeys ++ humanUsersWithOutdatedKeys).toList
+      .filterNot(_.tags.exists(_.key == CoreConfig.outdatedCredentialOptOutUserTag))
+  }
+
+  private def hasOutdatedHumanKey(keys: List[AccessKey], now: DateTime): Boolean =
+    keys.exists(isOutdatedHumanKey(_, now))
+
+  private def hasOutdatedMachineKey(keys: List[AccessKey], now: DateTime): Boolean =
+    keys.exists(isOutdatedMachineKey(_, now))
+
+  private def isOutdatedHumanKey(key: AccessKey, now: DateTime): Boolean = {
+    key.lastRotated.exists { date =>
+      // using minus 1 so that we return true if the last rotated date is exactly on the cadence date
+      date.isBefore(now.minusDays(CoreConfig.iamHumanUserRotationCadence.toInt - 1))
+    } && key.keyStatus == AccessKeyEnabled
+  }
+
+  private def isOutdatedMachineKey(key: AccessKey, now: DateTime): Boolean = {
+    key.lastRotated.exists { date =>
+      // using minus 1 so that we return true if the last rotated date is exactly on the cadence date
+      date.isBefore(now.minusDays(CoreConfig.iamMachineUserRotationCadence.toInt - 1))
+    } && key.keyStatus == AccessKeyEnabled
+  }
+
+  /** Given an IAMUser (in an AWS account), look up that user's activity history form the Database.
+    */
+  private def lookupActivityHistory(
+      accountIdentifiedUsers: List[(AwsAccount, List[IAMUser])],
+      dynamo: IamRemediationDb,
+      tableName: String
+  )(implicit ec: ExecutionContext): Attempt[List[IamUserRemediationHistory]] = {
+    for {
+      remediationHistoryByAccount <- Attempt.traverse(accountIdentifiedUsers) { case (awsAccount, identifiedUsers) =>
+        // for each account with vulnerable user(s), do a DB lookup for each identified user to get activity history
+        Attempt.traverse(identifiedUsers) { identifiedUser =>
+          dynamo.lookupIamUserNotifications(identifiedUser, awsAccount, tableName).map { userActivityHistory =>
+            IamUserRemediationHistory(awsAccount, identifiedUser, userActivityHistory)
+          }
+        }
+      }
+    } yield {
+      // no need to have these separated by account any more
+      remediationHistoryByAccount.flatten
+    }
+  }
+
+  /** Looks through the candidate's remediation history and outputs the work to be done per access key. This means that
+    * the same user could appear in the output list twice, because both of their keys may require an operation. By
+    * comparing the current date with the date of the most recent activity, we know which operation to perform next.
+    */
+  private[outdatedcredentials] def calculateOutstandingAccessKeyOperations(
+      remediationHistories: List[IamUserRemediationHistory],
+      now: DateTime
+  ): List[RemediationOperation] = {
+    for {
+      userRemediationHistory <- remediationHistories
+      vulnerableKey <- identifyVulnerableKeys(userRemediationHistory, now)
+      keyPreviousAlert = identifyMostRecentActivity(userRemediationHistory, vulnerableKey, now)
+      keyNextActivity <- identifyRemediationOperation(keyPreviousAlert, now, userRemediationHistory, vulnerableKey)
+    } yield keyNextActivity
+  }
+
+  private[outdatedcredentials] def identifyVulnerableKeys(
+      remediationHistory: IamUserRemediationHistory,
+      now: DateTime
+  ): List[AccessKey] = {
+    val user = remediationHistory.iamUser
+    if (user.isHuman) List(user.key1, user.key2).filter(isOutdatedHumanKey(_, now))
+    else List(user.key1, user.key2).filter(isOutdatedMachineKey(_, now))
+  }
+
+  private[outdatedcredentials] def identifyMostRecentActivity(
+      remediationHistory: IamUserRemediationHistory,
+      vulnerableKey: AccessKey,
+      now: DateTime
+  ): Option[IamRemediationActivity] = {
+    // TODO lastRotatedDate should not be an Option, because every IAM access key has a last rotated date. Change SHQ's model.
+    vulnerableKey.lastRotated match {
+      case Some(lastRotatedDate) =>
+        // filter activity list to find...
+        remediationHistory.activityHistory
+          // ...matching db records for the given access key
+          .filter(_.problemCreationDate.isEqual(lastRotatedDate))
+          // ...where the last action was in the last two weeks
+          .filter(_.dateNotificationSent.isAfter(now.minusWeeks(2)))
+          // ...returning the most recent one, if any.
+          .maxByOption(_.dateNotificationSent.getMillis)
+      case None =>
+        val name = remediationHistory.iamUser.username
+        val account = remediationHistory.awsAccount.name
+        logger.warn(s"$name in $account has an access key without a lastRotatedDate. Please investigate.")
+        None
+    }
+  }
+
+  private[outdatedcredentials] def identifyRemediationOperation(
+      mostRecentRemediationActivity: Option[IamRemediationActivity],
+      now: DateTime,
+      userRemediationHistory: IamUserRemediationHistory,
+      vulnerableKey: AccessKey
+  ): Option[RemediationOperation] =
+    mostRecentRemediationActivity match {
+      case None =>
+        // If there is no recent activity, then the required operation must be a Warning.
+        Some(
+          RemediationOperation(
+            userRemediationHistory,
+            Warning,
+            OutdatedCredential,
+            problemCreationDate = vulnerableKey.lastRotated.getOrElse(now)
+          )
+        )
+      case Some(mostRecentActivity) =>
+        val finalWarningStartOfDay = mostRecentActivity.dateNotificationSent
+          .plusDays(CoreConfig.daysBetweenWarningAndFinalNotification)
+          .withTimeAtStartOfDay()
+        val remediationStartOfDay = mostRecentActivity.dateNotificationSent
+          .plusDays(CoreConfig.daysBetweenFinalNotificationAndRemediation)
+          .withTimeAtStartOfDay()
+        mostRecentActivity.iamRemediationActivityType match {
+          case Warning if now.isAfter(finalWarningStartOfDay) =>
+            // If the most recent activity is a Warning and the last notification was sent at least `Config.daysBetweenWarningAndFinalNotification` ago,
+            // the required operation is a FinalWarning.
+            Some(
+              RemediationOperation(
+                userRemediationHistory,
+                FinalWarning,
+                mostRecentActivity.iamProblem,
+                mostRecentActivity.problemCreationDate
+              )
+            )
+          case FinalWarning if now.isAfter(remediationStartOfDay) =>
+            // If the most recent activity is a FinalWarning and the last notification was sent at least `Config.daysBetweenFinalNotificationAndRemediation` ago,
+            // the required operation is Remediation.
+            Some(
+              RemediationOperation(
+                userRemediationHistory,
+                Remediation,
+                mostRecentActivity.iamProblem,
+                mostRecentActivity.problemCreationDate
+              )
+            )
+          case Remediation =>
+            val name = userRemediationHistory.iamUser.username
+            val account = userRemediationHistory.awsAccount.name
+            logger.warn(
+              s"$name in $account has an access key of recent activity type Remediation, but the key is enabled. Please investigate as I will continue to attempt key disablement until rotated."
+            )
+            Some(
+              RemediationOperation(
+                userRemediationHistory,
+                Remediation,
+                mostRecentActivity.iamProblem,
+                mostRecentActivity.problemCreationDate
+              )
+            )
+          case _ => None
+        }
+    }
+
+  /** To prevent non-PROD application instances from making changes to production AWS accounts, SHQ is configured with a
+    * list of the AWS accounts that this instance is allowed to affect. In addition, SHQ is configured with a list of
+    * AWS accounts to run the IamRemediationService on, because not all accounts are in a ready state for this service
+    * yet.
+    */
+  private[outdatedcredentials] def partitionOperationsByAllowedAccounts(
+      operations: List[RemediationOperation],
+      allowedAwsAccountIds: List[String],
+      serviceAccountIds: List[String]
+  ): PartitionedRemediationOperations = {
+    val (allowed, forbidden) = operations.partition { remediationOperation =>
+      val accountId = remediationOperation.vulnerableCandidate.awsAccount.id
+      allowedAwsAccountIds.contains(accountId) && serviceAccountIds.contains(accountId)
+    }
+    PartitionedRemediationOperations(allowed, forbidden)
+  }
+
+  /** Users can have multiple credentials, and it can be tricky to know which one we have identified. From the full
+    * metadata for all a user's keys, we can look up the AccessKey's ID by comparing the creation dates with the key we
+    * are expecting.
+    *
+    * This might fail, because it may be that no matching key exists.
+    */
+  private[outdatedcredentials] def lookupCredentialId(
+      badKeyCreationDate: DateTime,
+      userCredentials: List[CredentialMetadata]
+  ): Attempt[CredentialMetadata] = {
+    val username = userCredentials.map(_.username).headOption.getOrElse("unknown username")
+    userCredentials.filter { credentialMetadata =>
+      credentialMetadata.creationDate.withMillisOfSecond(0) == badKeyCreationDate.withMillisOfSecond(0)
+    } match {
+      case singleMatchingKey :: Nil => Attempt.Right(singleMatchingKey)
+      case Nil                      =>
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              "unable to identify matching access key in user's metadata"
+            )
+          )
+        )
+      case _ =>
+        // This is an edge case where both the user's access keys both have the same creation date.
+        // This should be unlikely given the Credentials Reports creation dates are defined up to the second.
+        Attempt.Left(
+          FailedAttempt(
+            Failure(
+              s"both of $username's access keys have the exact same creation date - cannot decide which one to select for disablement"
+            )
+          )
+        )
+    }
+  }
+
+  private[outdatedcredentials] def formatRemediationOperation(remediationOperation: RemediationOperation): String = {
+    val problem = remediationOperation.iamProblem
+    val activity = remediationOperation.iamRemediationActivityType
+    val username = remediationOperation.vulnerableCandidate.iamUser.username
+    val accountId = remediationOperation.vulnerableCandidate.awsAccount.id
+    s"$problem $activity for user $username from account $accountId"
+  }
+
+  private val REMEDIATION_ACCOUNT_IDS_CONFIG_ITEM = "ACCOUNT_IDS_FOR_IAM_REMEDIATION_SERVICE"
+  private val ALLOWED_ACCOUNT_IDS_CONFIG_ITEM = "ALLOWED_ACCOUNT_IDS"
+  private val ANGHAMMARAD_SNS_TOPIC_ARN_CONFIG_ITEM = "ANGHAMMARAD_SNS_TOPIC_ARN"
+  private val IAM_DYNAMO_TABLE_NAME_CONFIG_ITEM = "IAM_DYNAMO_TABLE_NAME"
+  private val SECURITY_ACCOUNT_ID = "security"
+
+}

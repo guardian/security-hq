@@ -25,7 +25,7 @@ For each unrecognised user, a real (non-dry-run) execution:
 - sends an **Anghammarad notification** to the relevant team via the configured SNS topic.
 
 It also publishes reaper execution-status metrics (success/failure counts) to the `SecurityHQ` CloudWatch namespace,
-defined in [`Cloudwatch`](../core/src/main/scala/logging/Cloudwatch.scala).
+defined in [`Cloudwatch`](../core/src/main/scala/com/gu/shq/logging/Cloudwatch.scala).
 
 <!-- alex ignore disable-disabled -->
 The two metric names are `IamDisableAccessKey` (for the access-key step) and `IamRemovePassword` (for the password
@@ -50,7 +50,7 @@ environment variables (matching the Play app).
 
 ## Running locally
 
-The lambda has a [main](src/main/scala/unrecognised/Main.scala) entrypoint to allow it to be run locally 
+The lambda has a [main](src/main/scala/com/gu/shq/unrecognisedusers/Cli.scala) entrypoint to allow it to be run locally 
 for functional testing.
 
 ```sh
