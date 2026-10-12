@@ -4,54 +4,27 @@ import com.gu.shq.aws.AwsClient
 import com.gu.shq.config.CoreConfig
 import com.gu.shq.config.CoreConfig.{daysBetweenFinalNotificationAndRemediation, daysBetweenWarningAndFinalNotification}
 import com.gu.shq.db.IamRemediationDb
-import com.gu.shq.model.{
-  AccessKey,
-  AccessKeyDisabled,
-  AccessKeyEnabled,
-  AwsAccount,
-  CredentialActive,
-  CredentialMetadata,
-  CredentialReportDisplay,
-  FinalWarning,
-  Green,
-  HumanUser,
-  IamRemediationActivity,
-  IamRemediationActivityType,
-  IamUserRemediationHistory,
-  MachineUser,
-  NoKey,
-  OutdatedCredential,
-  Remediation,
-  RemediationOperation,
-  Tag,
-  Warning
-}
+import com.gu.shq.model.*
+import com.gu.shq.outdatedcredentials.IamOutdatedCredentials
 import com.gu.shq.outdatedcredentials.IamOutdatedCredentials.*
+import com.gu.shq.utils.attempt.{Attempt, AttemptValues}
 import org.joda.time.DateTime
 import org.scalatest.Inside.inside
 import org.scalatest.OptionValues
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
-import com.gu.shq.outdatedcredentials.IamOutdatedCredentials
-import com.gu.shq.utils.attempt.{Attempt, AttemptValues}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.iam.IamAsyncClient
-import software.amazon.awssdk.services.iam.model.{
-  AccessKeyMetadata,
-  ListAccessKeysRequest,
-  ListAccessKeysResponse,
-  StatusType,
-  UpdateAccessKeyResponse
-}
+import software.amazon.awssdk.services.iam.model.{AccessKey => _, Tag => _, *}
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.{PublishRequest, PublishResponse}
 
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class IamOutdatedCredentialsTest extends AnyFreeSpec with Matchers with OptionValues with AttemptValues {
   val date = new DateTime(2021, 1, 1, 1, 1)

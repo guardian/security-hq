@@ -2,14 +2,17 @@ package com.gu.shq.unrecognisedusers
 
 import software.amazon.awssdk.regions.Region
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
 /** Local entrypoint for running the unrecognised-users job outside lambda.
   *
-  * Configuration is hardcoded to appropriate values for running locally; edit them if needed for your specific usecase.
+  * Configuration is hardcoded to appropriate values for running locally; edit them if needed for your specific use
+  * case.
   */
 @main def runUnrecognisedUsers(): Unit = {
+  given ExecutionContext = ExecutionContext.global
+
   val settings = Settings(
     dryRun = true,
     configBucket = "security-dist",

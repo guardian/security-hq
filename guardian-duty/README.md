@@ -33,7 +33,8 @@ The project includes a CLI entry point that reads an EventBridge event from a fi
 ### Run with a sample event file
 
 ```sh
-sbt "run src/test/resources/test-events/sample-guardduty-event.json"
+# using the default fixture file
+sbt guardianDuty/run
 ```
 
 ### Run with a custom event
@@ -41,7 +42,10 @@ sbt "run src/test/resources/test-events/sample-guardduty-event.json"
 Create a JSON file that follows the EventBridge envelope format and pass it as an argument:
 
 ```sh
-sbt "run /path/to/my-event.json"
+# running with an existing file
+sbt "guardianDuty/run /path/to/my-event.json"
+# or, reading from stdin
+sbt "guardianDuty/run -"
 ```
 
 The expected JSON shape is:
