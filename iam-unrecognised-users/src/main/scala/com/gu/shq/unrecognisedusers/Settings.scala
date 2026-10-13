@@ -24,3 +24,29 @@ case class Settings(
     region: Region,
     timeout: FiniteDuration
 )
+
+object Settings {
+  def fromEnvironment(env: Map[String, String], timeout: FiniteDuration): Settings = {
+    def required(key: String): String = env.getOrElse(
+      key,
+      throw new RuntimeException(s"Missing required environment variable $key")
+    )
+
+    Settings(
+      dryRun = env.getOrElse(DRY_RUN, "true").toBoolean,
+      configBucket = required(CONFIG_BUCKET),
+      configKey = required(CONFIG_KEY),
+      janusBucket = required(IAM_UNRECOGNISED_USER_S3_BUCKET),
+      janusKey = required(IAM_UNRECOGNISED_USER_S3_KEY),
+      region = Region.of(env.getOrElse(REGION, "eu-west-1")),
+      timeout = timeout
+    )
+  }
+
+  private val DRY_RUN = "DRY_RUN"
+  private val CONFIG_BUCKET = "CONFIG_BUCKET"
+  private val CONFIG_KEY = "CONFIG_KEY"
+  private val IAM_UNRECOGNISED_USER_S3_BUCKET = "IAM_UNRECOGNISED_USER_S3_BUCKET"
+  private val IAM_UNRECOGNISED_USER_S3_KEY = "IAM_UNRECOGNISED_USER_S3_KEY"
+  private val REGION = "REGION"
+}
