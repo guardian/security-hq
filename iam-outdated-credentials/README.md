@@ -26,8 +26,8 @@ On each invocation the job:
    repeat it.
 8. Sends an Anghammarad notification for each warning/final warning/remediation, and publishes reaper metrics to
    CloudWatch.
-9. <!-- alex ignore disable-disabled -->When `DRY_RUN` is enabled (the default), remediation is only logged — no access keys are actually disabled, though
-   warning/final-warning notifications are still sent.
+9. When `DRY_RUN` is enabled (the default), remediation is only logged — no access keys are actually
+   <!-- alex ignore disable-disabled -->disabled or warning/final-warning notifications sent.
 
 ## Output
 
@@ -51,8 +51,7 @@ The metric name is `IamDisableOutdatedKeys`.
 
 ## Configuration
 
-Configuration is provided via environment variables. Deployment is not yet wired up; once it is, these will be set by
-the Security HQ CDK stack (`cdk/lib/security-hq.ts`):
+Configuration is provided via environment variables set by the [Security HQ CDK stack](../cdk/lib/security-hq.ts).
 
 | Variable        | Default      | Description                                                                   |
 |-----------------|--------------|-------------------------------------------------------------------------------|
@@ -93,7 +92,7 @@ Use `janus` to assume the role before running so that a `security` profile is av
 ### Database
 
 The expected database for DEV is a local DynamoDB, which can be started with the provided docker compose file.
-The DynamoDB for PROD is defined in the [security HQ stack](/cdk/lib/security-hq.ts)
+The DynamoDB for PROD is defined in the [security HQ stack](../cdk/lib/security-hq.ts).
 
 ## Troubleshooting
 
