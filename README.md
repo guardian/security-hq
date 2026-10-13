@@ -50,7 +50,7 @@ to assume roles in real accounts.
    ```
 
 ### Running locally
-1. See lambda documentation
+See documentation for each lambda, in their respective directories.
 
 ### Adding additional AWS accounts for local development
 When running Security HQ locally, you can modify the list of AWS accounts to include additional accounts.

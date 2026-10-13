@@ -995,7 +995,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             "STAGE": "PROD",
           },
         },
-        "Handler": "com.gu.guardianduty.Lambda::handleRequest",
+        "Handler": "com.gu.shq.guardianduty.Lambda::handleRequest",
         "LoggingConfig": {
           "LogFormat": "JSON",
         },
@@ -1200,7 +1200,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             "STAGE": "PROD",
           },
         },
-        "Handler": "logic.IamOutdatedCredentialsLambda::handleRequest",
+        "Handler": "com.gu.shq.outdatedcredentials.Lambda::handleRequest",
         "LoggingConfig": {
           "LogFormat": "JSON",
         },
@@ -1593,7 +1593,7 @@ exports[`HQ stack matches the snapshot 1`] = `
             "STAGE": "PROD",
           },
         },
-        "Handler": "unrecognised.Handler::handleRequest",
+        "Handler": "com.gu.shq.unrecognisedusers.Lambda::handleRequest",
         "LoggingConfig": {
           "LogFormat": "JSON",
         },
