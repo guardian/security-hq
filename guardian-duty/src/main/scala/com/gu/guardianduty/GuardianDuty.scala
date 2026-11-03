@@ -94,7 +94,8 @@ object GuardianDuty {
       message = message,
       actions = actions,
       target = List(
-        GithubTeamSlug("devx-security")
+        GithubTeamSlug("devx-security"),
+        AwsAccount(finding.accountId)
       ),
       channel = Preferred(HangoutsChat),
       sourceSystem = "guardian-duty",
