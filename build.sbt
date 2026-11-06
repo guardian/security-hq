@@ -16,7 +16,7 @@ ThisBuild / scalacOptions ++= Seq(
 resolvers += DefaultMavenRepository
 
 val awsLambdaVersion = "1.4.0"
-val awsSdkVersion = "2.55.4"
+val awsSdkVersion = "2.55.16"
 
 /*
  * To test whether any of these entries are redundant:
